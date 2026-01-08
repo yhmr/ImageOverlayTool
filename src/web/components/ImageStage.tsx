@@ -35,7 +35,7 @@ export const ImageStage = memo(function ImageStage() {
     if (stageRef.current) {
       stageRef.current.draggable(true);
     }
-    // 右クリックかつStageのクリックだった場合、選択を解除
+    // 左クリックかつStageのクリックだった場合、選択を解除
     if (e.evt.button === 0 && e.target.getType() === "Stage") {
       setSelectedImageId(null);
     }
@@ -119,6 +119,26 @@ export const ImageStage = memo(function ImageStage() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [handleResize]);
+
+  useEffect(() => {
+    // ドラッグ終了時にドラッグ無効化
+    const stage = stageRef.current;
+    if (stage) {
+      stage.on("dragend", () => {
+        stage.draggable(false);
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    // 選択画像が削除された場合、選択解除
+    if (
+      selectedImageId &&
+      !imageSets.find((imageSet) => imageSet.id === selectedImageId)
+    ) {
+      setSelectedImageId(null);
+    }
+  }, [imageSets, selectedImageId]);
 
   return (
     <>

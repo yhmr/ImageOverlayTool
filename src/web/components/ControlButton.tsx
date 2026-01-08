@@ -28,6 +28,9 @@ export const ControlButton = memo(function ControlButton(
   const transparency = selectedImageSet?.transparency;
   const onChangeTransparency = useCallback(
     (event: Event, value: number | number[]) => {
+      if (!selectedImageId || !selectedImageSet) return;
+      if (typeof value !== "number") return;
+
       // ImageSetの透過度を更新
       const newImageSet = { ...selectedImageSet };
       newImageSet.transparency = value as number;
@@ -56,7 +59,7 @@ export const ControlButton = memo(function ControlButton(
               <Slider
                 max={1}
                 min={0}
-                value={transparency}
+                value={transparency ?? 0}
                 step={0.01}
                 aria-label="Default"
                 valueLabelDisplay="auto"
