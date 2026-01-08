@@ -35,7 +35,7 @@ export const ImageStage = memo(function ImageStage() {
     if (stageRef.current) {
       stageRef.current.draggable(true);
     }
-    // 右クリックかつStageのクリックだった場合、選択を解除
+    // 左クリックかつStageのクリックだった場合、選択を解除
     if (e.evt.button === 0 && e.target.getType() === "Stage") {
       setSelectedImageId(null);
     }
