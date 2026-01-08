@@ -1,0 +1,47 @@
+{
+  "main": {},
+  "render": {
+    "menu": {
+      "load_image": "画像読み込み",
+      "settings": "設定",
+      "exit": "終了"
+    },
+    "menu_button": {
+      "app_title": "ImageOverlayTool",
+      "tooltip": {
+        "menu": "メニュー",
+        "maximize": "ウィンドウ最大化",
+        "unmaximize": "ウィンドウを戻す（縮小）",
+        "close": "閉じる"
+      }
+    },
+    "context_menu": {
+      "color_picker": "ウィンドウ背景のカラー設定"
+    },
+    "control_button": {
+      "tooltip": {
+        "image_transparency": "画像の透過度",
+        "dimension_line": "寸法線の描画"
+      }
+    },
+    "image_setting_dlg": {
+      "title": "画像設定",
+      "done": "完了",
+      "tooltip": {
+        "load_image": "画像の読み込み",
+        "delete_image": "画像削除",
+        "add": "新規追加"
+      }
+    },
+    "setting_dlg": {
+      "title": "設定",
+      "done": "完了",
+      "language": "言語",
+      "unit_factor": "um per pix",
+      "helper": {
+        "language": "UIで使用する言語を変更します",
+        "unit_factor": "寸法線の描画で利用します"
+      }
+    }
+  }
+}

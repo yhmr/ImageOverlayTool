@@ -1,0 +1,47 @@
+{
+  "main": {},
+  "render": {
+    "menu": {
+      "load_image": "Load Image",
+      "settings": "Settings",
+      "exit": "Exit"
+    },
+    "menu_button": {
+      "app_title": "ImageOverlayTool",
+      "tooltip": {
+        "menu": "menu",
+        "maximize": "window maximization",
+        "unmaximize": "window unmaximization",
+        "close": "close"
+      }
+    },
+    "context_menu": {
+      "color_picker": "background color"
+    },
+    "control_button": {
+      "tooltip": {
+        "image_transparency": "image transparency",
+        "dimension_line": "draw dimension line"
+      }
+    },
+    "image_setting_dlg": {
+      "title": "Image Setting",
+      "done": "DONE",
+      "tooltip": {
+        "load_image": "Load Image",
+        "delete_image": "Delete Image",
+        "add": "Add"
+      }
+    },
+    "setting_dlg": {
+      "title": "Setting",
+      "done": "DONE",
+      "language": "language",
+      "unit_factor": "um per pix",
+      "helper": {
+        "language": "Change the language used in the UI",
+        "unit_factor": "Used for drawing dimension lines"
+      }
+    }
+  }
+}

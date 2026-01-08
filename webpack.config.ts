@@ -1,0 +1,75 @@
+import { Configuration } from "webpack";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import LicensePlugin from "webpack-license-plugin";
+
+const noWatch = process.env.NO_WATCH === "true";
+const isDev = process.env.NODE_ENV === "development";
+
+const common: Configuration = {
+  mode: isDev ? "development" : "production",
+  resolve: {
+    extensions: [".js", ".ts", ".jsx", ".tsx", ".json"],
+  },
+  externals: ["fsevents"],
+  output: {
+    publicPath: "./",
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        loader: "ts-loader",
+      },
+      {
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
+      },
+      {
+        test: /\.(ico|png|jpe?g|svg|eot|woff?2?)$/,
+        type: "asset/resource",
+      },
+    ],
+  },
+  watch: isDev && !noWatch,
+  devtool: isDev ? "inline-source-map" : undefined,
+};
+
+const main: Configuration = {
+  ...common,
+  target: "electron-main",
+  entry: {
+    main: "./src/main.ts",
+  },
+};
+
+const preload: Configuration = {
+  ...common,
+  target: "electron-preload",
+  entry: {
+    preload: "./src/preload.ts",
+  },
+};
+
+const renderer: Configuration = {
+  ...common,
+  target: "web",
+  entry: {
+    app: "./src/web/App.tsx",
+  },
+  plugins: [
+    new MiniCssExtractPlugin(),
+    new HtmlWebpackPlugin({
+      template: "./src/web/index.html",
+    }),
+    new LicensePlugin({
+      outputFilename: "thirdPartyNotice.json",
+      unacceptableLicenseTest: (licenseIdentifier) => {
+        return ["GPL", "AGPL", "LGPL", "NGPL"].includes(licenseIdentifier);
+      },
+    }),
+  ],
+};
+
+export default isDev ? renderer : [main, preload, renderer];

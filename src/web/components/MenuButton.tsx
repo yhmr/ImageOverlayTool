@@ -1,0 +1,155 @@
+import React, { memo, useCallback, useState } from "react";
+
+import { useTranslation } from "react-i18next";
+
+import {
+  AppBar,
+  IconButton,
+  Toolbar,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import CloseIcon from "@mui/icons-material/Close";
+
+import { ImageSettingDialog } from "./ImageSettingDialog";
+import { SettingDialog } from "./SettingDialog";
+import { MenuContext } from "./MenuContext";
+
+interface ipcWindow extends Window {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  electronAPI: any;
+}
+declare const window: ipcWindow;
+
+export const MenuButton = memo(function MenuButton() {
+  const { t } = useTranslation();
+
+  // メニュー表示関連
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const handleMenuClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setAnchorEl(event.currentTarget);
+    },
+    []
+  );
+  const handleMenuClose = useCallback(() => {
+    setAnchorEl(null);
+  }, []);
+
+  // スクリーンサイズ
+  const [full, setFull] = useState(false);
+  const handleSwitchFullScreen = useCallback(async () => {
+    const res = await window.electronAPI.switchWindowSize();
+    setFull(res);
+  }, []);
+
+  // ImageSettingDialog関連
+  const [openImageSettingDlg, setOpenImageSettingDlg] = useState(true);
+  const handleImageSettingDlgOpen = useCallback(() => {
+    setOpenImageSettingDlg(true);
+  }, []);
+  const handleImageSettingDlgClose = useCallback(() => {
+    setOpenImageSettingDlg(false);
+  }, []);
+
+  // SettingDialog関連
+  const [openSettingDlg, setOpenSettingDlg] = useState(false);
+  const handleSettingDlgOpen = useCallback(() => {
+    setOpenSettingDlg(true);
+  }, []);
+  const handleSettingDlgClose = useCallback(() => {
+    setOpenSettingDlg(false);
+  }, []);
+
+  // Windowを閉じる
+  const handleCloseWindow = useCallback(() => {
+    window.electronAPI.closeWindow();
+  }, []);
+
+  return (
+    <>
+      <AppBar position="fixed">
+        <Toolbar
+          sx={{
+            WebkitAppRegion: "drag",
+          }}
+        >
+          {/* メニューボタン */}
+          <Tooltip title={t("render.menu_button.tooltip.menu")}>
+            <IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              onClick={handleMenuClick}
+              aria-controls={openMenu ? "main-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={openMenu ? "true" : undefined}
+              sx={{ mr: 2, WebkitAppRegion: "no-drag" }}
+            >
+              <MenuIcon fontSize="large" />
+            </IconButton>
+          </Tooltip>
+          {/* タイトル */}
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            {t("render.menu_button.app_title")}
+          </Typography>
+          {/* 最大最小化 */}
+          <Tooltip
+            title={
+              full
+                ? t("render.menu_button.tooltip.unmaximize")
+                : t("render.menu_button.tooltip.maximize")
+            }
+          >
+            <IconButton
+              size="large"
+              color="inherit"
+              onClick={handleSwitchFullScreen}
+              sx={{ WebkitAppRegion: "no-drag" }}
+            >
+              {full ? (
+                <FullscreenExitIcon fontSize="large" />
+              ) : (
+                <FullscreenIcon fontSize="large" />
+              )}
+            </IconButton>
+          </Tooltip>
+          {/* ウィンドウ閉じる */}
+          <Tooltip title={t("render.menu_button.tooltip.close")}>
+            <IconButton
+              size="large"
+              color="inherit"
+              onClick={handleCloseWindow}
+              sx={{ mr: -1, WebkitAppRegion: "no-drag" }}
+            >
+              <CloseIcon fontSize="large" />
+            </IconButton>
+          </Tooltip>
+        </Toolbar>
+      </AppBar>
+
+      {/* 画像設定ダイアログ */}
+      <ImageSettingDialog
+        open={openImageSettingDlg}
+        handleClose={handleImageSettingDlgClose}
+      />
+      <SettingDialog
+        open={openSettingDlg}
+        handleClose={handleSettingDlgClose}
+      />
+      {/* ポップアップメニュー */}
+      <MenuContext
+        anchorEl={anchorEl}
+        openMenu={openMenu}
+        handleMenuClose={handleMenuClose}
+        handleImageSettingDlgOpen={handleImageSettingDlgOpen}
+        handleSettingDlgOpen={handleSettingDlgOpen}
+        handleCloseWindow={handleCloseWindow}
+      />
+    </>
+  );
+});
