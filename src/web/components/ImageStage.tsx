@@ -120,6 +120,15 @@ export const ImageStage = memo(function ImageStage() {
     return () => window.removeEventListener("resize", handleResize);
   }, [handleResize]);
 
+  useEffect(() => {
+    // ドラッグ終了時にドラッグ無効化
+    const stage = stageRef.current;
+    if (stage) {
+      stage.on("dragend", () => {
+        stage.draggable(false);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     // 選択画像が削除された場合、選択解除
