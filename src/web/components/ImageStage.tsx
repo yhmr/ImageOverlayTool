@@ -120,6 +120,17 @@ export const ImageStage = memo(function ImageStage() {
     return () => window.removeEventListener("resize", handleResize);
   }, [handleResize]);
 
+
+  useEffect(() => {
+    // 選択画像が削除された場合、選択解除
+    if (
+      selectedImageId &&
+      !imageSets.find((imageSet) => imageSet.id === selectedImageId)
+    ) {
+      setSelectedImageId(null);
+    }
+  }, [imageSets, selectedImageId]);
+
   return (
     <>
       <Stage
