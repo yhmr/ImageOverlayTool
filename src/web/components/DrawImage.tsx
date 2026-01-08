@@ -270,9 +270,11 @@ export const DrawImage = (props: DrawImageProps) => {
       const cnv = canvasRef.current;
       // Left/Topは左上固定
       cnv.style.position = "absolute";
-      const { right, bottom } = GetAreaProfile();
-      cnv.width = right;
-      cnv.height = bottom;
+      const { left, top, right, bottom } = GetAreaProfile();
+      cnv.width = right - left;
+      cnv.height = bottom - top;
+      cnv.style.left = `${left}px`;
+      cnv.style.top = `${top}px`;
       cnv.style.zIndex = "0";
       cnv.style.pointerEvents = "none";
       const ctx = cnv.getContext("2d");
@@ -282,14 +284,14 @@ export const DrawImage = (props: DrawImageProps) => {
         // 変形後の図形を記述
         const p = new Perspective(ctx, image);
         p.draw({
-          topLeftX: imageSet.current_anchor_pos.lt.x,
-          topLeftY: imageSet.current_anchor_pos.lt.y,
-          topRightX: imageSet.current_anchor_pos.rt.x,
-          topRightY: imageSet.current_anchor_pos.rt.y,
-          bottomRightX: imageSet.current_anchor_pos.rb.x,
-          bottomRightY: imageSet.current_anchor_pos.rb.y,
-          bottomLeftX: imageSet.current_anchor_pos.lb.x,
-          bottomLeftY: imageSet.current_anchor_pos.lb.y,
+          topLeftX: imageSet.current_anchor_pos.lt.x - left,
+          topLeftY: imageSet.current_anchor_pos.lt.y - top,
+          topRightX: imageSet.current_anchor_pos.rt.x - left,
+          topRightY: imageSet.current_anchor_pos.rt.y - top,
+          bottomRightX: imageSet.current_anchor_pos.rb.x - left,
+          bottomRightY: imageSet.current_anchor_pos.rb.y - top,
+          bottomLeftX: imageSet.current_anchor_pos.lb.x - left,
+          bottomLeftY: imageSet.current_anchor_pos.lb.y - top,
         });
       }
     }
