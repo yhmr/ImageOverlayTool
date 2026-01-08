@@ -160,10 +160,10 @@ ipcMain.handle("setting:load", async () => {
  * [IPC] 設定の保存
  */
 ipcMain.handle("setting:save", async (event, arg: SettingType) => {
-  if (arg.language) {
+  if (arg.language !== undefined) {
     store.set("setting.language", arg.language);
   }
-  if (arg.unit_factor) {
+  if (typeof arg.unit_factor === "number") {
     store.set("setting.unit_factor", arg.unit_factor);
   }
 });
