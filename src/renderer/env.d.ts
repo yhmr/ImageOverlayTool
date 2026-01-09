@@ -1,5 +1,5 @@
 // src/renderer/src/env.d.ts
-import { SettingType } from "../../preload/index";
+import { SettingType } from "../preload/index";
 
 // 1. APIのインターフェースを定義
 interface IElectronAPI {
