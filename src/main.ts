@@ -2,7 +2,6 @@ import path from "path";
 import {
   BrowserWindow,
   app,
-  session,
   Menu,
   ipcMain,
   dialog,
