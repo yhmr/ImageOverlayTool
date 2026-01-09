@@ -21,6 +21,11 @@ import Store from "electron-store";
 import { SettingType } from "../preload/index";
 import { calcCenterPosition } from "../utils/calcCenterPosition";
 
+// 開発中のみ、外部からのデバッグ接続(9222)を許可する
+if (!app.isPackaged) {
+  app.commandLine.appendSwitch("remote-debugging-port", "9222");
+}
+
 let mainWindow: BrowserWindow;
 // 設定ファイル
 interface StoreType {
@@ -62,6 +67,8 @@ app.whenReady().then(() => {
     height: size[1],
     x: pos[0],
     y: pos[1],
+    frame: false,
+    autoHideMenuBar: true,
     titleBarStyle: "hidden",
     transparent: true,
     webPreferences: {
@@ -114,6 +121,83 @@ app.whenReady().then(() => {
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools({ mode: "detach" });
   }
+
+  /**
+   * [IPC] 指定ファイルの内容を返却
+   */
+  ipcMain.handle("dialog:openFile", async () => {
+    // ファイルを選択
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      buttonLabel: "Open", // 確認ボタンのラベル
+      filters: [{ name: "Text", extensions: ["jpg", "jpeg", "png"] }],
+      properties: [
+        "openFile", // ファイルの選択を許可
+        "createDirectory", // ディレクトリの作成を許可 (macOS)
+      ],
+    });
+
+    if (canceled) {
+      return;
+    } else {
+      return filePaths[0];
+    }
+  });
+
+  /**
+   * [IPC] Windowサイズを切り替え
+   */
+  ipcMain.handle("window:switchSize", async () => {
+    if (!mainWindow.isMaximized()) {
+      mainWindow.maximize();
+      return true;
+    } else {
+      mainWindow.unmaximize();
+      return false;
+    }
+  });
+
+  /**
+   * [IPC] Windowを閉じる
+   */
+  ipcMain.handle("window:close", async () => {
+    app.quit();
+  });
+
+  /**
+   * [IPC] 設定の読み込み
+   */
+  ipcMain.handle("setting:load", async () => {
+    return {
+      language: store.get("setting.language", "en"),
+      unit_factor: store.get("setting.unit_factor", 1),
+    };
+  });
+
+  /**
+   * [IPC] 設定の保存
+   */
+  ipcMain.handle("setting:save", async (event, arg: SettingType) => {
+    if (arg.language !== undefined) {
+      store.set("setting.language", arg.language);
+    }
+    if (typeof arg.unit_factor === "number") {
+      store.set("setting.unit_factor", arg.unit_factor);
+    }
+  });
+
+  /**
+   * [IPC] ウィンドウ色の読み込み
+   */
+  ipcMain.handle("window_color:load", async () => {
+    return store.get("window.color", "#FFFFFF55");
+  });
+
+  /**
+   * [IPC] ウィンドウ色の保存
+   */
+  ipcMain.handle("window_color:save", async (event, color: string) => {
+    store.set("window.color", color);
+  });
 });
 
 app.once("window-all-closed", () => app.quit());
@@ -128,80 +212,3 @@ function getDefaultCenterPosition() {
     { width: DEFAULT_SIZE.width, height: DEFAULT_SIZE.height }
   );
 }
-
-/**
- * [IPC] 指定ファイルの内容を返却
- */
-ipcMain.handle("dialog:openFile", async () => {
-  // ファイルを選択
-  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
-    buttonLabel: "Open", // 確認ボタンのラベル
-    filters: [{ name: "Text", extensions: ["jpg", "jpeg", "png"] }],
-    properties: [
-      "openFile", // ファイルの選択を許可
-      "createDirectory", // ディレクトリの作成を許可 (macOS)
-    ],
-  });
-
-  if (canceled) {
-    return;
-  } else {
-    return filePaths[0];
-  }
-});
-
-/**
- * [IPC] Windowサイズを切り替え
- */
-ipcMain.handle("window:switchSize", async () => {
-  if (!mainWindow.isMaximized()) {
-    mainWindow.maximize();
-    return true;
-  } else {
-    mainWindow.unmaximize();
-    return false;
-  }
-});
-
-/**
- * [IPC] Windowを閉じる
- */
-ipcMain.handle("window:close", async () => {
-  app.quit();
-});
-
-/**
- * [IPC] 設定の読み込み
- */
-ipcMain.handle("setting:load", async () => {
-  return {
-    language: store.get("setting.language", "en"),
-    unit_factor: store.get("setting.unit_factor", 1),
-  };
-});
-
-/**
- * [IPC] 設定の保存
- */
-ipcMain.handle("setting:save", async (event, arg: SettingType) => {
-  if (arg.language !== undefined) {
-    store.set("setting.language", arg.language);
-  }
-  if (typeof arg.unit_factor === "number") {
-    store.set("setting.unit_factor", arg.unit_factor);
-  }
-});
-
-/**
- * [IPC] ウィンドウ色の読み込み
- */
-ipcMain.handle("window_color:load", async () => {
-  return store.get("window.color", "#FFFFFF55");
-});
-
-/**
- * [IPC] ウィンドウ色の保存
- */
-ipcMain.handle("window_color:save", async (event, color: string) => {
-  store.set("window.color", color);
-});
