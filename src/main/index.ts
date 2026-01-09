@@ -158,7 +158,7 @@ ipcMain.handle("window:switchSize", async () => {
 });
 
 /**
- * [IPC] Windowサイズを切り替え
+ * [IPC] Windowを閉じる
  */
 ipcMain.handle("window:close", async () => {
   app.quit();

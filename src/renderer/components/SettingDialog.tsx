@@ -103,7 +103,7 @@ export const SettingDialog = memo(function SettingDialog(
           <TextField
             type="number"
             label={t("render.setting_dlg.unit_factor")}
-            defaultValue={umPix}
+            value={umPix}
             onChange={handleUmPixChange}
             inputProps={{ readOnly: false }}
             sx={{
