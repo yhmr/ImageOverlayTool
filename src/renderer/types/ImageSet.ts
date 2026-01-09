@@ -1,5 +1,6 @@
 import { AnchorPos } from "./AnchorPos";
 
+// 画像セットの型
 export interface ImageSet {
   // id
   id: string;

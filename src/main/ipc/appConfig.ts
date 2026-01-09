@@ -1,9 +1,10 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
 import Store from "electron-store";
+import type { AppConfig, SettingType } from "../../renderer/types/AppConfig";
 
-export const registerSettingsHandlers = (
+export const registerAppConfigHandlers = (
   mainWindow: BrowserWindow,
-  store: Store<any>
+  store: Store<AppConfig>
 ) => {
   /**
    * [IPC] 指定ファイルの内容を返却

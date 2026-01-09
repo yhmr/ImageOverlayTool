@@ -2,7 +2,7 @@ import React, { memo, useCallback } from "react";
 
 import { ColorResult, SketchPicker } from "react-color";
 
-import { Point } from "../types/ImageSet";
+import type { Point } from "../types/Point";
 
 interface ColorPickerProps {
   open: boolean;

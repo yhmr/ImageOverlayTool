@@ -1,19 +1,21 @@
 import path from "path";
-import { BrowserWindow, app, Menu, screen, protocol, net } from "electron";
+import { BrowserWindow, app, Menu } from "electron";
 import {
   installExtension,
   REDUX_DEVTOOLS,
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
-import { pathToFileURL } from "url";
 import { join } from "path";
 import { is } from "@electron-toolkit/utils";
-import Store from "electron-store";
 
 import { registerWindowHandlers } from "./ipc/window";
-import { registerSettingsHandlers } from "./ipc/settings";
-import { calcCenterPosition } from "./utils/calcCenterPosition";
-import { registerLocalResourceProtocol, setupProtocolHandler } from "./ipc/protocol";
+import { registerAppConfigHandlers } from "./ipc/appConfig";
+import {
+  registerLocalResourceProtocol,
+  setupProtocolHandler,
+} from "./ipc/protocol";
+import { CreateConfigStore } from "./config/configLoader";
+import { getWindowPositionAndSize } from "./config/configLoader";
 
 // 開発中のみ、外部からのデバッグ接続(9222)を許可する
 if (!app.isPackaged) {
@@ -21,28 +23,9 @@ if (!app.isPackaged) {
 }
 
 let mainWindow: BrowserWindow;
+
 // 設定ファイル
-interface StoreType {
-  window: {
-    pos: Array<number>;
-    size: Array<number>;
-    color: string;
-  };
-  setting: {
-    language: string;
-    unit_factor: number;
-  };
-}
-const store = new Store<StoreType>({
-  cwd: app.getPath("userData"), // 保存先のディレクトリ
-  name: "config", // ファイル名
-  fileExtension: "json", // 拡張子
-});
-// ウィンドウのデフォルトサイズ
-const DEFAULT_SIZE = {
-  width: 800,
-  height: 600,
-};
+const store = CreateConfigStore();
 
 // Menu削除
 Menu.setApplicationMenu(null);
@@ -52,18 +35,14 @@ registerLocalResourceProtocol();
 
 app.whenReady().then(() => {
   // ウィンドウの設定読み込み or 初期化
-  const pos = store.get("window.pos", getDefaultCenterPosition());
-  const size = store.get("window.size", [
-    DEFAULT_SIZE.width,
-    DEFAULT_SIZE.height,
-  ]);
+  const { pos, size } = getWindowPositionAndSize(store);
 
   mainWindow = new BrowserWindow({
     show: false, // 初めは非表示
-    width: size[0],
-    height: size[1],
-    x: pos[0],
-    y: pos[1],
+    width: size.width,
+    height: size.height,
+    x: pos.x,
+    y: pos.y,
     titleBarStyle: "hidden",
     transparent: true,
     frame: false,
@@ -89,7 +68,7 @@ app.whenReady().then(() => {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
-
+  // 開発時はデベロッパーツールを開く
   if (is.dev) {
     installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
       .then(([redux, react]) =>
@@ -97,8 +76,12 @@ app.whenReady().then(() => {
       )
       .catch((err) => console.log("An error occurred: ", err));
   }
+  // デバッグの際はデベロッパーツールを開く
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+  }
 
-  // 閉じる
+  // ウィンドウが閉じられた際の処理
   mainWindow.on("close", () => {
     // ウィンドウ設定を保存
     store.set("window.pos", mainWindow.getPosition());
@@ -108,25 +91,10 @@ app.whenReady().then(() => {
     mainWindow.destroy();
   });
 
-  // デバッグの際はデベロッパーツールを開く
-  if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools({ mode: "detach" });
-  }
-
   // IPCハンドラ登録
   registerWindowHandlers(mainWindow);
-  registerSettingsHandlers(mainWindow, store);
+  registerAppConfigHandlers(mainWindow, store);
 });
 
+// アプリケーションが閉じられた際の処理
 app.once("window-all-closed", () => app.quit());
-
-/**
- * ウィンドウの中央の座標を返却
- */
-function getDefaultCenterPosition() {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  return calcCenterPosition(
-    { width, height },
-    { width: DEFAULT_SIZE.width, height: DEFAULT_SIZE.height }
-  );
-}

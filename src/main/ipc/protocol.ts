@@ -1,6 +1,6 @@
 // src/main/protocol.ts
-import { protocol, net } from 'electron';
-import { pathToFileURL } from 'url';
+import { protocol, net } from "electron";
+import { pathToFileURL } from "url";
 
 /**
  * カスタムプロトコルの登録
@@ -8,15 +8,15 @@ import { pathToFileURL } from 'url';
 export function registerLocalResourceProtocol() {
   // 1. 特権スキームの登録（app.whenReadyの前に呼ぶ必要があるため別関数にする）
   protocol.registerSchemesAsPrivileged([
-    { 
-      scheme: 'local-file', 
-      privileges: { 
-        standard: true, 
-        secure: true, 
-        supportFetchAPI: true, 
-        bypassCSP: true 
-      } 
-    }
+    {
+      scheme: "local-file",
+      privileges: {
+        standard: true,
+        secure: true,
+        supportFetchAPI: true,
+        bypassCSP: true,
+      },
+    },
   ]);
 }
 
@@ -30,15 +30,16 @@ export function setupProtocolHandler() {
     let decodedPath = decodeURIComponent(urlPath);
 
     // 2. OSごとのパス修復（Windows/Linux両対応）
-    if (process.platform === 'win32') {
-      // Windows: c/Users -> C:/Users 
+    if (process.platform === "win32") {
+      // Windows: c/Users -> C:/Users
       if (decodedPath.match(/^[a-zA-Z]\//)) {
-        decodedPath = decodedPath.charAt(0).toUpperCase() + ":" + decodedPath.substring(1);
+        decodedPath =
+          decodedPath.charAt(0).toUpperCase() + ":" + decodedPath.substring(1);
       }
     } else {
       // Linux/macOS: 先頭がスラッシュでなければ補完
-      if (!decodedPath.startsWith('/')) {
-        decodedPath = '/' + decodedPath;
+      if (!decodedPath.startsWith("/")) {
+        decodedPath = "/" + decodedPath;
       }
     }
 

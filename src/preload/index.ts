@@ -1,9 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-
-export interface SettingType {
-  language?: string;
-  unit_factor?: number;
-}
+import type { SettingType } from "../../renderer/types/AppConfig";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   openFile: () => ipcRenderer.invoke("dialog:openFile"),

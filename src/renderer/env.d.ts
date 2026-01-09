@@ -1,4 +1,4 @@
-import { SettingType } from "../preload/index";
+import type { SettingType } from "./types/AppConfig";
 
 // APIのインターフェースを定義
 interface IElectronAPI {
