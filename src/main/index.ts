@@ -57,6 +57,7 @@ app.whenReady().then(() => {
   ]);
 
   mainWindow = new BrowserWindow({
+    show: false, // 初めは非表示
     width: size[0],
     height: size[1],
     x: pos[0],
@@ -70,6 +71,11 @@ app.whenReady().then(() => {
       sandbox: false,
       webSecurity: true,
     },
+  });
+
+  //　準備が出来た時点で表示
+  mainWindow.on("ready-to-show", () => {
+    mainWindow.show();
   });
 
   // 画像ロード用に'local-file' というカスタムプロトコルを登録
