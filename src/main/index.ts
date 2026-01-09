@@ -73,7 +73,7 @@ app.whenReady().then(() => {
     },
   });
 
-  //　準備が出来た時点で表示
+  // 準備が出来た時点で表示
   mainWindow.on("ready-to-show", () => {
     mainWindow.show();
   });

@@ -1,7 +1,6 @@
-// src/renderer/src/env.d.ts
 import { SettingType } from "../preload/index";
 
-// 1. APIのインターフェースを定義
+// APIのインターフェースを定義
 interface IElectronAPI {
   openFile: () => Promise<string | undefined>;
   switchWindowSize: () => Promise<boolean>;
@@ -12,7 +11,7 @@ interface IElectronAPI {
   saveWindowColor: (color: string) => Promise<void>;
 }
 
-// 2. 既存の Window オブジェクトを拡張
+// 既存の Window オブジェクトを拡張
 declare global {
   interface Window {
     electronAPI: IElectronAPI;

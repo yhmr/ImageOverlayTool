@@ -14,7 +14,10 @@ import { Html } from "react-konva-utils";
 
 import Perspective from "perspectivets";
 
-import { AnchorPos, ImageSet, Point } from "../types/ImageSet";
+import { ImageSet } from "../types/ImageSet";
+import { AnchorPos, Point } from "../types/AnchorPos";
+
+import { calculateMovedAnchors, getBoundingBox } from "../utils/anchorUtils";
 
 // Konva.Imageはperspective変換に対応していないため、
 // Canvas要素を直接Konva.Stageに埋め込む対応を取っている
@@ -87,27 +90,15 @@ export const DrawImage = (props: DrawImageProps) => {
     (e: Konva.KonvaEventObject<DragEvent>) => {
       if (isSelected && imageSet.current_anchor_pos) {
         // 移動距離を計算
-        const diffX = e.target.x() - dragStartPos.x;
-        const diffY = e.target.y() - dragStartPos.y;
-
-        const newAnchor = {
-          lt: {
-            x: imageSet.current_anchor_pos.lt.x + diffX,
-            y: imageSet.current_anchor_pos.lt.y + diffY,
-          },
-          lb: {
-            x: imageSet.current_anchor_pos.lb.x + diffX,
-            y: imageSet.current_anchor_pos.lb.y + diffY,
-          },
-          rt: {
-            x: imageSet.current_anchor_pos.rt.x + diffX,
-            y: imageSet.current_anchor_pos.rt.y + diffY,
-          },
-          rb: {
-            x: imageSet.current_anchor_pos.rb.x + diffX,
-            y: imageSet.current_anchor_pos.rb.y + diffY,
-          },
+        const diff = {
+          x: e.target.x() - dragStartPos.x,
+          y: e.target.y() - dragStartPos.y,
         };
+        // 新しいアンカー位置を計算
+        const newAnchor = calculateMovedAnchors(
+          imageSet.current_anchor_pos,
+          diff
+        );
         // 親でpropを更新
         onUpdateAnchor(newAnchor);
       }
@@ -169,45 +160,6 @@ export const DrawImage = (props: DrawImageProps) => {
     [onUpdateAnchor]
   );
 
-  // anchor_posのエリア情報を取得する
-  const GetAreaProfile = useCallback(() => {
-    if (imageSet && imageSet.current_anchor_pos) {
-      const xMin = Math.min(
-        imageSet.current_anchor_pos.lt.x,
-        imageSet.current_anchor_pos.lb.x,
-        imageSet.current_anchor_pos.rt.x,
-        imageSet.current_anchor_pos.rb.x
-      );
-      const xMax = Math.max(
-        imageSet.current_anchor_pos.lt.x,
-        imageSet.current_anchor_pos.lb.x,
-        imageSet.current_anchor_pos.rt.x,
-        imageSet.current_anchor_pos.rb.x
-      );
-      const yMin = Math.min(
-        imageSet.current_anchor_pos.lt.y,
-        imageSet.current_anchor_pos.lb.y,
-        imageSet.current_anchor_pos.rt.y,
-        imageSet.current_anchor_pos.rb.y
-      );
-      const yMax = Math.max(
-        imageSet.current_anchor_pos.lt.y,
-        imageSet.current_anchor_pos.lb.y,
-        imageSet.current_anchor_pos.rt.y,
-        imageSet.current_anchor_pos.rb.y
-      );
-
-      return {
-        left: xMin,
-        top: yMin,
-        right: xMax,
-        bottom: yMax,
-      };
-    } else {
-      return { left: 0, top: 0, right: 0, bottom: 0 };
-    }
-  }, [imageSet]);
-
   // ImageSetの関連初期化
   useLayoutEffect(() => {
     // 画像読み込み完了時、初期imageSetなら
@@ -268,15 +220,20 @@ export const DrawImage = (props: DrawImageProps) => {
     if (image && imageSet.current_anchor_pos && canvasRef.current) {
       // Homography処理
       const cnv = canvasRef.current;
+
       // Left/Topは左上固定
       cnv.style.position = "absolute";
-      const { left, top, right, bottom } = GetAreaProfile();
+      const { left, top, right, bottom } = getBoundingBox(
+        imageSet.current_anchor_pos
+      );
+
       cnv.width = right - left;
       cnv.height = bottom - top;
       cnv.style.left = `${left}px`;
       cnv.style.top = `${top}px`;
       cnv.style.zIndex = "0";
       cnv.style.pointerEvents = "none";
+
       const ctx = cnv.getContext("2d", { willReadFrequently: true });
       if (ctx) {
         // クリア
@@ -299,7 +256,7 @@ export const DrawImage = (props: DrawImageProps) => {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [image, imageSet, canvasRef.current, GetAreaProfile]);
+  }, [image, imageSet, canvasRef.current]);
 
   return (
     <>
