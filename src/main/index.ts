@@ -46,6 +46,14 @@ const DEFAULT_SIZE = {
 // Menu削除
 Menu.setApplicationMenu(null);
 
+// 'local-file' プロトコルを事前登録
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "local-file",
+    privileges: { standard: true, secure: true, supportFetchAPI: true },
+  },
+]);
+
 app.whenReady().then(() => {
   // ウィンドウの設定読み込み or 初期化
   const pos = store.get("window.pos", getDefaultCenterPosition());
@@ -78,10 +86,34 @@ app.whenReady().then(() => {
   });
 
   // 画像ロード用に'local-file' というカスタムプロトコルを登録
-  protocol.handle("local-file", (request) => {
-    // URLからパス部分を取り出し、ファイルURLに変換して返す
-    const filePath = request.url.replace("local-file://", "");
-    return net.fetch(pathToFileURL(decodeURIComponent(filePath)).toString());
+  protocol.handle("local-file", (request) => { 
+    const urlPath = request.url.replace("local-file://", "");
+    // URLデコード
+    let decodedPath = decodeURIComponent(urlPath);
+
+    // OS別のパス調整
+    if (process.platform === 'win32') {
+      // Windows: c/Users -> C:/Users に変換
+      if (decodedPath.match(/^[a-zA-Z]\//)) {
+        decodedPath = decodedPath.charAt(0).toUpperCase() + ":" + decodedPath.substring(1);
+      }
+    } 
+    else {
+      // Linux/macOS: 先頭がスラッシュでなければスラッシュを足す
+      // (local-file://home/... -> home/... になっている場合があるため)
+      if (!decodedPath.startsWith('/')) {
+        decodedPath = '/' + decodedPath;
+      }
+    }
+
+    // ファイルURLに変換してfetchで読み込む
+    try {
+      const finalFileUrl = pathToFileURL(decodedPath).toString();
+      return net.fetch(finalFileUrl);
+    } catch (e) {
+      console.error("File resolve error:", e);
+      return new Response("Not Found", { status: 404 });
+    }
   });
 
   // 開発時はViteの開発サーバーURL、本番はビルドされたHTMLファイルをロード
