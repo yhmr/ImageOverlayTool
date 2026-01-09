@@ -24,7 +24,7 @@ interface ipcWindow extends Window {
 }
 declare const window: ipcWindow;
 
-export const MenuButton = memo(function MenuButton() {
+export const MenuBar = memo(function MenuBar() {
   const { t } = useTranslation();
 
   // メニュー表示関連

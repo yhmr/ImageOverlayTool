@@ -1,15 +1,13 @@
 import path from "path";
+import { BrowserWindow, app, Menu, ipcMain, dialog, screen } from "electron";
 import {
-  BrowserWindow,
-  app,
-  Menu,
-  ipcMain,
-  dialog,
-  screen,
-} from "electron";
-import { installExtension, REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
+  installExtension,
+  REDUX_DEVTOOLS,
+  REACT_DEVELOPER_TOOLS,
+} from "electron-devtools-installer";
 import Store from "electron-store";
 import { SettingType } from "./preload";
+import { calcCenterPosition } from "./utils/calcCenterPosition";
 
 const isDev = process.env.NODE_ENV === "development";
 let mainWindow: BrowserWindow;
@@ -53,7 +51,7 @@ Menu.setApplicationMenu(null);
 
 app.whenReady().then(() => {
   // ウィンドウの設定読み込み or 初期化
-  const pos = store.get("window.pos", getCenterPosition());
+  const pos = store.get("window.pos", getDefaultCenterPosition());
   const size = store.get("window.size", [
     DEFAULT_SIZE.width,
     DEFAULT_SIZE.height,
@@ -78,8 +76,10 @@ app.whenReady().then(() => {
 
   if (isDev) {
     installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
-        .then(([redux, react]) => console.log(`Added Extensions:  ${redux.name}, ${react.name}`))
-        .catch((err) => console.log('An error occurred: ', err));
+      .then(([redux, react]) =>
+        console.log(`Added Extensions:  ${redux.name}, ${react.name}`)
+      )
+      .catch((err) => console.log("An error occurred: ", err));
   }
 
   // 閉じる
@@ -103,11 +103,12 @@ app.once("window-all-closed", () => app.quit());
 /**
  * ウィンドウの中央の座標を返却
  */
-function getCenterPosition() {
+function getDefaultCenterPosition() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  const x = Math.floor((width - DEFAULT_SIZE.width) / 2);
-  const y = Math.floor((height - DEFAULT_SIZE.height) / 2);
-  return [x, y];
+  return calcCenterPosition(
+    { width, height },
+    { width: DEFAULT_SIZE.width, height: DEFAULT_SIZE.height }
+  );
 }
 
 /**

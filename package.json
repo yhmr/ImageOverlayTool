@@ -1,8 +1,8 @@
 {
-  "name": "ImageOverlayTool",
+  "name": "imageoverlaytool",
   "description": "image blend tool",
   "version": "0.1.0",
-  "license": "NO License",
+  "license": "AGPL-3.0-only",
   "author": "yuhomori",
   "main": "dist/main.js",
   "scripts": {
@@ -14,6 +14,7 @@
     "build": "cross-env NODE_ENV=\"production\" webpack --progress",
     "package": "ts-node ./builder.ts",
     "compile": "tsc -p tsconfig.main.json && cross-env NODE_ENV=\"development\" NO_WATCH=\"true\" webpack",
+    "wait-for-port": "wait-port 9223 --timeout 60000",
     "lint-fix": "eslint --cache --fix src/ && prettier --write src/"
   },
   "dependencies": {
@@ -67,6 +68,7 @@
     "ts-node": "^10.9.1",
     "typescript": "^4.7.4",
     "wait-on": "^6.0.1",
+    "wait-port": "^1.1.0",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "webpack-license-plugin": "^4.2.2"
