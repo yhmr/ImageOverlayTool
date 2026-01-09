@@ -8,7 +8,11 @@ import {
   dialog,
   screen,
 } from "electron";
-import { installExtension, REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
+import {
+  installExtension,
+  REDUX_DEVTOOLS,
+  REACT_DEVELOPER_TOOLS,
+} from "electron-devtools-installer";
 import Store from "electron-store";
 import { SettingType } from "./preload";
 import { calcCenterPosition } from "./utils/calcCenterPosition";
@@ -74,8 +78,10 @@ app.whenReady().then(() => {
 
   if (isDev) {
     installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
-        .then(([redux, react]) => console.log(`Added Extensions:  ${redux.name}, ${react.name}`))
-        .catch((err) => console.log('An error occurred: ', err));
+      .then(([redux, react]) =>
+        console.log(`Added Extensions:  ${redux.name}, ${react.name}`)
+      )
+      .catch((err) => console.log("An error occurred: ", err));
   }
 
   // 閉じる
