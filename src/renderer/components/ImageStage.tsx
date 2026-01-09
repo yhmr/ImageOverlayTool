@@ -8,7 +8,8 @@ import { KonvaEventObject } from "konva/lib/Node";
 import Konva from "konva";
 import { Stage, Layer } from "react-konva";
 
-import { AnchorPos, ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../types/ImageSet";
+import { AnchorPos } from "../types/AnchorPos";
 import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
 
