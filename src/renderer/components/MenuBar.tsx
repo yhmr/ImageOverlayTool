@@ -16,7 +16,7 @@ import CloseIcon from "@mui/icons-material/Close";
 
 import { ImageSettingDialog } from "./ImageSettingDialog";
 import { SettingDialog } from "./SettingDialog";
-import { MenuContext } from "./MenuContext";
+import { AppMenu } from "./AppMenu";
 import { useMenuState } from "../hooks/useMenuState";
 import { useWindowOperations } from "../hooks/useWindowOperations";
 
@@ -111,7 +111,7 @@ export const MenuBar = memo(function MenuBar() {
         handleClose={handleSettingDlgClose}
       />
       {/* ポップアップメニュー */}
-      <MenuContext
+      <AppMenu
         anchorEl={anchorEl}
         openMenu={openMenu}
         handleMenuClose={handleMenuClose}
