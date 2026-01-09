@@ -8,7 +8,7 @@ import "../i18n/configs"; //i18
 import { Box } from "@mui/material";
 
 import "./App.css";
-import { MenuButton } from "./components/MenuButton";
+import { MenuBar } from "./components/MenuBar";
 import { ImageStage } from "./components/ImageStage";
 import { ContextMenu } from "./components/ContextMenu";
 
@@ -38,7 +38,7 @@ const App = () => {
 
   return (
     <div className="container">
-      <MenuButton />
+      <MenuBar />
       <Box
         sx={{
           width: "100%",
