@@ -3,7 +3,7 @@ import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Menu, MenuItem } from "@mui/material";
 
-import type { Point } from "../types/ImageSet";
+import type { Point } from "../types/AnchorPos";
 import { ColorPicker } from "./ColorPicker";
 
 interface ContextMenuProps {
