@@ -12,12 +12,6 @@ import { MenuBar } from "./components/MenuBar";
 import { ImageStage } from "./components/ImageStage";
 import { ContextMenu } from "./components/ContextMenu";
 
-interface ipcWindow extends Window {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  electronAPI: any;
-}
-declare const window: ipcWindow;
-
 const App = () => {
   // 設定の読み込み
   const [windowColor, setWindowColor] = useState<string>("");

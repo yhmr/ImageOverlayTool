@@ -7,7 +7,8 @@ export interface SettingType {
 
 contextBridge.exposeInMainWorld("electronAPI", {
   openFile: () => ipcRenderer.invoke("dialog:openFile"),
-  switchWindowSize: () => ipcRenderer.invoke("window:switchSize"),
+  switchWindowSize: (): Promise<boolean> =>
+    ipcRenderer.invoke("window:switchSize"),
   closeWindow: () => ipcRenderer.invoke("window:close"),
   loadSetting: () => ipcRenderer.invoke("setting:load"),
   saveSetting: (setting: SettingType) =>

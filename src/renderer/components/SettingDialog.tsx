@@ -17,12 +17,6 @@ import {
   TextField,
 } from "@mui/material";
 
-interface ipcWindow extends Window {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  electronAPI: any;
-}
-declare const window: ipcWindow;
-
 interface SettingDialogProps {
   open: boolean;
   handleClose: () => void;
@@ -67,7 +61,7 @@ export const SettingDialog = memo(function SettingDialog(
     const loadSetting = async () => {
       const setting = await window.electronAPI.loadSetting();
       i18n.changeLanguage(setting.language);
-      setUmPix(setting.unit_factor);
+      setUmPix(setting.unit_factor ?? 0);
     };
     loadSetting();
   }, [i18n]);
@@ -109,7 +103,7 @@ export const SettingDialog = memo(function SettingDialog(
           <TextField
             type="number"
             label={t("render.setting_dlg.unit_factor")}
-            defaultValue={umPix}
+            value={umPix}
             onChange={handleUmPixChange}
             inputProps={{ readOnly: false }}
             sx={{

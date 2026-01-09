@@ -12,12 +12,6 @@ import ClearIcon from "@mui/icons-material/Clear";
 
 import { ImageSet } from "../types/ImageSet";
 
-interface ipcWindow extends Window {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  electronAPI: any;
-}
-declare const window: ipcWindow;
-
 interface ImageSettingCardProps {
   imageSet: ImageSet;
   index: number;
@@ -41,7 +35,7 @@ export const ImageSettingCard = memo(function ImageSettingCard(
         const res = await window.electronAPI.openFile();
         if (res) {
           const imageSet = { ...imageSets[index] };
-          imageSet.path = res;
+          imageSet.path = `local-file://${res}`;
           // ファイル読み込み直しの場合は、すべてのパラメータを初期化
           imageSet.transparency = 0.0;
           imageSet.init_anchor_pos = null;
