@@ -1,0 +1,28 @@
+# すべてのテキストを正規化
+* text=auto
+
+# シェル・設定系は LF 固定
+*.sh     text eol=lf
+*.bash   text eol=lf
+*.env    text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.json   text eol=lf
+
+# Windows 固有スクリプトは CRLF
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+*.ps1    text eol=crlf
+
+# markdown は LF 固定
+*.md     text eol=lf
+
+# バイナリは改行変換・diff 対象外
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.exe binary
+*.dll binary
