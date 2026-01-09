@@ -12,6 +12,7 @@ import { ImageSet } from "../types/ImageSet";
 import { AnchorPos } from "../types/AnchorPos";
 import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
+import { useStageControls } from "../hooks/useStageControls";
 
 export const ImageStage = memo(function ImageStage() {
   // imageSet取得
@@ -20,6 +21,9 @@ export const ImageStage = memo(function ImageStage() {
 
   // ステージのref
   const stageRef = useRef<Konva.Stage>(null);
+
+  // useStageControlsを使用
+  const { stageSize, handleWheel } = useStageControls(stageRef);
 
   // 画像の選択状態
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
@@ -40,40 +44,6 @@ export const ImageStage = memo(function ImageStage() {
     if (e.evt.button === 0 && e.target.getType() === "Stage") {
       setSelectedImageId(null);
     }
-  }, []);
-
-  // 拡大縮小
-  const ZoomStage = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
-    e.evt.preventDefault(); // 通常のイベントを防ぐ
-    if (stageRef.current != null) {
-      const stage = stageRef.current;
-      const oldScale = stage.scaleX();
-      const point = stage.getPointerPosition();
-      if (point) {
-        const mousePointTo = {
-          x: (point.x - stage.x()) / oldScale,
-          y: (point.y - stage.y()) / oldScale,
-        };
-        const newScale = e.evt.deltaY < 0 ? oldScale * 1.1 : oldScale / 1.1; // 拡縮の倍率
-        stage.scale({ x: newScale, y: newScale });
-        const newPos = {
-          x: point.x - mousePointTo.x * newScale,
-          y: point.y - mousePointTo.y * newScale,
-        };
-        stage.position(newPos);
-      }
-    }
-  }, []);
-
-  // ステージサイズ
-  const [stageSize, setStageSize] = useState({ height: 100, width: 100 });
-  const handleResize = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const container = document.querySelector(".image-area")! as HTMLDivElement;
-    setStageSize({
-      width: container.offsetWidth,
-      height: container.offsetHeight,
-    });
   }, []);
 
   // 初期読み込み時の更新
@@ -113,14 +83,6 @@ export const ImageStage = memo(function ImageStage() {
     [dispatch]
   );
 
-  // イベント登録/解除
-  useEffect(() => {
-    // サイズ取得のため初めに一回発火
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [handleResize]);
-
   useEffect(() => {
     // ドラッグ終了時にドラッグ無効化
     const stage = stageRef.current;
@@ -147,7 +109,7 @@ export const ImageStage = memo(function ImageStage() {
         {...stageSize}
         draggable={false}
         onMouseDown={onMouseDown}
-        onWheel={ZoomStage}
+        onWheel={handleWheel}
         ref={stageRef}
       >
         <Layer>
