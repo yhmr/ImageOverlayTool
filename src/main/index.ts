@@ -13,6 +13,7 @@ import Store from "electron-store";
 import { registerWindowHandlers } from "./ipc/window";
 import { registerSettingsHandlers } from "./ipc/settings";
 import { calcCenterPosition } from "./utils/calcCenterPosition";
+import { registerLocalResourceProtocol, setupProtocolHandler } from "./ipc/protocol";
 
 // 開発中のみ、外部からのデバッグ接続(9222)を許可する
 if (!app.isPackaged) {
@@ -46,13 +47,8 @@ const DEFAULT_SIZE = {
 // Menu削除
 Menu.setApplicationMenu(null);
 
-// 'local-file' プロトコルを事前登録
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: "local-file",
-    privileges: { standard: true, secure: true, supportFetchAPI: true },
-  },
-]);
+// プロトコルを事前登録
+registerLocalResourceProtocol();
 
 app.whenReady().then(() => {
   // ウィンドウの設定読み込み or 初期化
@@ -85,36 +81,7 @@ app.whenReady().then(() => {
     mainWindow.show();
   });
 
-  // 画像ロード用に'local-file' というカスタムプロトコルを登録
-  protocol.handle("local-file", (request) => { 
-    const urlPath = request.url.replace("local-file://", "");
-    // URLデコード
-    let decodedPath = decodeURIComponent(urlPath);
-
-    // OS別のパス調整
-    if (process.platform === 'win32') {
-      // Windows: c/Users -> C:/Users に変換
-      if (decodedPath.match(/^[a-zA-Z]\//)) {
-        decodedPath = decodedPath.charAt(0).toUpperCase() + ":" + decodedPath.substring(1);
-      }
-    } 
-    else {
-      // Linux/macOS: 先頭がスラッシュでなければスラッシュを足す
-      // (local-file://home/... -> home/... になっている場合があるため)
-      if (!decodedPath.startsWith('/')) {
-        decodedPath = '/' + decodedPath;
-      }
-    }
-
-    // ファイルURLに変換してfetchで読み込む
-    try {
-      const finalFileUrl = pathToFileURL(decodedPath).toString();
-      return net.fetch(finalFileUrl);
-    } catch (e) {
-      console.error("File resolve error:", e);
-      return new Response("Not Found", { status: 404 });
-    }
-  });
+  setupProtocolHandler();
 
   // 開発時はViteの開発サーバーURL、本番はビルドされたHTMLファイルをロード
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
