@@ -2,7 +2,6 @@ import path from "path";
 import {
   BrowserWindow,
   app,
-  session,
   Menu,
   ipcMain,
   dialog,
@@ -67,7 +66,13 @@ app.whenReady().then(() => {
     y: pos[1],
     titleBarStyle: "hidden",
     transparent: true,
-    webPreferences: { preload: path.join(__dirname, "preload.js") },
+    webPreferences: { 
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true,
+     },
   });
   mainWindow.loadFile("dist/index.html");
 
