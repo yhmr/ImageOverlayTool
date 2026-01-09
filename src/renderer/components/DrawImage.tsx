@@ -277,8 +277,10 @@ export const DrawImage = (props: DrawImageProps) => {
       cnv.style.top = `${top}px`;
       cnv.style.zIndex = "0";
       cnv.style.pointerEvents = "none";
-      const ctx = cnv.getContext("2d");
+      const ctx = cnv.getContext("2d", { willReadFrequently: true });
       if (ctx) {
+        // クリア
+        ctx.clearRect(0, 0, cnv.width, cnv.height);
         // 透過率
         ctx.globalAlpha = 1.0 - imageSet.transparency;
         // 変形後の図形を記述

@@ -17,7 +17,7 @@ Electron + React で作られた画像オーバーレイ/ブレンド用のデ�
 - i18next
 
 ## セットアップ
-> 前提: Node.js とパッケージマネージャ（npm 等）が必要です。バージョン指定はリポジトリ内に明記されていないため、利用する環境に合わせて用意してください。
+> 前提: Node.js v18.0.0 以上が必要です。
 
 ```bash
 npm install
@@ -25,20 +25,17 @@ npm install
 
 ## 開発・ビルドコマンド
 ```bash
-# 開発（TSの監視 + webpack + Electron 起動）
+# 開発モード（Main/Renderer 双方の監視とHMRを有効化）
 npm run dev
 
-# 本番ビルド
+# 本番用ビルド（out フォルダに成果物を生成）
 npm run build
 
-# main/preload の TypeScript コンパイル + webpack（開発用）
-npm run compile
+# Windows 向けパッケージング (.exe / .zip)
+npm run build:win
 
-# パッケージング
-npm run package
-
-# eslint/prettier を実行
-npm run lint-fix
+# Linux 向けパッケージング (.AppImage / .deb)
+npm run build:linux
 ```
 
 ## 使い方（操作の概要）
@@ -54,6 +51,12 @@ npm run lint-fix
 - 単位係数（`unit_factor`）
 
 ## ディレクトリ構成
-- `src/main.ts`: Electron メインプロセス、ウィンドウ/IPC の定義
-- `src/preload.ts`: Renderer から利用する IPC API の橋渡し
-- `src/web/`: Renderer（React）側の UI 実装
+electron-vite の標準構成に従い、プロセスごとにソースを分離しています。
+- src/main/: メインプロセス。ウィンドウ管理、IPC通信、ファイルプロトコル設定。
+- src/preload/: プリロードスクリプト。レンダラーへのセキュアなAPI露出。
+- src/renderer/: レンダラープロセス (React)。UIコンポーネントおよび描画ロジック。
+- out/: ビルド成果物の出力先（自動生成）。
+
+## 開発上の注意点
+- ローカルファイルの読み込み: セキュリティ制限により、ローカル画像を表示する際は local-file://[絶対パス] 形式のカスタムプロトコルを使用してください。
+- 型定義: window.electronAPI の型補完を有効にするため、src/renderer/src/env.d.ts でインターフェースを定義しています。

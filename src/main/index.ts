@@ -1,15 +1,26 @@
 import path from "path";
-import { BrowserWindow, app, Menu, ipcMain, dialog, screen } from "electron";
+import {
+  BrowserWindow,
+  app,
+  Menu,
+  ipcMain,
+  dialog,
+  screen,
+  protocol,
+  net,
+} from "electron";
 import {
   installExtension,
   REDUX_DEVTOOLS,
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
+import { pathToFileURL } from "url";
+import { join } from "path";
+import { is } from "@electron-toolkit/utils"; // electron-viteプロジェクトでよく使われるユーティリティ
 import Store from "electron-store";
-import { SettingType } from "./preload";
-import { calcCenterPosition } from "./utils/calcCenterPosition";
+import { SettingType } from "../preload/index";
+import { calcCenterPosition } from "../utils/calcCenterPosition";
 
-const isDev = process.env.NODE_ENV === "development";
 let mainWindow: BrowserWindow;
 // 設定ファイル
 interface StoreType {
@@ -34,18 +45,6 @@ const DEFAULT_SIZE = {
   height: 600,
 };
 
-if (isDev) {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require("electron-reload")(__dirname, {
-    electron: path.resolve(
-      __dirname,
-      process.platform === "win32"
-        ? "../node_modules/electron/dist/electron.exe"
-        : "../node_modules/.bin/electron"
-    ),
-  });
-}
-
 // Menu削除
 Menu.setApplicationMenu(null);
 
@@ -64,17 +63,30 @@ app.whenReady().then(() => {
     y: pos[1],
     titleBarStyle: "hidden",
     transparent: true,
-    webPreferences: { 
-      preload: path.join(__dirname, "preload.js"),
+    webPreferences: {
+      preload: path.join(__dirname, "../preload/index.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true,
+      sandbox: false,
       webSecurity: true,
-     },
+    },
   });
-  mainWindow.loadFile("dist/index.html");
 
-  if (isDev) {
+  // 画像ロード用に'local-file' というカスタムプロトコルを登録
+  protocol.handle("local-file", (request) => {
+    // URLからパス部分を取り出し、ファイルURLに変換して返す
+    const filePath = request.url.replace("local-file://", "");
+    return net.fetch(pathToFileURL(decodeURIComponent(filePath)).toString());
+  });
+
+  // 開発時はViteの開発サーバーURL、本番はビルドされたHTMLファイルをロード
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+  } else {
+    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+  }
+
+  if (is.dev) {
     installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
       .then(([redux, react]) =>
         console.log(`Added Extensions:  ${redux.name}, ${react.name}`)

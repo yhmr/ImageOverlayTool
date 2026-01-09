@@ -18,12 +18,6 @@ import { ImageSettingDialog } from "./ImageSettingDialog";
 import { SettingDialog } from "./SettingDialog";
 import { MenuContext } from "./MenuContext";
 
-interface ipcWindow extends Window {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  electronAPI: any;
-}
-declare const window: ipcWindow;
-
 export const MenuBar = memo(function MenuBar() {
   const { t } = useTranslation();
 
