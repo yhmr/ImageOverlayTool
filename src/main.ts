@@ -1,12 +1,5 @@
 import path from "path";
-import {
-  BrowserWindow,
-  app,
-  Menu,
-  ipcMain,
-  dialog,
-  screen,
-} from "electron";
+import { BrowserWindow, app, Menu, ipcMain, dialog, screen } from "electron";
 import {
   installExtension,
   REDUX_DEVTOOLS,
