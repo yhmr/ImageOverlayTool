@@ -2,7 +2,7 @@ import React, { useLayoutEffect } from "react";
 
 import useImage from "use-image";
 
-import { ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../../types/ImageSet";
 
 import { PerspectiveImage } from "./PerspectiveImage";
 

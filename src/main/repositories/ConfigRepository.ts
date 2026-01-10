@@ -1,6 +1,6 @@
 import Store from "electron-store";
 import { screen } from "electron";
-import { AppConfig, SettingType, DEFAULT_SIZE } from "../../shared/types/AppConfig";
+import { AppConfig, SettingType, DEFAULT_SIZE, DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 import { calcCenterPosition } from "../utils/calcCenterPosition";
 import { Point } from "../../shared/types/Point";
 import { Size } from "../../shared/types/Size";
@@ -12,6 +12,9 @@ export interface IConfigRepository {
     saveWindowColor(color: string): Promise<void>;
     getWindowPositionAndSize(): { pos: Point; size: Size };
     saveWindowPositionAndSize(pos: number[], size: number[]): void;
+    // 画像設定ウィンドウ用
+    getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } | null;
+    saveImageSettingsWindowPositionAndSize(pos: number[], size: number[]): void;
 }
 
 export class ConfigRepository implements IConfigRepository {
@@ -57,6 +60,29 @@ export class ConfigRepository implements IConfigRepository {
     saveWindowPositionAndSize(pos: number[], size: number[]): void {
         this.store.set("window.pos", pos);
         this.store.set("window.size", size);
+    }
+
+    getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } | null {
+        const posData = this.store.get("imageSettingsWindow.pos");
+        const sizeData = this.store.get("imageSettingsWindow.size");
+
+        // 保存されていない場合はnullを返す（デフォルト値はWindowManagerで設定）
+        if (!posData || !sizeData) {
+            return null;
+        }
+
+        const [x, y] = posData as unknown as number[];
+        const [width, height] = sizeData as unknown as number[];
+
+        return {
+            pos: { x, y },
+            size: { width, height },
+        };
+    }
+
+    saveImageSettingsWindowPositionAndSize(pos: number[], size: number[]): void {
+        this.store.set("imageSettingsWindow.pos", pos);
+        this.store.set("imageSettingsWindow.size", size);
     }
 
     private getDefaultCenterPosition() {

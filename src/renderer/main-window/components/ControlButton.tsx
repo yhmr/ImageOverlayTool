@@ -3,11 +3,12 @@ import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useDispatch } from "react-redux";
-import { useSelector, RootState, AppDispatch } from "../store/store";
-import { updateImageSet } from "../store/imageSetsSlice";
+import { useSelector, RootState, AppDispatch } from "../../store/store";
+import { updateImageSet } from "../../store/imageSetsSlice";
 
-import { Box, ToggleButton, Slider, Tooltip } from "@mui/material";
+import { Box, IconButton, ToggleButton, Slider, Tooltip } from "@mui/material";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import TuneIcon from "@mui/icons-material/Tune";
 
 interface ControlButtonProps {
   selectedImageId: string | null;
@@ -23,7 +24,10 @@ export const ControlButton = memo(function ControlButton(
   const { imageSets } = useSelector((state: RootState) => state.imageSets);
   const dispatch = useDispatch<AppDispatch>();
 
-
+  // 画像設定ウィンドウを開く
+  const handleOpenImageSettings = useCallback(async () => {
+    await window.electronAPI.toggleImageSettingsWindow();
+  }, []);
 
   // 透過度の操作
   const selectedImageSet = imageSets.find((set) => set.id === selectedImageId);
@@ -50,7 +54,7 @@ export const ControlButton = memo(function ControlButton(
             sx={{
               position: "absolute",
               bottom: 35,
-              right: 85,
+              right: 130,
               width: 200,
             }}
           >
@@ -72,6 +76,28 @@ export const ControlButton = memo(function ControlButton(
           </Box>
         </>
       )}
+
+      {/* 画像設定ウィンドウを開くボタン */}
+      <Tooltip
+        placement="bottom"
+        title={t("render.control_button.tooltip.image_settings", "画像設定 (Ctrl+I)")}
+      >
+        <IconButton
+          sx={{
+            position: "absolute",
+            bottom: 30,
+            right: 60,
+            color: "primary.contrastText",
+            backgroundColor: "rgba(0, 0, 0, 0.3)",
+            "&:hover": {
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+            },
+          }}
+          onClick={handleOpenImageSettings}
+        >
+          <TuneIcon />
+        </IconButton>
+      </Tooltip>
 
       {/* 矢印記述ボタン */}
       <Tooltip

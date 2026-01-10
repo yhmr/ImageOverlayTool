@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import type { SettingType } from "../shared/types/AppConfig";
 
 import type { ProjectFile } from "../shared/types/ProjectFile";
+import type { ImageSet } from "../renderer/types/ImageSet";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   openFile: () => ipcRenderer.invoke("dialog:openFile"),
@@ -25,4 +26,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveProject: (filePath: string, project: ProjectFile) =>
     ipcRenderer.invoke("project:save", { filePath, project }),
   loadProject: () => ipcRenderer.invoke("project:load"),
+  // Image Settings Window
+  toggleImageSettingsWindow: () =>
+    ipcRenderer.invoke("imageSettingsWindow:toggle"),
+  // ImageSets Sync
+  updateImageSets: (imageSets: ImageSet[]) =>
+    ipcRenderer.invoke("imageSets:update", imageSets),
+  onImageSetsUpdated: (callback: (imageSets: ImageSet[]) => void) => {
+    const subscription = (_event: unknown, imageSets: ImageSet[]) =>
+      callback(imageSets);
+    ipcRenderer.on("imageSets:updated", subscription);
+    return () => ipcRenderer.removeListener("imageSets:updated", subscription);
+  },
 });

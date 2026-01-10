@@ -1,24 +1,24 @@
 import React, { memo, useCallback, useRef, useEffect, useState } from "react";
 
 import { useDispatch } from "react-redux";
-import { useSelector, RootState, AppDispatch } from "../store/store";
-import { updateImageSet } from "../store/imageSetsSlice";
-import { setCanvasState } from "../store/projectSlice";
+import { useSelector, RootState, AppDispatch } from "../../store/store";
+import { updateImageSet } from "../../store/imageSetsSlice";
+import { setCanvasState } from "../../store/projectSlice";
 import { KonvaEventObject } from "konva/lib/Node";
 
 import Konva from "konva";
 import { Stage, Layer } from "react-konva";
 
-import { ImageSet } from "../types/ImageSet";
-import { AnchorPos } from "../types/AnchorPos";
+import { ImageSet } from "../../types/ImageSet";
+import { AnchorPos } from "../../types/AnchorPos";
 import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
 import { OverlayControls } from "./OverlayControls";
 import { DimensionLineLayer } from "./DimensionLineLayer";
 
-import { useStageControls } from "../hooks/useStageControls";
-import { useDimensionLineMode } from "../hooks/useDimensionLineMode";
-import { useImageSelection } from "../hooks/useImageSelection";
+import { useStageControls } from "../../hooks/useStageControls";
+import { useDimensionLineMode } from "../../hooks/useDimensionLineMode";
+import { useImageSelection } from "../../hooks/useImageSelection";
 
 export const ImageStage = memo(function ImageStage() {
   // imageSet取得

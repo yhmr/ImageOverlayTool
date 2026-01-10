@@ -16,15 +16,6 @@ export const useMenuState = () => {
         setAnchorEl(null);
     }, []);
 
-    // ImageSettingDialog関連
-    const [openImageSettingDlg, setOpenImageSettingDlg] = useState(false);
-    const handleImageSettingDlgOpen = useCallback(() => {
-        setOpenImageSettingDlg(true);
-    }, []);
-    const handleImageSettingDlgClose = useCallback(() => {
-        setOpenImageSettingDlg(false);
-    }, []);
-
     // SettingDialog関連
     const [openSettingDlg, setOpenSettingDlg] = useState(false);
     const handleSettingDlgOpen = useCallback(() => {
@@ -39,9 +30,6 @@ export const useMenuState = () => {
         openMenu,
         handleMenuClick,
         handleMenuClose,
-        openImageSettingDlg,
-        handleImageSettingDlgOpen,
-        handleImageSettingDlgClose,
         openSettingDlg,
         handleSettingDlgOpen,
         handleSettingDlgClose,

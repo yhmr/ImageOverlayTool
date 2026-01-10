@@ -1,4 +1,4 @@
-import { SettingType, DEFAULT_SIZE } from "../../shared/types/AppConfig";
+import { SettingType, DEFAULT_SIZE, DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 import { Point } from "../../shared/types/Point";
 import { Size } from "../../shared/types/Size";
 import { IConfigRepository } from "./ConfigRepository"; // 同じディレクトリにあるConfigRepositoryからインターフェースをインポート
@@ -13,6 +13,11 @@ export class MockConfigRepository implements IConfigRepository {
     private windowSize: Size = {
         width: DEFAULT_SIZE.width,
         height: DEFAULT_SIZE.height,
+    };
+    private imageSettingsWindowPos: Point | null = null;
+    private imageSettingsWindowSize: Size = {
+        width: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width,
+        height: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height,
     };
 
     async loadSettings() {
@@ -49,5 +54,22 @@ export class MockConfigRepository implements IConfigRepository {
         console.log("[Mock] Saving window pos/size:", pos, size);
         this.windowPos = { x: pos[0], y: pos[1] };
         this.windowSize = { width: size[0], height: size[1] };
+    }
+
+    getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } | null {
+        console.log("[Mock] Getting image settings window pos/size...");
+        if (!this.imageSettingsWindowPos) {
+            return null;
+        }
+        return {
+            pos: { ...this.imageSettingsWindowPos },
+            size: { ...this.imageSettingsWindowSize },
+        };
+    }
+
+    saveImageSettingsWindowPositionAndSize(pos: number[], size: number[]): void {
+        console.log("[Mock] Saving image settings window pos/size:", pos, size);
+        this.imageSettingsWindowPos = { x: pos[0], y: pos[1] };
+        this.imageSettingsWindowSize = { width: size[0], height: size[1] };
     }
 }

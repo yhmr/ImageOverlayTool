@@ -2,9 +2,10 @@ import React, { useCallback, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 
 import { Provider, useDispatch, useSelector } from "react-redux";
-import { store, RootState } from "./store/store";
-import { setWindowColor } from "./store/projectSlice";
-import "../i18n/configs"; //i18
+import { store, RootState } from "../store/store";
+import { setWindowColor } from "../store/projectSlice";
+import { useImageSetsSync } from "../hooks/useImageSetsSync";
+import "../../i18n/configs"; //i18
 
 import { Box } from "@mui/material";
 
@@ -17,6 +18,9 @@ const App = () => {
   // 設定の読み込み
   const dispatch = useDispatch();
   const windowColor = useSelector((state: RootState) => state.project.windowColor);
+
+  // 画像同期フックを使用
+  useImageSetsSync();
 
   // 初めの一度のみ描画前にファイルから色を取得
   useLayoutEffect(() => {

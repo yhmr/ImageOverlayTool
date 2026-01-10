@@ -1,0 +1,217 @@
+import path from "path";
+import { BrowserWindow, globalShortcut, app } from "electron";
+import { is } from "@electron-toolkit/utils";
+import { IConfigRepository } from "../repositories/ConfigRepository";
+import { DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
+
+/**
+ * ウィンドウ管理クラス
+ * メインウィンドウと画像設定ウィンドウの作成・管理を行う
+ */
+export class WindowManager {
+    private mainWindow: BrowserWindow | null = null;
+    private imageSettingsWindow: BrowserWindow | null = null;
+    private configRepository: IConfigRepository;
+
+    constructor(configRepository: IConfigRepository) {
+        this.configRepository = configRepository;
+    }
+
+    /**
+     * メインウィンドウを作成
+     */
+    createMainWindow(): BrowserWindow {
+        const { pos, size } = this.configRepository.getWindowPositionAndSize();
+
+        this.mainWindow = new BrowserWindow({
+            show: false,
+            width: size.width,
+            height: size.height,
+            x: pos.x,
+            y: pos.y,
+            titleBarStyle: "hidden",
+            transparent: true,
+            frame: false,
+            webPreferences: {
+                preload: path.join(__dirname, "../preload/index.js"),
+                contextIsolation: true,
+                nodeIntegration: false,
+                sandbox: false,
+                webSecurity: true,
+            },
+        });
+
+        // 準備が出来た時点で表示
+        this.mainWindow.on("ready-to-show", () => {
+            this.mainWindow?.show();
+        });
+
+        // ウィンドウが閉じられる際にウィンドウ設定を保存
+        this.mainWindow.on("close", () => {
+            if (this.mainWindow) {
+                this.configRepository.saveWindowPositionAndSize(
+                    this.mainWindow.getPosition(),
+                    this.mainWindow.getSize()
+                );
+            }
+        });
+
+        // ウィンドウが閉じられた際の処理
+        this.mainWindow.on("closed", () => {
+            // 画像設定ウィンドウも閉じる
+            if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
+                this.imageSettingsWindow.close();
+            }
+            this.mainWindow = null;
+        });
+
+        // コンテンツをロード
+        if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+            this.mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/main-window/");
+        } else {
+            this.mainWindow.loadFile(
+                path.join(__dirname, "../renderer/main-window/index.html")
+            );
+        }
+
+        return this.mainWindow;
+    }
+
+    /**
+     * 画像設定ウィンドウを作成
+     */
+    createImageSettingsWindow(): BrowserWindow {
+        if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
+            this.imageSettingsWindow.focus();
+            return this.imageSettingsWindow;
+        }
+
+        const windowConfig = this.configRepository.getImageSettingsWindowPositionAndSize();
+
+        this.imageSettingsWindow = new BrowserWindow({
+            show: false,
+            width: windowConfig?.size.width ?? DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width,
+            height: windowConfig?.size.height ?? DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height,
+            x: windowConfig?.pos.x,
+            y: windowConfig?.pos.y,
+            parent: this.mainWindow ?? undefined,
+            titleBarStyle: "hidden",
+            transparent: true,
+            frame: false,
+            webPreferences: {
+                preload: path.join(__dirname, "../preload/index.js"),
+                contextIsolation: true,
+                nodeIntegration: false,
+                sandbox: false,
+                webSecurity: true,
+            },
+        });
+
+        // 準備が出来た時点で表示
+        this.imageSettingsWindow.on("ready-to-show", () => {
+            this.imageSettingsWindow?.show();
+        });
+
+        // ウィンドウが閉じられる際に設定を保存
+        this.imageSettingsWindow.on("close", (event) => {
+            // トグル動作: 実際には閉じずに非表示にする
+            event.preventDefault();
+            if (this.imageSettingsWindow) {
+                this.configRepository.saveImageSettingsWindowPositionAndSize(
+                    this.imageSettingsWindow.getPosition(),
+                    this.imageSettingsWindow.getSize()
+                );
+                this.imageSettingsWindow.hide();
+            }
+        });
+
+        // コンテンツをロード
+        if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+            this.imageSettingsWindow.loadURL(
+                process.env["ELECTRON_RENDERER_URL"] + "/image-settings/"
+            );
+        } else {
+            this.imageSettingsWindow.loadFile(
+                path.join(__dirname, "../renderer/image-settings/index.html")
+            );
+        }
+
+        return this.imageSettingsWindow;
+    }
+
+    /**
+     * 画像設定ウィンドウの表示/非表示をトグル
+     */
+    toggleImageSettingsWindow(): boolean {
+        if (!this.imageSettingsWindow || this.imageSettingsWindow.isDestroyed()) {
+            this.createImageSettingsWindow();
+            return true;
+        }
+
+        if (this.imageSettingsWindow.isVisible()) {
+            this.configRepository.saveImageSettingsWindowPositionAndSize(
+                this.imageSettingsWindow.getPosition(),
+                this.imageSettingsWindow.getSize()
+            );
+            this.imageSettingsWindow.hide();
+            return false;
+        } else {
+            this.imageSettingsWindow.show();
+            this.imageSettingsWindow.focus();
+            return true;
+        }
+    }
+
+    /**
+     * グローバルショートカットを登録
+     */
+    registerShortcuts(): void {
+        globalShortcut.register("CommandOrControl+I", () => {
+            this.toggleImageSettingsWindow();
+        });
+    }
+
+    /**
+     * グローバルショートカットを解除
+     */
+    unregisterShortcuts(): void {
+        globalShortcut.unregisterAll();
+    }
+
+    /**
+     * メインウィンドウを取得
+     */
+    getMainWindow(): BrowserWindow | null {
+        return this.mainWindow;
+    }
+
+    /**
+     * 画像設定ウィンドウを取得
+     */
+    getImageSettingsWindow(): BrowserWindow | null {
+        return this.imageSettingsWindow;
+    }
+
+    /**
+     * すべてのウィンドウを閉じる
+     */
+    closeAllWindows(): void {
+        // 画像設定ウィンドウを強制的に閉じる（closeイベントをバイパス）
+        if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
+            this.imageSettingsWindow.destroy();
+            this.imageSettingsWindow = null;
+        }
+
+        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+            this.mainWindow.close();
+        }
+    }
+
+    /**
+     * アプリ終了時のクリーンアップ
+     */
+    cleanup(): void {
+        this.unregisterShortcuts();
+        this.closeAllWindows();
+    }
+}

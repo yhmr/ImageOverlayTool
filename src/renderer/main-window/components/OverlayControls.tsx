@@ -1,9 +1,9 @@
 import React, { useRef, useCallback, useLayoutEffect } from "react";
 import Konva from "konva";
 import { Circle, Line } from "react-konva";
-import { ImageSet } from "../types/ImageSet";
-import { AnchorPos } from "../types/AnchorPos";
-import { useImageAnchor } from "../hooks/useImageAnchor";
+import { ImageSet } from "../../types/ImageSet";
+import { AnchorPos } from "../../types/AnchorPos";
+import { useImageAnchor } from "../../hooks/useImageAnchor";
 
 interface OverlayControlsProps {
     imageSet: ImageSet;
