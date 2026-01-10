@@ -1,0 +1,36 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Electronなどのネイティブ依存関係がある場合、ヘッドレス環境でテストを実行するために必要なライブラリを追加
+      # 今回はjsdom環境での単体テストが主なので必須ではない場合も多いですが、
+      # 将来的にコンポーネントテストなどで必要になる可能性があるため記載しておきます。
+      # 必要なければ削除可能です。
+      # - name: Install Linux dependencies for Electron
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+
+      - name: Run tests
+        run: npm run test
