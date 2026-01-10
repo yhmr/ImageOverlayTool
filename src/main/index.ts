@@ -17,7 +17,7 @@ import {
 import { registerProjectHandlers } from "./ipc/project";
 
 import { ConfigRepositoryFactory } from "./repositories/ConfigRepositoryFactory";
-import { ProjectRepository } from "./repositories/ProjectRepository";
+import { ProjectRepositoryFactory } from "./repositories/ProjectRepositoryFactory";
 
 // 開発中のみ、外部からのデバッグ接続(9222)を許可する
 if (!app.isPackaged) {
@@ -29,7 +29,7 @@ let mainWindow: BrowserWindow;
 // 設定ファイル
 const configRepository = ConfigRepositoryFactory.create();
 // プロジェクトファイル
-const projectRepository = new ProjectRepository();
+const projectRepository = ProjectRepositoryFactory.create();
 
 // Menu削除
 Menu.setApplicationMenu(null);
