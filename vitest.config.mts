@@ -10,15 +10,16 @@ export default defineConfig({
             },
         }),
     ],
+    // Vitest 4ではpoolOptionsがトップレベルに移動
+    poolOptions: {
+        forks: {
+            singleFork: true, // GitHub Actions等の低リソース環境で安定動作させるため
+        },
+    },
     test: {
         environment: 'jsdom',
         globals: true,
         pool: 'forks',
-        poolOptions: {
-            forks: {
-                singleFork: true, // GitHub Actions等の低リソース環境で安定動作させるため
-            },
-        },
         fileParallelism: false,
         testTimeout: 30000,
     },
