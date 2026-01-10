@@ -22,14 +22,18 @@ export const ColorPicker = memo(function ColorPicker(props: ColorPickerProps) {
     onComplete();
   }, [setOpen, onComplete]);
 
+  if (!position) {
+    return null;
+  }
+
   return (
     <>
       {open && (
         <div
           style={{
             position: "absolute",
-            top: position?.y + "px",
-            left: position?.x + "px",
+            top: position.y + "px",
+            left: position.x + "px",
             zIndex: 1300, // MUI Menu uses high z-index, ensure this is visible or properly layered
           }}
         >
