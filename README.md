@@ -1,29 +1,46 @@
 # ImageOverlayTool
 
-Electron + React で作られた画像オーバーレイ/ブレンド用のデスクトップアプリです。複数画像を読み込み、Konva 上で重ね合わせながら位置調整・変形・透過度調整を行います。設定はローカルに保存されます。
+![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
+![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)
 
-## 特徴
-- 複数画像の読み込みとレイヤー順のドラッグ&ドロップ並び替え。
-- 選択中画像のドラッグ移動・四隅アンカーによる変形。
-- マウスホイールによるステージの拡大/縮小。
-- 画像の透過度スライダー調整。
-- 右クリックのコンテキストメニューから背景色（ウィンドウカラー）を変更。
+**ImageOverlayTool** は、Electron と React で構築された、画像の重ね合わせ調整用デスクトップアプリケーションです。
+複数の画像をキャンバス上に読み込み、透明度を調整しながら精密な位置合わせや比較を行うことができます。開発者の画像検証作業や、デザインの比較調整をサポートします。
 
-## 技術スタック
-- Electron（メインプロセス/IPC）
-- React + Redux Toolkit
-- Konva / react-konva（キャンバス描画）
-- Material UI
-- i18next
+## ✨ 主な機能
 
-## セットアップ
-> 前提: Node.js v18.0.0 以上が必要です。
+- **マルチレイヤーサポート**: 複数の画像を同時に読み込み、ドラッグ&ドロップでレイヤー順序を自由に変更できます。
+- **直感的な操作**:
+  - **移動**: 画像をドラッグしてスムーズに移動。
+  - **変形**: 画像の四隅にあるアンカーを操作して、自由変形（パースペクティブ補正など）が可能。
+  - **ズーム**: マウスホイールでステージ全体を拡大・縮小。
+- **透明度調整**: 選択した画像の透過度 (Opacity) をスライダーでリアルタイムに変更し、画像の差異を確認しやすくします。
+- **カスタマイズ**: コンテキストメニューからキャンバスの背景色（ウィンドウの背景）を変更可能。
+- **設定の永続化**: ウィンドウサイズ、表示位置、背景色、言語設定などは自動的に保存され、次回起動時に復元されます。
 
+## 🛠 技術スタック
+
+このプロジェクトはモダンな技術スタックで構築されています：
+
+- **Core**: [Electron](https://www.electronjs.org/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/)
+- **State Management**: [Redux Toolkit](https://redux-toolkit.js.org/)
+- **Canvas Rendering**: [Konva](https://konvajs.org/) / [react-konva](https://konvajs.org/docs/react/)
+- **UI Components**: [Material UI (MUI)](https://mui.com/)
+- **Build Tool**: [electron-vite](https://electron-vite.org/)
+- **Testing**: [Vitest](https://vitest.dev/), [Testing Library](https://testing-library.com/)
+
+## 🚀 セットアップ
+
+### 前提条件
+- Node.js v18.0.0 以上
+
+### インストール
 ```bash
+# 依存関係のインストール
 npm install
 ```
 
-## 開発・ビルドコマンド
+## 💻 開発・ビルド
+
 ```bash
 # 開発モード（Main/Renderer 双方の監視とHMRを有効化）
 npm run dev
@@ -36,27 +53,30 @@ npm run build:win
 
 # Linux 向けパッケージング (.AppImage / .deb)
 npm run build:linux
+
+# テスト実行
+npm test
 ```
 
-## 使い方（操作の概要）
-1. メニューから画像設定ダイアログを開き、画像を追加します。
-2. 画像を選択すると、キャンバス上でドラッグ移動や四隅アンカーのドラッグによる変形が可能です。
-3. 右下のスライダーで透過度を調整します。
-4. 右クリックメニューから背景色を変更できます。
+## 📁 ディレクトリ構成
 
-## 設定の保存
-以下はアプリのユーザーデータ領域に保存されます。
-- ウィンドウの位置・サイズ・背景色
-- 言語設定
-- 単位係数（`unit_factor`）
+electron-vite の標準構成に従い、プロセスごとにソースコードを分離しています。
 
-## ディレクトリ構成
-electron-vite の標準構成に従い、プロセスごとにソースを分離しています。
-- src/main/: メインプロセス。ウィンドウ管理、IPC通信、ファイルプロトコル設定。
-- src/preload/: プリロードスクリプト。レンダラーへのセキュアなAPI露出。
-- src/renderer/: レンダラープロセス (React)。UIコンポーネントおよび描画ロジック。
-- out/: ビルド成果物の出力先（自動生成）。
+```
+src/
+├── main/       # Electron メインプロセス (ウィンドウ管理、IPC通信、ファイル操作)
+├── preload/    # Preload スクリプト (レンダラーへのセキュアなAPI露出)
+└── renderer/   # React レンダラープロセス (UIコンポーネント、Canvas描画ロジック)
+    ├── components/ # Reactコンポーネント
+    ├── hooks/      # カスタムHooks
+    └── store/      # Redux ストア設定
+```
 
-## 開発上の注意点
-- ローカルファイルの読み込み: セキュリティ制限により、ローカル画像を表示する際は local-file://[絶対パス] 形式のカスタムプロトコルを使用してください。
-- 型定義: window.electronAPI の型補完を有効にするため、src/renderer/src/env.d.ts でインターフェースを定義しています。
+## ⚠️ 開発上の注意点
+
+- **ローカルファイルの読み込み**: セキュリティ制限により、ローカル画像を表示する際は `local-file://[絶対パス]` 形式のカスタムプロトコルを使用しています。
+- **型定義**: `window.electronAPI` などのIPCインターフェースは `src/renderer/src/env.d.ts` で定義されています。
+
+## 📄 ライセンス
+
+このプロジェクトは [AGPL-3.0](LICENSE) ライセンスの下で公開されています。
