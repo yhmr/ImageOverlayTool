@@ -14,5 +14,6 @@ export default defineConfig({
         environment: 'jsdom',
         globals: true,
         pool: 'forks', // CIでのハングアップ防止のためフォークを使用
+        fileParallelism: false, // テストファイルの並列実行を無効化（CIでのハングアップ回避の最終手段）
     },
 });
