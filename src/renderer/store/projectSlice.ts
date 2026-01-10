@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { DimensionLine } from "../../shared/types/DimensionLine";
 
 interface ProjectState {
     unit_factor: number;
@@ -8,12 +9,14 @@ interface ProjectState {
         y: number;
         scale: number;
     };
+    dimensionLines: DimensionLine[];
 }
 
 const initialState: ProjectState = {
     unit_factor: 1,
     windowColor: "#00000000",
     canvas: { x: 0, y: 0, scale: 1 },
+    dimensionLines: [],
 };
 
 export const projectSlice = createSlice({
@@ -33,9 +36,34 @@ export const projectSlice = createSlice({
         resetProject: (state) => {
             state.unit_factor = 1;
             state.canvas = { x: 0, y: 0, scale: 1 };
+            state.dimensionLines = [];
             // Keep windowColor
+        },
+        addDimensionLine: (state, action: PayloadAction<DimensionLine>) => {
+            state.dimensionLines.push(action.payload);
+        },
+        updateDimensionLine: (state, action: PayloadAction<DimensionLine>) => {
+            const index = state.dimensionLines.findIndex(l => l.id === action.payload.id);
+            if (index !== -1) {
+                state.dimensionLines[index] = action.payload;
+            }
+        },
+        removeDimensionLine: (state, action: PayloadAction<string>) => {
+            state.dimensionLines = state.dimensionLines.filter(l => l.id !== action.payload);
+        },
+        setDimensionLines: (state, action: PayloadAction<DimensionLine[]>) => {
+            state.dimensionLines = action.payload;
         },
     },
 });
 
-export const { setUnitFactor, setWindowColor, setCanvasState, resetProject } = projectSlice.actions;
+export const {
+    setUnitFactor,
+    setWindowColor,
+    setCanvasState,
+    resetProject,
+    addDimensionLine,
+    updateDimensionLine,
+    removeDimensionLine,
+    setDimensionLines
+} = projectSlice.actions;
