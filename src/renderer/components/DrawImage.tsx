@@ -3,20 +3,17 @@ import React, { useLayoutEffect } from "react";
 import useImage from "use-image";
 
 import { ImageSet } from "../types/ImageSet";
-import { AnchorPos } from "../types/AnchorPos";
 
 import { PerspectiveImage } from "./PerspectiveImage";
-import { OverlayControls } from "./OverlayControls";
+
 
 interface DrawImageProps {
   imageSet: ImageSet;
   onInitImage: (image: HTMLImageElement) => void;
-  onUpdateAnchor: (anchorPos: AnchorPos) => void;
-  isSelected: boolean;
   onSelect: () => void;
 }
 export const DrawImage = (props: DrawImageProps) => {
-  const { imageSet, onInitImage, onUpdateAnchor, isSelected, onSelect } = props;
+  const { imageSet, onInitImage, onSelect } = props;
 
   // 画像
   const [image] = useImage(imageSet.path);
@@ -32,15 +29,11 @@ export const DrawImage = (props: DrawImageProps) => {
   return (
     <>
       {image && image !== undefined && (
-        <>
-          <PerspectiveImage image={image} imageSet={imageSet} />
-          <OverlayControls
-            imageSet={imageSet}
-            isSelected={isSelected}
-            onUpdateAnchor={onUpdateAnchor}
-            onSelect={onSelect}
-          />
-        </>
+        <PerspectiveImage
+          image={image}
+          imageSet={imageSet}
+          onSelect={onSelect}
+        />
       )}
     </>
   );

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useCallbackRef } from "use-callback-ref";
-import { Html } from "react-konva-utils";
+import React, { useEffect, useMemo, useState } from "react";
+import { Image as KonvaImage } from "react-konva";
 import Perspective from "perspectivets";
 import { ImageSet } from "../types/ImageSet";
 import { getBoundingBox } from "../utils/anchorUtils";
@@ -8,39 +7,40 @@ import { getBoundingBox } from "../utils/anchorUtils";
 interface PerspectiveImageProps {
     image: HTMLImageElement;
     imageSet: ImageSet;
+    onSelect?: () => void;
 }
 
-export const PerspectiveImage = ({ image, imageSet }: PerspectiveImageProps) => {
-    // useCallbackRefで再描画を強制する
-    const [, forceUpdate] = useState(false);
-    const canvasRef = useCallbackRef<HTMLCanvasElement>(null, () =>
-        forceUpdate((state) => !state)
-    );
+export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImageProps) => {
+    // オフスクリーンCanvas
+    const canvas = useMemo(() => document.createElement("canvas"), []);
+    const [renderTrigger, setRenderTrigger] = useState(0); // 再描画用
+
+    // 描画位置情報の保持
+    const [pos, setPos] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
-        if (image && imageSet.current_anchor_pos && canvasRef.current) {
+        if (image && imageSet.current_anchor_pos) {
             // Homography処理
-            const cnv = canvasRef.current;
-
-            // Left/Topは左上固定
-            cnv.style.position = "absolute";
             const { left, top, right, bottom } = getBoundingBox(
                 imageSet.current_anchor_pos
             );
 
-            cnv.width = right - left;
-            cnv.height = bottom - top;
-            cnv.style.left = `${left}px`;
-            cnv.style.top = `${top}px`;
-            cnv.style.zIndex = "0";
-            cnv.style.pointerEvents = "none";
+            // Canvasサイズなどを更新
+            // ※サイズ変更だけで再描画されるが、念のため明示的に変更を検知させる
+            if (canvas.width !== right - left || canvas.height !== bottom - top) {
+                canvas.width = right - left;
+                canvas.height = bottom - top;
+            }
 
-            const ctx = cnv.getContext("2d", { willReadFrequently: true });
+            setPos({ x: left, y: top });
+
+            const ctx = canvas.getContext("2d");
             if (ctx) {
                 // クリア
-                ctx.clearRect(0, 0, cnv.width, cnv.height);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 // 透過率
                 ctx.globalAlpha = 1.0 - imageSet.transparency;
+
                 // 変形後の図形を記述
                 const p = new Perspective(ctx, image);
                 p.draw({
@@ -53,14 +53,35 @@ export const PerspectiveImage = ({ image, imageSet }: PerspectiveImageProps) => 
                     bottomLeftX: imageSet.current_anchor_pos.lb.x - left,
                     bottomLeftY: imageSet.current_anchor_pos.lb.y - top,
                 });
+
+                // Konva.Imageに更新を通知
+                setRenderTrigger((prev) => prev + 1);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [image, imageSet, canvasRef.current]);
+    }, [image, imageSet, canvas]);
+
+    // クリックハンドラ
+    const handleClick = (e: any) => {
+        if (onSelect) {
+            // 左クリックのみ反応など必要であれば条件追加
+            onSelect();
+        }
+    };
 
     return (
-        <Html divProps={{ style: { pointerEvents: "none" } }}>
-            <canvas ref={canvasRef} />
-        </Html>
+        <KonvaImage
+            image={canvas}
+            x={pos.x}
+            y={pos.y}
+            onClick={handleClick}
+            onTap={handleClick}
+            // Konva.Imageはデフォルトでlistening=true
+            // キャッシュを無効化して常に最新のcanvasを表示するためにkeyを変えるか、
+            // imageオブジェクト自体は変わらないので、Konvaが内部でredrawしてくれることを期待
+            // 明示的にimage={canvas}を渡しているのでcanvasの中身が変われば描画時に反映されるはずだが、
+            // KonvaはHTMLCanvasElementの変更を自動検知しない場合があるため、
+            // ステート更新で再レンダリングを促す
+            key={renderTrigger}
+        />
     );
 };

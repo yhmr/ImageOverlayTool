@@ -12,6 +12,7 @@ import { ImageSet } from "../types/ImageSet";
 import { AnchorPos } from "../types/AnchorPos";
 import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
+import { OverlayControls } from "./OverlayControls";
 import { useStageControls } from "../hooks/useStageControls";
 
 export const ImageStage = memo(function ImageStage() {
@@ -119,12 +120,26 @@ export const ImageStage = memo(function ImageStage() {
                 key={index + imageSet.id}
                 imageSet={imageSet}
                 onInitImage={onInitImage(imageSet, index)}
-                onUpdateAnchor={onUpdateAnchor(imageSet, index)}
-                isSelected={imageSet.id === selectedImageId}
                 onSelect={onSelect(imageSet.id)}
               />
             );
           })}
+
+          {selectedImageId &&
+            imageSets.map((imageSet, index) => {
+              if (imageSet.id === selectedImageId) {
+                return (
+                  <OverlayControls
+                    key={"overlay-" + imageSet.id}
+                    imageSet={imageSet}
+                    isSelected={true}
+                    onUpdateAnchor={onUpdateAnchor(imageSet, index)}
+                    onSelect={() => { }} // Select is handled by image click, here for interface compliance
+                  />
+                );
+              }
+              return null;
+            })}
         </Layer>
       </Stage>
       <ControlButton selectedImageId={selectedImageId} />
