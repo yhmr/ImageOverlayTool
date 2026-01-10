@@ -89,18 +89,11 @@ export const ImageStage = memo(function ImageStage() {
 
   // ステージクリック時
   const onMouseDown = useCallback((e: KonvaEventObject<MouseEvent>) => {
-    // Dimension Line creation logic
-    // Allow clicking on Image or Stage to start drawing.
-    // If we clicked on an existing DimensionLine anchor, that should be handled by the anchor's own handler (since bubbles=true usually, but anchors catch events).
-    // Actually, anchors have cancelBubble? Usually Konva shapes handle their own events if listening.
-    // Let's retry checking if it's NOT a dimension line part.
-    // For now, removing "Stage" check allows clicking on Images.
+    // 寸法線作成ロジック
+    // 画像またはステージ上でのクリックで描画を開始します。
+    // 既存の寸法線やアンカーをクリックした場合は、そちらのイベントハンドラで処理され（cancelBubble = true）、
+    // ここには到達しない想定です。
     if (isDimensionMode && e.evt.button === 0) {
-      // Check if we clicked on an anchor or existing line?
-      // Since drag events on anchors stop propagation usually if draggable=true, this might be safe.
-      // But if we click on the line (Arrow) itself, we might want to select it, not draw a new one.
-      // The Arrow onClick in DimensionLineLayer handles selection and calls cancelBubble = true.
-      // So if we reach here, it means we didn't click on a dimension line's interactive parts.
 
       const pos = getStagePointerPos();
       if (pos) {
