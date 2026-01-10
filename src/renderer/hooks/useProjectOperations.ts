@@ -28,7 +28,6 @@ export const useProjectOperations = () => {
     const handleOpenProject = useCallback(async () => {
         const result = await window.electronAPI.loadProject();
         if (result) {
-            console.log("Loaded Project:", result.project);
             const { project, filePath } = result;
             // Restore images
             dispatch(setAllImageSets(project.images));
