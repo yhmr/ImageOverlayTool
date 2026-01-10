@@ -7,14 +7,12 @@ import { useImageAnchor } from "../hooks/useImageAnchor";
 
 interface OverlayControlsProps {
     imageSet: ImageSet;
-    isSelected: boolean;
     onUpdateAnchor: (anchorPos: AnchorPos) => void;
     onSelect: () => void;
 }
 
 export const OverlayControls = ({
     imageSet,
-    isSelected,
     onUpdateAnchor,
     onSelect,
 }: OverlayControlsProps) => {
@@ -30,22 +28,20 @@ export const OverlayControls = ({
 
     const { onDragStart, onDragEnd, onCircleDragEnd } = useImageAnchor({
         imageSet,
-        isSelected,
+
         onUpdateAnchor,
     });
 
     // 選択時の処理（ドラッグ有効化など）
     const onMouseDown = useCallback(() => {
-        if (isSelected) {
-            // ドラッグボタンを上書きし、ドラッグ有効化
-            Konva.dragButtons = [0];
-            if (lineRef.current) lineRef.current.draggable(true);
-            if (ltRef.current) ltRef.current.draggable(true);
-            if (lbRef.current) lbRef.current.draggable(true);
-            if (rtRef.current) rtRef.current.draggable(true);
-            if (rbRef.current) rbRef.current.draggable(true);
-        }
-    }, [isSelected]);
+        // ドラッグボタンを上書きし、ドラッグ有効化
+        Konva.dragButtons = [0];
+        if (lineRef.current) lineRef.current.draggable(true);
+        if (ltRef.current) ltRef.current.draggable(true);
+        if (lbRef.current) lbRef.current.draggable(true);
+        if (rtRef.current) rtRef.current.draggable(true);
+        if (rbRef.current) rbRef.current.draggable(true);
+    }, []);
 
     const onClick = useCallback(() => {
         // ドラッグボタンを上書き
@@ -59,7 +55,6 @@ export const OverlayControls = ({
     useLayoutEffect(() => {
         if (imageSet.current_anchor_pos) {
             if (
-                isSelected &&
                 ltRef.current &&
                 lbRef.current &&
                 rtRef.current &&
@@ -95,33 +90,32 @@ export const OverlayControls = ({
                 lineRef.current.y(0);
             }
         }
-    }, [imageSet, isSelected]);
+    }, [imageSet]);
 
     return (
         <>
             <Line
                 ref={lineRef}
                 closed={true}
-                stroke={isSelected ? "#4e4eff" : "#00000000"}
+                stroke={"#4e4eff"}
                 strokeWidth={3}
                 onMouseDown={onMouseDown}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
                 onClick={onClick}
             />
-            {isSelected &&
-                cRefs.map((ref, index) => (
-                    <Circle
-                        key={index}
-                        draggable={false} // onMouseDownでtrueにする
-                        onMouseDown={onMouseDown}
-                        onDragEnd={circleDragHandler}
-                        ref={ref}
-                        radius={15}
-                        stroke="#1919eb"
-                        fill="#4e4eff"
-                    />
-                ))}
+            {cRefs.map((ref, index) => (
+                <Circle
+                    key={index}
+                    draggable={false} // onMouseDownでtrueにする
+                    onMouseDown={onMouseDown}
+                    onDragEnd={circleDragHandler}
+                    ref={ref}
+                    radius={15}
+                    stroke="#1919eb"
+                    fill="#4e4eff"
+                />
+            ))}
         </>
     );
 };

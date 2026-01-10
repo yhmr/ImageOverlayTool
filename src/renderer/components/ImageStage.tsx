@@ -132,7 +132,7 @@ export const ImageStage = memo(function ImageStage() {
                   <OverlayControls
                     key={"overlay-" + imageSet.id}
                     imageSet={imageSet}
-                    isSelected={true}
+
                     onUpdateAnchor={onUpdateAnchor(imageSet, index)}
                     onSelect={() => { }} // Select is handled by image click, here for interface compliance
                   />

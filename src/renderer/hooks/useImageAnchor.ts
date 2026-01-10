@@ -6,13 +6,11 @@ import { calculateMovedAnchors } from "../utils/anchorUtils";
 
 interface UseImageAnchorProps {
     imageSet: ImageSet;
-    isSelected: boolean;
     onUpdateAnchor: (anchorPos: AnchorPos) => void;
 }
 
 export const useImageAnchor = ({
     imageSet,
-    isSelected,
     onUpdateAnchor,
 }: UseImageAnchorProps) => {
     const [dragStartPos, setDragStartPos] = useState<Point>({ x: 0, y: 0 });
@@ -23,7 +21,7 @@ export const useImageAnchor = ({
 
     const onDragEnd = useCallback(
         (e: Konva.KonvaEventObject<DragEvent>) => {
-            if (isSelected && imageSet.current_anchor_pos) {
+            if (imageSet.current_anchor_pos) {
                 // 移動距離を計算
                 const diff = {
                     x: e.target.x() - dragStartPos.x,
@@ -47,7 +45,7 @@ export const useImageAnchor = ({
                 e.target.y(0);
             }
         },
-        [isSelected, imageSet, dragStartPos, onUpdateAnchor]
+        [imageSet, dragStartPos, onUpdateAnchor]
     );
 
     const onCircleDragEnd = useCallback(
