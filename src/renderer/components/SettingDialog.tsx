@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useLayoutEffect, useState } from "react";
+import React, { memo, useCallback, useLayoutEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -14,7 +14,6 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
-  TextField,
 } from "@mui/material";
 
 interface SettingDialogProps {
