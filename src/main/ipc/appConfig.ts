@@ -1,10 +1,10 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
-import Store from "electron-store";
-import type { AppConfig, SettingType } from "../../renderer/types/AppConfig";
+import { SettingType } from "../../renderer/types/AppConfig";
+import { IConfigRepository } from "../repositories/ConfigRepository";
 
 export const registerAppConfigHandlers = (
   mainWindow: BrowserWindow,
-  store: Store<AppConfig>
+  repository: IConfigRepository
 ) => {
   /**
    * [IPC] 指定ファイルの内容を返却
@@ -31,35 +31,27 @@ export const registerAppConfigHandlers = (
    * [IPC] 設定の読み込み
    */
   ipcMain.handle("setting:load", async () => {
-    return {
-      language: store.get("setting.language", "en"),
-      unit_factor: store.get("setting.unit_factor", 1),
-    };
+    return await repository.loadSettings();
   });
 
   /**
    * [IPC] 設定の保存
    */
   ipcMain.handle("setting:save", async (event, arg: SettingType) => {
-    if (arg.language !== undefined) {
-      store.set("setting.language", arg.language);
-    }
-    if (typeof arg.unit_factor === "number") {
-      store.set("setting.unit_factor", arg.unit_factor);
-    }
+    await repository.saveSettings(arg);
   });
 
   /**
    * [IPC] ウィンドウ色の読み込み
    */
   ipcMain.handle("window_color:load", async () => {
-    return store.get("window.color", "#FFFFFF55");
+    return await repository.loadWindowColor();
   });
 
   /**
    * [IPC] ウィンドウ色の保存
    */
   ipcMain.handle("window_color:save", async (event, color: string) => {
-    store.set("window.color", color);
+    await repository.saveWindowColor(color);
   });
 };

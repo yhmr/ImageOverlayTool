@@ -14,8 +14,7 @@ import {
   registerLocalResourceProtocol,
   setupProtocolHandler,
 } from "./ipc/protocol";
-import { CreateConfigStore } from "./config/configLoader";
-import { getWindowPositionAndSize } from "./config/configLoader";
+import { ConfigRepositoryFactory } from "./repositories/ConfigRepositoryFactory";
 
 // 開発中のみ、外部からのデバッグ接続(9222)を許可する
 if (!app.isPackaged) {
@@ -25,7 +24,7 @@ if (!app.isPackaged) {
 let mainWindow: BrowserWindow;
 
 // 設定ファイル
-const store = CreateConfigStore();
+const configRepository = ConfigRepositoryFactory.create();
 
 // Menu削除
 Menu.setApplicationMenu(null);
@@ -35,7 +34,7 @@ registerLocalResourceProtocol();
 
 app.whenReady().then(() => {
   // ウィンドウの設定読み込み or 初期化
-  const { pos, size } = getWindowPositionAndSize(store);
+  const { pos, size } = configRepository.getWindowPositionAndSize();
 
   mainWindow = new BrowserWindow({
     show: false, // 初めは非表示
@@ -84,8 +83,10 @@ app.whenReady().then(() => {
   // ウィンドウが閉じられた際の処理
   mainWindow.on("close", () => {
     // ウィンドウ設定を保存
-    store.set("window.pos", mainWindow.getPosition());
-    store.set("window.size", mainWindow.getSize());
+    configRepository.saveWindowPositionAndSize(
+      mainWindow.getPosition(),
+      mainWindow.getSize()
+    );
   });
   mainWindow.on("closed", () => {
     mainWindow.destroy();
@@ -93,7 +94,7 @@ app.whenReady().then(() => {
 
   // IPCハンドラ登録
   registerWindowHandlers(mainWindow);
-  registerAppConfigHandlers(mainWindow, store);
+  registerAppConfigHandlers(mainWindow, configRepository);
 });
 
 // アプリケーションが閉じられた際の処理
