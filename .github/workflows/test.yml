@@ -23,13 +23,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Electronなどのネイティブ依存関係がある場合、ヘッドレス環境でテストを実行するために必要なライブラリを追加
-      - name: Install Linux dependencies for Electron
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
-
-
-
       - name: Run tests
-        run: xvfb-run --auto-servernum npm run test
+        run: npm run test

@@ -17,10 +17,8 @@ export default defineConfig({
         },
     },
     test: {
-        environment: 'jsdom',
+        environment: 'node', // 現在のテストはDOM不要なのでnodeで実行
         globals: true,
-        pool: 'forks',
-        fileParallelism: false,
         testTimeout: 30000,
     },
 });
