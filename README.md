@@ -19,7 +19,7 @@
 
 ## 🛠 技術スタック
 
-このプロジェクトはモダンな技術スタックで構築されています：
+このプロジェクトは以下の技術スタックで構築されています：
 
 - **Core**: [Electron](https://www.electronjs.org/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/)
 - **State Management**: [Redux Toolkit](https://redux-toolkit.js.org/)
