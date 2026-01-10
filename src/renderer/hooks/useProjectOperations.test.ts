@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment happy-dom
 import { expect, test, describe, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useProjectOperations } from './useProjectOperations';
