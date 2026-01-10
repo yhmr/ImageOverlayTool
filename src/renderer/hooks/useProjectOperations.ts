@@ -2,14 +2,14 @@ import { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useSelector, RootState } from "../store/store";
 import { setImageSets, setAllImageSets } from "../store/imageSetsSlice";
-import { setUnitFactor, setWindowColor, setCanvasState, resetProject } from "../store/projectSlice";
+import { setUnitFactor, setWindowColor, setCanvasState, resetProject, setDimensionLines } from "../store/projectSlice";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../types/ImageSet";
 
 export const useProjectOperations = () => {
     const dispatch = useDispatch();
     const { imageSets } = useSelector((state: RootState) => state.imageSets);
-    const { unit_factor, windowColor, canvas } = useSelector((state: RootState) => state.project);
+    const { unit_factor, windowColor, canvas, dimensionLines } = useSelector((state: RootState) => state.project);
 
     // 現在のプロジェクトファイルパス
     const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
@@ -39,6 +39,13 @@ export const useProjectOperations = () => {
                 dispatch(setCanvasState(project.canvas));
             } else {
                 dispatch(setCanvasState({ x: 0, y: 0, scale: 1 }));
+            }
+
+            // Restore dimension lines
+            if (project.dimensionLines) {
+                dispatch(setDimensionLines(project.dimensionLines));
+            } else {
+                dispatch(setDimensionLines([]));
             }
 
             // Restore window settings
@@ -79,14 +86,15 @@ export const useProjectOperations = () => {
                 unit_factor: unit_factor
             },
             canvas: canvas,
-            images: imageSets
+            images: imageSets,
+            dimensionLines: dimensionLines
         };
 
         const filePath = await window.electronAPI.saveProjectAs(project);
         if (filePath) {
             setCurrentFilePath(filePath);
         }
-    }, [imageSets, unit_factor, windowColor, canvas]);
+    }, [imageSets, unit_factor, windowColor, canvas, dimensionLines]);
 
     // プロジェクトの保存
     const handleSaveProject = useCallback(async () => {
@@ -109,12 +117,13 @@ export const useProjectOperations = () => {
                 unit_factor: unit_factor
             },
             canvas: canvas,
-            images: imageSets
+            images: imageSets,
+            dimensionLines: dimensionLines
         };
 
         await window.electronAPI.saveProject(currentFilePath, project);
 
-    }, [currentFilePath, imageSets, unit_factor, windowColor, canvas, handleSaveProjectAs]);
+    }, [currentFilePath, imageSets, unit_factor, windowColor, canvas, dimensionLines, handleSaveProjectAs]);
 
     // プロジェクトの保存
     const handleSaveProjectReference = useCallback(async () => {

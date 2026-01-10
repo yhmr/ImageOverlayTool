@@ -16,4 +16,9 @@ export interface ProjectFile<TImage = any> {
         scale: number;
     };
     images: TImage[];
+    dimensionLines?: {
+        id: string;
+        start: { x: number; y: number };
+        end: { x: number; y: number };
+    }[];
 }

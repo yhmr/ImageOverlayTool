@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -11,17 +11,19 @@ import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 
 interface ControlButtonProps {
   selectedImageId: string | null;
+  isDimensionMode: boolean;
+  onToggleDimensionMode: () => void;
 }
 
 export const ControlButton = memo(function ControlButton(
   props: ControlButtonProps
 ) {
-  const { selectedImageId } = props;
+  const { selectedImageId, isDimensionMode, onToggleDimensionMode } = props;
   const { t } = useTranslation();
   const { imageSets } = useSelector((state: RootState) => state.imageSets);
   const dispatch = useDispatch<AppDispatch>();
 
-  const [selected, setSelected] = useState(false);
+
 
   // 透過度の操作
   const selectedImageSet = imageSets.find((set) => set.id === selectedImageId);
@@ -90,8 +92,8 @@ export const ControlButton = memo(function ControlButton(
               backgroundColor: "primary.light",
             },
           }}
-          selected={selected}
-          onChange={() => setSelected(!selected)}
+          selected={isDimensionMode}
+          onChange={onToggleDimensionMode}
         >
           <OpenInFullIcon color="inherit" />
         </ToggleButton>
