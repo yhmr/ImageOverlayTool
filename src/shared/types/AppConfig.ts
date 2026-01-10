@@ -1,5 +1,5 @@
 import type { Point } from "./Point";
-import type { Size }  from "./Size";
+import type { Size } from "./Size";
 
 // 設定ファイルの型定義
 export interface AppConfig {
@@ -15,7 +15,6 @@ export interface AppConfig {
 // Note: settingはUI上で操作可能な値を示す
 export interface SettingType {
   language: string;
-  unit_factor: number;
 }
 
 // ウィンドウのデフォルトサイズ

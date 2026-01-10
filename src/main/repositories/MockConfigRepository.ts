@@ -1,13 +1,12 @@
-import { SettingType, DEFAULT_SIZE } from "../../renderer/types/AppConfig";
-import { Point } from "../../renderer/types/Point";
-import { Size } from "../../renderer/types/Size";
+import { SettingType, DEFAULT_SIZE } from "../../shared/types/AppConfig";
+import { Point } from "../../shared/types/Point";
+import { Size } from "../../shared/types/Size";
 import { IConfigRepository } from "./ConfigRepository"; // 同じディレクトリにあるConfigRepositoryからインターフェースをインポート
 
 export class MockConfigRepository implements IConfigRepository {
     // メモリ上で値を保持する（アプリを再起動するとリセットされる）
     private settings = {
         language: "en",
-        unit_factor: 1,
     };
     private windowColor = "#FF000055"; // テストだと分かりやすいように赤にしておく
     private windowPos: Point = { x: 100, y: 100 };
@@ -25,9 +24,6 @@ export class MockConfigRepository implements IConfigRepository {
         console.log("[Mock] Saving settings:", settings);
         if (settings.language !== undefined) {
             this.settings.language = settings.language;
-        }
-        if (typeof settings.unit_factor === "number") {
-            this.settings.unit_factor = settings.unit_factor;
         }
     }
 

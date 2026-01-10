@@ -13,6 +13,10 @@ interface AppMenuProps {
   handleImageSettingDlgOpen: () => void;
   handleSettingDlgOpen: () => void;
   handleCloseWindow: () => void;
+  handleNewProject: () => void;
+  handleOpenProject: () => void;
+  handleSaveProject: () => void;
+  handleSaveProjectAs: () => void;
 }
 
 export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
@@ -23,6 +27,10 @@ export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
     handleImageSettingDlgOpen,
     handleSettingDlgOpen,
     handleCloseWindow,
+    handleNewProject,
+    handleOpenProject,
+    handleSaveProject,
+    handleSaveProjectAs,
   } = props;
 
   const { t } = useTranslation();
@@ -57,6 +65,28 @@ export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
       transformOrigin={{ horizontal: "left", vertical: "top" }}
       anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
     >
+      <MenuItem onClick={handleNewProject}>
+        <ListItemIcon>
+          {/* Add Icon later if needed or skip */}
+        </ListItemIcon>
+        {t("render.menu.new_project")}
+      </MenuItem>
+      <MenuItem onClick={handleOpenProject}>
+        <ListItemIcon>
+        </ListItemIcon>
+        {t("render.menu.open_project")}
+      </MenuItem>
+      <MenuItem onClick={handleSaveProject}>
+        <ListItemIcon>
+        </ListItemIcon>
+        {t("render.menu.save_project")}
+      </MenuItem>
+      <MenuItem onClick={handleSaveProjectAs}>
+        <ListItemIcon>
+        </ListItemIcon>
+        {t("render.menu.save_project_as")}
+      </MenuItem>
+      <Divider />
       <MenuItem onClick={handleImageSettingDlgOpen}>
         <ListItemIcon>
           <AddPhotoAlternateIcon fontSize="small" />

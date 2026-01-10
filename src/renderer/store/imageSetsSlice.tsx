@@ -46,7 +46,11 @@ export const imageSetsSlice = createSlice({
         }
       }
     },
+    // 一括置換 (load用)
+    setAllImageSets: (state, action) => {
+      state.imageSets = action.payload;
+    },
   },
 });
 
-export const { setImageSets, updateImageSet } = imageSetsSlice.actions;
+export const { setImageSets, updateImageSet, setAllImageSets } = imageSetsSlice.actions;

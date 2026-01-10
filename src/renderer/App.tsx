@@ -1,8 +1,9 @@
 import React, { useCallback, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 
-import { Provider } from "react-redux";
-import { store } from "./store/store";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import { store, RootState } from "./store/store";
+import { setWindowColor } from "./store/projectSlice";
 import "../i18n/configs"; //i18
 
 import { Box } from "@mui/material";
@@ -14,21 +15,28 @@ import { ContextMenu } from "./components/ContextMenu";
 
 const App = () => {
   // 設定の読み込み
-  const [windowColor, setWindowColor] = useState<string>("");
+  const dispatch = useDispatch();
+  const windowColor = useSelector((state: RootState) => state.project.windowColor);
 
   // 初めの一度のみ描画前にファイルから色を取得
   useLayoutEffect(() => {
     // 設定を読み込み
     const loadColor = async () => {
       const color = await window.electronAPI.loadWindowColor();
-      setWindowColor(color);
+      dispatch(setWindowColor(color));
     };
     loadColor();
-  }, []);
+  }, [dispatch]);
+
   // 色設定完了時にファイルに色を保存
   const onCompleteColor = useCallback(async () => {
     await window.electronAPI.saveWindowColor(windowColor);
   }, [windowColor]);
+
+  // 色設定の変更
+  const handleSetColor = useCallback((color: string) => {
+    dispatch(setWindowColor(color));
+  }, [dispatch]);
 
   return (
     <div className="container">
@@ -43,7 +51,7 @@ const App = () => {
         <div className="image-area">
           <ContextMenu
             color={windowColor}
-            setColor={setWindowColor}
+            setColor={handleSetColor}
             onComplete={onCompleteColor}
           >
             <ImageStage />

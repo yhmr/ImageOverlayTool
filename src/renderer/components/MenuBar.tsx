@@ -19,6 +19,7 @@ import { SettingDialog } from "./SettingDialog";
 import { AppMenu } from "./AppMenu";
 import { useMenuState } from "../hooks/useMenuState";
 import { useWindowOperations } from "../hooks/useWindowOperations";
+import { useProjectOperations } from "../hooks/useProjectOperations";
 
 export const MenuBar = memo(function MenuBar() {
   const { t } = useTranslation();
@@ -38,6 +39,13 @@ export const MenuBar = memo(function MenuBar() {
 
   const { full, handleSwitchFullScreen, handleCloseWindow } =
     useWindowOperations();
+
+  const {
+    handleNewProject,
+    handleOpenProject,
+    handleSaveProject,
+    handleSaveProjectAs,
+  } = useProjectOperations();
 
   return (
     <>
@@ -118,6 +126,10 @@ export const MenuBar = memo(function MenuBar() {
         handleImageSettingDlgOpen={handleImageSettingDlgOpen}
         handleSettingDlgOpen={handleSettingDlgOpen}
         handleCloseWindow={handleCloseWindow}
+        handleNewProject={handleNewProject}
+        handleOpenProject={handleOpenProject}
+        handleSaveProject={handleSaveProject}
+        handleSaveProjectAs={handleSaveProjectAs}
       />
     </>
   );

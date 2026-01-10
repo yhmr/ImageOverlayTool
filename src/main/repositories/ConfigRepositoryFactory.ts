@@ -1,6 +1,6 @@
 import { app } from "electron";
 import Store from "electron-store";
-import { AppConfig } from "../../renderer/types/AppConfig";
+import { AppConfig } from "../../shared/types/AppConfig";
 import {
     ConfigRepository,
     IConfigRepository,

@@ -3,13 +3,13 @@ import React, { memo, useCallback } from "react";
 import { HexAlphaColorPicker } from "react-colorful";
 
 
-import type { Point } from "../types/Point";
+import type { Point } from "../../shared/types/Point";
 
 interface ColorPickerProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   color: string;
-  setColor: React.Dispatch<React.SetStateAction<string>>;
+  setColor: (color: string) => void;
   onComplete: () => void;
   position: Point;
 }

@@ -3,6 +3,10 @@
   "render": {
     "menu": {
       "load_image": "画像読み込み",
+      "new_project": "新規作成",
+      "open_project": "プロジェクトを開く",
+      "save_project": "プロジェクトを保存",
+      "save_project_as": "名前を付けて保存",
       "settings": "設定",
       "exit": "終了"
     },
