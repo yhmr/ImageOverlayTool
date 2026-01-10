@@ -13,8 +13,13 @@ export default defineConfig({
     test: {
         environment: 'jsdom',
         globals: true,
-        pool: 'forks', // CIでのハングアップ防止のためフォークを使用
-        fileParallelism: false, // テストファイルの並列実行を無効化
-        testTimeout: 30000, // 30秒のタイムアウトを設定
+        pool: 'forks',
+        poolOptions: {
+            forks: {
+                singleFork: true, // GitHub Actions等の低リソース環境で安定動作させるため
+            },
+        },
+        fileParallelism: false,
+        testTimeout: 30000,
     },
 });
