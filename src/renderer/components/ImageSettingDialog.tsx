@@ -13,6 +13,7 @@ import { arrayMoveImmutable } from "array-move";
 import { useDispatch } from "react-redux";
 import { useSelector, RootState, AppDispatch } from "../store/store";
 import { setImageSets } from "../store/imageSetsSlice";
+import { setUnitFactor } from "../store/projectSlice";
 
 import {
   Button,
@@ -23,6 +24,7 @@ import {
   IconButton,
   Stack,
   Tooltip,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
@@ -112,6 +114,27 @@ export const ImageSettingDialog = memo(function ImageSettingDialog(
               <AddIcon />
             </IconButton>
           </Tooltip>
+
+          {/* 単位設定 */}
+          <TextField
+            type="number"
+            label={t("render.setting_dlg.unit_factor")}
+            value={useSelector((state: RootState) => state.project.unit_factor)}
+            onChange={(e) => dispatch(setUnitFactor(Number(e.target.value)))}
+            inputProps={{ readOnly: false }}
+            sx={{
+              mt: 2,
+              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+              {
+                WebkitAppearance: "none",
+                margin: 0,
+              },
+            }}
+            onWheel={(e: React.WheelEvent<HTMLDivElement>) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (e.target as any).blur();
+            }}
+          />
         </Stack>
       </DialogContent>
       <DialogActions>

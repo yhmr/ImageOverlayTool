@@ -20,4 +20,11 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
   ipcMain.handle("window:close", async () => {
     app.quit();
   });
+
+  /**
+   * [IPC] Windowの位置とサイズを設定
+   */
+  ipcMain.handle("window:setRect", async (event, rect: { x: number; y: number; width: number; height: number }) => {
+    mainWindow.setBounds(rect);
+  });
 };

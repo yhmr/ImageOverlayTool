@@ -1,7 +1,10 @@
 import { useState, useCallback, useEffect, RefObject } from "react";
 import Konva from "konva";
 
-export const useStageControls = (stageRef: RefObject<Konva.Stage>) => {
+export const useStageControls = (
+  stageRef: RefObject<Konva.Stage>,
+  onUpdate?: (newPos: { x: number; y: number; scale: number }) => void
+) => {
   const [stageSize, setStageSize] = useState({ height: 100, width: 100 });
 
   const handleResize = useCallback(() => {
@@ -29,17 +32,22 @@ export const useStageControls = (stageRef: RefObject<Konva.Stage>) => {
           };
 
           const newScale = e.evt.deltaY < 0 ? oldScale * 1.1 : oldScale / 1.1; // 拡縮の倍率
-          stage.scale({ x: newScale, y: newScale });
 
           const newPos = {
             x: point.x - mousePointTo.x * newScale,
             y: point.y - mousePointTo.y * newScale,
           };
-          stage.position(newPos);
+
+          if (onUpdate) {
+            onUpdate({ x: newPos.x, y: newPos.y, scale: newScale });
+          } else {
+            stage.scale({ x: newScale, y: newScale });
+            stage.position(newPos);
+          }
         }
       }
     },
-    [stageRef]
+    [stageRef, onUpdate]
   );
 
   useEffect(() => {

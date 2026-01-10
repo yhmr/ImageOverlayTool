@@ -3,12 +3,12 @@ import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Menu, MenuItem } from "@mui/material";
 
-import type { Point } from "../types/AnchorPos";
+import type { Point } from "../../shared/types/Point";
 import { ColorPicker } from "./ColorPicker";
 
 interface ContextMenuProps {
   color: string;
-  setColor: React.Dispatch<React.SetStateAction<string>>;
+  setColor: (color: string) => void;
   onComplete: () => void;
   children: React.ReactNode;
 }
@@ -25,9 +25,9 @@ export const ContextMenu = memo(function ContextMenu(props: ContextMenuProps) {
     setContextMenu(
       contextMenu === null
         ? {
-            x: event.clientX + 2,
-            y: event.clientY - 6,
-          }
+          x: event.clientX + 2,
+          y: event.clientY - 6,
+        }
         : null
     );
   };

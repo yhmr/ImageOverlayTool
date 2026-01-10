@@ -3,6 +3,10 @@
   "render": {
     "menu": {
       "load_image": "Load Image",
+      "new_project": "New Project",
+      "open_project": "Open Project",
+      "save_project": "Save Project",
+      "save_project_as": "Save Project As",
       "settings": "Settings",
       "exit": "Exit"
     },

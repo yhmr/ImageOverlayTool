@@ -14,7 +14,10 @@ import {
   registerLocalResourceProtocol,
   setupProtocolHandler,
 } from "./ipc/protocol";
+import { registerProjectHandlers } from "./ipc/project";
+
 import { ConfigRepositoryFactory } from "./repositories/ConfigRepositoryFactory";
+import { ProjectRepository } from "./repositories/ProjectRepository";
 
 // 開発中のみ、外部からのデバッグ接続(9222)を許可する
 if (!app.isPackaged) {
@@ -25,6 +28,8 @@ let mainWindow: BrowserWindow;
 
 // 設定ファイル
 const configRepository = ConfigRepositoryFactory.create();
+// プロジェクトファイル
+const projectRepository = new ProjectRepository();
 
 // Menu削除
 Menu.setApplicationMenu(null);
@@ -95,6 +100,7 @@ app.whenReady().then(() => {
   // IPCハンドラ登録
   registerWindowHandlers(mainWindow);
   registerAppConfigHandlers(mainWindow, configRepository);
+  registerProjectHandlers(mainWindow, projectRepository);
 });
 
 // アプリケーションが閉じられた際の処理

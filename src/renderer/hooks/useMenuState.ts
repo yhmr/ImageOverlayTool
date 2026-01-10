@@ -17,7 +17,7 @@ export const useMenuState = () => {
     }, []);
 
     // ImageSettingDialog関連
-    const [openImageSettingDlg, setOpenImageSettingDlg] = useState(true);
+    const [openImageSettingDlg, setOpenImageSettingDlg] = useState(false);
     const handleImageSettingDlgOpen = useCallback(() => {
         setOpenImageSettingDlg(true);
     }, []);

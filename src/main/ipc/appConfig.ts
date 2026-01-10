@@ -1,5 +1,5 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
-import { SettingType } from "../../renderer/types/AppConfig";
+import { SettingType } from "../../shared/types/AppConfig";
 import { IConfigRepository } from "../repositories/ConfigRepository";
 
 export const registerAppConfigHandlers = (

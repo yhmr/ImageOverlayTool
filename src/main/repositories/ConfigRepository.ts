@@ -1,12 +1,12 @@
 import Store from "electron-store";
 import { screen } from "electron";
-import { AppConfig, SettingType, DEFAULT_SIZE } from "../../renderer/types/AppConfig";
+import { AppConfig, SettingType, DEFAULT_SIZE } from "../../shared/types/AppConfig";
 import { calcCenterPosition } from "../utils/calcCenterPosition";
-import { Point } from "../../renderer/types/Point";
-import { Size } from "../../renderer/types/Size";
+import { Point } from "../../shared/types/Point";
+import { Size } from "../../shared/types/Size";
 
 export interface IConfigRepository {
-    loadSettings(): Promise<{ language: string; unit_factor: number }>;
+    loadSettings(): Promise<{ language: string }>;
     saveSettings(settings: SettingType): Promise<void>;
     loadWindowColor(): Promise<string>;
     saveWindowColor(color: string): Promise<void>;
@@ -24,16 +24,12 @@ export class ConfigRepository implements IConfigRepository {
     async loadSettings() {
         return {
             language: this.store.get("setting.language", "en"),
-            unit_factor: this.store.get("setting.unit_factor", 1),
         };
     }
 
     async saveSettings(settings: SettingType) {
         if (settings.language !== undefined) {
             this.store.set("setting.language", settings.language);
-        }
-        if (typeof settings.unit_factor === "number") {
-            this.store.set("setting.unit_factor", settings.unit_factor);
         }
     }
 

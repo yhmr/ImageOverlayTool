@@ -15,16 +15,37 @@ import { ControlButton } from "./ControlButton";
 import { OverlayControls } from "./OverlayControls";
 import { useStageControls } from "../hooks/useStageControls";
 
+import { setCanvasState } from "../store/projectSlice";
+
 export const ImageStage = memo(function ImageStage() {
   // imageSet取得
   const { imageSets } = useSelector((state: RootState) => state.imageSets);
+  const { canvas } = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch<AppDispatch>();
 
   // ステージのref
   const stageRef = useRef<Konva.Stage>(null);
 
   // useStageControlsを使用
-  const { stageSize, handleWheel } = useStageControls(stageRef);
+  // Stageの状態更新(Zoom/Pan)時にReduxへ通知するコールバック
+  const onUpdateStage = useCallback((newPos: { x: number; y: number; scale: number }) => {
+    dispatch(setCanvasState(newPos));
+  }, [dispatch]);
+
+  const { stageSize, handleWheel } = useStageControls(stageRef, onUpdateStage);
+
+  // Drag End handler
+  const onDragEnd = useCallback((e: KonvaEventObject<DragEvent>) => {
+    if (e.target.getType() === "Stage") {
+      const stage = e.target as Konva.Stage;
+      onUpdateStage({
+        x: stage.x(),
+        y: stage.y(),
+        scale: stage.scaleX()
+      });
+    }
+  }, [onUpdateStage]);
+
 
   // 画像の選択状態
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
@@ -108,8 +129,13 @@ export const ImageStage = memo(function ImageStage() {
     <>
       <Stage
         {...stageSize}
+        x={canvas.x}
+        y={canvas.y}
+        scaleX={canvas.scale}
+        scaleY={canvas.scale}
         draggable={false}
         onMouseDown={onMouseDown}
+        onDragEnd={onDragEnd}
         onWheel={handleWheel}
         ref={stageRef}
       >

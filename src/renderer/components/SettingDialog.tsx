@@ -36,24 +36,16 @@ export const SettingDialog = memo(function SettingDialog(
     [i18n]
   );
 
-  // um/pix値の更新
-  const [umPix, setUmPix] = useState<number>(0);
-  const handleUmPixChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setUmPix(Number(e.target.value));
-    },
-    []
-  );
 
   // 終了時に設定保存
   const handleCloseAndSave = useCallback(async () => {
     // 設定を保存
     await window.electronAPI.saveSetting({
       language: i18n.language,
-      unit_factor: umPix,
+      // unit_factor removed
     });
     handleClose();
-  }, [handleClose, i18n, umPix]);
+  }, [handleClose, i18n]);
 
   // 初期化
   useLayoutEffect(() => {
@@ -61,7 +53,6 @@ export const SettingDialog = memo(function SettingDialog(
     const loadSetting = async () => {
       const setting = await window.electronAPI.loadSetting();
       i18n.changeLanguage(setting.language);
-      setUmPix(setting.unit_factor ?? 0);
     };
     loadSetting();
   }, [i18n]);
@@ -97,34 +88,6 @@ export const SettingDialog = memo(function SettingDialog(
           </Select>
           <FormHelperText>
             {t("render.setting_dlg.helper.language")}
-          </FormHelperText>
-
-          {/* 単位設定 */}
-          <TextField
-            type="number"
-            label={t("render.setting_dlg.unit_factor")}
-            value={umPix}
-            onChange={handleUmPixChange}
-            inputProps={{ readOnly: false }}
-            sx={{
-              mt: 2,
-              // numberのスピンボタンを消す
-              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                {
-                  WebkitAppearance: "none",
-                  margin: 0,
-                },
-            }}
-            onWheel={(e: React.WheelEvent<HTMLDivElement>) => {
-              // NOTE : ホイール挙動のオフ
-              //        ただしcurrentTargetでは意図通り動かないため、
-              //        eslintを無視する
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (e.target as any).blur();
-            }}
-          />
-          <FormHelperText>
-            {t("render.setting_dlg.helper.unit_factor")}
           </FormHelperText>
         </FormControl>
       </DialogContent>

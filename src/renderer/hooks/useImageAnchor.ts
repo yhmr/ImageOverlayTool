@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
 import Konva from "konva";
 import { ImageSet } from "../types/ImageSet";
-import { AnchorPos, Point } from "../types/AnchorPos";
+import { Point } from "../../shared/types/Point";
+import { AnchorPos } from "../types/AnchorPos";
 import { calculateMovedAnchors } from "../utils/anchorUtils";
 
 interface UseImageAnchorProps {

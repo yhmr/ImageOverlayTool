@@ -7,9 +7,11 @@ import {
 } from "react-redux";
 
 import { imageSetsSlice } from "./imageSetsSlice";
+import { projectSlice } from "./projectSlice";
 
 const rootReducer = combineReducers({
   imageSets: imageSetsSlice.reducer,
+  project: projectSlice.reducer,
 });
 
 export const store = configureStore({
