@@ -3,6 +3,7 @@ import React, { memo, useCallback, useRef, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useSelector, RootState, AppDispatch } from "../store/store";
 import { updateImageSet } from "../store/imageSetsSlice";
+import { setCanvasState } from "../store/projectSlice";
 import { KonvaEventObject } from "konva/lib/Node";
 
 import Konva from "konva";
@@ -13,16 +14,16 @@ import { AnchorPos } from "../types/AnchorPos";
 import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
 import { OverlayControls } from "./OverlayControls";
-import { useStageControls } from "../hooks/useStageControls";
-
-import { setCanvasState, addDimensionLine, updateDimensionLine, removeDimensionLine } from "../store/projectSlice";
 import { DimensionLineLayer } from "./DimensionLineLayer";
-import { DimensionLine } from "../../shared/types/DimensionLine";
+
+import { useStageControls } from "../hooks/useStageControls";
+import { useDimensionLineMode } from "../hooks/useDimensionLineMode";
+import { useImageSelection } from "../hooks/useImageSelection";
 
 export const ImageStage = memo(function ImageStage() {
   // imageSet取得
   const { imageSets } = useSelector((state: RootState) => state.imageSets);
-  const { canvas, dimensionLines, unit_factor } = useSelector((state: RootState) => state.project);
+  const { canvas } = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch<AppDispatch>();
 
   // ステージのref
@@ -48,141 +49,53 @@ export const ImageStage = memo(function ImageStage() {
     }
   }, [onUpdateStage]);
 
-  // Dimension Mode State
-  const [isDimensionMode, setIsDimensionMode] = useState(false);
-  const [selectedDimensionLineId, setSelectedDimensionLineId] = useState<string | null>(null);
-  const [drawingLineId, setDrawingLineId] = useState<string | null>(null);
+  // Custom hooks
+  const {
+    isDimensionMode, setIsDimensionMode,
+    selectedDimensionLineId, setSelectedDimensionLineId,
+    dimensionLines, unit_factor,
+    onSelectDimensionLine, onUpdateDimensionLineHandler,
+    onMouseDown: onMouseDownDimension,
+    onMouseMove: onMouseMoveDimension,
+    onMouseUp: onMouseUpDimension
+  } = useDimensionLineMode(stageRef);
 
-  const getStagePointerPos = useCallback(() => {
-    const stage = stageRef.current;
-    if (!stage) return null;
-    const pos = stage.getPointerPosition();
-    if (!pos) return null;
-    const transform = stage.getAbsoluteTransform().copy();
-    transform.invert();
-    return transform.point(pos);
-  }, []);
-
-  const onSelectDimensionLine = useCallback((id: string | null) => {
-    setSelectedDimensionLineId(id);
-    if (id) {
-      setSelectedImageId(null);
-    }
-  }, []);
-
-  const onUpdateDimensionLineHandler = useCallback((line: DimensionLine) => {
-    dispatch(updateDimensionLine(line));
-  }, [dispatch]);
+  const { selectedImageId, setSelectedImageId, getOnSelectHandler } = useImageSelection();
 
 
-
-  // 画像の選択状態
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const onSelect = useCallback((id: string) => {
-    return () => {
-      if (!isDimensionMode) { // Ignore image selection in dimension mode
-        setSelectedImageId(id);
-        setSelectedDimensionLineId(null);
-      }
-    };
-  }, [isDimensionMode]);
-
-  // ステージクリック時
+  // Handlers wrapper
   const onMouseDown = useCallback((e: KonvaEventObject<MouseEvent>) => {
-    // 寸法線作成ロジック
-    // 画像またはステージ上でのクリックで描画を開始します。
-    // 既存の寸法線やアンカーをクリックした場合は、そちらのイベントハンドラで処理され（cancelBubble = true）、
-    // ここには到達しない想定です。
-    if (isDimensionMode && e.evt.button === 0) {
-
-      const pos = getStagePointerPos();
-      if (pos) {
-        const id = crypto.randomUUID();
-        const newLine: DimensionLine = {
-          id,
-          start: pos,
-          end: pos
-        };
-        dispatch(addDimensionLine(newLine));
-        setDrawingLineId(id);
-        setSelectedDimensionLineId(id); // Select the new line
-        setSelectedImageId(null);
-      }
-      return;
-    }
-
+    // dimensionモードでない場合はステージドラッグを有効化
     if (!isDimensionMode) {
-      // ドラッグボタンを上書きし、ドラッグ有効化
       Konva.dragButtons = [1, 2];
       if (stageRef.current) {
         stageRef.current.draggable(true);
       }
-      // 左クリックかつStageのクリックだった場合、選択を解除
+      // ステージクリックで画像選択を解除
       if (e.evt.button === 0 && e.target.getType() === "Stage") {
         setSelectedImageId(null);
-        setSelectedDimensionLineId(null); // Clear dimension selection too
       }
     } else {
-      // In dimension mode, clicking stage clears selection if not creating new line (handled above)
-      if (e.evt.button === 0 && e.target.getType() === "Stage") {
-        setSelectedDimensionLineId(null);
-        // Don't enable stage drag in dimension mode with left click
-      } else if (e.evt.button === 1 || e.evt.button === 2) {
-        // Allow pan with middle/right click even in dimension mode
+      // dimensionモードで中クリックまたは右クリックでステージドラッグを有効化
+      if (e.evt.button === 1 || e.evt.button === 2) {
         Konva.dragButtons = [1, 2];
         if (stageRef.current) {
           stageRef.current.draggable(true);
         }
       }
     }
-  }, [isDimensionMode, getStagePointerPos, dispatch]);
+
+    // dimensionモードのハンドラーを呼び出す
+    onMouseDownDimension(e);
+  }, [isDimensionMode, onMouseDownDimension, setSelectedImageId]);
 
   const onMouseMove = useCallback((e: KonvaEventObject<MouseEvent>) => {
-    if (drawingLineId) {
-      const pos = getStagePointerPos();
-      if (pos && dimensionLines) {
-        const line = dimensionLines.find(l => l.id === drawingLineId);
-        if (line) {
-          dispatch(updateDimensionLine({
-            ...line,
-            end: pos
-          }));
-        }
-      }
-    }
-  }, [drawingLineId, getStagePointerPos, dimensionLines, dispatch]);
+    onMouseMoveDimension(e);
+  }, [onMouseMoveDimension]);
 
   const onMouseUp = useCallback((e: KonvaEventObject<MouseEvent>) => {
-    if (drawingLineId) {
-      if (dimensionLines) {
-        const line = dimensionLines.find(l => l.id === drawingLineId);
-        if (line) {
-          const dx = line.end.x - line.start.x;
-          const dy = line.end.y - line.start.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 2) { // Threshold for "zero length" or single click
-            dispatch(removeDimensionLine(drawingLineId));
-            setSelectedDimensionLineId(null); // Treat as deselect
-          }
-        }
-      }
-      setDrawingLineId(null);
-    }
-  }, [drawingLineId, dimensionLines, dispatch]);
-
-  // Keydown handler for delete
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedDimensionLineId) {
-        dispatch(removeDimensionLine(selectedDimensionLineId));
-        setSelectedDimensionLineId(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [selectedDimensionLineId, dispatch]);
+    onMouseUpDimension(e);
+  }, [onMouseUpDimension]);
 
   // 初期読み込み時の更新
   const onInitImage = useCallback(
@@ -231,15 +144,7 @@ export const ImageStage = memo(function ImageStage() {
     }
   }, []);
 
-  useEffect(() => {
-    // 選択画像が削除された場合、選択解除
-    if (
-      selectedImageId &&
-      !imageSets.find((imageSet) => imageSet.id === selectedImageId)
-    ) {
-      setSelectedImageId(null);
-    }
-  }, [imageSets, selectedImageId]);
+
 
   return (
     <>
@@ -264,7 +169,7 @@ export const ImageStage = memo(function ImageStage() {
                 key={index + imageSet.id}
                 imageSet={imageSet}
                 onInitImage={onInitImage(imageSet, index)}
-                onSelect={onSelect(imageSet.id)}
+                onSelect={getOnSelectHandler(imageSet.id, isDimensionMode, () => setSelectedDimensionLineId(null))}
               />
             );
           })}
@@ -301,8 +206,8 @@ export const ImageStage = memo(function ImageStage() {
         isDimensionMode={isDimensionMode}
         onToggleDimensionMode={() => {
           setIsDimensionMode(!isDimensionMode);
-          // Clear selections when switching modes
-          if (!isDimensionMode) { // Switching TO dimension mode
+          // dimensionモード切り替え時に選択を解除
+          if (!isDimensionMode) { // dimensionモードへ切り替え
             setSelectedImageId(null);
           } else {
             setSelectedDimensionLineId(null);
