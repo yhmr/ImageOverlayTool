@@ -1,8 +1,9 @@
 import React, { memo, useCallback } from "react";
 
-import { ColorResult, SketchPicker } from "react-color";
+import { HexAlphaColorPicker } from "react-colorful";
 
-import { Point } from "../types/ImageSet";
+
+import type { Point } from "../types/Point";
 
 interface ColorPickerProps {
   open: boolean;
@@ -21,20 +22,9 @@ export const ColorPicker = memo(function ColorPicker(props: ColorPickerProps) {
     onComplete();
   }, [setOpen, onComplete]);
 
-  const decimalToHex = useCallback(
-    (alpha: number) =>
-      alpha === 0 ? "00" : Math.round(255 * alpha).toString(16),
-    []
-  );
-
-  // カラー操作中
-  const handleOnChangeColor = useCallback(
-    (color: ColorResult) => {
-      const hexCode = `${color.hex}${decimalToHex(color.rgb.a || 0)}`;
-      setColor(hexCode);
-    },
-    [setColor, decimalToHex]
-  );
+  if (!position) {
+    return null;
+  }
 
   return (
     <>
@@ -42,8 +32,9 @@ export const ColorPicker = memo(function ColorPicker(props: ColorPickerProps) {
         <div
           style={{
             position: "absolute",
-            top: position?.y + "px",
-            left: position?.x + "px",
+            top: position.y + "px",
+            left: position.x + "px",
+            zIndex: 1300, // MUI Menu uses high z-index, ensure this is visible or properly layered
           }}
         >
           {/* 背景クリック用の領域確保 */}
@@ -54,10 +45,13 @@ export const ColorPicker = memo(function ColorPicker(props: ColorPickerProps) {
               height: "100%",
               top: "0",
               left: "0",
+              zIndex: 1300,
             }}
             onClick={handleOnClickBackground}
           ></div>
-          <SketchPicker color={color} onChange={handleOnChangeColor} />
+          <div style={{ position: "relative", zIndex: 1301 }}>
+            <HexAlphaColorPicker color={color} onChange={setColor} />
+          </div>
         </div>
       )}
     </>

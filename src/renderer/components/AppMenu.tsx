@@ -6,7 +6,7 @@ import { Divider, ListItemIcon, Menu, MenuItem } from "@mui/material";
 import { Logout, Settings } from "@mui/icons-material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 
-interface MenuContextProps {
+interface AppMenuProps {
   anchorEl: null | HTMLElement;
   openMenu: boolean;
   handleMenuClose: () => void;
@@ -15,7 +15,7 @@ interface MenuContextProps {
   handleCloseWindow: () => void;
 }
 
-export const MenuContext = memo(function MenuContext(props: MenuContextProps) {
+export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
   const {
     anchorEl,
     openMenu,

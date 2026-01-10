@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from "react";
+import React, { memo } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -16,53 +16,28 @@ import CloseIcon from "@mui/icons-material/Close";
 
 import { ImageSettingDialog } from "./ImageSettingDialog";
 import { SettingDialog } from "./SettingDialog";
-import { MenuContext } from "./MenuContext";
+import { AppMenu } from "./AppMenu";
+import { useMenuState } from "../hooks/useMenuState";
+import { useWindowOperations } from "../hooks/useWindowOperations";
 
 export const MenuBar = memo(function MenuBar() {
   const { t } = useTranslation();
 
-  // メニュー表示関連
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const openMenu = Boolean(anchorEl);
-  const handleMenuClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>) => {
-      setAnchorEl(event.currentTarget);
-    },
-    []
-  );
-  const handleMenuClose = useCallback(() => {
-    setAnchorEl(null);
-  }, []);
+  const {
+    anchorEl,
+    openMenu,
+    handleMenuClick,
+    handleMenuClose,
+    openImageSettingDlg,
+    handleImageSettingDlgOpen,
+    handleImageSettingDlgClose,
+    openSettingDlg,
+    handleSettingDlgOpen,
+    handleSettingDlgClose,
+  } = useMenuState();
 
-  // スクリーンサイズ
-  const [full, setFull] = useState(false);
-  const handleSwitchFullScreen = useCallback(async () => {
-    const res = await window.electronAPI.switchWindowSize();
-    setFull(res);
-  }, []);
-
-  // ImageSettingDialog関連
-  const [openImageSettingDlg, setOpenImageSettingDlg] = useState(true);
-  const handleImageSettingDlgOpen = useCallback(() => {
-    setOpenImageSettingDlg(true);
-  }, []);
-  const handleImageSettingDlgClose = useCallback(() => {
-    setOpenImageSettingDlg(false);
-  }, []);
-
-  // SettingDialog関連
-  const [openSettingDlg, setOpenSettingDlg] = useState(false);
-  const handleSettingDlgOpen = useCallback(() => {
-    setOpenSettingDlg(true);
-  }, []);
-  const handleSettingDlgClose = useCallback(() => {
-    setOpenSettingDlg(false);
-  }, []);
-
-  // Windowを閉じる
-  const handleCloseWindow = useCallback(() => {
-    window.electronAPI.closeWindow();
-  }, []);
+  const { full, handleSwitchFullScreen, handleCloseWindow } =
+    useWindowOperations();
 
   return (
     <>
@@ -136,7 +111,7 @@ export const MenuBar = memo(function MenuBar() {
         handleClose={handleSettingDlgClose}
       />
       {/* ポップアップメニュー */}
-      <MenuContext
+      <AppMenu
         anchorEl={anchorEl}
         openMenu={openMenu}
         handleMenuClose={handleMenuClose}

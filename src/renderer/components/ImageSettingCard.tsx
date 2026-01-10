@@ -35,7 +35,7 @@ export const ImageSettingCard = memo(function ImageSettingCard(
         const res = await window.electronAPI.openFile();
         if (res) {
           const imageSet = { ...imageSets[index] };
-          imageSet.path = `local-file://${res}`;
+          imageSet.path = `local-file://${res.replace(/\\/g, "/")}`;
           // ファイル読み込み直しの場合は、すべてのパラメータを初期化
           imageSet.transparency = 0.0;
           imageSet.init_anchor_pos = null;
