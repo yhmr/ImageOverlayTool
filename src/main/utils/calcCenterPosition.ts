@@ -1,7 +1,4 @@
-export type Size = {
-  width: number;
-  height: number;
-};
+import type { Size } from "../../shared/types/Size";
 
 export function calcCenterPosition(
   workAreaSize: Size,

@@ -2,7 +2,6 @@ import path from "path";
 import { BrowserWindow, globalShortcut, app } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IConfigRepository } from "../repositories/ConfigRepository";
-import { DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 
 /**
  * ウィンドウ管理クラス
@@ -97,14 +96,14 @@ export class WindowManager {
             return this.imageSettingsWindow;
         }
 
-        const windowConfig = this.configRepository.getImageSettingsWindowPositionAndSize();
+        const { pos, size } = this.configRepository.getImageSettingsWindowPositionAndSize();
 
         this.imageSettingsWindow = new BrowserWindow({
             show: false,
-            width: windowConfig?.size.width ?? DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width,
-            height: windowConfig?.size.height ?? DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height,
-            x: windowConfig?.pos.x,
-            y: windowConfig?.pos.y,
+            width: size.width,
+            height: size.height,
+            x: pos.x,
+            y: pos.y,
             parent: this.mainWindow ?? undefined,
             titleBarStyle: "hidden",
             transparent: true,

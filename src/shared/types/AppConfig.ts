@@ -33,6 +33,3 @@ export const DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE: Size = {
   width: 400,
   height: 500,
 };
-
-// 後方互換性のためのエイリアス
-export const DEFAULT_SIZE = DEFAULT_MAIN_WINDOW_SIZE;

@@ -1,20 +1,18 @@
 import React, { useRef, useCallback, useLayoutEffect } from "react";
 import Konva from "konva";
 import { Circle, Line } from "react-konva";
-import { ImageSet } from "../../types/ImageSet";
-import { AnchorPos } from "../../types/AnchorPos";
+import type { ImageSet } from "../../types/ImageSet";
+import type { AnchorPos } from "../../types/AnchorPos";
 import { useImageAnchor } from "../../hooks/useImageAnchor";
 
 interface OverlayControlsProps {
     imageSet: ImageSet;
     onUpdateAnchor: (anchorPos: AnchorPos) => void;
-    onSelect: () => void;
 }
 
 export const OverlayControls = ({
     imageSet,
     onUpdateAnchor,
-    onSelect,
 }: OverlayControlsProps) => {
     // アンカーとラインのRef
     const ltRef = useRef<Konva.Circle>(null);
@@ -42,12 +40,6 @@ export const OverlayControls = ({
         if (rtRef.current) rtRef.current.draggable(true);
         if (rbRef.current) rbRef.current.draggable(true);
     }, []);
-
-    const onClick = useCallback(() => {
-        // ドラッグボタンを上書き
-        Konva.dragButtons = [0];
-        onSelect();
-    }, [onSelect]);
 
     const circleDragHandler = onCircleDragEnd(ltRef, lbRef, rtRef, rbRef);
 
@@ -102,7 +94,6 @@ export const OverlayControls = ({
                 onMouseDown={onMouseDown}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
-                onClick={onClick}
             />
             {cRefs.map((ref, index) => (
                 <Circle

@@ -183,7 +183,6 @@ export const ImageStage = memo(function ImageStage() {
                     imageSet={imageSet}
 
                     onUpdateAnchor={onUpdateAnchor(imageSet, index)}
-                    onSelect={() => { }} // Select is handled by image click, here for interface compliance
                   />
                 );
               }
