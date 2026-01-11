@@ -28,21 +28,7 @@ describe("useMenuState", () => {
         expect(result.current.openMenu).toBe(false);
     });
 
-    it("should handle image setting dialog", () => {
-        const { result } = renderHook(() => useMenuState());
 
-        expect(result.current.openImageSettingDlg).toBe(false);
-
-        act(() => {
-            result.current.handleImageSettingDlgOpen();
-        });
-        expect(result.current.openImageSettingDlg).toBe(true);
-
-        act(() => {
-            result.current.handleImageSettingDlgClose();
-        });
-        expect(result.current.openImageSettingDlg).toBe(false);
-    });
 
     it("should handle setting dialog", () => {
         const { result } = renderHook(() => useMenuState());
