@@ -24,6 +24,11 @@ export interface IElectronAPI {
   // ImageSets Sync
   updateImageSets: (imageSets: ImageSet[]) => Promise<void>;
   onImageSetsUpdated: (callback: (imageSets: ImageSet[]) => void) => () => void;
+  // Unit Factor Sync
+  updateUnitFactor: (unitFactor: number) => Promise<void>;
+  onUnitFactorUpdated: (
+    callback: (unitFactor: number) => void
+  ) => () => void;
 }
 
 declare global {

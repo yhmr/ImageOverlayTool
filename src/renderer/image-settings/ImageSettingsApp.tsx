@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import { Provider } from "react-redux";
 import { store } from "../store/store";
-import { useImageSetsSync } from "../hooks/useImageSetsSync";
+import { useProjectSync } from "../hooks/useProjectSync";
 import "../../i18n/configs";
 
 import { CssBaseline } from "@mui/material";
@@ -14,8 +14,8 @@ import { ImageList } from "./components/ImageList";
 import "./ImageSettingsApp.css";
 
 const ImageSettingsApp = () => {
-    // 画像同期フックを使用
-    useImageSetsSync();
+    // 同期フックを使用
+    useProjectSync();
 
     return (
         <>

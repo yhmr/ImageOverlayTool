@@ -26,6 +26,9 @@ export const projectSlice = createSlice({
         setUnitFactor: (state, action: PayloadAction<number>) => {
             state.unit_factor = action.payload;
         },
+        syncUnitFactor: (state, action: PayloadAction<number>) => {
+            state.unit_factor = action.payload;
+        },
         setWindowColor: (state, action: PayloadAction<string>) => {
             state.windowColor = action.payload;
         },
@@ -59,6 +62,7 @@ export const projectSlice = createSlice({
 
 export const {
     setUnitFactor,
+    syncUnitFactor, // Add this
     setWindowColor,
     setCanvasState,
     resetProject,

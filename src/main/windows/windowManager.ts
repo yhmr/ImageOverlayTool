@@ -193,6 +193,20 @@ export class WindowManager {
     }
 
     /**
+     * すべての有効なウィンドウを取得
+     */
+    getAllWindows(): BrowserWindow[] {
+        const windows: BrowserWindow[] = [];
+        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+            windows.push(this.mainWindow);
+        }
+        if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
+            windows.push(this.imageSettingsWindow);
+        }
+        return windows;
+    }
+
+    /**
      * すべてのウィンドウを閉じる
      */
     closeAllWindows(): void {

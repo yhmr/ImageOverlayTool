@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { store, RootState } from "../store/store";
 import { setWindowColor } from "../store/projectSlice";
-import { useImageSetsSync } from "../hooks/useImageSetsSync";
+import { useProjectSync } from "../hooks/useProjectSync";
 import "../../i18n/configs"; //i18
 
 import { Box } from "@mui/material";
@@ -19,8 +19,8 @@ const App = () => {
   const dispatch = useDispatch();
   const windowColor = useSelector((state: RootState) => state.project.windowColor);
 
-  // 画像同期フックを使用
-  useImageSetsSync();
+  // 同期フックを使用
+  useProjectSync();
 
   // 初めの一度のみ描画前にファイルから色を取得
   useLayoutEffect(() => {
