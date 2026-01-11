@@ -12,9 +12,17 @@ export class WindowManager {
     private mainWindow: BrowserWindow | null = null;
     private imageSettingsWindow: BrowserWindow | null = null;
     private configRepository: IConfigRepository;
+    private isQuitting = false;
 
     constructor(configRepository: IConfigRepository) {
         this.configRepository = configRepository;
+    }
+
+    /**
+     * アプリ終了シーケンスを開始
+     */
+    willQuit(): void {
+        this.isQuitting = true;
     }
 
     /**
@@ -58,6 +66,9 @@ export class WindowManager {
 
         // ウィンドウが閉じられた際の処理
         this.mainWindow.on("closed", () => {
+            // メインウィンドウが閉じられたらアプリ終了とみなす
+            this.isQuitting = true;
+
             // 画像設定ウィンドウも閉じる
             if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
                 this.imageSettingsWindow.close();
@@ -114,13 +125,21 @@ export class WindowManager {
 
         // ウィンドウが閉じられる際に設定を保存
         this.imageSettingsWindow.on("close", (event) => {
-            // トグル動作: 実際には閉じずに非表示にする
-            event.preventDefault();
             if (this.imageSettingsWindow) {
                 this.configRepository.saveImageSettingsWindowPositionAndSize(
                     this.imageSettingsWindow.getPosition(),
                     this.imageSettingsWindow.getSize()
                 );
+            }
+
+            // アプリ終了時はイベントをキャンセルしない（ウィンドウを閉じる）
+            if (this.isQuitting) {
+                return;
+            }
+
+            // トグル動作: 実際には閉じずに非表示にする
+            event.preventDefault();
+            if (this.imageSettingsWindow) {
                 this.imageSettingsWindow.hide();
             }
         });

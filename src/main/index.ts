@@ -71,3 +71,8 @@ app.once("window-all-closed", () => {
   windowManager.cleanup();
   app.quit();
 });
+
+// アプリ終了処理開始時 (Cmd+Qなど)
+app.on("before-quit", () => {
+  windowManager.willQuit();
+});
