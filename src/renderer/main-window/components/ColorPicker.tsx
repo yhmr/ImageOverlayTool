@@ -3,7 +3,7 @@ import React, { memo, useCallback } from "react";
 import { HexAlphaColorPicker } from "react-colorful";
 
 
-import type { Point } from "../../shared/types/Point";
+import type { Point } from "../../../shared/types/Point";
 
 interface ColorPickerProps {
   open: boolean;

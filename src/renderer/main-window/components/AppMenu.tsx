@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -10,7 +10,6 @@ interface AppMenuProps {
   anchorEl: null | HTMLElement;
   openMenu: boolean;
   handleMenuClose: () => void;
-  handleImageSettingDlgOpen: () => void;
   handleSettingDlgOpen: () => void;
   handleCloseWindow: () => void;
   handleNewProject: () => void;
@@ -24,7 +23,6 @@ export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
     anchorEl,
     openMenu,
     handleMenuClose,
-    handleImageSettingDlgOpen,
     handleSettingDlgOpen,
     handleCloseWindow,
     handleNewProject,
@@ -34,6 +32,11 @@ export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
   } = props;
 
   const { t } = useTranslation();
+
+  // 画像設定ウィンドウを開く
+  const handleOpenImageSettings = useCallback(async () => {
+    await window.electronAPI.toggleImageSettingsWindow();
+  }, []);
 
   return (
     <Menu
@@ -87,7 +90,7 @@ export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
         {t("render.menu.save_project_as")}
       </MenuItem>
       <Divider />
-      <MenuItem onClick={handleImageSettingDlgOpen}>
+      <MenuItem onClick={handleOpenImageSettings}>
         <ListItemIcon>
           <AddPhotoAlternateIcon fontSize="small" />
         </ListItemIcon>

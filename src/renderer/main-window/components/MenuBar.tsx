@@ -14,12 +14,11 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import CloseIcon from "@mui/icons-material/Close";
 
-import { ImageSettingDialog } from "./ImageSettingDialog";
 import { SettingDialog } from "./SettingDialog";
 import { AppMenu } from "./AppMenu";
-import { useMenuState } from "../hooks/useMenuState";
-import { useWindowOperations } from "../hooks/useWindowOperations";
-import { useProjectOperations } from "../hooks/useProjectOperations";
+import { useMenuState } from "../../hooks/useMenuState";
+import { useWindowOperations } from "../../hooks/useWindowOperations";
+import { useProjectOperations } from "../../hooks/useProjectOperations";
 
 export const MenuBar = memo(function MenuBar() {
   const { t } = useTranslation();
@@ -29,9 +28,6 @@ export const MenuBar = memo(function MenuBar() {
     openMenu,
     handleMenuClick,
     handleMenuClose,
-    openImageSettingDlg,
-    handleImageSettingDlgOpen,
-    handleImageSettingDlgClose,
     openSettingDlg,
     handleSettingDlgOpen,
     handleSettingDlgClose,
@@ -109,11 +105,6 @@ export const MenuBar = memo(function MenuBar() {
         </Toolbar>
       </AppBar>
 
-      {/* 画像設定ダイアログ */}
-      <ImageSettingDialog
-        open={openImageSettingDlg}
-        handleClose={handleImageSettingDlgClose}
-      />
       <SettingDialog
         open={openSettingDlg}
         handleClose={handleSettingDlgClose}
@@ -123,7 +114,6 @@ export const MenuBar = memo(function MenuBar() {
         anchorEl={anchorEl}
         openMenu={openMenu}
         handleMenuClose={handleMenuClose}
-        handleImageSettingDlgOpen={handleImageSettingDlgOpen}
         handleSettingDlgOpen={handleSettingDlgOpen}
         handleCloseWindow={handleCloseWindow}
         handleNewProject={handleNewProject}

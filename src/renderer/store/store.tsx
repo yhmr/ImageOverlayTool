@@ -1,5 +1,3 @@
-import { combineReducers } from "redux";
-
 import { configureStore } from "@reduxjs/toolkit";
 import {
   useSelector as rawUseSelector,
@@ -8,14 +6,15 @@ import {
 
 import { imageSetsSlice } from "./imageSetsSlice";
 import { projectSlice } from "./projectSlice";
-
-const rootReducer = combineReducers({
-  imageSets: imageSetsSlice.reducer,
-  project: projectSlice.reducer,
-});
+import { syncMiddleware } from "./syncMiddleware";
 
 export const store = configureStore({
-  reducer: rootReducer,
+  reducer: {
+    project: projectSlice.reducer,
+    imageSets: imageSetsSlice.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(syncMiddleware),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

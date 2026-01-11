@@ -1,13 +1,18 @@
 import type { Point } from "./Point";
 import type { Size } from "./Size";
 
+// ウィンドウ設定の型定義
+export interface WindowConfig {
+  pos: Point;
+  size: Size;
+}
+
 // 設定ファイルの型定義
 export interface AppConfig {
-  window: {
-    pos: Point;
-    size: Size;
+  window: WindowConfig & {
     color: string;
   };
+  imageSettingsWindow: WindowConfig;
   setting: SettingType;
 }
 
@@ -17,8 +22,14 @@ export interface SettingType {
   language: string;
 }
 
-// ウィンドウのデフォルトサイズ
-export const DEFAULT_SIZE = {
+// メインウィンドウのデフォルトサイズ
+export const DEFAULT_MAIN_WINDOW_SIZE: Size = {
   width: 800,
   height: 600,
+};
+
+// 画像設定ウィンドウのデフォルトサイズ
+export const DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE: Size = {
+  width: 400,
+  height: 500,
 };

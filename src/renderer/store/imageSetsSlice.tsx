@@ -50,7 +50,11 @@ export const imageSetsSlice = createSlice({
     setAllImageSets: (state, action) => {
       state.imageSets = action.payload;
     },
+    // 他ウィンドウからの同期通知受け取り用 (IPC送信しない)
+    syncImageSets: (state, action) => {
+      state.imageSets = action.payload;
+    },
   },
 });
 
-export const { setImageSets, updateImageSet, setAllImageSets } = imageSetsSlice.actions;
+export const { setImageSets, updateImageSet, setAllImageSets, syncImageSets } = imageSetsSlice.actions;

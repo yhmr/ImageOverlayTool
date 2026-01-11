@@ -25,7 +25,10 @@ export default defineConfig({
     build: {
       sourcemap: true,
       rollupOptions: {
-        input: 'src/renderer/index.html'
+        input: {
+          main: 'src/renderer/main-window/index.html',
+          imageSettings: 'src/renderer/image-settings/index.html'
+        }
       }
     }
   }

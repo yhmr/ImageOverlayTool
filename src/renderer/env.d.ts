@@ -1,5 +1,6 @@
 import type { SettingType } from "../shared/types/AppConfig";
 import type { ProjectFile } from "../shared/types/ProjectFile";
+import type { ImageSet } from "./types/ImageSet";
 
 // APIのインターフェースを定義
 export interface IElectronAPI {
@@ -18,6 +19,16 @@ export interface IElectronAPI {
   loadProject: () => Promise<{ project: ProjectFile; filePath: string } | null>;
   saveProject: (filePath: string, project: ProjectFile) => Promise<void>;
   saveProjectAs: (project: ProjectFile) => Promise<string | null>;
+  // Image Settings Window
+  toggleImageSettingsWindow: () => Promise<boolean>;
+  // ImageSets Sync
+  updateImageSets: (imageSets: ImageSet[]) => Promise<void>;
+  onImageSetsUpdated: (callback: (imageSets: ImageSet[]) => void) => () => void;
+  // Unit Factor Sync
+  updateUnitFactor: (unitFactor: number) => Promise<void>;
+  onUnitFactorUpdated: (
+    callback: (unitFactor: number) => void
+  ) => () => void;
 }
 
 declare global {
