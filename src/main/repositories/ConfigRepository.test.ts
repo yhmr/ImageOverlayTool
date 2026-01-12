@@ -63,8 +63,8 @@ describe("ConfigRepository", () => {
 
         const { pos, size } = repository.getWindowPositionAndSize();
 
-        expect(mockStore.get).toHaveBeenCalledWith("window.pos", expect.anything()); // Default calc check skipped
-        expect(mockStore.get).toHaveBeenCalledWith("window.size", [800, 600]); // DEFAULT_SIZE check
+        expect(mockStore.get).toHaveBeenCalledWith("window.pos");
+        expect(mockStore.get).toHaveBeenCalledWith("window.size");
 
         expect(pos).toEqual({ x: 100, y: 100 });
         expect(size).toEqual({ width: 800, height: 600 });

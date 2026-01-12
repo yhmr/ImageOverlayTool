@@ -38,10 +38,20 @@ Menu.setApplicationMenu(null);
 registerLocalResourceProtocol();
 
 app.whenReady().then(() => {
+  // プロトコルハンドラ登録
+  setupProtocolHandler();
+
   // メインウィンドウを作成
   const mainWindow = windowManager.createMainWindow();
 
-  setupProtocolHandler();
+  // IPCハンドラ登録
+  registerWindowHandlers(mainWindow);
+  registerAppConfigHandlers(mainWindow, configRepository);
+  registerProjectHandlers(mainWindow, projectRepository);
+  registerImageSettingsWindowHandlers(windowManager);
+
+  // グローバルショートカットを登録
+  windowManager.registerShortcuts();
 
   // 開発時はデベロッパーツールを開く
   if (is.dev) {
@@ -55,15 +65,6 @@ app.whenReady().then(() => {
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools({ mode: "detach" });
   }
-
-  // グローバルショートカットを登録
-  windowManager.registerShortcuts();
-
-  // IPCハンドラ登録
-  registerWindowHandlers(mainWindow);
-  registerAppConfigHandlers(mainWindow, configRepository);
-  registerProjectHandlers(mainWindow, projectRepository);
-  registerImageSettingsWindowHandlers(windowManager);
 });
 
 // アプリケーションが閉じられた際の処理

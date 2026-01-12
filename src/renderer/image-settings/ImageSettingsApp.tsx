@@ -17,6 +17,11 @@ const ImageSettingsApp = () => {
     // 同期フックを使用
     useProjectSync();
 
+    // マウント時に初期状態を要求
+    React.useEffect(() => {
+        window.electronAPI.requestInitialState();
+    }, []);
+
     return (
         <>
             <CssBaseline />

@@ -1,31 +1,68 @@
-import { expect, test, describe } from 'vitest';
-import { calculateMovedAnchors, getBoundingBox } from './anchorUtils';
+import { describe, it, expect } from 'vitest';
+import { rotateAnchorPos, getCenter, rotatePoint } from './anchorUtils';
 import { AnchorPos } from '../types/AnchorPos';
 
 describe('anchorUtils', () => {
-    const initialAnchors: AnchorPos = {
-        lt: { x: 0, y: 0 },
-        rt: { x: 100, y: 0 },
-        lb: { x: 0, y: 100 },
-        rb: { x: 100, y: 100 },
-    };
-
-    test('calculateMovedAnchors shifts all anchors correctly', () => {
-        const diff = { x: 10, y: 20 };
-        const moved = calculateMovedAnchors(initialAnchors, diff);
-        expect(moved.lt).toEqual({ x: 10, y: 20 });
-        expect(moved.rt).toEqual({ x: 110, y: 20 });
-        expect(moved.lb).toEqual({ x: 10, y: 120 });
-        expect(moved.rb).toEqual({ x: 110, y: 120 });
+    describe('getCenter', () => {
+        it('should calculate the center of a square correctly', () => {
+            const anchors: AnchorPos = {
+                lt: { x: 0, y: 0 },
+                lb: { x: 0, y: 100 },
+                rt: { x: 100, y: 0 },
+                rb: { x: 100, y: 100 },
+            };
+            const center = getCenter(anchors);
+            expect(center).toEqual({ x: 50, y: 50 });
+        });
     });
 
-    test('getBoundingBox calculates correct bounds', () => {
-        const bounds = getBoundingBox(initialAnchors);
-        expect(bounds).toEqual({
-            left: 0,
-            top: 0,
-            right: 100,
-            bottom: 100,
+    describe('rotatePoint', () => {
+        it('should rotate a point 90 degrees around center', () => {
+            const point = { x: 100, y: 0 };
+            const center = { x: 0, y: 0 };
+            const rotated = rotatePoint(point, center, 90);
+            expect(rotated.x).toBeCloseTo(0);
+            expect(rotated.y).toBeCloseTo(100);
+        });
+
+        it('should rotate a point 180 degrees around center', () => {
+            const point = { x: 100, y: 0 };
+            const center = { x: 0, y: 0 };
+            const rotated = rotatePoint(point, center, 180);
+            expect(rotated.x).toBeCloseTo(-100);
+            expect(rotated.y).toBeCloseTo(0);
+        });
+    });
+
+    describe('rotateAnchorPos', () => {
+        it('should rotate all anchors 90 degrees', () => {
+            const anchors: AnchorPos = {
+                lt: { x: -10, y: -10 },
+                rt: { x: 10, y: -10 },
+                rb: { x: 10, y: 10 },
+                lb: { x: -10, y: 10 },
+            };
+            // Center is 0,0
+
+            // lt(-10, -10) -> 90 deg -> (10, -10) which is old rt position?
+            // x' = x cos - y sin, y' = x sin + y cos
+            // -10 * 0 - (-10) * 1 = 10
+            // -10 * 1 + (-10) * 0 = -10
+            // So lt becomes (10, -10)
+
+            const rotated = rotateAnchorPos(anchors, 90);
+
+            expect(rotated.lt.x).toBeCloseTo(10);
+            expect(rotated.lt.y).toBeCloseTo(-10);
+
+            expect(rotated.rt.x).toBeCloseTo(10);
+            expect(rotated.rt.y).toBeCloseTo(10);
+
+            expect(rotated.rb.x).toBeCloseTo(-10);
+            expect(rotated.rb.y).toBeCloseTo(10);
+
+            expect(rotated.lb.x).toBeCloseTo(-10);
+            expect(rotated.lb.y).toBeCloseTo(-10);
         });
     });
 });

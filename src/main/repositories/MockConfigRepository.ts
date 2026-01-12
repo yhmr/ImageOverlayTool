@@ -1,4 +1,4 @@
-import { SettingType, DEFAULT_SIZE, DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
+import { SettingType, DEFAULT_MAIN_WINDOW_SIZE, DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 import { Point } from "../../shared/types/Point";
 import { Size } from "../../shared/types/Size";
 import { IConfigRepository } from "./ConfigRepository"; // 同じディレクトリにあるConfigRepositoryからインターフェースをインポート
@@ -11,10 +11,10 @@ export class MockConfigRepository implements IConfigRepository {
     private windowColor = "#FF000055"; // テストだと分かりやすいように赤にしておく
     private windowPos: Point = { x: 100, y: 100 };
     private windowSize: Size = {
-        width: DEFAULT_SIZE.width,
-        height: DEFAULT_SIZE.height,
+        width: DEFAULT_MAIN_WINDOW_SIZE.width,
+        height: DEFAULT_MAIN_WINDOW_SIZE.height,
     };
-    private imageSettingsWindowPos: Point | null = null;
+    private imageSettingsWindowPos: Point = { x: 0, y: 0 };
     private imageSettingsWindowSize: Size = {
         width: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width,
         height: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height,
@@ -56,11 +56,8 @@ export class MockConfigRepository implements IConfigRepository {
         this.windowSize = { width: size[0], height: size[1] };
     }
 
-    getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } | null {
+    getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } {
         console.log("[Mock] Getting image settings window pos/size...");
-        if (!this.imageSettingsWindowPos) {
-            return null;
-        }
         return {
             pos: { ...this.imageSettingsWindowPos },
             size: { ...this.imageSettingsWindowSize },

@@ -8,6 +8,8 @@ export interface ImageSet {
   path: string;
   // 透過度
   transparency: number;
+  // 回転 (角度)
+  rotation: number;
 
   // アンカー初期ポジジョン
   init_anchor_pos: AnchorPos | null;

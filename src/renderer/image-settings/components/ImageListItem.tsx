@@ -18,6 +18,7 @@ import {
 import FileOpenIcon from "@mui/icons-material/FileOpen";
 import ClearIcon from "@mui/icons-material/Clear";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import RotateRightIcon from "@mui/icons-material/RotateRight";
 
 import { ImageSet } from "../../types/ImageSet";
 
@@ -50,6 +51,7 @@ export const ImageListItem = memo(function ImageListItem(
             newImageSet.path = `local-file://${res.replace(/\\/g, "/")}`;
             // ファイル読み込み直しの場合は、すべてのパラメータを初期化
             newImageSet.transparency = 0.0;
+            newImageSet.rotation = 0;
             newImageSet.init_anchor_pos = null;
             newImageSet.current_anchor_pos = null;
             dispatch(updateImageSet({ index: index, imageSet: newImageSet }));
@@ -72,6 +74,32 @@ export const ImageListItem = memo(function ImageListItem(
             dispatch(updateImageSet({ index: index, imageSet: newImageSet }));
         },
         [dispatch, imageSet, index]
+    );
+
+    // 回転変更
+    const handleRotationChange = useCallback(
+        (_event: Event, value: number | number[]) => {
+            if (typeof value !== "number") return;
+            if (!imageSet.current_anchor_pos) return;
+
+            const newImageSet = { ...imageSet };
+            // 単純に値をセット
+            newImageSet.rotation = value;
+
+            dispatch(updateImageSet({ index: index, imageSet: newImageSet }));
+        },
+        [dispatch, imageSet, index]
+    );
+
+    // 回転入力変更 (TextField)
+    const handleRotationInputChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const value = Number(event.target.value);
+            if (isNaN(value)) return;
+            // 範囲制限なし、または適度な制限
+            handleRotationChange(event as any, value);
+        },
+        [handleRotationChange]
     );
 
     // ファイル名を抽出（パスから）
@@ -142,6 +170,39 @@ export const ImageListItem = memo(function ImageListItem(
                         <Typography variant="caption" sx={{ minWidth: 35, textAlign: "right" }}>
                             {Math.round(imageSet.transparency * 100)}%
                         </Typography>
+                    </Stack>
+                )}
+
+                {/* 回転スライダー */}
+                {imageSet.path && imageSet.current_anchor_pos && (
+                    <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+                        <Typography variant="caption" sx={{ minWidth: 50 }}>
+                            {t("render.image_settings.rotation", "回転")}
+                        </Typography>
+                        <RotateRightIcon fontSize="small" color="action" />
+                        <Slider
+                            size="small"
+                            min={-180}
+                            max={180}
+                            value={imageSet.rotation || 0}
+                            valueLabelDisplay="auto"
+                            onChange={handleRotationChange}
+                            sx={{ flexGrow: 1 }}
+                        />
+                        <TextField
+                            variant="standard"
+                            size="small"
+                            value={Math.round(imageSet.rotation || 0)}
+                            onChange={handleRotationInputChange}
+                            inputProps={{
+                                step: 1,
+                                min: -360,
+                                max: 360,
+                                type: "number",
+                                style: { textAlign: "right", fontSize: "0.75rem" }
+                            }}
+                            sx={{ width: 45 }}
+                        />
                     </Stack>
                 )}
             </CardContent>

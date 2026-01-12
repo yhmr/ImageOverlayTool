@@ -26,3 +26,38 @@ export const getBoundingBox = (anchors: AnchorPos) => {
     bottom: Math.max(...yValues),
   };
 };
+
+// 4つのアンカーの中心点を計算する
+// 単純に重心（4点の平均）とする
+export const getCenter = (anchors: AnchorPos): Point => {
+  return {
+    x: (anchors.lt.x + anchors.rt.x + anchors.rb.x + anchors.lb.x) / 4,
+    y: (anchors.lt.y + anchors.rt.y + anchors.rb.y + anchors.lb.y) / 4,
+  };
+};
+
+// 指定した点を中心として回転させる
+export const rotatePoint = (point: Point, center: Point, angleDegree: number): Point => {
+  const angleRad = (angleDegree * Math.PI) / 180;
+  const cos = Math.cos(angleRad);
+  const sin = Math.sin(angleRad);
+
+  const dx = point.x - center.x;
+  const dy = point.y - center.y;
+
+  return {
+    x: center.x + (dx * cos - dy * sin),
+    y: center.y + (dx * sin + dy * cos),
+  };
+};
+
+// アンカー全体を指定した角度（差分）だけ回転させる
+export const rotateAnchorPos = (currentAnchors: AnchorPos, angleDiff: number): AnchorPos => {
+  const center = getCenter(currentAnchors);
+  return {
+    lt: rotatePoint(currentAnchors.lt, center, angleDiff),
+    rt: rotatePoint(currentAnchors.rt, center, angleDiff),
+    rb: rotatePoint(currentAnchors.rb, center, angleDiff),
+    lb: rotatePoint(currentAnchors.lb, center, angleDiff),
+  };
+};

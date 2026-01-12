@@ -39,4 +39,18 @@ export const registerImageSettingsWindowHandlers = (
             }
         });
     });
+
+    /**
+     * [IPC] 初期状態の要求
+     * 設定ウィンドウが開いたときに呼ばれる。メインウィンドウに同期要求を送る。
+     */
+    ipcMain.handle("state:requestInitial", (event) => {
+        const windows = windowManager.getAllWindows();
+        windows.forEach((win) => {
+            // 要求元以外（つまりメインウィンドウなど）に「今の状態をくれ」と依頼する
+            if (win.webContents.id !== event.sender.id) {
+                win.webContents.send("state:requestSync");
+            }
+        });
+    });
 };
