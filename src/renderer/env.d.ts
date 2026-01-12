@@ -29,6 +29,9 @@ export interface IElectronAPI {
   onUnitFactorUpdated: (
     callback: (unitFactor: number) => void
   ) => () => void;
+  // Initial State Sync
+  requestInitialState: () => Promise<void>;
+  onRequestStateSync: (callback: () => void) => () => void;
 }
 
 declare global {

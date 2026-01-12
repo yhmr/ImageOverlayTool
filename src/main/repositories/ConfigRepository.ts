@@ -45,11 +45,15 @@ export class ConfigRepository implements IConfigRepository {
     }
 
     getWindowPositionAndSize(): { pos: Point; size: Size } {
-        const [x, y] = this.store.get("window.pos", this.getDefaultCenterPosition());
-        const [width, height] = this.store.get("window.size", [
+        const pos = this.store.get("window.pos");
+        const defaultPos = this.getDefaultCenterPosition();
+        const [x, y] = Array.isArray(pos) ? pos : defaultPos;
+
+        const size = this.store.get("window.size");
+        const [width, height] = Array.isArray(size) ? size : [
             DEFAULT_MAIN_WINDOW_SIZE.width,
             DEFAULT_MAIN_WINDOW_SIZE.height,
-        ]);
+        ];
 
         return {
             pos: { x, y },
@@ -63,10 +67,13 @@ export class ConfigRepository implements IConfigRepository {
     }
 
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } {
-        const [x, y] = this.store.get("imageSettingsWindow.pos", [0, 0]);
-        const [width, height] = this.store.get("imageSettingsWindow.size", [
+        const posStr = this.store.get("imageSettingsWindow.pos");
+        const [x, y] = Array.isArray(posStr) ? posStr : [0, 0];
+
+        const sizeStr = this.store.get("imageSettingsWindow.size");
+        const [width, height] = Array.isArray(sizeStr) ? sizeStr : [
             DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width, DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height
-        ]);
+        ];
 
         return {
             pos: { x, y },

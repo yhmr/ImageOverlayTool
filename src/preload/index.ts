@@ -47,4 +47,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("unitFactor:updated", subscription);
     return () => ipcRenderer.removeListener("unitFactor:updated", subscription);
   },
+  // Initial State Sync
+  requestInitialState: () => ipcRenderer.invoke("state:requestInitial"),
+  onRequestStateSync: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on("state:requestSync", subscription);
+    return () => ipcRenderer.removeListener("state:requestSync", subscription);
+  },
 });
