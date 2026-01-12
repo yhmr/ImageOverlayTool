@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Image as KonvaImage } from "react-konva";
 import Perspective from "perspectivets";
 import type { ImageSet } from "../../types/ImageSet";
-import { getBoundingBox } from "../../utils/anchorUtils";
+import { getBoundingBox, getCenter } from "../../utils/anchorUtils";
 
 interface PerspectiveImageProps {
     image: HTMLImageElement;
@@ -16,7 +16,7 @@ export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImage
     const [renderTrigger, setRenderTrigger] = useState(0); // 再描画用
 
     // 描画位置情報の保持
-    const [pos, setPos] = useState({ x: 0, y: 0 });
+    const [pos, setPos] = useState({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
 
     useEffect(() => {
         if (image && imageSet.current_anchor_pos) {
@@ -24,15 +24,21 @@ export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImage
             const { left, top, right, bottom } = getBoundingBox(
                 imageSet.current_anchor_pos
             );
+            const center = getCenter(imageSet.current_anchor_pos);
 
             // Canvasサイズなどを更新
-            // ※サイズ変更だけで再描画されるが、念のため明示的に変更を検知させる
             if (canvas.width !== right - left || canvas.height !== bottom - top) {
                 canvas.width = right - left;
                 canvas.height = bottom - top;
             }
 
-            setPos({ x: left, y: top });
+            // 画像の配置位置：回転の中心（重心）に配置し、そこからOffsetでCanvas内の描画位置を合わせる
+            setPos({
+                x: center.x,
+                y: center.y,
+                offsetX: center.x - left,
+                offsetY: center.y - top
+            });
 
             const ctx = canvas.getContext("2d");
             if (ctx) {
@@ -73,6 +79,9 @@ export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImage
             image={canvas}
             x={pos.x}
             y={pos.y}
+            rotation={imageSet.rotation || 0}
+            offsetX={pos.offsetX}
+            offsetY={pos.offsetY}
             onClick={handleClick}
             onTap={handleClick}
             // Konva.Imageはデフォルトでlistening=true

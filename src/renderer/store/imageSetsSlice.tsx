@@ -15,6 +15,7 @@ const initialState: Status = {
       id: UUID.generate(),
       path: "",
       transparency: 0,
+      rotation: 0,
       init_anchor_pos: null,
       current_anchor_pos: null,
     },
