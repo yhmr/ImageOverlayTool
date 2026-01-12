@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { syncUnitFactor } from "../store/projectSlice";
 import { syncImageSets } from "../store/imageSetsSlice";
@@ -14,6 +14,13 @@ export const useProjectSync = () => {
     const imageSetsState = useSelector((state: RootState) => state.imageSets);
     const projectState = useSelector((state: RootState) => state.project);
 
+    // State references for callback access
+    const stateRef = useRef({ imageSetsState, projectState });
+
+    useEffect(() => {
+        stateRef.current = { imageSetsState, projectState };
+    }, [imageSetsState, projectState]);
+
     useEffect(() => {
         // unit_factorの更新監視
         const unsubscribeUnitFactor = window.electronAPI.onUnitFactorUpdated((unitFactor) => {
@@ -28,8 +35,9 @@ export const useProjectSync = () => {
         // 初期状態同期要求の監視 (メインウィンドウが応答する側)
         const unsubscribeRequestSync = window.electronAPI.onRequestStateSync(() => {
             // 現在の状態を送信
-            window.electronAPI.updateImageSets(imageSetsState.imageSets);
-            window.electronAPI.updateUnitFactor(projectState.unit_factor);
+            const current = stateRef.current;
+            window.electronAPI.updateImageSets(current.imageSetsState.imageSets);
+            window.electronAPI.updateUnitFactor(current.projectState.unit_factor);
         });
 
         return () => {
@@ -37,5 +45,5 @@ export const useProjectSync = () => {
             unsubscribeImageSets();
             unsubscribeRequestSync();
         };
-    }, [dispatch, imageSetsState, projectState]);
+    }, [dispatch]);
 };
