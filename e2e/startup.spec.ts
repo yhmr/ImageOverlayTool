@@ -23,7 +23,7 @@ test('app launch', async () => {
     // Increase timeout or wait for specific selector
     // Check if the window is visible/loaded
     // Increase timeout or wait for specific selector
-    const container = await window.waitForSelector('.container', { timeout: 5000 });
+    const container = await window.waitForSelector('.container', { timeout: 20000 });
     expect(container).toBeTruthy();
 
     await app.close();

@@ -3,11 +3,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Define mocks using hoisted to ensure they are available in vi.mock factory
 const { mockWindow, mockWebContents } = vi.hoisted(() => {
     const webContents = { send: vi.fn(), id: 1 };
+    // Create an event emitter like mock
+    const listeners: Record<string, Function[]> = {};
+
     const win = {
         isDestroyed: vi.fn().mockReturnValue(false),
         isVisible: vi.fn().mockReturnValue(true),
         webContents: webContents,
-        on: vi.fn(),
+        on: vi.fn((event: string, handler: Function) => {
+            if (!listeners[event]) listeners[event] = [];
+            listeners[event].push(handler);
+        }),
+        emit: (event: string) => {
+            if (listeners[event]) listeners[event].forEach(h => h());
+        },
         loadURL: vi.fn(),
         loadFile: vi.fn(),
         getPosition: vi.fn(),
@@ -78,6 +87,11 @@ describe('WindowManager', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        // Reset listeners in mock (manual reset needed since hoisted object persists)
+        // For simplicity, we just rely on clearAllMocks for spies.
+
+        // Reset isVisible to true by default
+        mockWindow.isVisible.mockReturnValue(true);
 
         mockConfigRepository = {
             loadSettings: vi.fn(),
@@ -95,9 +109,7 @@ describe('WindowManager', () => {
 
     it('openFile sends IPC message if window exists and visible', () => {
         windowManager.createMainWindow();
-
         windowManager.openFile('test.png');
-
         expect(mockWebContents.send).toHaveBeenCalledWith('file:open', { filePath: 'test.png', ext: '.png' });
     });
 
@@ -105,18 +117,39 @@ describe('WindowManager', () => {
         // 1. Request openFile before window creation
         windowManager.openFile('test.png');
 
-        // 2. Capture ready handler
-        let readyHandler: Function | undefined;
-        mockWindow.on.mockImplementation((event: string, handler: Function) => {
-            if (event === 'ready-to-show') readyHandler = handler;
-        });
-
-        // 3. Create window
+        // 2. Create window
         windowManager.createMainWindow();
 
-        // 4. Trigger ready-to-show
-        if (readyHandler) readyHandler();
+        // 3. Trigger ready-to-show
+        mockWindow.emit('ready-to-show');
+
+        // 4. Ideally ready-to-show calls show(), which triggers 'show'.
+        // verify show() was called
+        expect(mockWindow.show).toHaveBeenCalled();
+
+        // Trigger show
+        mockWindow.emit('show');
 
         expect(mockWebContents.send).toHaveBeenCalledWith('file:open', { filePath: 'test.png', ext: '.png' });
+    });
+
+    it('openFile pends file if window exists but hidden, and sends it when shown', () => {
+        windowManager.createMainWindow();
+
+        // Hide window
+        mockWindow.isVisible.mockReturnValue(false);
+
+        // Request openFile
+        windowManager.openFile('hidden.png');
+
+        // Should NOT have sent yet
+        expect(mockWebContents.send).not.toHaveBeenCalledWith('file:open', { filePath: 'hidden.png', ext: '.png' });
+
+        // Show window
+        mockWindow.isVisible.mockReturnValue(true);
+        mockWindow.emit('show');
+
+        // Should send now
+        expect(mockWebContents.send).toHaveBeenCalledWith('file:open', { filePath: 'hidden.png', ext: '.png' });
     });
 });
