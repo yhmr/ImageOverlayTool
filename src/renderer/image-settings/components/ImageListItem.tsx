@@ -45,7 +45,7 @@ export const ImageListItem = memo(function ImageListItem(
 
     // ファイルオープン
     const handleFileOpen = useCallback(async () => {
-        const res = await window.electronAPI.openFile();
+        const res = await window.electronAPI.loadImage();
         if (res) {
             const newImageSet = { ...imageSets[index] };
             newImageSet.path = `local-file://${res.replace(/\\/g, "/")}`;

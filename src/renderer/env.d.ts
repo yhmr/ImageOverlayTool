@@ -4,7 +4,7 @@ import type { ImageSet } from "./types/ImageSet";
 
 // APIのインターフェースを定義
 export interface IElectronAPI {
-  openFile: () => Promise<string | null>;
+  loadImage: () => Promise<string | null>;
   // Window
   switchWindowSize: () => Promise<boolean>;
   setWindowRect: (rect: { x: number; y: number; width: number; height: number }) => Promise<void>;
@@ -17,6 +17,9 @@ export interface IElectronAPI {
   saveWindowColor: (color: string) => Promise<void>;
   // Project
   loadProject: () => Promise<{ project: ProjectFile; filePath: string } | null>;
+  loadProjectFromPath: (
+    filePath: string
+  ) => Promise<{ project: ProjectFile; filePath: string } | null>;
   saveProject: (filePath: string, project: ProjectFile) => Promise<void>;
   saveProjectAs: (project: ProjectFile) => Promise<string | null>;
   // Image Settings Window
@@ -32,6 +35,8 @@ export interface IElectronAPI {
   // Initial State Sync
   requestInitialState: () => Promise<void>;
   onRequestStateSync: (callback: () => void) => () => void;
+  // File Open
+  onFileOpen: (callback: (filePath: string, ext: string) => void) => () => void;
 }
 
 declare global {

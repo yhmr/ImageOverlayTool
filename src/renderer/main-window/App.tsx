@@ -5,6 +5,7 @@ import { Provider, useDispatch, useSelector } from "react-redux";
 import { store, RootState } from "../store/store";
 import { setWindowColor } from "../store/projectSlice";
 import { useProjectSync } from "../hooks/useProjectSync";
+import { useFileHandler } from "../hooks/useFileHandler";
 import "../../i18n/configs"; //i18
 
 import { Box } from "@mui/material";
@@ -21,6 +22,8 @@ const App = () => {
 
   // 同期フックを使用
   useProjectSync();
+  // ファイルハンドラフックを使用 (起動時引数など)
+  useFileHandler();
 
   // 初めの一度のみ描画前にファイルから色を取得
   useLayoutEffect(() => {

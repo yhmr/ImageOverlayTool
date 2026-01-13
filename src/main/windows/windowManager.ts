@@ -1,5 +1,5 @@
 import path from "path";
-import { BrowserWindow, globalShortcut, app } from "electron";
+import { BrowserWindow, globalShortcut } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IConfigRepository } from "../repositories/ConfigRepository";
 
@@ -12,6 +12,7 @@ export class WindowManager {
     private imageSettingsWindow: BrowserWindow | null = null;
     private configRepository: IConfigRepository;
     private isQuitting = false;
+    private pendingFilePath: string | null = null;
 
     constructor(configRepository: IConfigRepository) {
         this.configRepository = configRepository;
@@ -22,6 +23,20 @@ export class WindowManager {
      */
     willQuit(): void {
         this.isQuitting = true;
+    }
+
+    /**
+     * 指定されたファイルを開く
+     */
+    openFile(filePath: string): void {
+        const ext = path.extname(filePath).toLowerCase();
+
+        // ウィンドウが準備完了していれば送信、そうでなければ保留
+        if (this.mainWindow && !this.mainWindow.isDestroyed() && this.mainWindow.isVisible()) {
+            this.mainWindow.webContents.send("file:open", { filePath, ext });
+        } else {
+            this.pendingFilePath = filePath;
+        }
     }
 
     /**
@@ -51,6 +66,10 @@ export class WindowManager {
         // 準備が出来た時点で表示
         this.mainWindow.on("ready-to-show", () => {
             this.mainWindow?.show();
+            if (this.pendingFilePath) {
+                this.openFile(this.pendingFilePath);
+                this.pendingFilePath = null;
+            }
         });
 
         // ウィンドウが閉じられる際にウィンドウ設定を保存

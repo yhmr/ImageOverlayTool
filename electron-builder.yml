@@ -1,6 +1,10 @@
 # electron-builder.yml
 productName: "ImageOverlayTool"
 artifactName: "${productName}-${version}-${platform}-${arch}.${ext}"
+fileAssociations:
+  - ext: "iot"
+    name: "ImageOverlayTool Project"
+    description: "Image Overlay Tool Project File"
 directories:
   output: "release"
   buildResources: "assets"

@@ -24,52 +24,62 @@ export const useProjectOperations = () => {
         setCurrentFilePath(null);
     }, [dispatch]);
 
+    // プロジェクト情報の適用
+    const applyProject = useCallback(async (project: ProjectFile, filePath: string) => {
+        // Restore images
+        dispatch(setAllImageSets(project.images));
+        // Restore settings
+        dispatch(setUnitFactor(project.settings.unit_factor));
+
+        // Restore canvas
+        if (project.canvas) {
+            dispatch(setCanvasState(project.canvas));
+        } else {
+            dispatch(setCanvasState({ x: 0, y: 0, scale: 1 }));
+        }
+
+        // Restore dimension lines
+        if (project.dimensionLines) {
+            dispatch(setDimensionLines(project.dimensionLines));
+        } else {
+            dispatch(setDimensionLines([]));
+        }
+
+        // Restore window settings
+        if (project.window) {
+            // Color & Transparency
+            if (project.window.color) {
+                dispatch(setWindowColor(project.window.color));
+                await window.electronAPI.saveWindowColor(project.window.color);
+            }
+
+            // Position & Size
+            await window.electronAPI.setWindowRect({
+                x: project.window.x,
+                y: project.window.y,
+                width: project.window.width,
+                height: project.window.height
+            });
+        }
+
+        setCurrentFilePath(filePath);
+    }, [dispatch]);
+
     // プロジェクトの開く
     const handleOpenProject = useCallback(async () => {
         const result = await window.electronAPI.loadProject();
         if (result) {
-            const { project, filePath } = result;
-            // Restore images
-            dispatch(setAllImageSets(project.images));
-            // Restore settings
-            dispatch(setUnitFactor(project.settings.unit_factor));
-
-            // Restore canvas
-            if (project.canvas) {
-                dispatch(setCanvasState(project.canvas));
-            } else {
-                dispatch(setCanvasState({ x: 0, y: 0, scale: 1 }));
-            }
-
-            // Restore dimension lines
-            if (project.dimensionLines) {
-                dispatch(setDimensionLines(project.dimensionLines));
-            } else {
-                dispatch(setDimensionLines([]));
-            }
-
-            // Restore window settings
-            if (project.window) {
-                // Color & Transparency
-                if (project.window.color) {
-                    dispatch(setWindowColor(project.window.color));
-                    await window.electronAPI.saveWindowColor(project.window.color);
-                }
-
-                // Position & Size
-                // Opacity (from schema) if present and supported?
-                // Currently sticking to rect.
-                await window.electronAPI.setWindowRect({
-                    x: project.window.x,
-                    y: project.window.y,
-                    width: project.window.width,
-                    height: project.window.height
-                });
-            }
-
-            setCurrentFilePath(filePath);
+            await applyProject(result.project, result.filePath);
         }
-    }, [dispatch]);
+    }, [applyProject]);
+
+    // パスからプロジェクトを開く
+    const handleLoadProjectFromPath = useCallback(async (path: string) => {
+        const result = await window.electronAPI.loadProjectFromPath(path);
+        if (result) {
+            await applyProject(result.project, result.filePath);
+        }
+    }, [applyProject]);
 
     // プロジェクトの保存
     const handleSaveProjectAs = useCallback(async () => {
@@ -137,6 +147,7 @@ export const useProjectOperations = () => {
     return {
         handleNewProject,
         handleOpenProject,
+        handleLoadProjectFromPath,
         handleSaveProject: handleSaveProjectReference,
         handleSaveProjectAs
     };
