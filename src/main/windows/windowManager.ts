@@ -63,14 +63,22 @@ export class WindowManager {
             },
         });
 
+        const flushPending = () => {
+            if (this.pendingFilePath) {
+                const filePath = this.pendingFilePath;
+                this.pendingFilePath = null;
+                this.openFile(filePath);
+            }
+        };
+
         // 準備が出来た時点で表示
         this.mainWindow.on("ready-to-show", () => {
             this.mainWindow?.show();
-            if (this.pendingFilePath) {
-                this.openFile(this.pendingFilePath);
-                this.pendingFilePath = null;
-            }
+            // show() calls flushPending via 'show' event listener below
         });
+
+        this.mainWindow.on("show", flushPending);
+        this.mainWindow.on("focus", flushPending);
 
         // ウィンドウが閉じられる際にウィンドウ設定を保存
         this.mainWindow.on("close", () => {
