@@ -96,10 +96,12 @@ if (!gotTheLock) {
     // 開発時はデベロッパーツールを開く
     if (is.dev) {
       installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
-        .then(([redux, react]) =>
-          console.log(`Added Extensions:  ${redux.name}, ${react.name}`)
-        )
-        .catch((err) => console.log("An error occurred: ", err));
+        .then(() => {
+          // console.log(`Added Extensions:  ${redux.name}, ${react.name}`)
+        })
+        .catch(() => {
+          // console.log("An error occurred: ", err)
+        });
     }
     // デバッグの際はデベロッパーツールを開く
     if (!app.isPackaged) {

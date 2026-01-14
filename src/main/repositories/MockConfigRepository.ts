@@ -21,29 +21,29 @@ export class MockConfigRepository implements IConfigRepository {
     };
 
     async loadSettings() {
-        console.log("[Mock] Loading settings...");
+
         return { ...this.settings };
     }
 
     async saveSettings(settings: SettingType) {
-        console.log("[Mock] Saving settings:", settings);
+
         if (settings.language !== undefined) {
             this.settings.language = settings.language;
         }
     }
 
     async loadWindowColor() {
-        console.log("[Mock] Loading window color...");
+
         return this.windowColor;
     }
 
     async saveWindowColor(color: string) {
-        console.log("[Mock] Saving window color:", color);
+
         this.windowColor = color;
     }
 
     getWindowPositionAndSize(): { pos: Point; size: Size } {
-        console.log("[Mock] Getting window pos/size...");
+
         return {
             pos: { ...this.windowPos },
             size: { ...this.windowSize },
@@ -51,13 +51,13 @@ export class MockConfigRepository implements IConfigRepository {
     }
 
     saveWindowPositionAndSize(pos: number[], size: number[]): void {
-        console.log("[Mock] Saving window pos/size:", pos, size);
+
         this.windowPos = { x: pos[0], y: pos[1] };
         this.windowSize = { width: size[0], height: size[1] };
     }
 
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } {
-        console.log("[Mock] Getting image settings window pos/size...");
+
         return {
             pos: { ...this.imageSettingsWindowPos },
             size: { ...this.imageSettingsWindowSize },
@@ -65,7 +65,7 @@ export class MockConfigRepository implements IConfigRepository {
     }
 
     saveImageSettingsWindowPositionAndSize(pos: number[], size: number[]): void {
-        console.log("[Mock] Saving image settings window pos/size:", pos, size);
+
         this.imageSettingsWindowPos = { x: pos[0], y: pos[1] };
         this.imageSettingsWindowSize = { width: size[0], height: size[1] };
     }

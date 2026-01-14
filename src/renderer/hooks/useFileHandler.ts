@@ -34,7 +34,7 @@ export const useFileHandler = () => {
                 // If the first item is empty (default state), replace it.
                 // Otherwise append.
                 // Note: We access imageSets from closure, so this effect runs when imageSets changes.
-                let newImageSets = [...imageSets];
+                const newImageSets = [...imageSets];
                 if (newImageSets.length === 1 && !newImageSets[0].path) {
                     newImageSets[0] = newSet;
                 } else {

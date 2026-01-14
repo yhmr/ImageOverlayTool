@@ -1,12 +1,18 @@
 import { Middleware } from "@reduxjs/toolkit";
-import { RootState } from "./store";
+import { ImageSet } from "../types/ImageSet";
 
 /**
  * imageSetsの変更を検知してIPC送信を行うミドルウェア
  * syncImageSetsアクション（受信）の場合は送信しない
  */
-// 循環参照回避のためRootStateを直接使わず、Middleware型のみ使用するか、anyを使う
-export const syncMiddleware: Middleware<NonNullable<unknown>, any> =
+// 循環参照回避のためRootStateを直接使わず、必要な型のみ定義
+interface SyncState {
+    imageSets: { imageSets: ImageSet[] };
+    project: { unit_factor: number };
+    [key: string]: unknown; // 他のプロパティを許容
+}
+
+export const syncMiddleware: Middleware<NonNullable<unknown>, SyncState> =
     (store) => (next) => (action) => {
         const result = next(action);
 
