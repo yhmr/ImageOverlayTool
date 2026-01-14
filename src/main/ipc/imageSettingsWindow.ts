@@ -1,4 +1,4 @@
-import { ipcMain } from "electron";
+import { ipcMain, dialog, BrowserWindow } from "electron";
 import { WindowManager } from "../windows/windowManager";
 
 /**
@@ -52,5 +52,31 @@ export const registerImageSettingsWindowHandlers = (
                 win.webContents.send("state:requestSync");
             }
         });
+    });
+
+
+    /**
+     * [IPC] 画像読み込み
+     */
+    ipcMain.handle("image:load", async (event) => {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        if (!window) return;
+
+        const { canceled, filePaths } = await dialog.showOpenDialog(window, {
+            buttonLabel: "Open",
+            filters: [
+                {
+                    name: "Image",
+                    extensions: ["jpg", "jpeg", "png", "webp", "gif", "svg"],
+                },
+            ],
+            properties: ["openFile"],
+        });
+
+        if (canceled) {
+            return;
+        } else {
+            return filePaths[0];
+        }
     });
 };

@@ -16,7 +16,7 @@
     "build:all": "npm run build && electron-builder --win --linux",
     "preview": "electron-vite preview",
     "lint-fix": "eslint --cache --fix src/ && prettier --write src/",
-    "test": "vitest run --reporter=verbose",
+    "test": "vitest run --reporter=verbose --exclude \"**/e2e/**\" --exclude \"**/node_modules/**\"",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
+    "@playwright/test": "^1.57.0",
     "@testing-library/react": "^16.3.1",
     "@types/node": "^20.19.27",
     "@types/react": "^18.0.17",

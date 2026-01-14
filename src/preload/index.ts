@@ -5,7 +5,6 @@ import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../renderer/types/ImageSet";
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  openFile: () => ipcRenderer.invoke("dialog:openFile"),
   // Window
   switchWindowSize: (): Promise<boolean> =>
     ipcRenderer.invoke("window:switchSize"),
@@ -26,7 +25,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveProject: (filePath: string, project: ProjectFile) =>
     ipcRenderer.invoke("project:save", { filePath, project }),
   loadProject: () => ipcRenderer.invoke("project:load"),
+  loadProjectFromPath: (filePath: string) =>
+    ipcRenderer.invoke("project:loadFromPath", filePath),
   // Image Settings Window
+  loadImage: () => ipcRenderer.invoke("image:load"),
   toggleImageSettingsWindow: () =>
     ipcRenderer.invoke("imageSettingsWindow:toggle"),
   // ImageSets Sync
@@ -53,5 +55,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
     const subscription = () => callback();
     ipcRenderer.on("state:requestSync", subscription);
     return () => ipcRenderer.removeListener("state:requestSync", subscription);
+  },
+  // File Open (Startup/DragDrop)
+  onFileOpen: (callback: (filePath: string, ext: string) => void) => {
+    const subscription = (
+      _event: unknown,
+      { filePath, ext }: { filePath: string; ext: string }
+    ) => callback(filePath, ext);
+    ipcRenderer.on("file:open", subscription);
+    return () => ipcRenderer.removeListener("file:open", subscription);
   },
 });

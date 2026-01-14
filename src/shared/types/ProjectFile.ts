@@ -1,4 +1,4 @@
-export interface ProjectFile<TImage = any> {
+export interface ProjectFile<TImage = unknown> {
     version: string;
     window: {
         width: number;

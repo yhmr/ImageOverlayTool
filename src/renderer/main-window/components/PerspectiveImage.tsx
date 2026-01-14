@@ -67,7 +67,7 @@ export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImage
     }, [image, imageSet, canvas]);
 
     // クリックハンドラ
-    const handleClick = (e: any) => {
+    const handleClick = () => {
         if (onSelect) {
             // 左クリックのみ反応など必要であれば条件追加
             onSelect();
