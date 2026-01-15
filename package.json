@@ -73,7 +73,7 @@
       "eslint --cache --fix",
       "prettier --write"
     ],
-    "src/**/*.{json,css}": [
+    "src/**/*.{json,css,html}": [
       "prettier --write"
     ]
   }
