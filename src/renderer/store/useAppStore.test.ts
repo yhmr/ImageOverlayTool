@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useAppStore } from "./useAppStore";
-import { ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../../shared/types/ImageSet";
 import { DimensionLine } from "../../shared/types/DimensionLine";
 
 // Mock electronAPI

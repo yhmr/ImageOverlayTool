@@ -1,10 +1,17 @@
 import React, { useRef, useCallback, useLayoutEffect } from "react";
 import Konva from "konva";
 import { Circle, Line } from "react-konva";
-import type { ImageSet } from "../../types/ImageSet";
-import type { AnchorPos } from "../../types/AnchorPos";
+import type { ImageSet } from "../../../shared/types/ImageSet";
+import type { AnchorPos } from "../../../shared/types/AnchorPos";
 import { useImageAnchor } from "../../hooks/useImageAnchor";
 import { rotateAnchorPos } from "../../utils/anchorUtils";
+import {
+    ANCHOR_RADIUS,
+    ANCHOR_STROKE_COLOR,
+    ANCHOR_FILL_COLOR,
+    OVERLAY_STROKE_COLOR,
+    OVERLAY_STROKE_WIDTH,
+} from "../../constants";
 
 interface OverlayControlsProps {
     imageSet: ImageSet;
@@ -119,8 +126,8 @@ export const OverlayControls = ({
             <Line
                 ref={lineRef}
                 closed={true}
-                stroke={"#4e4eff"}
-                strokeWidth={3}
+                stroke={OVERLAY_STROKE_COLOR}
+                strokeWidth={OVERLAY_STROKE_WIDTH}
                 onMouseDown={onMouseDown}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
@@ -132,9 +139,9 @@ export const OverlayControls = ({
                     onMouseDown={onMouseDown}
                     onDragEnd={circleDragHandler}
                     ref={ref}
-                    radius={15}
-                    stroke="#1919eb"
-                    fill="#4e4eff"
+                    radius={ANCHOR_RADIUS}
+                    stroke={ANCHOR_STROKE_COLOR}
+                    fill={ANCHOR_FILL_COLOR}
                 />
             ))}
         </>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { rotateAnchorPos, getCenter, rotatePoint } from "./anchorUtils";
-import { AnchorPos } from "../types/AnchorPos";
+import { AnchorPos } from "../../shared/types/AnchorPos";
 
 describe("anchorUtils", () => {
     describe("getCenter", () => {

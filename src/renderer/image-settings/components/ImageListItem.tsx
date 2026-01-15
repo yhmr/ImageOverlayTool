@@ -18,7 +18,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import RotateRightIcon from "@mui/icons-material/RotateRight";
 
-import { ImageSet } from "../../types/ImageSet";
+import { ImageSet } from "../../../shared/types/ImageSet";
 
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 

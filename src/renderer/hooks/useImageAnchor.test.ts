@@ -2,7 +2,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { useImageAnchor } from "./useImageAnchor";
 import { describe, it, expect, vi } from "vitest";
-import { ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../../shared/types/ImageSet";
 import Konva from "konva";
 
 describe("useImageAnchor", () => {

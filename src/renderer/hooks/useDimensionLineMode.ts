@@ -1,8 +1,10 @@
-import { useCallback, useEffect, RefObject, useState } from "react";
+import { useCallback, RefObject, useState } from "react";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { useAppStore } from "../store/useAppStore";
 import { DimensionLine } from "../../shared/types/DimensionLine";
+import { MIN_DIMENSION_LINE_DISTANCE } from "../constants";
+import { useDimensionKeyboard } from "./useDimensionKeyboard";
 
 export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
     const {
@@ -89,7 +91,7 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
                     const dx = line.end.x - line.start.x;
                     const dy = line.end.y - line.start.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 2) {
+                    if (dist < MIN_DIMENSION_LINE_DISTANCE) {
                         removeDimensionLine(drawingLineId);
                         selectDimensionLine(null);
                     }
@@ -104,19 +106,8 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
         selectDimensionLine,
     ]);
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (
-                (e.key === "Delete" || e.key === "Backspace") &&
-                selectedDimensionLineId
-            ) {
-                removeDimensionLine(selectedDimensionLineId);
-                selectDimensionLine(null);
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [selectedDimensionLineId, removeDimensionLine, selectDimensionLine]);
+    // キーボードイベント処理は専用フックに委譲
+    useDimensionKeyboard();
 
     return {
         isDimensionMode,

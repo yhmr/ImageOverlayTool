@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { useProjectOperations } from "./useProjectOperations";
 import UUID from "uuidjs";
-import { ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../../shared/types/ImageSet";
 
 export const useFileHandler = () => {
     const { imageSets, setImageSets } = useAppStore();

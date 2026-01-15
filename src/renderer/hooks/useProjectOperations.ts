@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { ProjectFile } from "../../shared/types/ProjectFile";
-import { ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../../shared/types/ImageSet";
 
 export const useProjectOperations = () => {
     const {

@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import Konva from "konva";
-import { ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../../shared/types/ImageSet";
 import { Point } from "../../shared/types/Point";
-import { AnchorPos } from "../types/AnchorPos";
+import { AnchorPos } from "../../shared/types/AnchorPos";
 import { calculateMovedAnchors, rotateAnchorPos } from "../utils/anchorUtils";
 
 interface UseImageAnchorProps {
@@ -16,8 +16,8 @@ export const useImageAnchor = ({
 }: UseImageAnchorProps) => {
     const [dragStartPos, setDragStartPos] = useState<Point>({ x: 0, y: 0 });
 
-    const onDragStart = useCallback((_e: Konva.KonvaEventObject<DragEvent>) => {
-        setDragStartPos({ x: _e.target.x(), y: _e.target.y() });
+    const onDragStart = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
+        setDragStartPos({ x: e.target.x(), y: e.target.y() });
     }, []);
 
     const onDragEnd = useCallback(

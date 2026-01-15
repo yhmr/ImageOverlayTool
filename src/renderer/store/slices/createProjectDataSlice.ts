@@ -1,8 +1,9 @@
 import { StateCreator } from "zustand";
-import { ImageSet } from "../../types/ImageSet";
+import { ImageSet } from "../../../shared/types/ImageSet";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
 import UUID from "uuidjs";
+import { getIPCService } from "../../services/ipcService";
 
 const createDefaultImageSet = (): ImageSet => ({
     id: UUID.generate(),
@@ -54,7 +55,7 @@ export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
     // --- Image Sets ---
     setImageSets: (imageSets) => {
         set({ imageSets });
-        window.electronAPI.updateImageSets(imageSets);
+        getIPCService().updateImageSets(imageSets);
     },
 
     updateImageSet: (payload) => {
@@ -72,7 +73,7 @@ export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
                     newImageSets[targetIndex] = payload.imageSet;
                 }
             }
-            window.electronAPI.updateImageSets(newImageSets);
+            getIPCService().updateImageSets(newImageSets);
             return { imageSets: newImageSets };
         });
     },
@@ -108,7 +109,7 @@ export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
     // --- Settings ---
     setUnitFactor: (factor) => {
         set({ unitFactor: factor });
-        window.electronAPI.updateUnitFactor(factor);
+        getIPCService().updateUnitFactor(factor);
     },
 
     syncUnitFactor: (factor) => {
@@ -133,8 +134,8 @@ export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
             windowColor: newWindowColor,
         });
 
-        window.electronAPI.updateImageSets(newImageSets);
-        window.electronAPI.updateUnitFactor(newUnitFactor);
+        getIPCService().updateImageSets(newImageSets);
+        getIPCService().updateUnitFactor(newUnitFactor);
     },
 
     resetProjectData: () => {
@@ -145,7 +146,7 @@ export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
             unitFactor: 1.0,
             windowColor: "#00000000",
         });
-        window.electronAPI.updateImageSets(defaultImageSets);
-        window.electronAPI.updateUnitFactor(1.0);
+        getIPCService().updateImageSets(defaultImageSets);
+        getIPCService().updateUnitFactor(1.0);
     },
 });

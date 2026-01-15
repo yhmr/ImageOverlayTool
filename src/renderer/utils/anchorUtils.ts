@@ -1,5 +1,5 @@
 import { Point } from "../../shared/types/Point";
-import { AnchorPos } from "../types/AnchorPos";
+import { AnchorPos } from "../../shared/types/AnchorPos";
 
 // 画像全体のドラッグ移動後の新しいアンカー位置を計算する
 export const calculateMovedAnchors = (

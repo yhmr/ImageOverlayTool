@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Image as KonvaImage } from "react-konva";
 import Perspective from "perspectivets";
 import { KonvaEventObject } from "konva/lib/Node";
-import type { ImageSet } from "../../types/ImageSet";
+import type { ImageSet } from "../../../shared/types/ImageSet";
 import { getBoundingBox, getCenter } from "../../utils/anchorUtils";
 
 interface PerspectiveImageProps {

@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import type { SettingType } from "../shared/types/AppConfig";
 
 import type { ProjectFile } from "../shared/types/ProjectFile";
-import type { ImageSet } from "../renderer/types/ImageSet";
+import type { ImageSet } from "../shared/types/ImageSet";
 
 contextBridge.exposeInMainWorld("electronAPI", {
     // Window
