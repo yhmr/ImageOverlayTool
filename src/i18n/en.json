@@ -41,10 +41,10 @@
       "title": "Setting",
       "done": "DONE",
       "language": "language",
-      "unit_factor": "um per pix",
+      "unitFactor": "um per pix",
       "helper": {
         "language": "Change the language used in the UI",
-        "unit_factor": "Used for drawing dimension lines"
+        "unitFactor": "Used for drawing dimension lines"
       }
     }
   }

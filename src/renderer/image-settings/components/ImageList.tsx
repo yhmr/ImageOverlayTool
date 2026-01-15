@@ -9,8 +9,7 @@ import type {
 } from "@hello-pangea/dnd";
 import { arrayMoveImmutable } from "array-move";
 
-import { useImageSetsStore } from "../../store/useImageSetsStore";
-import { useProjectStore } from "../../store/useProjectStore";
+import { useAppStore } from "../../store/useAppStore";
 
 import { IconButton, Stack, Tooltip, TextField } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -24,8 +23,7 @@ import { ImageListItem } from "./ImageListItem";
 export const ImageList = memo(function ImageList() {
   const { t } = useTranslation();
 
-  const { imageSets, setImageSets } = useImageSetsStore();
-  const { unit_factor, setUnitFactor } = useProjectStore();
+  const { imageSets, setImageSets, unitFactor, setUnitFactor } = useAppStore();
 
   // 新しいImageSetを追加
   const handleAddImageSet = useCallback(() => {
@@ -101,8 +99,8 @@ export const ImageList = memo(function ImageList() {
       {/* 単位設定 */}
       <TextField
         type="number"
-        label={t("render.setting_dlg.unit_factor", "単位係数")}
-        value={unit_factor}
+        label={t("render.setting_dlg.unitFactor", "単位係数")}
+        value={unitFactor}
         onChange={(e) => setUnitFactor(Number(e.target.value))}
         size="small"
         sx={{

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { useImageSetsStore } from "../store/useImageSetsStore";
+import { useAppStore } from "../store/useAppStore";
 import { useProjectOperations } from "./useProjectOperations";
 import UUID from "uuidjs";
 import { ImageSet } from "../types/ImageSet";
 
 export const useFileHandler = () => {
-  const { imageSets, setImageSets } = useImageSetsStore();
+  const { imageSets, setImageSets } = useAppStore();
   const { handleLoadProjectFromPath } = useProjectOperations();
 
   useEffect(() => {

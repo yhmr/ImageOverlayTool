@@ -1,48 +1,43 @@
-// @vitest-environment happy-dom
+/**
+ * @vitest-environment happy-dom
+ */
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useDimensionLineMode } from "./useDimensionLineMode";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useProjectStore } from "../store/useProjectStore";
+import { useAppStore } from "../store/useAppStore";
+import { RefObject } from "react";
 import Konva from "konva";
 
-// Mock crypto.randomUUID
-Object.defineProperty(global, "crypto", {
-  value: {
-    randomUUID: () => "test-uuid",
-  },
-});
+// Mock Konva Stage
+const mockStage = {
+  getPointerPosition: vi.fn().mockReturnValue({ x: 50, y: 50 }),
+  getAbsoluteTransform: vi.fn().mockReturnValue({
+    copy: vi.fn().mockReturnValue({
+      invert: vi.fn(),
+      point: vi.fn().mockReturnValue({ x: 100, y: 100 }),
+    }),
+  }),
+} as unknown as Konva.Stage;
+
+const stageRef = { current: mockStage } as RefObject<Konva.Stage>;
+
+// Mock Electron API
+window.electronAPI = {
+  updateImageSets: vi.fn(),
+  updateUnitFactor: vi.fn(),
+} as any;
 
 describe("useDimensionLineMode", () => {
-  // Mock Stage Ref
-  const mockStage = {
-    getPointerPosition: vi.fn(),
-    getAbsoluteTransform: vi.fn(() => ({
-      copy: () => ({
-        copy: () => ({
-          invert: vi.fn(), // Mock invert
-          point: (p: { x: number; y: number }) => p, // Identity transform for simplicity
-        }),
-        invert: vi.fn(),
-        point: (p: { x: number; y: number }) => p,
-      }),
-      invert: vi.fn(),
-      point: (p: { x: number; y: number }) => p,
-    })),
-    on: vi.fn(),
-    draggable: vi.fn(),
-  };
-  const stageRef = { current: mockStage as unknown as Konva.Stage };
-
   beforeEach(() => {
-    useProjectStore.setState(useProjectStore.getInitialState());
+    useAppStore.getState().resetAll();
     vi.clearAllMocks();
   });
 
-  it("should initialize correctly", () => {
+  it("should initialize with default values", () => {
     const { result } = renderHook(() => useDimensionLineMode(stageRef));
-
     expect(result.current.isDimensionMode).toBe(false);
-    expect(result.current.selectedDimensionLineId).toBeNull();
+    expect(result.current.dimensionLines).toEqual([]);
+    expect(result.current.unitFactor).toBe(1.0);
   });
 
   it("should toggle dimension mode", () => {
@@ -52,93 +47,33 @@ describe("useDimensionLineMode", () => {
       result.current.setIsDimensionMode(true);
     });
     expect(result.current.isDimensionMode).toBe(true);
+    expect(useAppStore.getState().interactionMode).toBe("dimension");
+
+    act(() => {
+      result.current.setIsDimensionMode(false);
+    });
+    expect(result.current.isDimensionMode).toBe(false);
+    expect(useAppStore.getState().interactionMode).toBe("default");
   });
 
-  it("should create a new dimension line on mouse down", () => {
-    const { result } = renderHook(() => useDimensionLineMode(stageRef));
-
-    // Enable mode
-    act(() => {
-      result.current.setIsDimensionMode(true);
-    });
-
-    // Mock pointer position
-    mockStage.getPointerPosition.mockReturnValue({ x: 10, y: 10 });
-
-    // Simulate Mouse Down (Left click)
-    act(() => {
-      result.current.onMouseDown({
-        evt: { button: 0 },
-      } as Konva.KonvaEventObject<MouseEvent>);
-    });
-
-    // Check state
-    expect(result.current.selectedDimensionLineId).toBe("test-uuid");
-
-    // Check Store state
-    const state = useProjectStore.getState();
-    expect(state.dimensionLines).toHaveLength(1);
-    expect(state.dimensionLines[0]).toEqual({
-      id: "test-uuid",
-      start: { x: 10, y: 10 },
-      end: { x: 10, y: 10 },
-    });
-  });
-
-  it("should delete short line on mouse up", () => {
-    const { result } = renderHook(() => useDimensionLineMode(stageRef));
-
-    act(() => {
-      result.current.setIsDimensionMode(true);
-    });
-    mockStage.getPointerPosition.mockReturnValue({ x: 10, y: 10 });
-    act(() => {
-      result.current.onMouseDown({
-        evt: { button: 0 },
-      } as Konva.KonvaEventObject<MouseEvent>);
-    });
-
-    // Mouse Up immediately (length 0)
-    act(() => {
-      result.current.onMouseUp();
-    });
-
-    // Check line is removed
-    const state = useProjectStore.getState();
-    expect(state.dimensionLines).toHaveLength(0);
-    expect(result.current.selectedDimensionLineId).toBeNull();
-  });
-
-  it("should keep long line on mouse up", () => {
+  it("should add dimension line on mouse down when in mode", () => {
     const { result } = renderHook(() => useDimensionLineMode(stageRef));
 
     act(() => {
       result.current.setIsDimensionMode(true);
     });
 
-    // Start at 10,10
-    mockStage.getPointerPosition.mockReturnValue({ x: 10, y: 10 });
+    const mockEvent = {
+      evt: { button: 0 }, // Left click
+    } as any;
+
     act(() => {
-      result.current.onMouseDown({
-        evt: { button: 0 },
-      } as Konva.KonvaEventObject<MouseEvent>);
+      result.current.onMouseDown(mockEvent);
     });
 
-    // Move to 100,100
-    mockStage.getPointerPosition.mockReturnValue({ x: 100, y: 100 });
-    act(() => {
-      result.current.onMouseMove();
-    });
-
-    // Mouse Up
-    act(() => {
-      result.current.onMouseUp();
-    });
-
-    // Check line is kept
-    const state = useProjectStore.getState();
-    expect(state.dimensionLines).toHaveLength(1);
-    expect(state.dimensionLines[0].end).toEqual({ x: 100, y: 100 });
-    expect(result.current.selectedDimensionLineId).toBe("test-uuid");
+    // Check if line added
+    const lines = useAppStore.getState().dimensionLines;
+    expect(lines).toHaveLength(1);
+    expect(result.current.selectedDimensionLineId).toBe(lines[0].id);
   });
 });

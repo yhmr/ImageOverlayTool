@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { useProjectStore } from "../store/useProjectStore";
-import { useImageSetsStore } from "../store/useImageSetsStore";
+import { useAppStore } from "../store/useAppStore";
 
 /**
  * アプリケーション状態の同期を行うフック
@@ -11,22 +10,22 @@ export const useProjectSync = () => {
     // unit_factorの更新監視
     const unsubscribeUnitFactor = window.electronAPI.onUnitFactorUpdated(
       (unitFactor) => {
-        useProjectStore.getState().syncUnitFactor(unitFactor);
+        useAppStore.getState().syncUnitFactor(unitFactor);
       }
     );
 
     // imageSetsの更新監視
     const unsubscribeImageSets = window.electronAPI.onImageSetsUpdated(
       (imageSets) => {
-        useImageSetsStore.getState().syncImageSets(imageSets);
+        useAppStore.getState().syncImageSets(imageSets);
       }
     );
 
     // 初期状態同期要求の監視 (メインウィンドウが応答する側)
     const unsubscribeRequestSync = window.electronAPI.onRequestStateSync(() => {
       // 現在の状態を送信
-      const currentImageSets = useImageSetsStore.getState().imageSets;
-      const currentUnitFactor = useProjectStore.getState().unit_factor;
+      const currentImageSets = useAppStore.getState().imageSets;
+      const currentUnitFactor = useAppStore.getState().unitFactor;
 
       window.electronAPI.updateImageSets(currentImageSets);
       window.electronAPI.updateUnitFactor(currentUnitFactor);

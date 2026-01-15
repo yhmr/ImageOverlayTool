@@ -22,7 +22,7 @@ export class MockProjectRepository implements IProjectRepository {
           color: "#00000000",
         },
         settings: {
-          unit_factor: 1,
+          unitFactor: 1,
         },
         images: [],
       };

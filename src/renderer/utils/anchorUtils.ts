@@ -7,10 +7,22 @@ export const calculateMovedAnchors = (
   diff: Point
 ): AnchorPos => {
   return {
-    lt: { x: currentAnchors.lt.x + diff.x, y: currentAnchors.lt.y + diff.y },
-    lb: { x: currentAnchors.lb.x + diff.x, y: currentAnchors.lb.y + diff.y },
-    rt: { x: currentAnchors.rt.x + diff.x, y: currentAnchors.rt.y + diff.y },
-    rb: { x: currentAnchors.rb.x + diff.x, y: currentAnchors.rb.y + diff.y },
+    lt: {
+      x: currentAnchors.lt.x + diff.x,
+      y: currentAnchors.lt.y + diff.y,
+    },
+    lb: {
+      x: currentAnchors.lb.x + diff.x,
+      y: currentAnchors.lb.y + diff.y,
+    },
+    rt: {
+      x: currentAnchors.rt.x + diff.x,
+      y: currentAnchors.rt.y + diff.y,
+    },
+    rb: {
+      x: currentAnchors.rb.x + diff.x,
+      y: currentAnchors.rb.y + diff.y,
+    },
   };
 };
 

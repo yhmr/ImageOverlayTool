@@ -18,7 +18,7 @@ describe("ProjectRepository", () => {
       color: "#000000",
     },
     settings: {
-      unit_factor: 1,
+      unitFactor: 1,
     },
     images: [],
   };

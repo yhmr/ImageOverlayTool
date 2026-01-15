@@ -1,7 +1,7 @@
 import React, { useCallback, useLayoutEffect } from "react";
 import ReactDOM from "react-dom/client";
 
-import { useProjectStore } from "../store/useProjectStore";
+import { useAppStore } from "../store/useAppStore";
 import { useProjectSync } from "../hooks/useProjectSync";
 import { useFileHandler } from "../hooks/useFileHandler";
 import "../../i18n/configs"; //i18
@@ -15,7 +15,7 @@ import { ContextMenu } from "./components/ContextMenu";
 
 const App = () => {
   // 設定の読み込み
-  const { windowColor, setWindowColor } = useProjectStore();
+  const { windowColor, setWindowColor } = useAppStore();
 
   // 同期フックを使用
   useProjectSync();

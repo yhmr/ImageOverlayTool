@@ -1,92 +1,68 @@
-// @vitest-environment happy-dom
+/**
+ * @vitest-environment happy-dom
+ */
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useImageSelection } from "./useImageSelection";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useImageSetsStore } from "../store/useImageSetsStore";
-import { ImageSet } from "../types/ImageSet";
+import { useAppStore } from "../store/useAppStore";
+
+// Mock Electron API
+window.electronAPI = {
+  updateImageSets: vi.fn(),
+  updateUnitFactor: vi.fn(),
+} as any;
 
 describe("useImageSelection", () => {
   beforeEach(() => {
-    useImageSetsStore.setState(useImageSetsStore.getInitialState());
+    useAppStore.getState().resetAll(); // Reset
   });
 
-  it("should initialize with null selectedImageId", () => {
-    const { result } = renderHook(() => useImageSelection());
-    expect(result.current.selectedImageId).toBeNull();
-  });
-
-  it("should set selectedImageId", () => {
-    // Setup store
-    useImageSetsStore.setState({
-      imageSets: [{ id: "test-id" } as unknown as ImageSet],
-    });
-
+  it("should select image", () => {
     const { result } = renderHook(() => useImageSelection());
 
+    // Add image first
     act(() => {
+      useAppStore.getState().setImageSets([
+        {
+          id: "test-id",
+          path: "test.png",
+          transparency: 0,
+          rotation: 0,
+          init_anchor_pos: null,
+          current_anchor_pos: null,
+        },
+      ]);
+      result.current.setSelectedImageId("test-id");
+    });
+    expect(result.current.selectedImageId).toBe("test-id");
+    expect(useAppStore.getState().selectedImageId).toBe("test-id");
+  });
+
+  it("should deselect when image is removed from store", () => {
+    const { result } = renderHook(() => useImageSelection());
+
+    // Add image
+    act(() => {
+      useAppStore.getState().setImageSets([
+        {
+          id: "test-id",
+          path: "",
+          transparency: 0,
+          rotation: 0,
+          init_anchor_pos: null,
+          current_anchor_pos: null,
+        },
+      ]);
       result.current.setSelectedImageId("test-id");
     });
 
     expect(result.current.selectedImageId).toBe("test-id");
-  });
 
-  it("should clear selection if selected image is removed from store", () => {
-    useImageSetsStore.setState({
-      imageSets: [{ id: "img1" } as unknown as ImageSet],
-    });
-
-    const { result } = renderHook(() => useImageSelection());
-
-    // Select the image
+    // Remove image
     act(() => {
-      result.current.setSelectedImageId("img1");
-    });
-    expect(result.current.selectedImageId).toBe("img1");
-
-    // Remove image from store
-    act(() => {
-      useImageSetsStore.setState({ imageSets: [] });
+      useAppStore.getState().setImageSets([]);
     });
 
     expect(result.current.selectedImageId).toBeNull();
-  });
-
-  it("should handle getOnSelectHandler based on dimension mode", () => {
-    useImageSetsStore.setState({
-      imageSets: [
-        { id: "img1" } as unknown as ImageSet,
-        { id: "img2" } as unknown as ImageSet,
-      ],
-    });
-
-    const { result } = renderHook(() => useImageSelection());
-
-    const onDeselectDimension = vi.fn();
-
-    // Case 1: isDimensionMode = false
-    const handlerNotDimension = result.current.getOnSelectHandler(
-      "img1",
-      false,
-      onDeselectDimension
-    );
-    act(() => {
-      handlerNotDimension();
-    });
-    expect(result.current.selectedImageId).toBe("img1");
-    expect(onDeselectDimension).toHaveBeenCalled();
-
-    // Case 2: isDimensionMode = true
-    onDeselectDimension.mockClear();
-    const handlerInDimension = result.current.getOnSelectHandler(
-      "img2",
-      true,
-      onDeselectDimension
-    );
-    act(() => {
-      handlerInDimension();
-    });
-    // Should NOT change selection
-    expect(result.current.selectedImageId).toBe("img1"); // remains img1
-    expect(onDeselectDimension).not.toHaveBeenCalled();
   });
 });

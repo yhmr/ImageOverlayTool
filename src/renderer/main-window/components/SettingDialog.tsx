@@ -40,7 +40,6 @@ export const SettingDialog = memo(function SettingDialog(
     // 設定を保存
     await window.electronAPI.saveSetting({
       language: i18n.language,
-      // unit_factor removed
     });
     handleClose();
   }, [handleClose, i18n]);

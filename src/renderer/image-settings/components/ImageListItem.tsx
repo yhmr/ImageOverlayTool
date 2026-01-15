@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useImageSetsStore } from "../../store/useImageSetsStore";
+import { useAppStore } from "../../store/useAppStore";
 
 import {
   Card,
@@ -38,7 +38,7 @@ export const ImageListItem = memo(function ImageListItem(
   const { imageSet, index, dragHandleProps } = props;
   const { t } = useTranslation();
 
-  const { imageSets, updateImageSet, setImageSets } = useImageSetsStore();
+  const { imageSets, updateImageSet, setImageSets } = useAppStore();
 
   // ファイルオープン
   const handleFileOpen = useCallback(async () => {
@@ -206,7 +206,10 @@ export const ImageListItem = memo(function ImageListItem(
                 min: -360,
                 max: 360,
                 type: "number",
-                style: { textAlign: "right", fontSize: "0.75rem" },
+                style: {
+                  textAlign: "right",
+                  fontSize: "0.75rem",
+                },
               }}
               sx={{ width: 45 }}
             />

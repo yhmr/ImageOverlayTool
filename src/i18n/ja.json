@@ -41,10 +41,10 @@
       "title": "設定",
       "done": "完了",
       "language": "言語",
-      "unit_factor": "um per pix",
+      "unitFactor": "um per pix",
       "helper": {
         "language": "UIで使用する言語を変更します",
-        "unit_factor": "寸法線の描画で利用します"
+        "unitFactor": "寸法線の描画で利用します"
       }
     }
   }

@@ -3,7 +3,7 @@ import Konva from "konva";
 import { ImageSet } from "../types/ImageSet";
 import { Point } from "../../shared/types/Point";
 import { AnchorPos } from "../types/AnchorPos";
-import { calculateMovedAnchors } from "../utils/anchorUtils";
+import { calculateMovedAnchors, rotateAnchorPos } from "../utils/anchorUtils";
 
 interface UseImageAnchorProps {
   imageSet: ImageSet;
@@ -28,11 +28,13 @@ export const useImageAnchor = ({
           x: e.target.x() - dragStartPos.x,
           y: e.target.y() - dragStartPos.y,
         };
+        // 回転を考慮した現在のアンカー位置を取得 (Wrapperが回転された座標を期待しているため)
+        const currentAnchors = imageSet.rotation
+          ? rotateAnchorPos(imageSet.current_anchor_pos, imageSet.rotation)
+          : imageSet.current_anchor_pos;
+
         // 新しいアンカー位置を計算
-        const newAnchor = calculateMovedAnchors(
-          imageSet.current_anchor_pos,
-          diff
-        );
+        const newAnchor = calculateMovedAnchors(currentAnchors, diff);
         // 親でpropを更新
         onUpdateAnchor(newAnchor);
 

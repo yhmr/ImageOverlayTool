@@ -1,23 +1,42 @@
-import { useState, useCallback, useEffect, RefObject } from "react";
+import { useCallback, useEffect, RefObject } from "react";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import { useProjectStore } from "../store/useProjectStore";
+import { useAppStore } from "../store/useAppStore";
 import { DimensionLine } from "../../shared/types/DimensionLine";
+import { useState } from "react"; // drawingLineIdは一時的なのでローカルに残すか、Interactionに入れるか。今回はInteractionに入れない設計だったためローカルのママでよいが、設計次第。
+// 設計では "selectedDimensionLineId" はInteractionにある。 "drawingLineId" はドラッグ中のためローカルで良い。
 
 export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
   const {
     dimensionLines,
-    unit_factor,
+    unitFactor,
     addDimensionLine,
     updateDimensionLine,
     removeDimensionLine,
-  } = useProjectStore();
+    interactionMode,
+    setInteractionMode,
+    selectedDimensionLineId,
+    selectDimensionLine,
+  } = useAppStore();
 
-  const [isDimensionMode, setIsDimensionMode] = useState(false);
-  const [selectedDimensionLineId, setSelectedDimensionLineId] = useState<
-    string | null
-  >(null);
+  // Draw中は一時的なIDが必要
   const [drawingLineId, setDrawingLineId] = useState<string | null>(null);
+
+  const isDimensionMode = interactionMode === "dimension";
+
+  const setIsDimensionMode = useCallback(
+    (enabled: boolean) => {
+      setInteractionMode(enabled ? "dimension" : "default");
+    },
+    [setInteractionMode]
+  );
+
+  const setSelectedDimensionLineId = useCallback(
+    (id: string | null) => {
+      selectDimensionLine(id);
+    },
+    [selectDimensionLine]
+  );
 
   const getStagePointerPos = useCallback(() => {
     const stage = stageRef.current;
@@ -29,9 +48,12 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
     return transform.point(pos);
   }, [stageRef]);
 
-  const onSelectDimensionLine = useCallback((id: string | null) => {
-    setSelectedDimensionLineId(id);
-  }, []);
+  const onSelectDimensionLine = useCallback(
+    (id: string | null) => {
+      selectDimensionLine(id);
+    },
+    [selectDimensionLine]
+  );
 
   const onUpdateDimensionLineHandler = useCallback(
     (line: DimensionLine) => {
@@ -55,11 +77,11 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
           };
           addDimensionLine(newLine);
           setDrawingLineId(id);
-          setSelectedDimensionLineId(id);
+          selectDimensionLine(id);
         }
       }
     },
-    [isDimensionMode, getStagePointerPos, addDimensionLine]
+    [isDimensionMode, getStagePointerPos, addDimensionLine, selectDimensionLine]
   );
 
   const onStageMouseMove = useCallback(() => {
@@ -87,13 +109,13 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 2) {
             removeDimensionLine(drawingLineId);
-            setSelectedDimensionLineId(null);
+            selectDimensionLine(null);
           }
         }
       }
       setDrawingLineId(null);
     }
-  }, [drawingLineId, dimensionLines, removeDimensionLine]);
+  }, [drawingLineId, dimensionLines, removeDimensionLine, selectDimensionLine]);
 
   // Keydown handler for delete
   useEffect(() => {
@@ -103,14 +125,17 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
         selectedDimensionLineId
       ) {
         removeDimensionLine(selectedDimensionLineId);
-        setSelectedDimensionLineId(null);
+        // selectedDimensionLineIdはstore側でnullにするようなロジックはremoveDimensionLineには含まれていない（スライスが分かれているため）。
+        // なので、ここで明示的にnullにするか、あるいはInteractionSlice側で監視するか。
+        // シンプルにここでnullにする。
+        selectDimensionLine(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedDimensionLineId, removeDimensionLine]);
+  }, [selectedDimensionLineId, removeDimensionLine, selectDimensionLine]);
 
   return {
     isDimensionMode,
@@ -118,7 +143,7 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
     selectedDimensionLineId,
     setSelectedDimensionLineId,
     dimensionLines,
-    unit_factor,
+    unitFactor: unitFactor,
     onSelectDimensionLine,
     onUpdateDimensionLineHandler,
     onMouseDown: onStageMouseDown,

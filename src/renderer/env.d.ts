@@ -21,7 +21,10 @@ export interface IElectronAPI {
   loadWindowColor: () => Promise<string>;
   saveWindowColor: (color: string) => Promise<void>;
   // Project
-  loadProject: () => Promise<{ project: ProjectFile; filePath: string } | null>;
+  loadProject: () => Promise<{
+    project: ProjectFile;
+    filePath: string;
+  } | null>;
   loadProjectFromPath: (
     filePath: string
   ) => Promise<{ project: ProjectFile; filePath: string } | null>;

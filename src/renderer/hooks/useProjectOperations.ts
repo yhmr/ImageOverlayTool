@@ -1,68 +1,46 @@
 import { useCallback, useState } from "react";
-import { useProjectStore } from "../store/useProjectStore";
-import { useImageSetsStore } from "../store/useImageSetsStore";
+import { useAppStore } from "../store/useAppStore";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../types/ImageSet";
 
 export const useProjectOperations = () => {
   const {
-    unit_factor,
+    unitFactor,
     windowColor,
     canvas,
     dimensionLines,
     setUnitFactor,
     setWindowColor,
     setCanvasState,
-    resetProject,
     setDimensionLines,
-  } = useProjectStore();
-
-  const { imageSets, setImageSets, setAllImageSets } = useImageSetsStore();
+    imageSets,
+    setImageSets,
+    // loadProjectData, resetProjectData, etc are available in useAppStore
+    loadProject,
+    resetAll,
+  } = useAppStore();
 
   // 現在のプロジェクトファイルパス
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
 
   // 新規プロジェクト
-  const handleNewProject = useCallback(() => {
-    // Clear images
-    setImageSets([]);
-    // Reset project settings
-    resetProject();
-    // Clear current file path
+  const handleNewProject = useCallback(async () => {
+    // 統合されたリセットアクション
+    resetAll();
     setCurrentFilePath(null);
-  }, [setImageSets, resetProject]);
+  }, [resetAll]);
 
   // プロジェクト情報の適用
   const applyProject = useCallback(
     async (project: ProjectFile<ImageSet>, filePath: string) => {
-      // Restore images
-      setAllImageSets(project.images);
-      // Restore settings
-      setUnitFactor(project.settings.unit_factor);
+      // ストアの一括更新アクションを使用
+      loadProject(project);
 
-      // Restore canvas
-      if (project.canvas) {
-        setCanvasState(project.canvas);
-      } else {
-        setCanvasState({ x: 0, y: 0, scale: 1 });
-      }
-
-      // Restore dimension lines
-      if (project.dimensionLines) {
-        setDimensionLines(project.dimensionLines);
-      } else {
-        setDimensionLines([]);
-      }
-
-      // Restore window settings
+      // ウィンドウサイズ・位置の復元 (Electron側)
       if (project.window) {
-        // Color & Transparency
-        if (project.window.color) {
-          setWindowColor(project.window.color);
-          await window.electronAPI.saveWindowColor(project.window.color);
-        }
-
-        // Position & Size
+        // 現在のウィンドウ状態と比較して変更が必要かチェックしてもいいが、
+        // ユーザーが意図して保存した状態なので強制的に適用する
+        // ただし、colorはstoreで管理しているので、geometryだけ適用
         await window.electronAPI.setWindowRect({
           x: project.window.x,
           y: project.window.y,
@@ -73,13 +51,7 @@ export const useProjectOperations = () => {
 
       setCurrentFilePath(filePath);
     },
-    [
-      setAllImageSets,
-      setUnitFactor,
-      setCanvasState,
-      setDimensionLines,
-      setWindowColor,
-    ]
+    [loadProject]
   );
 
   // プロジェクトの開く
@@ -119,7 +91,7 @@ export const useProjectOperations = () => {
         color: windowColor,
       },
       settings: {
-        unit_factor: unit_factor,
+        unitFactor: unitFactor,
       },
       canvas: canvas,
       images: imageSets,
@@ -130,7 +102,7 @@ export const useProjectOperations = () => {
     if (filePath) {
       setCurrentFilePath(filePath);
     }
-  }, [imageSets, unit_factor, windowColor, canvas, dimensionLines]);
+  }, [imageSets, unitFactor, windowColor, canvas, dimensionLines]);
 
   // プロジェクトの保存
   const handleSaveProject = useCallback(async () => {
@@ -150,7 +122,7 @@ export const useProjectOperations = () => {
         color: windowColor,
       },
       settings: {
-        unit_factor: unit_factor,
+        unitFactor: unitFactor,
       },
       canvas: canvas,
       images: imageSets,
@@ -161,14 +133,14 @@ export const useProjectOperations = () => {
   }, [
     currentFilePath,
     imageSets,
-    unit_factor,
+    unitFactor,
     windowColor,
     canvas,
     dimensionLines,
     handleSaveProjectAs,
   ]);
 
-  // プロジェクトの保存
+  // プロジェクトの保存 (参照用)
   const handleSaveProjectReference = useCallback(async () => {
     if (!currentFilePath) {
       await handleSaveProjectAs();
@@ -178,6 +150,7 @@ export const useProjectOperations = () => {
   }, [currentFilePath, handleSaveProject, handleSaveProjectAs]);
 
   return {
+    currentFilePath,
     handleNewProject,
     handleOpenProject,
     handleLoadProjectFromPath,

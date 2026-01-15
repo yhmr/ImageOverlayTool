@@ -1,71 +1,89 @@
-// @vitest-environment happy-dom
-import { expect, test, describe, vi, beforeEach } from "vitest";
+/**
+ * @vitest-environment happy-dom
+ */
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useProjectOperations } from "./useProjectOperations";
-import { ProjectFile } from "../../shared/types/ProjectFile";
-import { useProjectStore } from "../store/useProjectStore";
-import { useImageSetsStore } from "../store/useImageSetsStore";
-import { ImageSet } from "../types/ImageSet";
+import { useAppStore } from "../store/useAppStore";
+import { ImageSet } from "../../types/ImageSet";
 
-// Mock electronAPI
-const mockElectronAPI = {
-  loadProject: vi.fn(),
-  saveProjectAs: vi.fn(),
-  saveProject: vi.fn(),
-  loadWindowColor: vi.fn(),
-  saveWindowColor: vi.fn(),
-  setWindowRect: vi.fn(),
-  loadProjectFromPath: vi.fn(),
-  updateUnitFactor: vi.fn(),
+// Mock Electron API
+const mockLoadProject = vi.fn();
+const mockLoadProjectFromPath = vi.fn();
+const mockSaveProject = vi.fn();
+const mockSaveProjectAs = vi.fn();
+const mockSetWindowRect = vi.fn();
+const mockSaveWindowColor = vi.fn();
+
+window.electronAPI = {
+  loadProject: mockLoadProject,
+  loadProjectFromPath: mockLoadProjectFromPath,
+  saveProject: mockSaveProject,
+  saveProjectAs: mockSaveProjectAs,
+  setWindowRect: mockSetWindowRect,
+  saveWindowColor: mockSaveWindowColor,
   updateImageSets: vi.fn(),
+  updateUnitFactor: vi.fn(),
 } as any;
-
-// Global window mock
-Object.defineProperty(global.window, "electronAPI", {
-  value: mockElectronAPI,
-  writable: true,
-});
 
 describe("useProjectOperations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset stores
-    useProjectStore.setState(useProjectStore.getInitialState());
-    useImageSetsStore.setState(useImageSetsStore.getInitialState());
+    useAppStore.getState().resetAll(); // Reset store
   });
 
-  test("handleNewProject should reset stores", async () => {
-    // Set some state to verify reset
-    useProjectStore.setState({ unit_factor: 5 });
-    useImageSetsStore.setState({
-      imageSets: [{ id: "test" } as unknown as ImageSet],
-    });
-
+  it("handleNewProject should reset store and file path", async () => {
+    // Setup initial state
     const { result } = renderHook(() => useProjectOperations());
+
+    act(() => {
+      useAppStore.getState().setImageSets([
+        {
+          id: "test",
+          path: "test.png",
+          transparency: 1,
+          rotation: 0,
+          init_anchor_pos: null,
+          current_anchor_pos: null,
+        },
+      ]);
+      // currentFilePath is local state in hook, so we can't easily set it from outside without calling open/save.
+      // But handleNewProject checks logic.
+    });
 
     await act(async () => {
       await result.current.handleNewProject();
     });
 
-    const projectState = useProjectStore.getState();
-    const imageState = useImageSetsStore.getState();
-
-    expect(projectState.unit_factor).toBe(1); // Default
-    expect(imageState.imageSets).toEqual([]); // Default
+    const state = useAppStore.getState();
+    // Reset should set imageSets to default (1 empty set)
+    expect(state.imageSets).toHaveLength(1);
+    expect(state.imageSets[0].path).toBe("");
+    expect(result.current.currentFilePath).toBeNull();
   });
 
-  test("handleOpenProject should update stores when loaded", async () => {
-    const mockProject: ProjectFile<ImageSet> = {
+  it("handleOpenProject should load project data", async () => {
+    const mockProjectData = {
       version: "1.0.0",
-      window: { width: 800, height: 600, x: 0, y: 0, color: "#FFFFFF" },
-      settings: { unit_factor: 2 },
-      canvas: { x: 10, y: 10, scale: 2 },
-      images: [],
+      window: { width: 800, height: 600, x: 0, y: 0, color: "#111111" },
+      settings: { unitFactor: 2.0 },
+      canvas: { x: 10, y: 10, scale: 1.5 },
+      images: [
+        {
+          id: "loaded-img",
+          path: "loaded.png",
+          transparency: 0.5,
+          rotation: 90,
+          init_anchor_pos: null,
+          current_anchor_pos: null,
+        },
+      ],
       dimensionLines: [],
     };
-    mockElectronAPI.loadProject.mockResolvedValue({
-      project: mockProject,
-      filePath: "/test/path.json",
+
+    mockLoadProject.mockResolvedValue({
+      project: mockProjectData,
+      filePath: "C:/path/to/project.json",
     });
 
     const { result } = renderHook(() => useProjectOperations());
@@ -74,24 +92,36 @@ describe("useProjectOperations", () => {
       await result.current.handleOpenProject();
     });
 
-    const projectState = useProjectStore.getState();
-    // Verify store updates
-    expect(projectState.unit_factor).toBe(2);
-    expect(projectState.canvas).toEqual({ x: 10, y: 10, scale: 2 });
+    const state = useAppStore.getState();
+    expect(state.unitFactor).toBe(2.0);
+    expect(state.windowColor).toBe("#111111");
+    expect(state.canvas).toEqual({ x: 10, y: 10, scale: 1.5 });
+    expect(state.imageSets[0].id).toBe("loaded-img");
+    expect(result.current.currentFilePath).toBe("C:/path/to/project.json");
 
-    expect(mockElectronAPI.saveWindowColor).toHaveBeenCalledWith("#FFFFFF");
-    expect(mockElectronAPI.setWindowRect).toHaveBeenCalled();
+    // Verify window restoration
+    expect(mockSetWindowRect).toHaveBeenCalledWith({
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+    });
   });
 
-  test("handleSaveProjectAs should call saveProjectAs API", async () => {
+  it("handleSaveProjectAs should save and update path", async () => {
+    mockSaveProjectAs.mockResolvedValue("C:/new/path/project.json");
     const { result } = renderHook(() => useProjectOperations());
-
-    mockElectronAPI.saveProjectAs.mockResolvedValue("/new/path.json");
 
     await act(async () => {
       await result.current.handleSaveProjectAs();
     });
 
-    expect(mockElectronAPI.saveProjectAs).toHaveBeenCalled();
+    expect(mockSaveProjectAs).toHaveBeenCalledWith(
+      expect.objectContaining({
+        version: "1.0.0",
+        settings: expect.objectContaining({ unitFactor: 1.0 }),
+      })
+    );
+    expect(result.current.currentFilePath).toBe("C:/new/path/project.json");
   });
 });

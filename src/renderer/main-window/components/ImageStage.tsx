@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useRef, useEffect } from "react";
 
-import { useImageSetsStore } from "../../store/useImageSetsStore";
-import { useProjectStore } from "../../store/useProjectStore";
+import { useAppStore } from "../../store/useAppStore";
 import { KonvaEventObject } from "konva/lib/Node";
 
 import Konva from "konva";
@@ -20,8 +19,7 @@ import { useImageSelection } from "../../hooks/useImageSelection";
 
 export const ImageStage = memo(function ImageStage() {
   // imageSet取得
-  const { imageSets, updateImageSet } = useImageSetsStore();
-  const { canvas, setCanvasState } = useProjectStore();
+  const { imageSets, updateImageSet, canvas, setCanvasState } = useAppStore();
 
   // ステージのref
   const stageRef = useRef<Konva.Stage>(null);
@@ -59,7 +57,7 @@ export const ImageStage = memo(function ImageStage() {
     selectedDimensionLineId,
     setSelectedDimensionLineId,
     dimensionLines,
-    unit_factor,
+    unitFactor,
     onSelectDimensionLine,
     onUpdateDimensionLineHandler,
     onMouseDown: onMouseDownDimension,
@@ -183,9 +181,7 @@ export const ImageStage = memo(function ImageStage() {
                 key={index + imageSet.id}
                 imageSet={imageSet}
                 onInitImage={onInitImage(imageSet, index)}
-                onSelect={getOnSelectHandler(imageSet.id, isDimensionMode, () =>
-                  setSelectedDimensionLineId(null)
-                )}
+                onSelect={getOnSelectHandler(imageSet.id)}
               />
             );
           })}
@@ -206,7 +202,7 @@ export const ImageStage = memo(function ImageStage() {
 
           <DimensionLineLayer
             dimensionLines={dimensionLines}
-            unitFactor={unit_factor}
+            unitFactor={unitFactor}
             isSelected={(id) => id === selectedDimensionLineId}
             onSelect={onSelectDimensionLine}
             onUpdate={onUpdateDimensionLineHandler}

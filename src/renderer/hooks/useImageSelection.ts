@@ -1,37 +1,39 @@
-import { useState, useCallback, useEffect } from "react";
-import { useImageSetsStore } from "../store/useImageSetsStore";
+import { useCallback, useEffect } from "react";
+import { useAppStore } from "../store/useAppStore";
 
 export const useImageSelection = () => {
-  const { imageSets } = useImageSetsStore();
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const { imageSets, selectedImageId, selectImage, interactionMode } =
+    useAppStore();
 
   // 選択された画像が削除された場合、選択を解除する
   useEffect(() => {
-    if (
-      selectedImageId &&
-      !imageSets.find((imageSet) => imageSet.id === selectedImageId)
-    ) {
-      setSelectedImageId(null);
+    if (selectedImageId) {
+      const found = imageSets.find(
+        (imageSet) => imageSet.id === selectedImageId
+      );
+      if (!found) {
+        selectImage(null);
+      }
     }
-  }, [imageSets, selectedImageId]);
+  }, [imageSets, selectedImageId, selectImage]);
 
   // DrawImageコンポーネントのonSelectハンドラを生成するヘルパー
   const getOnSelectHandler = useCallback(
-    (id: string, isDimensionMode: boolean, onDeselectDimension: () => void) => {
+    (id: string) => {
       return () => {
-        if (!isDimensionMode) {
+        if (interactionMode !== "dimension") {
           // dimensionモードでは画像選択を無視
-          setSelectedImageId(id);
-          onDeselectDimension();
+          selectImage(id);
+          // onDeselectDimensionは不要 (selectImage内でselectedDimensionLineId=nullにされるため)
         }
       };
     },
-    []
+    [interactionMode, selectImage]
   );
 
   return {
     selectedImageId,
-    setSelectedImageId,
+    setSelectedImageId: selectImage, // 互換性のためエイリアス
     getOnSelectHandler,
   };
 };
