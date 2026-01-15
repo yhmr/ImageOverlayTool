@@ -7,7 +7,6 @@ import {
     setIPCService,
     resetIPCService,
     MockIPCService,
-    IIPCService,
 } from "./ipcService";
 
 describe("ipcService", () => {

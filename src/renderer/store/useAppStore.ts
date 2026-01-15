@@ -20,7 +20,7 @@ type StoreActions = {
 type AppState = ProjectDataSlice & ViewSlice & InteractionSlice & StoreActions;
 
 export const useAppStore = create<AppState>()((...args) => {
-    const [_set, get] = args;
+    const [, get] = args;
     return {
         ...createProjectDataSlice(...args),
         ...createViewSlice(...args),
