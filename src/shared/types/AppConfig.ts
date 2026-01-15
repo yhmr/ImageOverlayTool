@@ -3,33 +3,33 @@ import type { Size } from "./Size";
 
 // ウィンドウ設定の型定義
 export interface WindowConfig {
-  pos: Point;
-  size: Size;
+    pos: Point;
+    size: Size;
 }
 
 // 設定ファイルの型定義
 export interface AppConfig {
-  window: WindowConfig & {
-    color: string;
-  };
-  imageSettingsWindow: WindowConfig;
-  setting: SettingType;
+    window: WindowConfig & {
+        color: string;
+    };
+    imageSettingsWindow: WindowConfig;
+    setting: SettingType;
 }
 
 // 設定の型定義
 // Note: settingはUI上で操作可能な値を示す
 export interface SettingType {
-  language: string;
+    language: string;
 }
 
 // メインウィンドウのデフォルトサイズ
 export const DEFAULT_MAIN_WINDOW_SIZE: Size = {
-  width: 800,
-  height: 600,
+    width: 800,
+    height: 600,
 };
 
 // 画像設定ウィンドウのデフォルトサイズ
 export const DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE: Size = {
-  width: 400,
-  height: 500,
+    width: 400,
+    height: 500,
 };

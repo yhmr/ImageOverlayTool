@@ -8,61 +8,61 @@ import { useAppStore } from "../store/useAppStore";
 
 // Mock Electron API
 window.electronAPI = {
-  updateImageSets: vi.fn(),
-  updateUnitFactor: vi.fn(),
+    updateImageSets: vi.fn(),
+    updateUnitFactor: vi.fn(),
 } as any;
 
 describe("useImageSelection", () => {
-  beforeEach(() => {
-    useAppStore.getState().resetAll(); // Reset
-  });
-
-  it("should select image", () => {
-    const { result } = renderHook(() => useImageSelection());
-
-    // Add image first
-    act(() => {
-      useAppStore.getState().setImageSets([
-        {
-          id: "test-id",
-          path: "test.png",
-          transparency: 0,
-          rotation: 0,
-          init_anchor_pos: null,
-          current_anchor_pos: null,
-        },
-      ]);
-      result.current.setSelectedImageId("test-id");
-    });
-    expect(result.current.selectedImageId).toBe("test-id");
-    expect(useAppStore.getState().selectedImageId).toBe("test-id");
-  });
-
-  it("should deselect when image is removed from store", () => {
-    const { result } = renderHook(() => useImageSelection());
-
-    // Add image
-    act(() => {
-      useAppStore.getState().setImageSets([
-        {
-          id: "test-id",
-          path: "",
-          transparency: 0,
-          rotation: 0,
-          init_anchor_pos: null,
-          current_anchor_pos: null,
-        },
-      ]);
-      result.current.setSelectedImageId("test-id");
+    beforeEach(() => {
+        useAppStore.getState().resetAll(); // Reset
     });
 
-    expect(result.current.selectedImageId).toBe("test-id");
+    it("should select image", () => {
+        const { result } = renderHook(() => useImageSelection());
 
-    // Remove image
-    act(() => {
-      useAppStore.getState().setImageSets([]);
+        // Add image first
+        act(() => {
+            useAppStore.getState().setImageSets([
+                {
+                    id: "test-id",
+                    path: "test.png",
+                    transparency: 0,
+                    rotation: 0,
+                    init_anchor_pos: null,
+                    current_anchor_pos: null,
+                },
+            ]);
+            result.current.setSelectedImageId("test-id");
+        });
+        expect(result.current.selectedImageId).toBe("test-id");
+        expect(useAppStore.getState().selectedImageId).toBe("test-id");
     });
 
-    expect(result.current.selectedImageId).toBeNull();
-  });
+    it("should deselect when image is removed from store", () => {
+        const { result } = renderHook(() => useImageSelection());
+
+        // Add image
+        act(() => {
+            useAppStore.getState().setImageSets([
+                {
+                    id: "test-id",
+                    path: "",
+                    transparency: 0,
+                    rotation: 0,
+                    init_anchor_pos: null,
+                    current_anchor_pos: null,
+                },
+            ]);
+            result.current.setSelectedImageId("test-id");
+        });
+
+        expect(result.current.selectedImageId).toBe("test-id");
+
+        // Remove image
+        act(() => {
+            useAppStore.getState().setImageSets([]);
+        });
+
+        expect(result.current.selectedImageId).toBeNull();
+    });
 });

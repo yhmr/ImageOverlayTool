@@ -18,7 +18,7 @@
     "lint-fix": "eslint --cache --fix src/ && prettier --write src/",
     "test": "vitest run --reporter=verbose --exclude \"**/e2e/**\" --exclude \"**/node_modules/**\"",
     "test:watch": "vitest",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
@@ -69,8 +69,11 @@
     "vitest": "^4.0.16"
   },
   "lint-staged": {
-    "src/**/*.{ts,tsx,js,jsx,json,css}": [
+    "src/**/*.{ts,tsx,js,jsx}": [
       "eslint --cache --fix",
+      "prettier --write"
+    ],
+    "src/**/*.{json,css}": [
       "prettier --write"
     ]
   }
