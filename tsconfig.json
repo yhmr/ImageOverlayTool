@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ES2020",
+    "module": "ESNext",
     "esModuleInterop": true,
-    "sourceMap": true,
-    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
     "lib": [
       "DOM",
       "ES2020"
@@ -12,6 +12,12 @@
     "jsx": "react-jsx",
     "strict": true,
     "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
   "ts-node": {
     "compilerOptions": {

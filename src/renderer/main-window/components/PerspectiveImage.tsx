@@ -75,16 +75,16 @@ export const PerspectiveImage = ({
     }, [image, imageSet, canvas]);
 
     // クリックハンドラ
-    const handleClick = (e: KonvaEventObject<MouseEvent>) => {
+    const handleClick = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
         if (onSelect) {
             onSelect();
             e.cancelBubble = true; // Stop bubbling to stage
         }
     };
 
-    const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
+    const handleMouseDown = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
         // 左クリックの場合はバブリングを止める（ステージのドラッグなどと干渉しないように）
-        if (e.evt.button === 0) {
+        if ("button" in e.evt && e.evt.button === 0) {
             e.cancelBubble = true;
         }
     };

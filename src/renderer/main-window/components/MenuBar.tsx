@@ -1,37 +1,25 @@
-import React, { memo } from "react";
-
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
-
-import {
-    AppBar,
-    IconButton,
-    Toolbar,
-    Tooltip,
-    Typography,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-import CloseIcon from "@mui/icons-material/Close";
+import { Maximize, Minimize, X } from "lucide-react";
 
 import { SettingDialog } from "./SettingDialog";
 import { AppMenu } from "./AppMenu";
 import { useMenuState } from "../../hooks/useMenuState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
 import { useProjectOperations } from "../../hooks/useProjectOperations";
+import { Button } from "@/renderer/components/ui/button";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/renderer/components/ui/tooltip";
 
 export const MenuBar = memo(function MenuBar() {
     const { t } = useTranslation();
 
-    const {
-        anchorEl,
-        openMenu,
-        handleMenuClick,
-        handleMenuClose,
-        openSettingDlg,
-        handleSettingDlgOpen,
-        handleSettingDlgClose,
-    } = useMenuState();
+    const { openSettingDlg, handleSettingDlgOpen, handleSettingDlgClose } =
+        useMenuState();
 
     const { full, handleSwitchFullScreen, handleCloseWindow } =
         useWindowOperations();
@@ -44,87 +32,81 @@ export const MenuBar = memo(function MenuBar() {
     } = useProjectOperations();
 
     return (
-        <>
-            <AppBar position="fixed">
-                <Toolbar
-                    sx={{
-                        WebkitAppRegion: "drag",
-                    }}
-                >
-                    {/* メニューボタン */}
-                    <Tooltip title={t("render.menu_button.tooltip.menu")}>
-                        <IconButton
-                            size="large"
-                            edge="start"
-                            color="inherit"
-                            onClick={handleMenuClick}
-                            aria-controls={openMenu ? "main-menu" : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={openMenu ? "true" : undefined}
-                            sx={{ mr: 2, WebkitAppRegion: "no-drag" }}
-                        >
-                            <MenuIcon fontSize="large" />
-                        </IconButton>
-                    </Tooltip>
-                    {/* タイトル */}
-                    <Typography
-                        variant="h6"
-                        component="div"
-                        sx={{ flexGrow: 1 }}
-                    >
-                        {t("render.menu_button.app_title")}
-                    </Typography>
-                    {/* 最大最小化 */}
-                    <Tooltip
-                        title={
-                            full
-                                ? t("render.menu_button.tooltip.unmaximize")
-                                : t("render.menu_button.tooltip.maximize")
-                        }
-                    >
-                        <IconButton
-                            size="large"
-                            color="inherit"
+        <TooltipProvider>
+            <div className="fixed top-0 left-0 w-full h-14 bg-background border-b z-50 flex items-center px-2 app-region-drag select-none text-foreground">
+                {/* メニューボタン */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div>
+                            {" "}
+                            {/* Wrapper for TooltipTrigger asChild issue if any, or just direct AppMenu */}
+                            <AppMenu
+                                handleSettingDlgOpen={handleSettingDlgOpen}
+                                handleCloseWindow={handleCloseWindow}
+                                handleNewProject={handleNewProject}
+                                handleOpenProject={handleOpenProject}
+                                handleSaveProject={handleSaveProject}
+                                handleSaveProjectAs={handleSaveProjectAs}
+                            />
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{t("render.menu_button.tooltip.menu")}</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* タイトル */}
+                <div className="flex-grow text-center text-lg font-medium app-region-drag pointer-events-none">
+                    {t("render.menu_button.app_title")}
+                </div>
+
+                {/* 最大最小化 */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={handleSwitchFullScreen}
-                            sx={{ WebkitAppRegion: "no-drag" }}
+                            className="app-region-no-drag"
                         >
                             {full ? (
-                                <FullscreenExitIcon fontSize="large" />
+                                <Minimize className="h-6 w-6" />
                             ) : (
-                                <FullscreenIcon fontSize="large" />
+                                <Maximize className="h-6 w-6" />
                             )}
-                        </IconButton>
-                    </Tooltip>
-                    {/* ウィンドウ閉じる */}
-                    <Tooltip title={t("render.menu_button.tooltip.close")}>
-                        <IconButton
-                            size="large"
-                            color="inherit"
-                            onClick={handleCloseWindow}
-                            sx={{ mr: -1, WebkitAppRegion: "no-drag" }}
-                        >
-                            <CloseIcon fontSize="large" />
-                        </IconButton>
-                    </Tooltip>
-                </Toolbar>
-            </AppBar>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>
+                            {full
+                                ? t("render.menu_button.tooltip.unmaximize")
+                                : t("render.menu_button.tooltip.maximize")}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
 
-            <SettingDialog
-                open={openSettingDlg}
-                handleClose={handleSettingDlgClose}
-            />
-            {/* ポップアップメニュー */}
-            <AppMenu
-                anchorEl={anchorEl}
-                openMenu={openMenu}
-                handleMenuClose={handleMenuClose}
-                handleSettingDlgOpen={handleSettingDlgOpen}
-                handleCloseWindow={handleCloseWindow}
-                handleNewProject={handleNewProject}
-                handleOpenProject={handleOpenProject}
-                handleSaveProject={handleSaveProject}
-                handleSaveProjectAs={handleSaveProjectAs}
-            />
-        </>
+                {/* ウィンドウ閉じる */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleCloseWindow}
+                            className="app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                            <X className="h-6 w-6" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{t("render.menu_button.tooltip.close")}</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                <SettingDialog
+                    open={openSettingDlg}
+                    handleClose={handleSettingDlgClose}
+                />
+            </div>
+        </TooltipProvider>
     );
 });

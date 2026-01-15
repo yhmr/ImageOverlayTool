@@ -2,7 +2,6 @@ import Store from "electron-store";
 import { screen } from "electron";
 import {
     AppConfig,
-    SettingType,
     DEFAULT_MAIN_WINDOW_SIZE,
     DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
 } from "../../shared/types/AppConfig";
@@ -10,42 +9,27 @@ import { calcCenterPosition } from "../utils/calcCenterPosition";
 import { Point } from "../../shared/types/Point";
 import { Size } from "../../shared/types/Size";
 
-export interface IConfigRepository {
-    loadSettings(): Promise<{ language: string }>;
-    saveSettings(settings: SettingType): Promise<void>;
+export interface IWindowRepository {
     loadWindowColor(): Promise<string>;
     saveWindowColor(color: string): Promise<void>;
     getWindowPositionAndSize(): { pos: Point; size: Size };
     saveWindowPositionAndSize(pos: number[], size: number[]): void;
-    // 画像設定ウィンドウ用
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size };
     saveImageSettingsWindowPositionAndSize(pos: number[], size: number[]): void;
 }
 
-export class ConfigRepository implements IConfigRepository {
+export class WindowRepository implements IWindowRepository {
     private store: Store<AppConfig>;
 
     constructor(store: Store<AppConfig>) {
         this.store = store;
     }
 
-    async loadSettings() {
-        return {
-            language: this.store.get("setting.language", "en"),
-        };
-    }
-
-    async saveSettings(settings: SettingType) {
-        if (settings.language !== undefined) {
-            this.store.set("setting.language", settings.language);
-        }
-    }
-
-    async loadWindowColor() {
+    async loadWindowColor(): Promise<string> {
         return this.store.get("window.color", "#FFFFFF55");
     }
 
-    async saveWindowColor(color: string) {
+    async saveWindowColor(color: string): Promise<void> {
         this.store.set("window.color", color);
     }
 
@@ -106,7 +90,7 @@ export class ConfigRepository implements IConfigRepository {
         };
     }
 
-    private getDefaultCenterPosition() {
+    private getDefaultCenterPosition(): number[] {
         const { width, height } = screen.getPrimaryDisplay().workAreaSize;
         return calcCenterPosition(
             { width, height },

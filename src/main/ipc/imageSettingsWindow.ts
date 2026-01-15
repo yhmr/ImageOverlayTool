@@ -1,6 +1,6 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
 import { WindowManager } from "../windows/windowManager";
-import { ImageSet } from "../../renderer/types/ImageSet";
+import { ImageSet } from "../../shared/types/ImageSet";
 
 /**
  * 画像設定ウィンドウ用のIPCハンドラを登録

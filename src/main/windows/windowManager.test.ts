@@ -80,11 +80,11 @@ vi.mock("@electron-toolkit/utils", () => ({
 }));
 
 import { WindowManager } from "./windowManager";
-import { IConfigRepository } from "../repositories/ConfigRepository";
+import { IWindowRepository } from "../repositories/WindowRepository";
 
 describe("WindowManager", () => {
     let windowManager: WindowManager;
-    let mockConfigRepository: any;
+    let mockWindowRepository: IWindowRepository;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -94,9 +94,7 @@ describe("WindowManager", () => {
         // Reset isVisible to true by default
         mockWindow.isVisible.mockReturnValue(true);
 
-        mockConfigRepository = {
-            loadSettings: vi.fn(),
-            saveSettings: vi.fn(),
+        mockWindowRepository = {
             loadWindowColor: vi.fn(),
             saveWindowColor: vi.fn(),
             getWindowPositionAndSize: vi.fn().mockReturnValue({
@@ -109,9 +107,8 @@ describe("WindowManager", () => {
                 size: { width: 300, height: 400 },
             }),
             saveImageSettingsWindowPositionAndSize: vi.fn(),
-            loadProject: vi.fn(),
-        } as unknown as IConfigRepository;
-        windowManager = new WindowManager(mockConfigRepository);
+        };
+        windowManager = new WindowManager(mockWindowRepository);
     });
 
     it("openFile sends IPC message if window exists and visible", () => {

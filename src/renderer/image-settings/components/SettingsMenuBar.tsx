@@ -1,14 +1,13 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
-
+import { X } from "lucide-react";
+import { Button } from "@/renderer/components/ui/button";
 import {
-    AppBar,
-    IconButton,
-    Toolbar,
     Tooltip,
-    Typography,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/renderer/components/ui/tooltip";
 
 /**
  * 画像設定ウィンドウ用のシンプルなタイトルバー
@@ -23,37 +22,32 @@ export const SettingsMenuBar = memo(function SettingsMenuBar() {
     };
 
     return (
-        <AppBar position="static" sx={{ flexShrink: 0 }}>
-            <Toolbar
-                variant="dense"
-                sx={{
-                    WebkitAppRegion: "drag",
-                    minHeight: 40,
-                }}
-            >
+        <TooltipProvider>
+            <div className="flex shrink-0 items-center justify-between min-h-[40px] px-2 bg-background border-b app-region-drag select-none text-foreground">
                 {/* タイトル */}
-                <Typography
-                    variant="subtitle1"
-                    component="div"
-                    sx={{ flexGrow: 1 }}
-                >
+                <div className="flex-grow text-sm font-medium">
                     {t("render.image_settings.title", "画像設定")}
-                </Typography>
+                </div>
 
                 {/* 閉じるボタン（トグル動作） */}
-                <Tooltip
-                    title={t("render.image_settings.tooltip.close", "閉じる")}
-                >
-                    <IconButton
-                        size="small"
-                        color="inherit"
-                        onClick={handleClose}
-                        sx={{ WebkitAppRegion: "no-drag" }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleClose}
+                            className="h-8 w-8 app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>
+                            {t("render.image_settings.tooltip.close", "閉じる")}
+                        </p>
+                    </TooltipContent>
                 </Tooltip>
-            </Toolbar>
-        </AppBar>
+            </div>
+        </TooltipProvider>
     );
 });

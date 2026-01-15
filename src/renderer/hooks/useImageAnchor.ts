@@ -49,10 +49,10 @@ export const useImageAnchor = ({
 
     const onCircleDragEnd = useCallback(
         (
-            ltRef: React.RefObject<Konva.Circle>,
-            lbRef: React.RefObject<Konva.Circle>,
-            rtRef: React.RefObject<Konva.Circle>,
-            rbRef: React.RefObject<Konva.Circle>
+            ltRef: React.RefObject<Konva.Circle | null>,
+            lbRef: React.RefObject<Konva.Circle | null>,
+            rtRef: React.RefObject<Konva.Circle | null>,
+            rbRef: React.RefObject<Konva.Circle | null>
         ) => {
             return () => {
                 // ドラッグされた対象の座標は更新済み
