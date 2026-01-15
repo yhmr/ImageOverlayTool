@@ -22,9 +22,7 @@ export const useImageSelection = () => {
         (id: string) => {
             return () => {
                 if (interactionMode !== "dimension") {
-                    // dimensionモードでは画像選択を無視
                     selectImage(id);
-                    // onDeselectDimensionは不要 (selectImage内でselectedDimensionLineId=nullにされるため)
                 }
             };
         },

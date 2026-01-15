@@ -4,6 +4,15 @@ import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
 import UUID from "uuidjs";
 
+const createDefaultImageSet = (): ImageSet => ({
+    id: UUID.generate(),
+    path: "",
+    transparency: 0,
+    rotation: 0,
+    init_anchor_pos: null,
+    current_anchor_pos: null,
+});
+
 export interface ProjectDataSlice {
     // Data State
     imageSets: ImageSet[];
@@ -18,7 +27,7 @@ export interface ProjectDataSlice {
         id?: string;
         imageSet: ImageSet;
     }) => void;
-    syncImageSets: (imageSets: ImageSet[]) => void; // IPC受信時 (送信しない)
+    syncImageSets: (imageSets: ImageSet[]) => void;
 
     setDimensionLines: (lines: DimensionLine[]) => void;
     addDimensionLine: (line: DimensionLine) => void;
@@ -26,7 +35,7 @@ export interface ProjectDataSlice {
     removeDimensionLine: (id: string) => void;
 
     setUnitFactor: (factor: number) => void;
-    syncUnitFactor: (factor: number) => void; // IPC受信時 (送信しない)
+    syncUnitFactor: (factor: number) => void;
 
     setWindowColor: (color: string) => void;
 
@@ -37,16 +46,7 @@ export interface ProjectDataSlice {
 export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
     set
 ) => ({
-    imageSets: [
-        {
-            id: UUID.generate(),
-            path: "",
-            transparency: 0,
-            rotation: 0,
-            init_anchor_pos: null,
-            current_anchor_pos: null,
-        },
-    ],
+    imageSets: [createDefaultImageSet()],
     dimensionLines: [],
     unitFactor: 1.0,
     windowColor: "#00000000",
@@ -121,11 +121,6 @@ export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
 
     // --- Bulk Actions ---
     loadProjectData: (project) => {
-        // データの一括ロード
-        // 注意: 個別のsetterを呼ぶとIPCが飛ぶ可能性があるため、ここで一括設定して必要なIPCだけ飛ばすか、
-        // あるいは単純にstate更新だけ行い、同期は別途制御するか。
-        // ここではstate更新 + 必要な同期を行う。
-
         const newImageSets = project.images;
         const newDimensionLines = project.dimensionLines || [];
         const newUnitFactor = project.settings.unitFactor;
@@ -140,40 +135,16 @@ export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
 
         window.electronAPI.updateImageSets(newImageSets);
         window.electronAPI.updateUnitFactor(newUnitFactor);
-        // windowColor and dimensionLines do not require IPC sync for now.
     },
 
     resetProjectData: () => {
+        const defaultImageSets = [createDefaultImageSet()];
         set({
-            imageSets: [
-                {
-                    id: UUID.generate(),
-                    path: "",
-                    transparency: 0,
-                    rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
-                },
-            ],
+            imageSets: defaultImageSets,
             dimensionLines: [],
             unitFactor: 1.0,
             windowColor: "#00000000",
         });
-        // Reset時も同期
-
-        // 今セットしたものを取得したいが、set直後は取れないかもしれないので値リテラルを使うか、
-        // またはStateCreatorの第３引数apiを使う。
-        // ここではシンプルに初期値を送る。
-        const defaultImageSets = [
-            {
-                id: UUID.generate(),
-                path: "",
-                transparency: 0,
-                rotation: 0,
-                init_anchor_pos: null,
-                current_anchor_pos: null,
-            },
-        ];
         window.electronAPI.updateImageSets(defaultImageSets);
         window.electronAPI.updateUnitFactor(1.0);
     },

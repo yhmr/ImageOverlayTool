@@ -38,15 +38,8 @@ export const useImageAnchor = ({
 
                 // 新しいアンカー位置を計算
                 const newAnchor = calculateMovedAnchors(currentAnchors, diff);
-                // 親でpropを更新
                 onUpdateAnchor(newAnchor);
 
-                // 位置リセット (座標系は親のLayer基準で、Line自体のposも変わるが、
-                // DrawImage側でrender時にlineRef.current.x(0)しているので、
-                // ここでもリセットしておくと安全かも。
-                // ただし元のDrawImageではDragEndでline自体の位置を戻す記述はないが、
-                // lineRef.current.points(...) で再描画しているので実質リセットされるはず)
-                // ここでは newAnchor を返して、親コンポーネントが再描画することを期待する。
                 e.target.x(0);
                 e.target.y(0);
             }

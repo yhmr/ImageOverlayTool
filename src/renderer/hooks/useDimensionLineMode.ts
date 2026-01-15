@@ -1,10 +1,8 @@
-import { useCallback, useEffect, RefObject } from "react";
+import { useCallback, useEffect, RefObject, useState } from "react";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { useAppStore } from "../store/useAppStore";
 import { DimensionLine } from "../../shared/types/DimensionLine";
-import { useState } from "react"; // drawingLineIdは一時的なのでローカルに残すか、Interactionに入れるか。今回はInteractionに入れない設計だったためローカルのママでよいが、設計次第。
-// 設計では "selectedDimensionLineId" はInteractionにある。 "drawingLineId" はドラッグ中のためローカルで良い。
 
 export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
     const {
@@ -19,7 +17,6 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
         selectDimensionLine,
     } = useAppStore();
 
-    // Draw中は一時的なIDが必要
     const [drawingLineId, setDrawingLineId] = useState<string | null>(null);
 
     const isDimensionMode = interactionMode === "dimension";
@@ -29,13 +26,6 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
             setInteractionMode(enabled ? "dimension" : "default");
         },
         [setInteractionMode]
-    );
-
-    const setSelectedDimensionLineId = useCallback(
-        (id: string | null) => {
-            selectDimensionLine(id);
-        },
-        [selectDimensionLine]
     );
 
     const getStagePointerPos = useCallback(() => {
@@ -48,24 +38,9 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
         return transform.point(pos);
     }, [stageRef]);
 
-    const onSelectDimensionLine = useCallback(
-        (id: string | null) => {
-            selectDimensionLine(id);
-        },
-        [selectDimensionLine]
-    );
-
-    const onUpdateDimensionLineHandler = useCallback(
-        (line: DimensionLine) => {
-            updateDimensionLine(line);
-        },
-        [updateDimensionLine]
-    );
-
     const onStageMouseDown = useCallback(
         (_e: KonvaEventObject<MouseEvent>) => {
             if (!isDimensionMode) return;
-            // If left click
             if (_e.evt.button === 0) {
                 const pos = getStagePointerPos();
                 if (pos) {
@@ -95,10 +70,7 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
             if (pos && dimensionLines) {
                 const line = dimensionLines.find((l) => l.id === drawingLineId);
                 if (line) {
-                    updateDimensionLine({
-                        ...line,
-                        end: pos,
-                    });
+                    updateDimensionLine({ ...line, end: pos });
                 }
             }
         }
@@ -132,7 +104,6 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
         selectDimensionLine,
     ]);
 
-    // Keydown handler for delete
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (
@@ -140,27 +111,22 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
                 selectedDimensionLineId
             ) {
                 removeDimensionLine(selectedDimensionLineId);
-                // selectedDimensionLineIdはstore側でnullにするようなロジックはremoveDimensionLineには含まれていない（スライスが分かれているため）。
-                // なので、ここで明示的にnullにするか、あるいはInteractionSlice側で監視するか。
-                // シンプルにここでnullにする。
                 selectDimensionLine(null);
             }
         };
         window.addEventListener("keydown", handleKeyDown);
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [selectedDimensionLineId, removeDimensionLine, selectDimensionLine]);
 
     return {
         isDimensionMode,
         setIsDimensionMode,
         selectedDimensionLineId,
-        setSelectedDimensionLineId,
+        setSelectedDimensionLineId: selectDimensionLine,
         dimensionLines,
-        unitFactor: unitFactor,
-        onSelectDimensionLine,
-        onUpdateDimensionLineHandler,
+        unitFactor,
+        onSelectDimensionLine: selectDimensionLine,
+        onUpdateDimensionLineHandler: updateDimensionLine,
         onMouseDown: onStageMouseDown,
         onMouseMove: onStageMouseMove,
         onMouseUp,
