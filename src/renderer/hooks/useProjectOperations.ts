@@ -1,23 +1,23 @@
 import { useCallback, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useSelector, RootState } from "../store/store";
-import { setImageSets, setAllImageSets } from "../store/imageSetsSlice";
-import {
-  setUnitFactor,
-  setWindowColor,
-  setCanvasState,
-  resetProject,
-  setDimensionLines,
-} from "../store/projectSlice";
+import { useProjectStore } from "../store/useProjectStore";
+import { useImageSetsStore } from "../store/useImageSetsStore";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../types/ImageSet";
 
 export const useProjectOperations = () => {
-  const dispatch = useDispatch();
-  const { imageSets } = useSelector((state: RootState) => state.imageSets);
-  const { unit_factor, windowColor, canvas, dimensionLines } = useSelector(
-    (state: RootState) => state.project
-  );
+  const {
+    unit_factor,
+    windowColor,
+    canvas,
+    dimensionLines,
+    setUnitFactor,
+    setWindowColor,
+    setCanvasState,
+    resetProject,
+    setDimensionLines,
+  } = useProjectStore();
+
+  const { imageSets, setImageSets, setAllImageSets } = useImageSetsStore();
 
   // 現在のプロジェクトファイルパス
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
@@ -25,40 +25,40 @@ export const useProjectOperations = () => {
   // 新規プロジェクト
   const handleNewProject = useCallback(() => {
     // Clear images
-    dispatch(setImageSets([]));
+    setImageSets([]);
     // Reset project settings
-    dispatch(resetProject());
+    resetProject();
     // Clear current file path
     setCurrentFilePath(null);
-  }, [dispatch]);
+  }, [setImageSets, resetProject]);
 
   // プロジェクト情報の適用
   const applyProject = useCallback(
-    async (project: ProjectFile, filePath: string) => {
+    async (project: ProjectFile<ImageSet>, filePath: string) => {
       // Restore images
-      dispatch(setAllImageSets(project.images));
+      setAllImageSets(project.images);
       // Restore settings
-      dispatch(setUnitFactor(project.settings.unit_factor));
+      setUnitFactor(project.settings.unit_factor);
 
       // Restore canvas
       if (project.canvas) {
-        dispatch(setCanvasState(project.canvas));
+        setCanvasState(project.canvas);
       } else {
-        dispatch(setCanvasState({ x: 0, y: 0, scale: 1 }));
+        setCanvasState({ x: 0, y: 0, scale: 1 });
       }
 
       // Restore dimension lines
       if (project.dimensionLines) {
-        dispatch(setDimensionLines(project.dimensionLines));
+        setDimensionLines(project.dimensionLines);
       } else {
-        dispatch(setDimensionLines([]));
+        setDimensionLines([]);
       }
 
       // Restore window settings
       if (project.window) {
         // Color & Transparency
         if (project.window.color) {
-          dispatch(setWindowColor(project.window.color));
+          setWindowColor(project.window.color);
           await window.electronAPI.saveWindowColor(project.window.color);
         }
 
@@ -73,14 +73,23 @@ export const useProjectOperations = () => {
 
       setCurrentFilePath(filePath);
     },
-    [dispatch]
+    [
+      setAllImageSets,
+      setUnitFactor,
+      setCanvasState,
+      setDimensionLines,
+      setWindowColor,
+    ]
   );
 
   // プロジェクトの開く
   const handleOpenProject = useCallback(async () => {
     const result = await window.electronAPI.loadProject();
     if (result) {
-      await applyProject(result.project, result.filePath);
+      await applyProject(
+        result.project as ProjectFile<ImageSet>,
+        result.filePath
+      );
     }
   }, [applyProject]);
 
@@ -89,7 +98,10 @@ export const useProjectOperations = () => {
     async (path: string) => {
       const result = await window.electronAPI.loadProjectFromPath(path);
       if (result) {
-        await applyProject(result.project, result.filePath);
+        await applyProject(
+          result.project as ProjectFile<ImageSet>,
+          result.filePath
+        );
       }
     },
     [applyProject]

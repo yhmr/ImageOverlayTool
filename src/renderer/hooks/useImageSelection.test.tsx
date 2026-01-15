@@ -1,43 +1,27 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
 import { useImageSelection } from "./useImageSelection";
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
-import { describe, it, expect, vi } from "vitest";
-import { imageSetsSlice } from "../store/imageSetsSlice";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useImageSetsStore } from "../store/useImageSetsStore";
 import { ImageSet } from "../types/ImageSet";
 
-// Helper to create store with initial state
-const createTestStore = (imageSets: ImageSet[] = []) => {
-  return configureStore({
-    reducer: {
-      imageSets: imageSetsSlice.reducer,
-    },
-    preloadedState: {
-      imageSets: {
-        imageSets: imageSets,
-      },
-    } as unknown as any, // Partial state matching root state structure is tricky without full RootState mock, keep explicit any or refine
-  });
-};
-
 describe("useImageSelection", () => {
-  it("should initialize with null selectedImageId", () => {
-    const store = createTestStore();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useImageSelection(), { wrapper });
+  beforeEach(() => {
+    useImageSetsStore.setState(useImageSetsStore.getInitialState());
+  });
 
+  it("should initialize with null selectedImageId", () => {
+    const { result } = renderHook(() => useImageSelection());
     expect(result.current.selectedImageId).toBeNull();
   });
 
   it("should set selectedImageId", () => {
-    const store = createTestStore([{ id: "test-id" } as unknown as ImageSet]);
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useImageSelection(), { wrapper });
+    // Setup store
+    useImageSetsStore.setState({
+      imageSets: [{ id: "test-id" } as unknown as ImageSet],
+    });
+
+    const { result } = renderHook(() => useImageSelection());
 
     act(() => {
       result.current.setSelectedImageId("test-id");
@@ -47,15 +31,11 @@ describe("useImageSelection", () => {
   });
 
   it("should clear selection if selected image is removed from store", () => {
-    const initialImageSets = [
-      { id: "img1", path: "path1" } as unknown as ImageSet,
-    ];
-    // Create store and render hook
-    const store = createTestStore(initialImageSets);
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useImageSelection(), { wrapper });
+    useImageSetsStore.setState({
+      imageSets: [{ id: "img1" } as unknown as ImageSet],
+    });
+
+    const { result } = renderHook(() => useImageSelection());
 
     // Select the image
     act(() => {
@@ -63,31 +43,23 @@ describe("useImageSelection", () => {
     });
     expect(result.current.selectedImageId).toBe("img1");
 
-    // Simulate removal by updating store state directly or re-rendering with new store?
-    // Since we verify the effect dependent on `imageSets` from selector.
-    // We can dispatch an action to remove it if we exported actions, or use a new store?
-    // Actually, renderHook wrapper prop change causes rerender.
-    // It's easier to verify logic: effect runs when imageSets changes.
-    // But `useSelector` subscribes to store. So dispatching action works best.
-    // However, I didn't verify `imageSetsSlice` actions here.
-    // Let's assume `useSelector` works.
-    // Mocking useSelector might be easier but Redux integration test is more robust.
+    // Remove image from store
+    act(() => {
+      useImageSetsStore.setState({ imageSets: [] });
+    });
 
-    // Let's dispatch an action to clear imageSets.
-    // But I need the action `setAllImageSets` or similar.
-    // Let's import it.
+    expect(result.current.selectedImageId).toBeNull();
   });
 
-  // Refined test for clearing selection:
   it("should handle getOnSelectHandler based on dimension mode", () => {
-    const store = createTestStore([
-      { id: "img1" } as unknown as ImageSet,
-      { id: "img2" } as unknown as ImageSet,
-    ]);
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useImageSelection(), { wrapper });
+    useImageSetsStore.setState({
+      imageSets: [
+        { id: "img1" } as unknown as ImageSet,
+        { id: "img2" } as unknown as ImageSet,
+      ],
+    });
+
+    const { result } = renderHook(() => useImageSelection());
 
     const onDeselectDimension = vi.fn();
 

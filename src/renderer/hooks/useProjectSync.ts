@@ -1,47 +1,35 @@
-import { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { syncUnitFactor } from "../store/projectSlice";
-import { syncImageSets } from "../store/imageSetsSlice";
-import { RootState } from "../store/store";
+import { useEffect } from "react";
+import { useProjectStore } from "../store/useProjectStore";
+import { useImageSetsStore } from "../store/useImageSetsStore";
 
 /**
  * アプリケーション状態の同期を行うフック
- * IPC経由で変更を受信し、Reduxストアを更新する
+ * IPC経由で変更を受信し、Zustandストアを更新する
  */
 export const useProjectSync = () => {
-  const dispatch = useDispatch();
-  // 状態送信のためにStateを取得
-  const imageSetsState = useSelector((state: RootState) => state.imageSets);
-  const projectState = useSelector((state: RootState) => state.project);
-
-  // State references for callback access
-  const stateRef = useRef({ imageSetsState, projectState });
-
-  useEffect(() => {
-    stateRef.current = { imageSetsState, projectState };
-  }, [imageSetsState, projectState]);
-
   useEffect(() => {
     // unit_factorの更新監視
     const unsubscribeUnitFactor = window.electronAPI.onUnitFactorUpdated(
       (unitFactor) => {
-        dispatch(syncUnitFactor(unitFactor));
+        useProjectStore.getState().syncUnitFactor(unitFactor);
       }
     );
 
     // imageSetsの更新監視
     const unsubscribeImageSets = window.electronAPI.onImageSetsUpdated(
       (imageSets) => {
-        dispatch(syncImageSets(imageSets));
+        useImageSetsStore.getState().syncImageSets(imageSets);
       }
     );
 
     // 初期状態同期要求の監視 (メインウィンドウが応答する側)
     const unsubscribeRequestSync = window.electronAPI.onRequestStateSync(() => {
       // 現在の状態を送信
-      const current = stateRef.current;
-      window.electronAPI.updateImageSets(current.imageSetsState.imageSets);
-      window.electronAPI.updateUnitFactor(current.projectState.unit_factor);
+      const currentImageSets = useImageSetsStore.getState().imageSets;
+      const currentUnitFactor = useProjectStore.getState().unit_factor;
+
+      window.electronAPI.updateImageSets(currentImageSets);
+      window.electronAPI.updateUnitFactor(currentUnitFactor);
     });
 
     return () => {
@@ -49,5 +37,5 @@ export const useProjectSync = () => {
       unsubscribeImageSets();
       unsubscribeRequestSync();
     };
-  }, [dispatch]);
+  }, []);
 };

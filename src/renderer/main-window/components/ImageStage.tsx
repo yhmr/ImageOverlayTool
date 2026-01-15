@@ -1,9 +1,7 @@
 import React, { memo, useCallback, useRef, useEffect } from "react";
 
-import { useDispatch } from "react-redux";
-import { useSelector, RootState, AppDispatch } from "../../store/store";
-import { updateImageSet } from "../../store/imageSetsSlice";
-import { setCanvasState } from "../../store/projectSlice";
+import { useImageSetsStore } from "../../store/useImageSetsStore";
+import { useProjectStore } from "../../store/useProjectStore";
 import { KonvaEventObject } from "konva/lib/Node";
 
 import Konva from "konva";
@@ -22,9 +20,8 @@ import { useImageSelection } from "../../hooks/useImageSelection";
 
 export const ImageStage = memo(function ImageStage() {
   // imageSet取得
-  const { imageSets } = useSelector((state: RootState) => state.imageSets);
-  const { canvas } = useSelector((state: RootState) => state.project);
-  const dispatch = useDispatch<AppDispatch>();
+  const { imageSets, updateImageSet } = useImageSetsStore();
+  const { canvas, setCanvasState } = useProjectStore();
 
   // ステージのref
   const stageRef = useRef<Konva.Stage>(null);
@@ -33,9 +30,9 @@ export const ImageStage = memo(function ImageStage() {
   // Stageの状態更新(Zoom/Pan)時にReduxへ通知するコールバック
   const onUpdateStage = useCallback(
     (newPos: { x: number; y: number; scale: number }) => {
-      dispatch(setCanvasState(newPos));
+      setCanvasState(newPos);
     },
-    [dispatch]
+    [setCanvasState]
   );
 
   const { stageSize, handleWheel } = useStageControls(stageRef, onUpdateStage);
@@ -104,14 +101,14 @@ export const ImageStage = memo(function ImageStage() {
 
   const onMouseMove = useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
-      onMouseMoveDimension(e);
+      onMouseMoveDimension();
     },
     [onMouseMoveDimension]
   );
 
   const onMouseUp = useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
-      onMouseUpDimension(e);
+      onMouseUpDimension();
     },
     [onMouseUpDimension]
   );
@@ -135,10 +132,10 @@ export const ImageStage = memo(function ImageStage() {
           rb: { x: image.width, y: image.height },
         };
 
-        dispatch(updateImageSet({ index: index, imageSet: newImageSet }));
+        updateImageSet({ index: index, imageSet: newImageSet });
       };
     },
-    [dispatch]
+    [updateImageSet]
   );
 
   // アンカーポジションの更新
@@ -147,10 +144,10 @@ export const ImageStage = memo(function ImageStage() {
       return (anchor: AnchorPos) => {
         const newImageSet = { ...imageSet };
         newImageSet.current_anchor_pos = anchor;
-        dispatch(updateImageSet({ index: index, imageSet: newImageSet }));
+        updateImageSet({ index: index, imageSet: newImageSet });
       };
     },
-    [dispatch]
+    [updateImageSet]
   );
 
   useEffect(() => {

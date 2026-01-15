@@ -1,9 +1,7 @@
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useDispatch } from "react-redux";
-import { useSelector, RootState, AppDispatch } from "../../store/store";
-import { setImageSets, updateImageSet } from "../../store/imageSetsSlice";
+import { useImageSetsStore } from "../../store/useImageSetsStore";
 
 import {
   Card,
@@ -40,8 +38,7 @@ export const ImageListItem = memo(function ImageListItem(
   const { imageSet, index, dragHandleProps } = props;
   const { t } = useTranslation();
 
-  const { imageSets } = useSelector((state: RootState) => state.imageSets);
-  const dispatch = useDispatch<AppDispatch>();
+  const { imageSets, updateImageSet, setImageSets } = useImageSetsStore();
 
   // ファイルオープン
   const handleFileOpen = useCallback(async () => {
@@ -54,16 +51,16 @@ export const ImageListItem = memo(function ImageListItem(
       newImageSet.rotation = 0;
       newImageSet.init_anchor_pos = null;
       newImageSet.current_anchor_pos = null;
-      dispatch(updateImageSet({ index: index, imageSet: newImageSet }));
+      updateImageSet({ index: index, imageSet: newImageSet });
     }
-  }, [dispatch, imageSets, index]);
+  }, [updateImageSet, imageSets, index]);
 
   // 削除
   const handleDelete = useCallback(() => {
     const newImageSets = [...imageSets];
     newImageSets.splice(index, 1);
-    dispatch(setImageSets(newImageSets));
-  }, [dispatch, imageSets, index]);
+    setImageSets(newImageSets);
+  }, [setImageSets, imageSets, index]);
 
   // 透過度変更
   const handleTransparencyChange = useCallback(
@@ -71,9 +68,9 @@ export const ImageListItem = memo(function ImageListItem(
       if (typeof value !== "number") return;
       const newImageSet = { ...imageSet };
       newImageSet.transparency = value;
-      dispatch(updateImageSet({ index: index, imageSet: newImageSet }));
+      updateImageSet({ index: index, imageSet: newImageSet });
     },
-    [dispatch, imageSet, index]
+    [updateImageSet, imageSet, index]
   );
 
   // 回転変更
@@ -86,9 +83,9 @@ export const ImageListItem = memo(function ImageListItem(
       // 単純に値をセット
       newImageSet.rotation = value;
 
-      dispatch(updateImageSet({ index: index, imageSet: newImageSet }));
+      updateImageSet({ index: index, imageSet: newImageSet });
     },
-    [dispatch, imageSet, index]
+    [updateImageSet, imageSet, index]
   );
 
   // 回転入力変更 (TextField)

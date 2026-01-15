@@ -1,14 +1,11 @@
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { useSelector, RootState } from "../store/store";
-import { setImageSets } from "../store/imageSetsSlice";
+import { useImageSetsStore } from "../store/useImageSetsStore";
 import { useProjectOperations } from "./useProjectOperations";
 import UUID from "uuidjs";
 import { ImageSet } from "../types/ImageSet";
 
 export const useFileHandler = () => {
-  const dispatch = useDispatch();
-  const { imageSets } = useSelector((state: RootState) => state.imageSets);
+  const { imageSets, setImageSets } = useImageSetsStore();
   const { handleLoadProjectFromPath } = useProjectOperations();
 
   useEffect(() => {
@@ -40,9 +37,9 @@ export const useFileHandler = () => {
         } else {
           newImageSets.push(newSet);
         }
-        dispatch(setImageSets(newImageSets));
+        setImageSets(newImageSets);
       }
     });
     return unsubscribe;
-  }, [dispatch, imageSets, handleLoadProjectFromPath]);
+  }, [imageSets, setImageSets, handleLoadProjectFromPath]);
 };

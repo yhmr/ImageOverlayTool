@@ -1,20 +1,17 @@
 import { useState, useCallback, useEffect, RefObject } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import { RootState, AppDispatch } from "../store/store";
-import {
-  addDimensionLine,
-  updateDimensionLine,
-  removeDimensionLine,
-} from "../store/projectSlice";
+import { useProjectStore } from "../store/useProjectStore";
 import { DimensionLine } from "../../shared/types/DimensionLine";
 
 export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { dimensionLines, unit_factor } = useSelector(
-    (state: RootState) => state.project
-  );
+  const {
+    dimensionLines,
+    unit_factor,
+    addDimensionLine,
+    updateDimensionLine,
+    removeDimensionLine,
+  } = useProjectStore();
 
   const [isDimensionMode, setIsDimensionMode] = useState(false);
   const [selectedDimensionLineId, setSelectedDimensionLineId] = useState<
@@ -38,9 +35,9 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
 
   const onUpdateDimensionLineHandler = useCallback(
     (line: DimensionLine) => {
-      dispatch(updateDimensionLine(line));
+      updateDimensionLine(line);
     },
-    [dispatch]
+    [updateDimensionLine]
   );
 
   const onStageMouseDown = useCallback(
@@ -56,13 +53,13 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
             start: pos,
             end: pos,
           };
-          dispatch(addDimensionLine(newLine));
+          addDimensionLine(newLine);
           setDrawingLineId(id);
           setSelectedDimensionLineId(id);
         }
       }
     },
-    [isDimensionMode, getStagePointerPos, dispatch]
+    [isDimensionMode, getStagePointerPos, addDimensionLine]
   );
 
   const onStageMouseMove = useCallback(() => {
@@ -71,16 +68,14 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
       if (pos && dimensionLines) {
         const line = dimensionLines.find((l) => l.id === drawingLineId);
         if (line) {
-          dispatch(
-            updateDimensionLine({
-              ...line,
-              end: pos,
-            })
-          );
+          updateDimensionLine({
+            ...line,
+            end: pos,
+          });
         }
       }
     }
-  }, [drawingLineId, getStagePointerPos, dimensionLines, dispatch]);
+  }, [drawingLineId, getStagePointerPos, dimensionLines, updateDimensionLine]);
 
   const onMouseUp = useCallback(() => {
     if (drawingLineId) {
@@ -91,14 +86,14 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
           const dy = line.end.y - line.start.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 2) {
-            dispatch(removeDimensionLine(drawingLineId));
+            removeDimensionLine(drawingLineId);
             setSelectedDimensionLineId(null);
           }
         }
       }
       setDrawingLineId(null);
     }
-  }, [drawingLineId, dimensionLines, dispatch]);
+  }, [drawingLineId, dimensionLines, removeDimensionLine]);
 
   // Keydown handler for delete
   useEffect(() => {
@@ -107,7 +102,7 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
         (e.key === "Delete" || e.key === "Backspace") &&
         selectedDimensionLineId
       ) {
-        dispatch(removeDimensionLine(selectedDimensionLineId));
+        removeDimensionLine(selectedDimensionLineId);
         setSelectedDimensionLineId(null);
       }
     };
@@ -115,7 +110,7 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedDimensionLineId, dispatch]);
+  }, [selectedDimensionLineId, removeDimensionLine]);
 
   return {
     isDimensionMode,

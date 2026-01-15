@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../store/store";
+import { useImageSetsStore } from "../store/useImageSetsStore";
 
 export const useImageSelection = () => {
-  const { imageSets } = useSelector((state: RootState) => state.imageSets);
+  const { imageSets } = useImageSetsStore();
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   // 選択された画像が削除された場合、選択を解除する

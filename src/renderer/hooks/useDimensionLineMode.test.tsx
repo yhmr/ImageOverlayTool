@@ -1,10 +1,8 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
 import { useDimensionLineMode } from "./useDimensionLineMode";
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
-import { describe, it, expect, vi } from "vitest";
-import { projectSlice } from "../store/projectSlice";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useProjectStore } from "../store/useProjectStore";
 import Konva from "konva";
 
 // Mock crypto.randomUUID
@@ -14,21 +12,6 @@ Object.defineProperty(global, "crypto", {
   },
 });
 
-const createTestStore = (initialState: Record<string, any> = {}) => {
-  return configureStore({
-    reducer: {
-      project: projectSlice.reducer,
-    },
-    preloadedState: {
-      project: {
-        dimensionLines: [],
-        unit_factor: 1,
-        ...initialState,
-      },
-    } as unknown as any, // Typed correctly requires DeepPartial of RootState
-  });
-};
-
 describe("useDimensionLineMode", () => {
   // Mock Stage Ref
   const mockStage = {
@@ -36,39 +19,34 @@ describe("useDimensionLineMode", () => {
     getAbsoluteTransform: vi.fn(() => ({
       copy: () => ({
         copy: () => ({
-          invert: () => {
-            // Mock invert
-          },
+          invert: vi.fn(), // Mock invert
           point: (p: { x: number; y: number }) => p, // Identity transform for simplicity
         }),
+        invert: vi.fn(),
+        point: (p: { x: number; y: number }) => p,
       }),
+      invert: vi.fn(),
+      point: (p: { x: number; y: number }) => p,
     })),
     on: vi.fn(),
     draggable: vi.fn(),
   };
   const stageRef = { current: mockStage as unknown as Konva.Stage };
 
+  beforeEach(() => {
+    useProjectStore.setState(useProjectStore.getInitialState());
+    vi.clearAllMocks();
+  });
+
   it("should initialize correctly", () => {
-    const store = createTestStore();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useDimensionLineMode(stageRef), {
-      wrapper,
-    });
+    const { result } = renderHook(() => useDimensionLineMode(stageRef));
 
     expect(result.current.isDimensionMode).toBe(false);
     expect(result.current.selectedDimensionLineId).toBeNull();
   });
 
   it("should toggle dimension mode", () => {
-    const store = createTestStore();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useDimensionLineMode(stageRef), {
-      wrapper,
-    });
+    const { result } = renderHook(() => useDimensionLineMode(stageRef));
 
     act(() => {
       result.current.setIsDimensionMode(true);
@@ -77,13 +55,7 @@ describe("useDimensionLineMode", () => {
   });
 
   it("should create a new dimension line on mouse down", () => {
-    const store = createTestStore();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useDimensionLineMode(stageRef), {
-      wrapper,
-    });
+    const { result } = renderHook(() => useDimensionLineMode(stageRef));
 
     // Enable mode
     act(() => {
@@ -103,8 +75,8 @@ describe("useDimensionLineMode", () => {
     // Check state
     expect(result.current.selectedDimensionLineId).toBe("test-uuid");
 
-    // Check Redux state
-    const state = store.getState().project;
+    // Check Store state
+    const state = useProjectStore.getState();
     expect(state.dimensionLines).toHaveLength(1);
     expect(state.dimensionLines[0]).toEqual({
       id: "test-uuid",
@@ -114,13 +86,7 @@ describe("useDimensionLineMode", () => {
   });
 
   it("should delete short line on mouse up", () => {
-    const store = createTestStore();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useDimensionLineMode(stageRef), {
-      wrapper,
-    });
+    const { result } = renderHook(() => useDimensionLineMode(stageRef));
 
     act(() => {
       result.current.setIsDimensionMode(true);
@@ -138,19 +104,13 @@ describe("useDimensionLineMode", () => {
     });
 
     // Check line is removed
-    const state = store.getState().project;
+    const state = useProjectStore.getState();
     expect(state.dimensionLines).toHaveLength(0);
     expect(result.current.selectedDimensionLineId).toBeNull();
   });
 
   it("should keep long line on mouse up", () => {
-    const store = createTestStore();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}> {children} </Provider>
-    );
-    const { result } = renderHook(() => useDimensionLineMode(stageRef), {
-      wrapper,
-    });
+    const { result } = renderHook(() => useDimensionLineMode(stageRef));
 
     act(() => {
       result.current.setIsDimensionMode(true);
@@ -176,7 +136,7 @@ describe("useDimensionLineMode", () => {
     });
 
     // Check line is kept
-    const state = store.getState().project;
+    const state = useProjectStore.getState();
     expect(state.dimensionLines).toHaveLength(1);
     expect(state.dimensionLines[0].end).toEqual({ x: 100, y: 100 });
     expect(result.current.selectedDimensionLineId).toBe("test-uuid");

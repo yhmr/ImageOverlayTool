@@ -1,9 +1,7 @@
 import React, { useCallback, useLayoutEffect } from "react";
 import ReactDOM from "react-dom/client";
 
-import { Provider, useDispatch, useSelector } from "react-redux";
-import { store, RootState } from "../store/store";
-import { setWindowColor } from "../store/projectSlice";
+import { useProjectStore } from "../store/useProjectStore";
 import { useProjectSync } from "../hooks/useProjectSync";
 import { useFileHandler } from "../hooks/useFileHandler";
 import "../../i18n/configs"; //i18
@@ -17,10 +15,7 @@ import { ContextMenu } from "./components/ContextMenu";
 
 const App = () => {
   // 設定の読み込み
-  const dispatch = useDispatch();
-  const windowColor = useSelector(
-    (state: RootState) => state.project.windowColor
-  );
+  const { windowColor, setWindowColor } = useProjectStore();
 
   // 同期フックを使用
   useProjectSync();
@@ -32,10 +27,10 @@ const App = () => {
     // 設定を読み込み
     const loadColor = async () => {
       const color = await window.electronAPI.loadWindowColor();
-      dispatch(setWindowColor(color));
+      setWindowColor(color);
     };
     loadColor();
-  }, [dispatch]);
+  }, [setWindowColor]);
 
   // 色設定完了時にファイルに色を保存
   const onCompleteColor = useCallback(async () => {
@@ -45,9 +40,9 @@ const App = () => {
   // 色設定の変更
   const handleSetColor = useCallback(
     (color: string) => {
-      dispatch(setWindowColor(color));
+      setWindowColor(color);
     },
-    [dispatch]
+    [setWindowColor]
   );
 
   return (
@@ -77,8 +72,6 @@ const App = () => {
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <App />
   </React.StrictMode>
 );
