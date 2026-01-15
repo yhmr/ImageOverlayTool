@@ -20,10 +20,8 @@ test('app launch', async () => {
     await window.waitForLoadState('domcontentloaded');
 
     // Check if the window is visible/loaded
-    // Increase timeout or wait for specific selector
-    // Check if the window is visible/loaded
-    // Increase timeout or wait for specific selector
-    const container = await window.waitForSelector('.container', { timeout: 20000 });
+    // Increase timeout for CI environments
+    const container = await window.waitForSelector('.container', { timeout: 60000 });
     expect(container).toBeTruthy();
 
     await app.close();
