@@ -78,7 +78,7 @@ export const ImageListItem = memo(function ImageListItem(
 
   // 回転変更
   const handleRotationChange = useCallback(
-    (_event: Event, value: number | number[]) => {
+    (_event: Event | React.SyntheticEvent, value: number | number[]) => {
       if (typeof value !== "number") return;
       if (!imageSet.current_anchor_pos) return;
 
@@ -97,7 +97,7 @@ export const ImageListItem = memo(function ImageListItem(
       const value = Number(event.target.value);
       if (isNaN(value)) return;
       // 範囲制限なし、または適度な制限
-      handleRotationChange(event as any, value);
+      handleRotationChange(event, value);
     },
     [handleRotationChange]
   );
