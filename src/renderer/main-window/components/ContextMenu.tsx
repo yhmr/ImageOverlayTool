@@ -25,9 +25,9 @@ export const ContextMenu = memo(function ContextMenu(props: ContextMenuProps) {
     setContextMenu(
       contextMenu === null
         ? {
-          x: event.clientX + 2,
-          y: event.clientY - 6,
-        }
+            x: event.clientX + 2,
+            y: event.clientY - 6,
+          }
         : null
     );
   };

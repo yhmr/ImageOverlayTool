@@ -35,7 +35,6 @@ export const SettingDialog = memo(function SettingDialog(
     [i18n]
   );
 
-
   // 終了時に設定保存
   const handleCloseAndSave = useCallback(async () => {
     // 設定を保存

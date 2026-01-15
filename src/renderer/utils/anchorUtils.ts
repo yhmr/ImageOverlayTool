@@ -37,7 +37,11 @@ export const getCenter = (anchors: AnchorPos): Point => {
 };
 
 // 指定した点を中心として回転させる
-export const rotatePoint = (point: Point, center: Point, angleDegree: number): Point => {
+export const rotatePoint = (
+  point: Point,
+  center: Point,
+  angleDegree: number
+): Point => {
   const angleRad = (angleDegree * Math.PI) / 180;
   const cos = Math.cos(angleRad);
   const sin = Math.sin(angleRad);
@@ -52,7 +56,10 @@ export const rotatePoint = (point: Point, center: Point, angleDegree: number): P
 };
 
 // アンカー全体を指定した角度（差分）だけ回転させる
-export const rotateAnchorPos = (currentAnchors: AnchorPos, angleDiff: number): AnchorPos => {
+export const rotateAnchorPos = (
+  currentAnchors: AnchorPos,
+  angleDiff: number
+): AnchorPos => {
   const center = getCenter(currentAnchors);
   return {
     lt: rotatePoint(currentAnchors.lt, center, angleDiff),

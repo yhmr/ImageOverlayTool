@@ -37,7 +37,10 @@ export const ControlButton = memo(function ControlButton(
       {/* 画像設定ウィンドウを開くボタン */}
       <Tooltip
         placement="bottom"
-        title={t("render.control_button.tooltip.image_settings", "画像設定 (Ctrl+I)")}
+        title={t(
+          "render.control_button.tooltip.image_settings",
+          "画像設定 (Ctrl+I)"
+        )}
       >
         <ToggleButton
           value="settings"

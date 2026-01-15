@@ -14,32 +14,32 @@ import { ImageList } from "./components/ImageList";
 import "./ImageSettingsApp.css";
 
 const ImageSettingsApp = () => {
-    // 同期フックを使用
-    useProjectSync();
+  // 同期フックを使用
+  useProjectSync();
 
-    // マウント時に初期状態を要求
-    React.useEffect(() => {
-        window.electronAPI.requestInitialState();
-    }, []);
+  // マウント時に初期状態を要求
+  React.useEffect(() => {
+    window.electronAPI.requestInitialState();
+  }, []);
 
-    return (
-        <>
-            <CssBaseline />
-            <div className="settings-container">
-                <SettingsMenuBar />
-                <div className="settings-content">
-                    <ImageList />
-                </div>
-            </div>
-        </>
-    );
+  return (
+    <>
+      <CssBaseline />
+      <div className="settings-container">
+        <SettingsMenuBar />
+        <div className="settings-content">
+          <ImageList />
+        </div>
+      </div>
+    </>
+  );
 };
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-        <Provider store={store}>
-            <ImageSettingsApp />
-        </Provider>
-    </React.StrictMode>
+  <React.StrictMode>
+    <Provider store={store}>
+      <ImageSettingsApp />
+    </Provider>
+  </React.StrictMode>
 );

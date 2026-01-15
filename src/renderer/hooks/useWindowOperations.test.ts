@@ -4,34 +4,34 @@ import { useWindowOperations } from "./useWindowOperations";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 describe("useWindowOperations", () => {
-    beforeEach(() => {
-        // Mock window.electronAPI
-        window.electronAPI = {
-            switchWindowSize: vi.fn().mockResolvedValue(true),
-            closeWindow: vi.fn(),
-        } as any;
+  beforeEach(() => {
+    // Mock window.electronAPI
+    window.electronAPI = {
+      switchWindowSize: vi.fn().mockResolvedValue(true),
+      closeWindow: vi.fn(),
+    } as any;
+  });
+
+  it("should switch full screen", async () => {
+    const { result } = renderHook(() => useWindowOperations());
+
+    expect(result.current.full).toBe(false);
+
+    await act(async () => {
+      await result.current.handleSwitchFullScreen();
     });
 
-    it("should switch full screen", async () => {
-        const { result } = renderHook(() => useWindowOperations());
+    expect(window.electronAPI.switchWindowSize).toHaveBeenCalled();
+    expect(result.current.full).toBe(true);
+  });
 
-        expect(result.current.full).toBe(false);
+  it("should close window", () => {
+    const { result } = renderHook(() => useWindowOperations());
 
-        await act(async () => {
-            await result.current.handleSwitchFullScreen();
-        });
-
-        expect(window.electronAPI.switchWindowSize).toHaveBeenCalled();
-        expect(result.current.full).toBe(true);
+    act(() => {
+      result.current.handleCloseWindow();
     });
 
-    it("should close window", () => {
-        const { result } = renderHook(() => useWindowOperations());
-
-        act(() => {
-            result.current.handleCloseWindow();
-        });
-
-        expect(window.electronAPI.closeWindow).toHaveBeenCalled();
-    });
+    expect(window.electronAPI.closeWindow).toHaveBeenCalled();
+  });
 });

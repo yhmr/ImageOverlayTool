@@ -58,4 +58,5 @@ export const imageSetsSlice = createSlice({
   },
 });
 
-export const { setImageSets, updateImageSet, setAllImageSets, syncImageSets } = imageSetsSlice.actions;
+export const { setImageSets, updateImageSet, setAllImageSets, syncImageSets } =
+  imageSetsSlice.actions;

@@ -18,7 +18,9 @@ import { ContextMenu } from "./components/ContextMenu";
 const App = () => {
   // 設定の読み込み
   const dispatch = useDispatch();
-  const windowColor = useSelector((state: RootState) => state.project.windowColor);
+  const windowColor = useSelector(
+    (state: RootState) => state.project.windowColor
+  );
 
   // 同期フックを使用
   useProjectSync();
@@ -41,9 +43,12 @@ const App = () => {
   }, [windowColor]);
 
   // 色設定の変更
-  const handleSetColor = useCallback((color: string) => {
-    dispatch(setWindowColor(color));
-  }, [dispatch]);
+  const handleSetColor = useCallback(
+    (color: string) => {
+      dispatch(setWindowColor(color));
+    },
+    [dispatch]
+  );
 
   return (
     <div className="container">

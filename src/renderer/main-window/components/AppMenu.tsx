@@ -69,24 +69,19 @@ export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
       anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
     >
       <MenuItem onClick={handleNewProject}>
-        <ListItemIcon>
-          {/* Add Icon later if needed or skip */}
-        </ListItemIcon>
+        <ListItemIcon>{/* Add Icon later if needed or skip */}</ListItemIcon>
         {t("render.menu.new_project")}
       </MenuItem>
       <MenuItem onClick={handleOpenProject}>
-        <ListItemIcon>
-        </ListItemIcon>
+        <ListItemIcon></ListItemIcon>
         {t("render.menu.open_project")}
       </MenuItem>
       <MenuItem onClick={handleSaveProject}>
-        <ListItemIcon>
-        </ListItemIcon>
+        <ListItemIcon></ListItemIcon>
         {t("render.menu.save_project")}
       </MenuItem>
       <MenuItem onClick={handleSaveProjectAs}>
-        <ListItemIcon>
-        </ListItemIcon>
+        <ListItemIcon></ListItemIcon>
         {t("render.menu.save_project_as")}
       </MenuItem>
       <Divider />

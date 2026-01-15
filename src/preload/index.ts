@@ -8,8 +8,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Window
   switchWindowSize: (): Promise<boolean> =>
     ipcRenderer.invoke("window:switchSize"),
-  setWindowRect: (rect: { x: number; y: number; width: number; height: number }) =>
-    ipcRenderer.invoke("window:setRect", rect),
+  setWindowRect: (rect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => ipcRenderer.invoke("window:setRect", rect),
   closeWindow: () => ipcRenderer.invoke("window:close"),
   // Setting
   loadSetting: () => ipcRenderer.invoke("setting:load"),

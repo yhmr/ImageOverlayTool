@@ -6,7 +6,6 @@ import { ImageSet } from "../../types/ImageSet";
 
 import { PerspectiveImage } from "./PerspectiveImage";
 
-
 interface DrawImageProps {
   imageSet: ImageSet;
   onInitImage: (image: HTMLImageElement) => void;

@@ -2,11 +2,7 @@ import { ipcMain } from "electron";
 import { SettingType } from "../../shared/types/AppConfig";
 import { IConfigRepository } from "../repositories/ConfigRepository";
 
-export const registerAppConfigHandlers = (
-  repository: IConfigRepository
-) => {
-
-
+export const registerAppConfigHandlers = (repository: IConfigRepository) => {
   /**
    * [IPC] 設定の読み込み
    */

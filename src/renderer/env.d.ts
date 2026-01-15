@@ -7,7 +7,12 @@ export interface IElectronAPI {
   loadImage: () => Promise<string | null>;
   // Window
   switchWindowSize: () => Promise<boolean>;
-  setWindowRect: (rect: { x: number; y: number; width: number; height: number }) => Promise<void>;
+  setWindowRect: (rect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => Promise<void>;
   closeWindow: () => Promise<void>;
   // Setting
   loadSetting: () => Promise<SettingType>;
@@ -29,9 +34,7 @@ export interface IElectronAPI {
   onImageSetsUpdated: (callback: (imageSets: ImageSet[]) => void) => () => void;
   // Unit Factor Sync
   updateUnitFactor: (unitFactor: number) => Promise<void>;
-  onUnitFactorUpdated: (
-    callback: (unitFactor: number) => void
-  ) => () => void;
+  onUnitFactorUpdated: (callback: (unitFactor: number) => void) => () => void;
   // Initial State Sync
   requestInitialState: () => Promise<void>;
   onRequestStateSync: (callback: () => void) => () => void;
