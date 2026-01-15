@@ -140,11 +140,11 @@ export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
 
     resetProjectData: () => {
         const defaultImageSets = [createDefaultImageSet()];
+        // windowColorは意図的に保持する（ユーザーの背景色設定を維持）
         set({
             imageSets: defaultImageSets,
             dimensionLines: [],
             unitFactor: 1.0,
-            windowColor: "#00000000",
         });
         getIPCService().updateImageSets(defaultImageSets);
         getIPCService().updateUnitFactor(1.0);
