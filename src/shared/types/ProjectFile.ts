@@ -8,7 +8,7 @@ export interface ProjectFile<TImage = unknown> {
         color: string; // Includes alpha for background transparency
     };
     settings: {
-        unit_factor: number;
+        unitFactor: number;
     };
     canvas?: {
         x: number;

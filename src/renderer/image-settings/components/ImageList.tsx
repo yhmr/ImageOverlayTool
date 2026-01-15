@@ -3,21 +3,18 @@ import UUID from "uuidjs";
 import { useTranslation } from "react-i18next";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import type {
-    DraggableProvided,
     DropResult,
     DroppableProvided,
+    DraggableProvided,
 } from "@hello-pangea/dnd";
 import { arrayMoveImmutable } from "array-move";
 
-import { useDispatch } from "react-redux";
-import { useSelector, RootState, AppDispatch } from "../../store/store";
-import { setImageSets } from "../../store/imageSetsSlice";
+import { useAppStore } from "../../store/useAppStore";
 
 import { IconButton, Stack, Tooltip, TextField } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
 import { ImageListItem } from "./ImageListItem";
-import { setUnitFactor } from "../../store/projectSlice";
 
 /**
  * 画像設定ウィンドウの画像リスト
@@ -26,9 +23,8 @@ import { setUnitFactor } from "../../store/projectSlice";
 export const ImageList = memo(function ImageList() {
     const { t } = useTranslation();
 
-    const { imageSets } = useSelector((state: RootState) => state.imageSets);
-    const unit_factor = useSelector((state: RootState) => state.project.unit_factor);
-    const dispatch = useDispatch<AppDispatch>();
+    const { imageSets, setImageSets, unitFactor, setUnitFactor } =
+        useAppStore();
 
     // 新しいImageSetを追加
     const handleAddImageSet = useCallback(() => {
@@ -37,24 +33,23 @@ export const ImageList = memo(function ImageList() {
             id: UUID.generate(),
             path: "",
             transparency: 0,
+            rotation: 0,
             init_anchor_pos: null,
             current_anchor_pos: null,
         });
-        dispatch(setImageSets(newImageSets));
-    }, [dispatch, imageSets]);
+        setImageSets(newImageSets);
+    }, [setImageSets, imageSets]);
 
     // ドロップ実行
     const onDragEnd = (result: DropResult) => {
         if (!result.destination) {
             return;
         }
-        dispatch(
-            setImageSets(
-                arrayMoveImmutable(
-                    imageSets,
-                    result.source.index,
-                    result.destination.index
-                )
+        setImageSets(
+            arrayMoveImmutable(
+                imageSets,
+                result.source.index,
+                result.destination.index
             )
         );
     };
@@ -64,7 +59,10 @@ export const ImageList = memo(function ImageList() {
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable droppableId="image-list">
                     {(provided: DroppableProvided) => (
-                        <div {...provided.droppableProps} ref={provided.innerRef}>
+                        <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                        >
                             {imageSets.map((imageSet, index) => (
                                 <Draggable
                                     draggableId={imageSet.id}
@@ -75,12 +73,16 @@ export const ImageList = memo(function ImageList() {
                                         <div
                                             ref={provided.innerRef}
                                             {...provided.draggableProps}
-                                            style={provided.draggableProps.style}
+                                            style={
+                                                provided.draggableProps.style
+                                            }
                                         >
                                             <ImageListItem
                                                 imageSet={imageSet}
                                                 index={index}
-                                                dragHandleProps={provided.dragHandleProps}
+                                                dragHandleProps={
+                                                    provided.dragHandleProps
+                                                }
                                             />
                                         </div>
                                     )}
@@ -93,8 +95,13 @@ export const ImageList = memo(function ImageList() {
             </DragDropContext>
 
             {/* 画像追加ボタン */}
-            <Tooltip title={t("render.image_setting_dlg.tooltip.add", "画像を追加")}>
-                <IconButton onClick={handleAddImageSet} sx={{ alignSelf: "flex-start" }}>
+            <Tooltip
+                title={t("render.image_setting_dlg.tooltip.add", "画像を追加")}
+            >
+                <IconButton
+                    onClick={handleAddImageSet}
+                    sx={{ alignSelf: "flex-start" }}
+                >
                     <AddIcon />
                 </IconButton>
             </Tooltip>
@@ -102,17 +109,17 @@ export const ImageList = memo(function ImageList() {
             {/* 単位設定 */}
             <TextField
                 type="number"
-                label={t("render.setting_dlg.unit_factor", "単位係数")}
-                value={unit_factor}
-                onChange={(e) => dispatch(setUnitFactor(Number(e.target.value)))}
+                label={t("render.setting_dlg.unitFactor", "単位係数")}
+                value={unitFactor}
+                onChange={(e) => setUnitFactor(Number(e.target.value))}
                 size="small"
                 sx={{
                     mt: 2,
                     "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                    {
-                        WebkitAppearance: "none",
-                        margin: 0,
-                    },
+                        {
+                            WebkitAppearance: "none",
+                            margin: 0,
+                        },
                 }}
                 onWheel={(e: React.WheelEvent<HTMLDivElement>) => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -2,7 +2,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { useStageControls } from "./useStageControls";
 import { describe, it, expect, vi, afterEach } from "vitest";
-import Konva from "konva";
 
 describe("useStageControls", () => {
     afterEach(() => {
@@ -12,11 +11,13 @@ describe("useStageControls", () => {
     it("should resize based on container", () => {
         // Mock container
         const container = document.createElement("div");
-        vi.spyOn(container, 'offsetWidth', 'get').mockReturnValue(500);
-        vi.spyOn(container, 'offsetHeight', 'get').mockReturnValue(400);
-        vi.spyOn(document, 'querySelector').mockReturnValue(container);
+        vi.spyOn(container, "offsetWidth", "get").mockReturnValue(500);
+        vi.spyOn(container, "offsetHeight", "get").mockReturnValue(400);
+        vi.spyOn(document, "querySelector").mockReturnValue(container);
 
-        const { result } = renderHook(() => useStageControls({ current: null }));
+        const { result } = renderHook(() =>
+            useStageControls({ current: null })
+        );
 
         expect(result.current.stageSize).toEqual({ width: 500, height: 400 });
     });
@@ -32,7 +33,9 @@ describe("useStageControls", () => {
             position: vi.fn(),
         } as any;
 
-        const { result } = renderHook(() => useStageControls({ current: mockStage }, onUpdate));
+        const { result } = renderHook(() =>
+            useStageControls({ current: mockStage }, onUpdate)
+        );
 
         const preventDefault = vi.fn();
         const event = { evt: { preventDefault, deltaY: -100 } } as any; // Zoom In

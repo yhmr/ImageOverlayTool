@@ -1,19 +1,20 @@
-
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ConfigRepository } from "./ConfigRepository";
+import Store from "electron-store";
+import { AppConfig } from "../../shared/types/AppConfig";
 // Mock electron
 vi.mock("electron", () => ({
     screen: {
         getPrimaryDisplay: () => ({
-            workAreaSize: { width: 1920, height: 1080 }
-        })
-    }
+            workAreaSize: { width: 1920, height: 1080 },
+        }),
+    },
 }));
 
 // Mock electron-store
 const mockStore = {
     get: vi.fn(),
-    set: vi.fn()
+    set: vi.fn(),
 };
 
 // Mock calcCenterPosition to avoid dependency on real calculation logic if needed,
@@ -26,7 +27,9 @@ describe("ConfigRepository", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        repository = new ConfigRepository(mockStore as any);
+        repository = new ConfigRepository(
+            mockStore as unknown as Store<AppConfig>
+        );
     });
 
     it("should load settings", async () => {
@@ -55,7 +58,7 @@ describe("ConfigRepository", () => {
 
     it("should get window position and size", () => {
         // Mock get for position and size
-        mockStore.get.mockImplementation((key, defaultValue) => {
+        mockStore.get.mockImplementation((key: string, defaultValue: any) => {
             if (key === "window.pos") return [100, 100];
             if (key === "window.size") return [800, 600];
             return defaultValue;
@@ -72,7 +75,9 @@ describe("ConfigRepository", () => {
 
     it("should use default window position if store is empty", () => {
         // Mock get to return default value
-        mockStore.get.mockImplementation((key, defaultValue) => defaultValue);
+        mockStore.get.mockImplementation(
+            (key: string, defaultValue: any) => defaultValue
+        );
 
         const { pos, size } = repository.getWindowPositionAndSize();
 

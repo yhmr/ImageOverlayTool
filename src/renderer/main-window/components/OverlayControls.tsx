@@ -1,10 +1,17 @@
 import React, { useRef, useCallback, useLayoutEffect } from "react";
 import Konva from "konva";
 import { Circle, Line } from "react-konva";
-import type { ImageSet } from "../../types/ImageSet";
-import type { AnchorPos } from "../../types/AnchorPos";
+import type { ImageSet } from "../../../shared/types/ImageSet";
+import type { AnchorPos } from "../../../shared/types/AnchorPos";
 import { useImageAnchor } from "../../hooks/useImageAnchor";
 import { rotateAnchorPos } from "../../utils/anchorUtils";
+import {
+    ANCHOR_RADIUS,
+    ANCHOR_STROKE_COLOR,
+    ANCHOR_FILL_COLOR,
+    OVERLAY_STROKE_COLOR,
+    OVERLAY_STROKE_WIDTH,
+} from "../../constants";
 
 interface OverlayControlsProps {
     imageSet: ImageSet;
@@ -26,48 +33,23 @@ export const OverlayControls = ({
     const cRefs = [ltRef, lbRef, rtRef, rbRef];
 
     // ドラッグ時の座標補正を行うラッパー
-    const onUpdateAnchorWrapper = useCallback((newAnchors: AnchorPos) => {
-        // ここでのnewAnchorsは、ドラッグされたアンカー（回転後の世界での座標）が
-        // useImageAnchor内でそのまま計算されたものになっている可能性があるが、
-        // 実際にはドラッグされたポイントを逆回転させて元の座標系に戻す必要がある。
-        // しかし useImageAnchor は「現在のアンカー」を基準に変形を行うため、
-        // 単純なラップでは難しいかもしれない。
-        // ここでは useImageAnchor の実装に依存するが、
-        // useImageAnchor は「ドラッグされたCircleの座標」を使って新しいアンカーセットを計算する。
-        // なので、Circleの座標自体が回転後の位置にあるなら、計算結果も回転後の位置になる。
-        // したがって、onUpdateAnchor に渡す前に逆回転させる。
+    const onUpdateAnchorWrapper = useCallback(
+        (newAnchors: AnchorPos) => {
+            // useImageAnchorは「コールバックで新しいアンカーセット全体」を返してくる。
+            // 計算結果は回転後の座標系に基づいている可能性があるため、必要に応じて逆回転させて元の座標系に戻す。
 
-        // ただし、newAnchors は4点すべてのセット。
-        // 回転中心は、変形前の重心ではなく、変形後の重心...ではない。
-        // 「回転」プロパティは不変（ドラッグ中は回らない）と仮定するなら、
-        // 回転中心（重心）を基準に -rotation すればよいはず。
-
-        // いや、操作感として、回転した状態で引き伸ばしたら、その方向に伸びてほしい。
-        // つまり、ローカル座標系での変形。
-        // useImageAnchor が行っている処理が「絶対座標での移動」だとすると、
-        // 回転したローカル軸に沿った移動に変換してやる必要がある...が、
-        // Perspective変形は自由変形なので、軸に沿う必要はない。
-
-        // 結論：
-        // 1. ドラッグされた点 P_rotated
-        // 2. 逆回転させて P_original = rotate(P_rotated, -angle)
-        // 3. これを新しいアンカー座標とする。
-
-        // useImageAnchorは「コールバックで新しいアンカーセット全体」を返してくる。
-        // なので、このセット全体を逆回転させればよい。
-
-        // 重心は「現在の（操作前の）重心」を使うべきか、「操作後の重心」を使うべきか？
-        // 回転は中心（重心）で行われるため、操作によって重心が移動すると回転中心も移動する。
-        // Konvaの描画ロジックでは「その時点の重心」を回転中心としている。
-        // なので、逆回転も「その時点の重心」基準で行うのが整合性が取れるはず。
-
-        if (imageSet.rotation) {
-            const corrected = rotateAnchorPos(newAnchors, -imageSet.rotation);
-            onUpdateAnchor(corrected);
-        } else {
-            onUpdateAnchor(newAnchors);
-        }
-    }, [imageSet.rotation, onUpdateAnchor]);
+            if (imageSet.rotation) {
+                const corrected = rotateAnchorPos(
+                    newAnchors,
+                    -imageSet.rotation
+                );
+                onUpdateAnchor(corrected);
+            } else {
+                onUpdateAnchor(newAnchors);
+            }
+        },
+        [imageSet.rotation, onUpdateAnchor]
+    );
 
     const { onDragStart, onDragEnd, onCircleDragEnd } = useImageAnchor({
         imageSet,
@@ -92,7 +74,10 @@ export const OverlayControls = ({
         if (imageSet.current_anchor_pos) {
             // 表示用に回転させたアンカーを計算
             const displayedAnchors = imageSet.rotation
-                ? rotateAnchorPos(imageSet.current_anchor_pos, imageSet.rotation)
+                ? rotateAnchorPos(
+                      imageSet.current_anchor_pos,
+                      imageSet.rotation
+                  )
                 : imageSet.current_anchor_pos;
 
             if (
@@ -101,7 +86,10 @@ export const OverlayControls = ({
                 rtRef.current &&
                 rbRef.current
             ) {
-                const apply = (ref: Konva.Circle, pos: { x: number; y: number }) => {
+                const apply = (
+                    ref: Konva.Circle,
+                    pos: { x: number; y: number }
+                ) => {
                     ref.x(pos.x);
                     ref.y(pos.y);
                 };
@@ -138,8 +126,8 @@ export const OverlayControls = ({
             <Line
                 ref={lineRef}
                 closed={true}
-                stroke={"#4e4eff"}
-                strokeWidth={3}
+                stroke={OVERLAY_STROKE_COLOR}
+                strokeWidth={OVERLAY_STROKE_WIDTH}
                 onMouseDown={onMouseDown}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
@@ -151,9 +139,9 @@ export const OverlayControls = ({
                     onMouseDown={onMouseDown}
                     onDragEnd={circleDragHandler}
                     ref={ref}
-                    radius={15}
-                    stroke="#1919eb"
-                    fill="#4e4eff"
+                    radius={ANCHOR_RADIUS}
+                    stroke={ANCHOR_STROKE_COLOR}
+                    fill={ANCHOR_FILL_COLOR}
                 />
             ))}
         </>

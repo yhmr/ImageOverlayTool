@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { rotateAnchorPos, getCenter, rotatePoint } from './anchorUtils';
-import { AnchorPos } from '../types/AnchorPos';
+import { describe, it, expect } from "vitest";
+import { rotateAnchorPos, getCenter, rotatePoint } from "./anchorUtils";
+import { AnchorPos } from "../../shared/types/AnchorPos";
 
-describe('anchorUtils', () => {
-    describe('getCenter', () => {
-        it('should calculate the center of a square correctly', () => {
+describe("anchorUtils", () => {
+    describe("getCenter", () => {
+        it("should calculate the center of a square correctly", () => {
             const anchors: AnchorPos = {
                 lt: { x: 0, y: 0 },
                 lb: { x: 0, y: 100 },
@@ -16,8 +16,8 @@ describe('anchorUtils', () => {
         });
     });
 
-    describe('rotatePoint', () => {
-        it('should rotate a point 90 degrees around center', () => {
+    describe("rotatePoint", () => {
+        it("should rotate a point 90 degrees around center", () => {
             const point = { x: 100, y: 0 };
             const center = { x: 0, y: 0 };
             const rotated = rotatePoint(point, center, 90);
@@ -25,7 +25,7 @@ describe('anchorUtils', () => {
             expect(rotated.y).toBeCloseTo(100);
         });
 
-        it('should rotate a point 180 degrees around center', () => {
+        it("should rotate a point 180 degrees around center", () => {
             const point = { x: 100, y: 0 };
             const center = { x: 0, y: 0 };
             const rotated = rotatePoint(point, center, 180);
@@ -34,8 +34,8 @@ describe('anchorUtils', () => {
         });
     });
 
-    describe('rotateAnchorPos', () => {
-        it('should rotate all anchors 90 degrees', () => {
+    describe("rotateAnchorPos", () => {
+        it("should rotate all anchors 90 degrees", () => {
             const anchors: AnchorPos = {
                 lt: { x: -10, y: -10 },
                 rt: { x: 10, y: -10 },

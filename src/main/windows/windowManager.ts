@@ -32,7 +32,11 @@ export class WindowManager {
         const ext = path.extname(filePath).toLowerCase();
 
         // ウィンドウが準備完了していれば送信、そうでなければ保留
-        if (this.mainWindow && !this.mainWindow.isDestroyed() && this.mainWindow.isVisible()) {
+        if (
+            this.mainWindow &&
+            !this.mainWindow.isDestroyed() &&
+            this.mainWindow.isVisible()
+        ) {
             this.mainWindow.webContents.send("file:open", { filePath, ext });
         } else {
             this.pendingFilePath = filePath;
@@ -96,7 +100,10 @@ export class WindowManager {
             this.isQuitting = true;
 
             // 画像設定ウィンドウも閉じる
-            if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
+            if (
+                this.imageSettingsWindow &&
+                !this.imageSettingsWindow.isDestroyed()
+            ) {
                 this.imageSettingsWindow.close();
             }
             this.mainWindow = null;
@@ -104,7 +111,9 @@ export class WindowManager {
 
         // コンテンツをロード
         if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-            this.mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/main-window/");
+            this.mainWindow.loadURL(
+                process.env["ELECTRON_RENDERER_URL"] + "/main-window/"
+            );
         } else {
             this.mainWindow.loadFile(
                 path.join(__dirname, "../renderer/main-window/index.html")
@@ -118,12 +127,16 @@ export class WindowManager {
      * 画像設定ウィンドウを作成
      */
     createImageSettingsWindow(): BrowserWindow {
-        if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
+        if (
+            this.imageSettingsWindow &&
+            !this.imageSettingsWindow.isDestroyed()
+        ) {
             this.imageSettingsWindow.focus();
             return this.imageSettingsWindow;
         }
 
-        const { pos, size } = this.configRepository.getImageSettingsWindowPositionAndSize();
+        const { pos, size } =
+            this.configRepository.getImageSettingsWindowPositionAndSize();
 
         this.imageSettingsWindow = new BrowserWindow({
             show: false,
@@ -188,7 +201,10 @@ export class WindowManager {
      * 画像設定ウィンドウの表示/非表示をトグル
      */
     toggleImageSettingsWindow(): boolean {
-        if (!this.imageSettingsWindow || this.imageSettingsWindow.isDestroyed()) {
+        if (
+            !this.imageSettingsWindow ||
+            this.imageSettingsWindow.isDestroyed()
+        ) {
             this.createImageSettingsWindow();
             return true;
         }
@@ -245,7 +261,10 @@ export class WindowManager {
         if (this.mainWindow && !this.mainWindow.isDestroyed()) {
             windows.push(this.mainWindow);
         }
-        if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
+        if (
+            this.imageSettingsWindow &&
+            !this.imageSettingsWindow.isDestroyed()
+        ) {
             windows.push(this.imageSettingsWindow);
         }
         return windows;
@@ -256,7 +275,10 @@ export class WindowManager {
      */
     closeAllWindows(): void {
         // 画像設定ウィンドウを強制的に閉じる（closeイベントをバイパス）
-        if (this.imageSettingsWindow && !this.imageSettingsWindow.isDestroyed()) {
+        if (
+            this.imageSettingsWindow &&
+            !this.imageSettingsWindow.isDestroyed()
+        ) {
             this.imageSettingsWindow.destroy();
             this.imageSettingsWindow = null;
         }

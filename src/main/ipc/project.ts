@@ -2,9 +2,7 @@ import { ipcMain, dialog, BrowserWindow } from "electron";
 import { IProjectRepository } from "../repositories/ProjectRepository";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 
-export const registerProjectHandlers = (
-    repository: IProjectRepository
-) => {
+export const registerProjectHandlers = (repository: IProjectRepository) => {
     /**
      * [IPC] プロジェクトファイルの保存
      */
@@ -32,7 +30,10 @@ export const registerProjectHandlers = (
      */
     ipcMain.handle(
         "project:save",
-        async (event, { filePath, project }: { filePath: string; project: ProjectFile }) => {
+        async (
+            event,
+            { filePath, project }: { filePath: string; project: ProjectFile }
+        ) => {
             await repository.saveProject(filePath, project);
             return true;
         }

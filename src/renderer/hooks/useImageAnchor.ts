@@ -1,9 +1,9 @@
 import { useState, useCallback } from "react";
 import Konva from "konva";
-import { ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../../shared/types/ImageSet";
 import { Point } from "../../shared/types/Point";
-import { AnchorPos } from "../types/AnchorPos";
-import { calculateMovedAnchors } from "../utils/anchorUtils";
+import { AnchorPos } from "../../shared/types/AnchorPos";
+import { calculateMovedAnchors, rotateAnchorPos } from "../utils/anchorUtils";
 
 interface UseImageAnchorProps {
     imageSet: ImageSet;
@@ -28,20 +28,18 @@ export const useImageAnchor = ({
                     x: e.target.x() - dragStartPos.x,
                     y: e.target.y() - dragStartPos.y,
                 };
+                // 回転を考慮した現在のアンカー位置を取得 (Wrapperが回転された座標を期待しているため)
+                const currentAnchors = imageSet.rotation
+                    ? rotateAnchorPos(
+                          imageSet.current_anchor_pos,
+                          imageSet.rotation
+                      )
+                    : imageSet.current_anchor_pos;
+
                 // 新しいアンカー位置を計算
-                const newAnchor = calculateMovedAnchors(
-                    imageSet.current_anchor_pos,
-                    diff
-                );
-                // 親でpropを更新
+                const newAnchor = calculateMovedAnchors(currentAnchors, diff);
                 onUpdateAnchor(newAnchor);
 
-                // 位置リセット (座標系は親のLayer基準で、Line自体のposも変わるが、
-                // DrawImage側でrender時にlineRef.current.x(0)しているので、
-                // ここでもリセットしておくと安全かも。
-                // ただし元のDrawImageではDragEndでline自体の位置を戻す記述はないが、
-                // lineRef.current.points(...) で再描画しているので実質リセットされるはず)
-                // ここでは newAnchor を返して、親コンポーネントが再描画することを期待する。
                 e.target.x(0);
                 e.target.y(0);
             }
@@ -56,7 +54,7 @@ export const useImageAnchor = ({
             rtRef: React.RefObject<Konva.Circle>,
             rbRef: React.RefObject<Konva.Circle>
         ) => {
-            return (e: Konva.KonvaEventObject<DragEvent>) => {
+            return () => {
                 // ドラッグされた対象の座標は更新済み
                 if (
                     ltRef.current &&

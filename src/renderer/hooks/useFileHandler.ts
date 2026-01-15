@@ -1,14 +1,11 @@
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { useSelector, RootState } from "../store/store";
-import { setImageSets } from "../store/imageSetsSlice";
+import { useAppStore } from "../store/useAppStore";
 import { useProjectOperations } from "./useProjectOperations";
 import UUID from "uuidjs";
-import { ImageSet } from "../types/ImageSet";
+import { ImageSet } from "../../shared/types/ImageSet";
 
 export const useFileHandler = () => {
-    const dispatch = useDispatch();
-    const { imageSets } = useSelector((state: RootState) => state.imageSets);
+    const { imageSets, setImageSets } = useAppStore();
     const { handleLoadProjectFromPath } = useProjectOperations();
 
     useEffect(() => {
@@ -20,7 +17,14 @@ export const useFileHandler = () => {
             }
 
             // Image File
-            const imageExts = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
+            const imageExts = [
+                ".png",
+                ".jpg",
+                ".jpeg",
+                ".webp",
+                ".gif",
+                ".svg",
+            ];
             if (imageExts.includes(ext.toLowerCase())) {
                 const newSet: ImageSet = {
                     id: UUID.generate(),
@@ -28,7 +32,7 @@ export const useFileHandler = () => {
                     transparency: 0,
                     rotation: 0,
                     init_anchor_pos: null,
-                    current_anchor_pos: null
+                    current_anchor_pos: null,
                 };
 
                 // If the first item is empty (default state), replace it.
@@ -40,9 +44,9 @@ export const useFileHandler = () => {
                 } else {
                     newImageSets.push(newSet);
                 }
-                dispatch(setImageSets(newImageSets));
+                setImageSets(newImageSets);
             }
         });
         return unsubscribe;
-    }, [dispatch, imageSets, handleLoadProjectFromPath]);
+    }, [imageSets, setImageSets, handleLoadProjectFromPath]);
 };

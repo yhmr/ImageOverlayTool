@@ -1,5 +1,6 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
 import { WindowManager } from "../windows/windowManager";
+import { ImageSet } from "../../renderer/types/ImageSet";
 
 /**
  * 画像設定ウィンドウ用のIPCハンドラを登録
@@ -17,7 +18,7 @@ export const registerImageSettingsWindowHandlers = (
     /**
      * [IPC] imageSetsの更新を他のウィンドウに通知
      */
-    ipcMain.handle("imageSets:update", (event, imageSets: any[]) => {
+    ipcMain.handle("imageSets:update", (event, imageSets: ImageSet[]) => {
         // 全ウィンドウに通知
         const windows = windowManager.getAllWindows();
         windows.forEach((win) => {
@@ -53,7 +54,6 @@ export const registerImageSettingsWindowHandlers = (
             }
         });
     });
-
 
     /**
      * [IPC] 画像読み込み

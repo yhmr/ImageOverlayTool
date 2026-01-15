@@ -1,12 +1,12 @@
-import { expect, test, describe, vi, beforeEach } from 'vitest';
-import { ProjectRepository } from './ProjectRepository';
-import { ProjectFile } from '../../shared/types/ProjectFile';
+import { expect, test, describe, vi, beforeEach } from "vitest";
+import { ProjectRepository } from "./ProjectRepository";
+import { ProjectFile } from "../../shared/types/ProjectFile";
 import fs from "fs/promises";
 
 // Mock fs/promises
 vi.mock("fs/promises");
 
-describe('ProjectRepository', () => {
+describe("ProjectRepository", () => {
     let repository: ProjectRepository;
     const mockProjectFile: ProjectFile = {
         version: "1.0.0",
@@ -15,12 +15,12 @@ describe('ProjectRepository', () => {
             height: 600,
             x: 0,
             y: 0,
-            color: "#000000"
+            color: "#000000",
         },
         settings: {
-            unit_factor: 1
+            unitFactor: 1,
         },
-        images: []
+        images: [],
     };
 
     beforeEach(() => {
@@ -28,8 +28,8 @@ describe('ProjectRepository', () => {
         vi.clearAllMocks();
     });
 
-    test('saveProject should write json to file', async () => {
-        const filePath = '/test/path/project.json';
+    test("saveProject should write json to file", async () => {
+        const filePath = "/test/path/project.json";
         await repository.saveProject(filePath, mockProjectFile);
 
         expect(fs.writeFile).toHaveBeenCalledWith(
@@ -39,11 +39,13 @@ describe('ProjectRepository', () => {
         );
     });
 
-    test('loadProject should read file and parse json', async () => {
-        const filePath = '/test/path/project.json';
+    test("loadProject should read file and parse json", async () => {
+        const filePath = "/test/path/project.json";
 
         // Setup mock return value
-        (fs.readFile as any).mockResolvedValue(JSON.stringify(mockProjectFile));
+        vi.mocked(fs.readFile).mockResolvedValue(
+            JSON.stringify(mockProjectFile)
+        );
 
         const result = await repository.loadProject(filePath);
 

@@ -1,7 +1,13 @@
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { AppBar, IconButton, Toolbar, Tooltip, Typography } from "@mui/material";
+import {
+    AppBar,
+    IconButton,
+    Toolbar,
+    Tooltip,
+    Typography,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 /**
@@ -26,12 +32,18 @@ export const SettingsMenuBar = memo(function SettingsMenuBar() {
                 }}
             >
                 {/* タイトル */}
-                <Typography variant="subtitle1" component="div" sx={{ flexGrow: 1 }}>
+                <Typography
+                    variant="subtitle1"
+                    component="div"
+                    sx={{ flexGrow: 1 }}
+                >
                     {t("render.image_settings.title", "画像設定")}
                 </Typography>
 
                 {/* 閉じるボタン（トグル動作） */}
-                <Tooltip title={t("render.image_settings.tooltip.close", "閉じる")}>
+                <Tooltip
+                    title={t("render.image_settings.tooltip.close", "閉じる")}
+                >
                     <IconButton
                         size="small"
                         color="inherit"

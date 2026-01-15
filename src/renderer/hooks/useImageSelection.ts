@@ -1,38 +1,37 @@
-import { useState, useCallback, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../store/store";
+import { useCallback, useEffect } from "react";
+import { useAppStore } from "../store/useAppStore";
 
 export const useImageSelection = () => {
-    const { imageSets } = useSelector((state: RootState) => state.imageSets);
-    const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+    const { imageSets, selectedImageId, selectImage, interactionMode } =
+        useAppStore();
 
     // 選択された画像が削除された場合、選択を解除する
     useEffect(() => {
-        if (
-            selectedImageId &&
-            !imageSets.find((imageSet) => imageSet.id === selectedImageId)
-        ) {
-            setSelectedImageId(null);
+        if (selectedImageId) {
+            const found = imageSets.find(
+                (imageSet) => imageSet.id === selectedImageId
+            );
+            if (!found) {
+                selectImage(null);
+            }
         }
-    }, [imageSets, selectedImageId]);
-
-    const onSelectImage = useCallback((id: string | null) => {
-        setSelectedImageId(id);
-    }, []);
+    }, [imageSets, selectedImageId, selectImage]);
 
     // DrawImageコンポーネントのonSelectハンドラを生成するヘルパー
-    const getOnSelectHandler = useCallback((id: string, isDimensionMode: boolean, onDeselectDimension: () => void) => {
-        return () => {
-            if (!isDimensionMode) { // dimensionモードでは画像選択を無視
-                setSelectedImageId(id);
-                onDeselectDimension();
-            }
-        };
-    }, []);
+    const getOnSelectHandler = useCallback(
+        (id: string) => {
+            return () => {
+                if (interactionMode !== "dimension") {
+                    selectImage(id);
+                }
+            };
+        },
+        [interactionMode, selectImage]
+    );
 
     return {
         selectedImageId,
-        setSelectedImageId,
-        getOnSelectHandler
+        setSelectedImageId: selectImage, // 互換性のためエイリアス
+        getOnSelectHandler,
     };
 };

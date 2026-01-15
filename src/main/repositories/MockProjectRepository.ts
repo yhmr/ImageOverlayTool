@@ -5,12 +5,10 @@ export class MockProjectRepository implements IProjectRepository {
     private projects: Map<string, ProjectFile> = new Map();
 
     async saveProject(filePath: string, project: ProjectFile): Promise<void> {
-
         this.projects.set(filePath, project);
     }
 
     async loadProject(filePath: string): Promise<ProjectFile> {
-
         const project = this.projects.get(filePath);
         if (!project) {
             // Return a default empty project if not found in mock
@@ -21,12 +19,12 @@ export class MockProjectRepository implements IProjectRepository {
                     height: 600,
                     x: 0,
                     y: 0,
-                    color: "#00000000"
+                    color: "#00000000",
                 },
                 settings: {
-                    unit_factor: 1
+                    unitFactor: 1,
                 },
-                images: []
+                images: [],
             };
         }
         return project;

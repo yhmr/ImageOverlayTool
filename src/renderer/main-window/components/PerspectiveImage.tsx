@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Image as KonvaImage } from "react-konva";
 import Perspective from "perspectivets";
-import type { ImageSet } from "../../types/ImageSet";
+import { KonvaEventObject } from "konva/lib/Node";
+import type { ImageSet } from "../../../shared/types/ImageSet";
 import { getBoundingBox, getCenter } from "../../utils/anchorUtils";
 
 interface PerspectiveImageProps {
@@ -10,7 +11,11 @@ interface PerspectiveImageProps {
     onSelect?: () => void;
 }
 
-export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImageProps) => {
+export const PerspectiveImage = ({
+    image,
+    imageSet,
+    onSelect,
+}: PerspectiveImageProps) => {
     // オフスクリーンCanvas
     const canvas = useMemo(() => document.createElement("canvas"), []);
     const [renderTrigger, setRenderTrigger] = useState(0); // 再描画用
@@ -27,7 +32,10 @@ export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImage
             const center = getCenter(imageSet.current_anchor_pos);
 
             // Canvasサイズなどを更新
-            if (canvas.width !== right - left || canvas.height !== bottom - top) {
+            if (
+                canvas.width !== right - left ||
+                canvas.height !== bottom - top
+            ) {
                 canvas.width = right - left;
                 canvas.height = bottom - top;
             }
@@ -37,7 +45,7 @@ export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImage
                 x: center.x,
                 y: center.y,
                 offsetX: center.x - left,
-                offsetY: center.y - top
+                offsetY: center.y - top,
             });
 
             const ctx = canvas.getContext("2d");
@@ -67,10 +75,17 @@ export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImage
     }, [image, imageSet, canvas]);
 
     // クリックハンドラ
-    const handleClick = () => {
+    const handleClick = (e: KonvaEventObject<MouseEvent>) => {
         if (onSelect) {
-            // 左クリックのみ反応など必要であれば条件追加
             onSelect();
+            e.cancelBubble = true; // Stop bubbling to stage
+        }
+    };
+
+    const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
+        // 左クリックの場合はバブリングを止める（ステージのドラッグなどと干渉しないように）
+        if (e.evt.button === 0) {
+            e.cancelBubble = true;
         }
     };
 
@@ -84,6 +99,8 @@ export const PerspectiveImage = ({ image, imageSet, onSelect }: PerspectiveImage
             offsetY={pos.offsetY}
             onClick={handleClick}
             onTap={handleClick}
+            onMouseDown={handleMouseDown}
+            listening={true} // Ensure it catches events
             // Konva.Imageはデフォルトでlistening=true
             // キャッシュを無効化して常に最新のcanvasを表示するためにkeyを変えるか、
             // imageオブジェクト自体は変わらないので、Konvaが内部でredrawしてくれることを期待

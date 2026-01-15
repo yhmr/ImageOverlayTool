@@ -2,6 +2,8 @@
 import { renderHook, act } from "@testing-library/react";
 import { useImageAnchor } from "./useImageAnchor";
 import { describe, it, expect, vi } from "vitest";
+import { ImageSet } from "../../shared/types/ImageSet";
+import Konva from "konva";
 
 describe("useImageAnchor", () => {
     it("should handle drag start and end", () => {
@@ -11,16 +13,18 @@ describe("useImageAnchor", () => {
                 rt: { x: 100, y: 0 },
                 lb: { x: 0, y: 100 },
                 rb: { x: 100, y: 100 },
-            }
-        } as any;
+            },
+        } as unknown as ImageSet;
         const onUpdateAnchor = vi.fn();
 
-        const { result } = renderHook(() => useImageAnchor({ imageSet, onUpdateAnchor }));
+        const { result } = renderHook(() =>
+            useImageAnchor({ imageSet, onUpdateAnchor })
+        );
 
         // Mock Drag Events
         const dragStartEvent = {
-            target: { x: () => 10, y: () => 10 }
-        } as any;
+            target: { x: () => 10, y: () => 10 },
+        } as unknown as Konva.KonvaEventObject<DragEvent>;
 
         const xMock = vi.fn((val?: number) => {
             if (val !== undefined) return;
@@ -34,9 +38,9 @@ describe("useImageAnchor", () => {
         const dragEndEvent = {
             target: {
                 x: xMock,
-                y: yMock
-            }
-        } as any;
+                y: yMock,
+            },
+        } as unknown as Konva.KonvaEventObject<DragEvent>;
 
         act(() => {
             result.current.onDragStart(dragStartEvent);

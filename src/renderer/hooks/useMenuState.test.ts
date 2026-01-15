@@ -28,8 +28,6 @@ describe("useMenuState", () => {
         expect(result.current.openMenu).toBe(false);
     });
 
-
-
     it("should handle setting dialog", () => {
         const { result } = renderHook(() => useMenuState());
 

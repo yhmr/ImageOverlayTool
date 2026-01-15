@@ -1,4 +1,8 @@
-import { SettingType, DEFAULT_MAIN_WINDOW_SIZE, DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
+import {
+    SettingType,
+    DEFAULT_MAIN_WINDOW_SIZE,
+    DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
+} from "../../shared/types/AppConfig";
 import { Point } from "../../shared/types/Point";
 import { Size } from "../../shared/types/Size";
 import { IConfigRepository } from "./ConfigRepository"; // 同じディレクトリにあるConfigRepositoryからインターフェースをインポート
@@ -21,29 +25,24 @@ export class MockConfigRepository implements IConfigRepository {
     };
 
     async loadSettings() {
-
         return { ...this.settings };
     }
 
     async saveSettings(settings: SettingType) {
-
         if (settings.language !== undefined) {
             this.settings.language = settings.language;
         }
     }
 
     async loadWindowColor() {
-
         return this.windowColor;
     }
 
     async saveWindowColor(color: string) {
-
         this.windowColor = color;
     }
 
     getWindowPositionAndSize(): { pos: Point; size: Size } {
-
         return {
             pos: { ...this.windowPos },
             size: { ...this.windowSize },
@@ -51,21 +50,21 @@ export class MockConfigRepository implements IConfigRepository {
     }
 
     saveWindowPositionAndSize(pos: number[], size: number[]): void {
-
         this.windowPos = { x: pos[0], y: pos[1] };
         this.windowSize = { width: size[0], height: size[1] };
     }
 
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } {
-
         return {
             pos: { ...this.imageSettingsWindowPos },
             size: { ...this.imageSettingsWindowSize },
         };
     }
 
-    saveImageSettingsWindowPositionAndSize(pos: number[], size: number[]): void {
-
+    saveImageSettingsWindowPositionAndSize(
+        pos: number[],
+        size: number[]
+    ): void {
         this.imageSettingsWindowPos = { x: pos[0], y: pos[1] };
         this.imageSettingsWindowSize = { width: size[0], height: size[1] };
     }
