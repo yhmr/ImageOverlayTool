@@ -1,3 +1,4 @@
+"use no memo";
 import React, { memo, useCallback, useRef, useEffect } from "react";
 
 import { useAppStore } from "../../store/useAppStore";

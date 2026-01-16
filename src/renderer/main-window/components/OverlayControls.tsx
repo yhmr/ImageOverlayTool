@@ -1,3 +1,4 @@
+"use no memo";
 import React, { useRef, useCallback, useLayoutEffect } from "react";
 import Konva from "konva";
 import { Circle, Line } from "react-konva";

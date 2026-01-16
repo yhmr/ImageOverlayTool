@@ -1,3 +1,4 @@
+"use no memo";
 import React, { useEffect, useMemo, useState } from "react";
 import { Image as KonvaImage } from "react-konva";
 import Perspective from "perspectivets";

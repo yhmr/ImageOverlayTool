@@ -22,7 +22,13 @@ export default defineConfig({
     },
     root: 'src/renderer',
     plugins: [
-      react(),
+      react({
+        babel: {
+          plugins: [
+            ['babel-plugin-react-compiler', {}]
+          ]
+        }
+      }),
       tailwindcss()
     ],
     build: {
