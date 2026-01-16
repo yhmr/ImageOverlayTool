@@ -5,6 +5,17 @@ import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
 
 contextBridge.exposeInMainWorld("electronAPI", {
+    // Logger
+    log: {
+        debug: (message: string, ...params: unknown[]) =>
+            ipcRenderer.invoke("log:write", "debug", message, params),
+        info: (message: string, ...params: unknown[]) =>
+            ipcRenderer.invoke("log:write", "info", message, params),
+        warn: (message: string, ...params: unknown[]) =>
+            ipcRenderer.invoke("log:write", "warn", message, params),
+        error: (message: string, ...params: unknown[]) =>
+            ipcRenderer.invoke("log:write", "error", message, params),
+    },
     // Window
     switchWindowSize: (): Promise<boolean> =>
         ipcRenderer.invoke("window:switchSize"),
