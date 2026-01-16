@@ -1,6 +1,16 @@
 import "../shared/globals.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { logger } from "../services/loggerService";
+
+// グローバルエラーハンドリング
+window.addEventListener("error", (event) => {
+    logger.error("Renderer Uncaught Error:", event.error || event.message);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+    logger.error("Renderer Unhandled Rejection:", event.reason);
+});
 
 import { useProjectSync } from "../hooks/useProjectSync";
 import "../../i18n/configs";
