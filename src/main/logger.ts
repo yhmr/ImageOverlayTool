@@ -23,7 +23,9 @@ if (process.env.NODE_ENV === "test") {
 log.transports.file.maxSize = 10 * 1024 * 1024;
 
 // ログフォーマット設定
-log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}";
-log.transports.console.format = "[{h}:{i}:{s}.{ms}] [{level}] {text}";
+log.transports.file.format =
+    "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{processType}] [{level}] {text}";
+log.transports.console.format =
+    "[{h}:{i}:{s}.{ms}] [{processType}] [{level}] {text}";
 
 export default log;
