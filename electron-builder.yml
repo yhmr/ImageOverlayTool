@@ -10,10 +10,6 @@ directories:
   buildResources: "assets"
 files:
   - "out/**/*"
-extraFiles:
-  - from: "out/renderer/thirdPartyNotice.json"
-    to: "thirdPartyNotice.json"
-    filter: ["**/*"]
 win:
   target:
     - "zip"

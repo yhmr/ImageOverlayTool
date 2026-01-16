@@ -3,7 +3,10 @@
   "description": "image blend tool",
   "version": "0.1.0",
   "license": "AGPL-3.0-only",
-  "author": "yuhomori",
+  "author": {
+    "name": "yuhomori",
+    "email": "morimo07+github@outlook.jp"
+  },
   "main": "out/main/index.js",
   "engines": {
     "node": ">=18.0.0"
