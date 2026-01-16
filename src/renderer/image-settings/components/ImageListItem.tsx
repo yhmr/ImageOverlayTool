@@ -1,4 +1,3 @@
-import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAppStore } from "../../store/useAppStore";
@@ -21,16 +20,14 @@ interface ImageListItemProps {
  * 画像リストの各アイテム
  * パス表示、透過度スライダー、削除ボタンを含む
  */
-export const ImageListItem = memo(function ImageListItem(
-    props: ImageListItemProps
-) {
+export function ImageListItem(props: ImageListItemProps) {
     const { imageSet, index, dragHandleProps } = props;
     const { t } = useTranslation();
 
     const { imageSets, updateImageSet, setImageSets } = useAppStore();
 
     // ファイルオープン
-    const handleFileOpen = useCallback(async () => {
+    const handleFileOpen = async () => {
         const res = await window.electronAPI.loadImage();
         if (res) {
             const newImageSet = { ...imageSets[index] };
@@ -42,51 +39,44 @@ export const ImageListItem = memo(function ImageListItem(
             newImageSet.current_anchor_pos = null;
             updateImageSet({ index: index, imageSet: newImageSet });
         }
-    }, [updateImageSet, imageSets, index]);
+    };
 
     // 削除
-    const handleDelete = useCallback(() => {
+    const handleDelete = () => {
         const newImageSets = [...imageSets];
         newImageSets.splice(index, 1);
         setImageSets(newImageSets);
-    }, [setImageSets, imageSets, index]);
+    };
 
     // 透過度変更 (shadcn Slider returns number[])
-    const handleTransparencyChange = useCallback(
-        (value: number[]) => {
-            const newImageSet = { ...imageSet };
-            newImageSet.transparency = value[0];
-            updateImageSet({ index: index, imageSet: newImageSet });
-        },
-        [updateImageSet, imageSet, index]
-    );
+    const handleTransparencyChange = (value: number[]) => {
+        const newImageSet = { ...imageSet };
+        newImageSet.transparency = value[0];
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
 
     // 回転変更
-    const handleRotationChange = useCallback(
-        (value: number[]) => {
-            if (!imageSet.current_anchor_pos) return;
+    const handleRotationChange = (value: number[]) => {
+        if (!imageSet.current_anchor_pos) return;
 
-            const newImageSet = { ...imageSet };
-            newImageSet.rotation = value[0];
+        const newImageSet = { ...imageSet };
+        newImageSet.rotation = value[0];
 
-            updateImageSet({ index: index, imageSet: newImageSet });
-        },
-        [updateImageSet, imageSet, index]
-    );
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
 
     // 回転入力変更 (Input)
-    const handleRotationInputChange = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const value = Number(event.target.value);
-            if (isNaN(value)) return;
+    const handleRotationInputChange = (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const value = Number(event.target.value);
+        if (isNaN(value)) return;
 
-            if (!imageSet.current_anchor_pos) return;
-            const newImageSet = { ...imageSet };
-            newImageSet.rotation = value;
-            updateImageSet({ index: index, imageSet: newImageSet });
-        },
-        [updateImageSet, imageSet, index]
-    );
+        if (!imageSet.current_anchor_pos) return;
+        const newImageSet = { ...imageSet };
+        newImageSet.rotation = value;
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
 
     // ファイル名を抽出（パスから）
     const fileName = imageSet.path
@@ -123,4 +113,4 @@ export const ImageListItem = memo(function ImageListItem(
             </CardContent>
         </Card>
     );
-});
+}

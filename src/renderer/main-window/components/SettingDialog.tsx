@@ -1,4 +1,4 @@
-import { memo, useCallback, useLayoutEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Dialog,
@@ -22,32 +22,25 @@ interface SettingDialogProps {
     handleClose: () => void;
 }
 
-export const SettingDialog = memo(function SettingDialog(
-    props: SettingDialogProps
-) {
+export function SettingDialog(props: SettingDialogProps) {
     const { open, handleClose } = props;
     const { t, i18n } = useTranslation();
 
     // 言語切り替え
-    const handleLanguageChange = useCallback(
-        (value: string) => {
-            i18n.changeLanguage(value);
-        },
-        [i18n]
-    );
+    const handleLanguageChange = (value: string) => {
+        i18n.changeLanguage(value);
+    };
 
     // 終了時に設定保存
-    const handleCloseAndSave = useCallback(async () => {
-        // 設定を保存
+    const handleCloseAndSave = async () => {
         await window.electronAPI.saveSetting({
             language: i18n.language,
         });
         handleClose();
-    }, [handleClose, i18n]);
+    };
 
     // 初期化
     useLayoutEffect(() => {
-        // 設定を読み込み
         const loadSetting = async () => {
             const setting = await window.electronAPI.loadSetting();
             i18n.changeLanguage(setting.language);
@@ -106,4 +99,4 @@ export const SettingDialog = memo(function SettingDialog(
             </DialogContent>
         </Dialog>
     );
-});
+}

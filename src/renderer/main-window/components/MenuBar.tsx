@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Maximize, Minimize, X } from "lucide-react";
 
@@ -15,7 +14,7 @@ import {
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
 
-export const MenuBar = memo(function MenuBar() {
+export function MenuBar() {
     const { t } = useTranslation();
 
     const { openSettingDlg, handleSettingDlgOpen, handleSettingDlgClose } =
@@ -109,4 +108,4 @@ export const MenuBar = memo(function MenuBar() {
             </div>
         </TooltipProvider>
     );
-});
+}

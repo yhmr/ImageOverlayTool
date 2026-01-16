@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { RotateCw } from "lucide-react";
 import { Slider } from "@/renderer/components/ui/slider";
@@ -10,9 +9,7 @@ interface RotationControlProps {
     onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const RotationControl = memo(function RotationControl(
-    props: RotationControlProps
-) {
+export function RotationControl(props: RotationControlProps) {
     const { rotation, onRotationChange, onInputChange } = props;
     const { t } = useTranslation();
 
@@ -37,4 +34,4 @@ export const RotationControl = memo(function RotationControl(
             />
         </div>
     );
-});
+}

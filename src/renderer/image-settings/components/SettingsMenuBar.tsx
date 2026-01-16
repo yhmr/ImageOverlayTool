@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { Button } from "@/renderer/components/ui/button";
@@ -13,7 +12,7 @@ import {
  * 画像設定ウィンドウ用のシンプルなタイトルバー
  * タイトルと閉じるボタン（トグル動作）のみ
  */
-export const SettingsMenuBar = memo(function SettingsMenuBar() {
+export function SettingsMenuBar() {
     const { t } = useTranslation();
 
     // ウィンドウを非表示にする（トグル動作）
@@ -50,4 +49,4 @@ export const SettingsMenuBar = memo(function SettingsMenuBar() {
             </div>
         </TooltipProvider>
     );
-});
+}

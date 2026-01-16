@@ -1,4 +1,3 @@
-import { memo, useCallback } from "react";
 import UUID from "uuidjs";
 import { useTranslation } from "react-i18next";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -28,14 +27,14 @@ import {
  * 画像設定ウィンドウの画像リスト
  * ドラッグ&ドロップで順序変更可能
  */
-export const ImageList = memo(function ImageList() {
+export function ImageList() {
     const { t } = useTranslation();
 
     const { imageSets, setImageSets, unitFactor, setUnitFactor } =
         useAppStore();
 
     // 新しいImageSetを追加
-    const handleAddImageSet = useCallback(() => {
+    const handleAddImageSet = () => {
         const newImageSets = [...imageSets];
         newImageSets.push({
             id: UUID.generate(),
@@ -46,7 +45,7 @@ export const ImageList = memo(function ImageList() {
             current_anchor_pos: null,
         });
         setImageSets(newImageSets);
-    }, [setImageSets, imageSets]);
+    };
 
     // ドロップ実行
     const onDragEnd = (result: DropResult) => {
@@ -146,4 +145,4 @@ export const ImageList = memo(function ImageList() {
             </div>
         </TooltipProvider>
     );
-});
+}

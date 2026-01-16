@@ -1,4 +1,3 @@
-import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
     DropdownMenu,
@@ -19,7 +18,7 @@ interface AppMenuProps {
     handleSaveProjectAs: () => void;
 }
 
-export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
+export function AppMenu(props: AppMenuProps) {
     const {
         handleSettingDlgOpen,
         handleCloseWindow,
@@ -32,9 +31,9 @@ export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
     const { t } = useTranslation();
 
     // 画像設定ウィンドウを開く
-    const handleOpenImageSettings = useCallback(async () => {
+    const handleOpenImageSettings = async () => {
         await window.electronAPI.toggleImageSettingsWindow();
-    }, []);
+    };
 
     return (
         <DropdownMenu>
@@ -77,4 +76,4 @@ export const AppMenu = memo(function AppMenu(props: AppMenuProps) {
             </DropdownMenuContent>
         </DropdownMenu>
     );
-});
+}

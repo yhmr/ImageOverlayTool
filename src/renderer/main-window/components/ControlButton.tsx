@@ -1,4 +1,3 @@
-import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Settings2, Scaling } from "lucide-react";
 import { Button } from "@/renderer/components/ui/button";
@@ -15,16 +14,14 @@ interface ControlButtonProps {
     onToggleDimensionMode: () => void;
 }
 
-export const ControlButton = memo(function ControlButton(
-    props: ControlButtonProps
-) {
+export function ControlButton(props: ControlButtonProps) {
     const { isDimensionMode, onToggleDimensionMode } = props;
     const { t } = useTranslation();
 
     // 画像設定ウィンドウを開く
-    const handleOpenImageSettings = useCallback(async () => {
+    const handleOpenImageSettings = async () => {
         await window.electronAPI.toggleImageSettingsWindow();
-    }, []);
+    };
 
     return (
         <TooltipProvider>
@@ -75,4 +72,4 @@ export const ControlButton = memo(function ControlButton(
             </div>
         </TooltipProvider>
     );
-});
+}

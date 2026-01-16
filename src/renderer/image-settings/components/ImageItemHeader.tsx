@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { FolderOpen, Trash2, GripVertical } from "lucide-react";
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
@@ -19,9 +18,7 @@ interface ImageItemHeaderProps {
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
 
-export const ImageItemHeader = memo(function ImageItemHeader(
-    props: ImageItemHeaderProps
-) {
+export function ImageItemHeader(props: ImageItemHeaderProps) {
     const { path, fileName, onFileOpen, onDelete, dragHandleProps } = props;
     const { t } = useTranslation();
 
@@ -90,4 +87,4 @@ export const ImageItemHeader = memo(function ImageItemHeader(
             </TooltipProvider>
         </div>
     );
-});
+}

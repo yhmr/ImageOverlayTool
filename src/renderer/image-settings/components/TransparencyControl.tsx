@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Slider } from "@/renderer/components/ui/slider";
 
@@ -7,9 +6,7 @@ interface TransparencyControlProps {
     onChange: (value: number[]) => void;
 }
 
-export const TransparencyControl = memo(function TransparencyControl(
-    props: TransparencyControlProps
-) {
+export function TransparencyControl(props: TransparencyControlProps) {
     const { transparency, onChange } = props;
     const { t } = useTranslation();
 
@@ -31,4 +28,4 @@ export const TransparencyControl = memo(function TransparencyControl(
             </span>
         </div>
     );
-});
+}
