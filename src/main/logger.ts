@@ -13,6 +13,12 @@ log.initialize();
 log.transports.file.level = app.isPackaged ? "info" : "debug";
 log.transports.console.level = "debug";
 
+// テスト環境ではログ出力を抑制
+if (process.env.NODE_ENV === "test") {
+    log.transports.file.level = false;
+    log.transports.console.level = false;
+}
+
 // ファイルローテーション設定（10MB）
 log.transports.file.maxSize = 10 * 1024 * 1024;
 

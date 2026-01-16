@@ -2,6 +2,7 @@ import path from "path";
 import { BrowserWindow, globalShortcut } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
+import log from "../logger";
 
 /**
  * ウィンドウ管理クラス
@@ -29,6 +30,7 @@ export class WindowManager {
      * 指定されたファイルを開く
      */
     openFile(filePath: string): void {
+        log.debug(`Opening file: ${filePath}`);
         const ext = path.extname(filePath).toLowerCase();
 
         // ウィンドウが準備完了していれば送信、そうでなければ保留
@@ -37,8 +39,10 @@ export class WindowManager {
             !this.mainWindow.isDestroyed() &&
             this.mainWindow.isVisible()
         ) {
+            log.info(`Sending file to renderer: ${filePath}`);
             this.mainWindow.webContents.send("file:open", { filePath, ext });
         } else {
+            log.debug(`Window not ready, pending file: ${filePath}`);
             this.pendingFilePath = filePath;
         }
     }
@@ -47,6 +51,7 @@ export class WindowManager {
      * メインウィンドウを作成
      */
     createMainWindow(): BrowserWindow {
+        log.debug("Creating main window...");
         const { pos, size } = this.windowRepository.getWindowPositionAndSize();
 
         this.mainWindow = new BrowserWindow({
@@ -77,6 +82,7 @@ export class WindowManager {
 
         // 準備が出来た時点で表示
         this.mainWindow.on("ready-to-show", () => {
+            log.debug("Main window ready-to-show");
             this.mainWindow?.show();
             // show() calls flushPending via 'show' event listener below
         });
@@ -119,7 +125,7 @@ export class WindowManager {
                 path.join(__dirname, "../renderer/main-window/index.html")
             );
         }
-
+        log.info("Main window created");
         return this.mainWindow;
     }
 
@@ -131,9 +137,12 @@ export class WindowManager {
             this.imageSettingsWindow &&
             !this.imageSettingsWindow.isDestroyed()
         ) {
+            log.debug("Image settings window already exists, focusing");
             this.imageSettingsWindow.focus();
             return this.imageSettingsWindow;
         }
+
+        log.debug("Creating image settings window...");
 
         const { pos, size } =
             this.windowRepository.getImageSettingsWindowPositionAndSize();
@@ -193,7 +202,7 @@ export class WindowManager {
                 path.join(__dirname, "../renderer/image-settings/index.html")
             );
         }
-
+        log.info("Image settings window created");
         return this.imageSettingsWindow;
     }
 
@@ -205,11 +214,13 @@ export class WindowManager {
             !this.imageSettingsWindow ||
             this.imageSettingsWindow.isDestroyed()
         ) {
+            log.debug("Image settings window not found, creating new one");
             this.createImageSettingsWindow();
             return true;
         }
 
         if (this.imageSettingsWindow.isVisible()) {
+            log.debug("Hiding image settings window");
             this.windowRepository.saveImageSettingsWindowPositionAndSize(
                 this.imageSettingsWindow.getPosition(),
                 this.imageSettingsWindow.getSize()
@@ -217,6 +228,7 @@ export class WindowManager {
             this.imageSettingsWindow.hide();
             return false;
         } else {
+            log.debug("Showing image settings window");
             this.imageSettingsWindow.show();
             this.imageSettingsWindow.focus();
             return true;
@@ -292,7 +304,9 @@ export class WindowManager {
      * アプリ終了時のクリーンアップ
      */
     cleanup(): void {
+        log.debug("WindowManager cleanup started");
         this.unregisterShortcuts();
         this.closeAllWindows();
+        log.debug("WindowManager cleanup completed");
     }
 }
