@@ -1,10 +1,8 @@
-import Store from "electron-store";
-import { AppConfig } from "../../shared/types/AppConfig";
 import { WindowRepository, IWindowRepository } from "./WindowRepository";
+import { getSharedStore } from "./sharedStore";
 
 export class WindowRepositoryFactory {
     static create(): IWindowRepository {
-        const store = new Store<AppConfig>();
-        return new WindowRepository(store);
+        return new WindowRepository(getSharedStore());
     }
 }
