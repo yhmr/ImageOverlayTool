@@ -28,18 +28,24 @@ export function AboutDialog(props: AboutDialogProps) {
     const { t } = useTranslation();
     const [licenses, setLicenses] = useState<LicenseInfo[]>([]);
     const [loading, setLoading] = useState(false);
+    const [appVersion, setAppVersion] = useState("");
 
     useEffect(() => {
         if (open) {
             setLoading(true);
-            window.electronAPI
-                .getLicenseInfo()
-                .then((data) => {
-                    setLicenses(data);
+            // ライセンス情報とバージョンを並列で取得
+            Promise.all([
+                window.electronAPI.getLicenseInfo(),
+                window.electronAPI.getAppVersion(),
+            ])
+                .then(([licenseData, version]) => {
+                    setLicenses(licenseData);
+                    setAppVersion(version);
                 })
                 .catch((error) => {
-                    console.error("Failed to load licenses:", error);
+                    console.error("Failed to load about info:", error);
                     setLicenses([]);
+                    setAppVersion("");
                 })
                 .finally(() => {
                     setLoading(false);
@@ -58,7 +64,7 @@ export function AboutDialog(props: AboutDialogProps) {
                     <div className="text-center">
                         <h2 className="text-xl font-bold">ImageOverlayTool</h2>
                         <p className="text-sm text-muted-foreground">
-                            {t("render.about_dlg.version")}: 0.1.0
+                            {t("render.about_dlg.version")}: {appVersion}
                         </p>
                     </div>
 

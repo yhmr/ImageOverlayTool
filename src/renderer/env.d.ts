@@ -64,6 +64,8 @@ export interface IElectronAPI {
             url: string;
         }[]
     >;
+    // App Version
+    getAppVersion: () => Promise<string>;
 }
 
 declare global {

@@ -16,6 +16,12 @@ export interface LicenseInfo {
  * ライセンス情報取得用IPCハンドラを登録
  */
 export function registerLicenseIpc(): void {
+    // アプリバージョン取得
+    ipcMain.handle("app:getVersion", (): string => {
+        return app.getVersion();
+    });
+
+    // ライセンス情報取得
     ipcMain.handle("license:get", async (): Promise<LicenseInfo[]> => {
         try {
             // 開発時はプロジェクトルート、本番時はリソースパスからライセンスファイルを読み込む
