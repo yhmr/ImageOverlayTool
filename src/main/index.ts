@@ -18,6 +18,7 @@ import {
 } from "./ipc/protocol";
 import { registerProjectHandlers } from "./ipc/project";
 import { registerImageSettingsWindowHandlers } from "./ipc/imageSettingsWindow";
+import { registerLicenseIpc } from "./ipc/license";
 
 import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFactory";
 import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory";
@@ -107,6 +108,7 @@ if (!gotTheLock) {
         registerAppConfigHandlers(settingsRepository, windowRepository);
         registerProjectHandlers(projectRepository);
         registerImageSettingsWindowHandlers(windowManager);
+        registerLicenseIpc();
 
         // グローバルショートカットを登録
         windowManager.registerShortcuts();

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Maximize, Minimize, X } from "lucide-react";
 
 import { SettingDialog } from "./SettingDialog";
+import { AboutDialog } from "./AboutDialog";
 import { AppMenu } from "./AppMenu";
 import { useMenuState } from "../../hooks/useMenuState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
@@ -17,8 +18,14 @@ import {
 export function MenuBar() {
     const { t } = useTranslation();
 
-    const { openSettingDlg, handleSettingDlgOpen, handleSettingDlgClose } =
-        useMenuState();
+    const {
+        openSettingDlg,
+        handleSettingDlgOpen,
+        handleSettingDlgClose,
+        openAboutDlg,
+        handleAboutDlgOpen,
+        handleAboutDlgClose,
+    } = useMenuState();
 
     const { full, handleSwitchFullScreen, handleCloseWindow } =
         useWindowOperations();
@@ -41,6 +48,7 @@ export function MenuBar() {
                             {/* Wrapper for TooltipTrigger asChild issue if any, or just direct AppMenu */}
                             <AppMenu
                                 handleSettingDlgOpen={handleSettingDlgOpen}
+                                handleAboutDlgOpen={handleAboutDlgOpen}
                                 handleCloseWindow={handleCloseWindow}
                                 handleNewProject={handleNewProject}
                                 handleOpenProject={handleOpenProject}
@@ -104,6 +112,10 @@ export function MenuBar() {
                 <SettingDialog
                     open={openSettingDlg}
                     handleClose={handleSettingDlgClose}
+                />
+                <AboutDialog
+                    open={openAboutDlg}
+                    handleClose={handleAboutDlgClose}
                 />
             </div>
         </TooltipProvider>

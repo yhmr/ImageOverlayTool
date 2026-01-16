@@ -54,6 +54,16 @@ export interface IElectronAPI {
     onFileOpen: (
         callback: (filePath: string, ext: string) => void
     ) => () => void;
+    // License
+    getLicenseInfo: () => Promise<
+        {
+            name: string;
+            licenses: string;
+            repository: string;
+            publisher: string;
+            url: string;
+        }[]
+    >;
 }
 
 declare global {

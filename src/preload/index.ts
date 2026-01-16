@@ -83,4 +83,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.on("file:open", subscription);
         return () => ipcRenderer.removeListener("file:open", subscription);
     },
+    // License
+    getLicenseInfo: () => ipcRenderer.invoke("license:get"),
 });

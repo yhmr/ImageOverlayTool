@@ -7,10 +7,17 @@ import {
     DropdownMenuTrigger,
 } from "@/renderer/components/ui/dropdown-menu";
 import { Button } from "@/renderer/components/ui/button";
-import { Menu as MenuIcon, Settings, LogOut, ImagePlus } from "lucide-react";
+import {
+    Menu as MenuIcon,
+    Settings,
+    LogOut,
+    ImagePlus,
+    Info,
+} from "lucide-react";
 
 interface AppMenuProps {
     handleSettingDlgOpen: () => void;
+    handleAboutDlgOpen: () => void;
     handleCloseWindow: () => void;
     handleNewProject: () => void;
     handleOpenProject: () => void;
@@ -21,6 +28,7 @@ interface AppMenuProps {
 export function AppMenu(props: AppMenuProps) {
     const {
         handleSettingDlgOpen,
+        handleAboutDlgOpen,
         handleCloseWindow,
         handleNewProject,
         handleOpenProject,
@@ -69,6 +77,11 @@ export function AppMenu(props: AppMenuProps) {
                     <Settings className="mr-2 h-4 w-4" />
                     {t("render.menu.settings")}
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleAboutDlgOpen}>
+                    <Info className="mr-2 h-4 w-4" />
+                    {t("render.menu.about")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleCloseWindow}>
                     <LogOut className="mr-2 h-4 w-4" />
                     {t("render.menu.exit")}

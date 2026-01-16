@@ -10,9 +10,21 @@ export const useMenuState = () => {
         setOpenSettingDlg(false);
     }, []);
 
+    // AboutDialog関連
+    const [openAboutDlg, setOpenAboutDlg] = useState(false);
+    const handleAboutDlgOpen = useCallback(() => {
+        setOpenAboutDlg(true);
+    }, []);
+    const handleAboutDlgClose = useCallback(() => {
+        setOpenAboutDlg(false);
+    }, []);
+
     return {
         openSettingDlg,
         handleSettingDlgOpen,
         handleSettingDlgClose,
+        openAboutDlg,
+        handleAboutDlgOpen,
+        handleAboutDlgClose,
     };
 };

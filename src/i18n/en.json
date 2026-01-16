@@ -8,6 +8,7 @@
             "save_project": "Save Project",
             "save_project_as": "Save Project As",
             "settings": "Settings",
+            "about": "About",
             "exit": "Exit"
         },
         "menu_button": {
@@ -46,6 +47,12 @@
                 "language": "Change the language used in the UI",
                 "unitFactor": "Used for drawing dimension lines"
             }
+        },
+        "about_dlg": {
+            "title": "About ImageOverlayTool",
+            "version": "Version",
+            "licenses": "Open Source Licenses",
+            "done": "Close"
         }
     }
 }

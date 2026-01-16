@@ -8,6 +8,7 @@
             "save_project": "プロジェクトを保存",
             "save_project_as": "名前を付けて保存",
             "settings": "設定",
+            "about": "このアプリについて",
             "exit": "終了"
         },
         "menu_button": {
@@ -46,6 +47,12 @@
                 "language": "UIで使用する言語を変更します",
                 "unitFactor": "寸法線の描画で利用します"
             }
+        },
+        "about_dlg": {
+            "title": "ImageOverlayToolについて",
+            "version": "バージョン",
+            "licenses": "オープンソースライセンス",
+            "done": "閉じる"
         }
     }
 }
