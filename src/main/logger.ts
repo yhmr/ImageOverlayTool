@@ -8,6 +8,14 @@ import log from "electron-log/main";
 // electron-logを初期化（レンダラープロセスからのIPC通信を有効化）
 log.initialize();
 
+// Hook: スコープが設定されている場合（rendererからの場合）、processTypeをスコープ名で上書きする
+log.hooks.push((message) => {
+    if (message.scope && message.variables) {
+        message.variables.processType = message.scope;
+    }
+    return message;
+});
+
 // ログレベル設定
 // 開発時: debug, 本番時: info
 log.transports.file.level = app.isPackaged ? "info" : "debug";

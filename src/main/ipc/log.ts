@@ -15,19 +15,12 @@ export function registerLogHandlers(): void {
     ipcMain.handle(
         "log:write",
         (_event, level: LogLevel, message: string, params: unknown[]): void => {
-            switch (level) {
-                case "debug":
-                    log.debug(`[Renderer] ${message}`, ...params);
-                    break;
-                case "info":
-                    log.info(`[Renderer] ${message}`, ...params);
-                    break;
-                case "warn":
-                    log.warn(`[Renderer] ${message}`, ...params);
-                    break;
-                case "error":
-                    log.error(`[Renderer] ${message}`, ...params);
-                    break;
+            if (["debug", "info", "warn", "error"].includes(level)) {
+                const rendererLog = log.scope("renderer");
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (rendererLog as any)[level](message, ...params);
+            } else {
+                console.warn(`[IPC] Invalid log level: ${level}`);
             }
         }
     );

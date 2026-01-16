@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/renderer/components/ui/card";
 import { ImageItemHeader } from "./ImageItemHeader";
 import { TransparencyControl } from "./TransparencyControl";
 import { RotationControl } from "./RotationControl";
+import { logger } from "../../services/loggerService";
 
 interface ImageListItemProps {
     imageSet: ImageSet;
@@ -28,8 +29,10 @@ export function ImageListItem(props: ImageListItemProps) {
 
     // ファイルオープン
     const handleFileOpen = async () => {
+        logger.debug("Opening file dialog for image slot", { index });
         const res = await window.electronAPI.loadImage();
         if (res) {
+            logger.info(`Image loaded for slot ${index}: ${res}`);
             const newImageSet = { ...imageSets[index] };
             newImageSet.path = `local-file://${res.replace(/\\/g, "/")}`;
             // ファイル読み込み直しの場合は、すべてのパラメータを初期化
@@ -38,6 +41,8 @@ export function ImageListItem(props: ImageListItemProps) {
             newImageSet.init_anchor_pos = null;
             newImageSet.current_anchor_pos = null;
             updateImageSet({ index: index, imageSet: newImageSet });
+        } else {
+            logger.debug("Image loading canceled by user");
         }
     };
 

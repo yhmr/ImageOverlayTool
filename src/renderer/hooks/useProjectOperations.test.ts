@@ -23,6 +23,12 @@ window.electronAPI = {
     saveWindowColor: mockSaveWindowColor,
     updateImageSets: vi.fn(),
     updateUnitFactor: vi.fn(),
+    log: {
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+    },
 } as any;
 
 describe("useProjectOperations", () => {

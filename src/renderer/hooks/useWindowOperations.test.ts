@@ -9,6 +9,12 @@ describe("useWindowOperations", () => {
         window.electronAPI = {
             switchWindowSize: vi.fn().mockResolvedValue(true),
             closeWindow: vi.fn(),
+            log: {
+                debug: vi.fn(),
+                info: vi.fn(),
+                warn: vi.fn(),
+                error: vi.fn(),
+            },
         } as any;
     });
 

@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
     file: { level: "debug", maxSize: 0, format: "" },
     console: { level: "debug", format: "" },
     initialize: vi.fn(),
+    hooks: { push: vi.fn() },
 }));
 
 // electron-log/main のモック
@@ -16,6 +17,7 @@ vi.mock("electron-log/main", () => ({
             file: mocks.file,
             console: mocks.console,
         },
+        hooks: mocks.hooks,
     },
 }));
 
@@ -28,6 +30,7 @@ describe("Logger Module", () => {
     beforeEach(() => {
         vi.resetModules();
         mocks.initialize.mockClear();
+        mocks.hooks.push.mockClear();
         // モックの状態を初期値にリセット
         mocks.file.level = "debug";
         mocks.file.format = "";
@@ -69,18 +72,42 @@ describe("Logger Module", () => {
     describe("in production environment", () => {
         beforeEach(() => {
             process.env.NODE_ENV = "production";
-            // app.isPackaged を true に変更したいが、vi.mockはhoistされるため
-            // ここで動的に変更する必要がある。
-            // electronモックの定義を単純なオブジェクト参照ではなく、書き換え可能なプロパティにする必要があるが、
-            // 今回は簡易的に app.isPackagedプロパティを書き換える
-            // (vi.mockで返しているオブジェクトの実体は変更可能)
             (app.isPackaged as any) = true;
         });
 
         it("should set info level for file", async () => {
             await import("./logger");
             expect(mocks.file.level).toBe("info");
-            expect(mocks.console.level).toBe("debug"); // console is always debug in config
+            expect(mocks.console.level).toBe("debug");
+        });
+    });
+
+    describe("Hook functionality", () => {
+        beforeEach(() => {
+            process.env.NODE_ENV = "development";
+        });
+
+        it("should register a hook", async () => {
+            await import("./logger");
+            expect(mocks.hooks.push).toHaveBeenCalled();
+        });
+
+        it("should replace processType with scope if present", async () => {
+            await import("./logger");
+            // get the registered hook function
+            const hookFn = mocks.hooks.push.mock.calls[0][0];
+
+            // test case: has scope
+            const msgWithScope = { scope: "renderer", variables: {} };
+            const result1 = hookFn(msgWithScope);
+            expect(result1.variables.processType).toBe("renderer");
+
+            // test case: no scope
+            const msgNoScope = { variables: { processType: "main" } };
+            const result2 = hookFn(msgNoScope);
+            // hookFn returns message, logic was: if scope exists, write to variables
+            // if scope is undefined, it shouldn't touch variables
+            expect(result2.variables.processType).toBe("main");
         });
     });
 });
