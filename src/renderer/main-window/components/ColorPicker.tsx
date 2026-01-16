@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React from "react";
 
 import { HexAlphaColorPicker } from "react-colorful";
 
@@ -12,14 +12,15 @@ interface ColorPickerProps {
     onComplete: () => void;
     position: Point;
 }
-export const ColorPicker = memo(function ColorPicker(props: ColorPickerProps) {
+
+export function ColorPicker(props: ColorPickerProps) {
     const { open, setOpen, color, setColor, onComplete, position } = props;
 
     // 背景クリックで表示をOFF、かつ終了処理
-    const handleOnClickBackground = useCallback(() => {
+    const handleOnClickBackground = () => {
         setOpen(false);
         onComplete();
-    }, [setOpen, onComplete]);
+    };
 
     if (!position) {
         return null;
@@ -33,7 +34,7 @@ export const ColorPicker = memo(function ColorPicker(props: ColorPickerProps) {
                         position: "absolute",
                         top: position.y + "px",
                         left: position.x + "px",
-                        zIndex: 1300, // MUI Menu uses high z-index, ensure this is visible or properly layered
+                        zIndex: 1300,
                     }}
                 >
                     {/* 背景クリック用の領域確保 */}
@@ -58,4 +59,4 @@ export const ColorPicker = memo(function ColorPicker(props: ColorPickerProps) {
             )}
         </>
     );
-});
+}

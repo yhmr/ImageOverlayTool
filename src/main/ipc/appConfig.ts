@@ -1,33 +1,37 @@
 import { ipcMain } from "electron";
 import { SettingType } from "../../shared/types/AppConfig";
-import { IConfigRepository } from "../repositories/ConfigRepository";
+import { ISettingsRepository } from "../repositories/SettingsRepository";
+import { IWindowRepository } from "../repositories/WindowRepository";
 
-export const registerAppConfigHandlers = (repository: IConfigRepository) => {
+export const registerAppConfigHandlers = (
+    settingsRepository: ISettingsRepository,
+    windowRepository: IWindowRepository
+) => {
     /**
      * [IPC] 設定の読み込み
      */
     ipcMain.handle("setting:load", async () => {
-        return await repository.loadSettings();
+        return await settingsRepository.loadSettings();
     });
 
     /**
      * [IPC] 設定の保存
      */
     ipcMain.handle("setting:save", async (event, arg: SettingType) => {
-        await repository.saveSettings(arg);
+        await settingsRepository.saveSettings(arg);
     });
 
     /**
      * [IPC] ウィンドウ色の読み込み
      */
     ipcMain.handle("window_color:load", async () => {
-        return await repository.loadWindowColor();
+        return await windowRepository.loadWindowColor();
     });
 
     /**
      * [IPC] ウィンドウ色の保存
      */
     ipcMain.handle("window_color:save", async (event, color: string) => {
-        await repository.saveWindowColor(color);
+        await windowRepository.saveWindowColor(color);
     });
 };

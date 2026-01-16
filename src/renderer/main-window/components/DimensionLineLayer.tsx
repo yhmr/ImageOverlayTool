@@ -1,3 +1,4 @@
+"use no memo";
 import React, { memo, useCallback } from "react";
 import { Arrow, Group, Text, Circle } from "react-konva";
 import { DimensionLine } from "../../../shared/types/DimensionLine";

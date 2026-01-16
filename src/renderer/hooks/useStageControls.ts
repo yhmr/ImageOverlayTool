@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, RefObject } from "react";
 import Konva from "konva";
 
 export const useStageControls = (
-    stageRef: RefObject<Konva.Stage>,
+    stageRef: RefObject<Konva.Stage | null>,
     onUpdate?: (newPos: { x: number; y: number; scale: number }) => void
 ) => {
     const [stageSize, setStageSize] = useState({ height: 100, width: 100 });

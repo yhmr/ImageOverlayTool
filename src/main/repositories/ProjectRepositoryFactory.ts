@@ -1,6 +1,10 @@
 import { IProjectRepository, ProjectRepository } from "./ProjectRepository";
 import { MockProjectRepository } from "./MockProjectRepository";
-import { RepositoryType } from "./ConfigRepositoryFactory"; // Reuse the enum
+
+export enum RepositoryType {
+    PRODUCTION = "PRODUCTION",
+    MOCK = "MOCK",
+}
 
 export class ProjectRepositoryFactory {
     /**

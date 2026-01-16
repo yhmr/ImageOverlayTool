@@ -15,7 +15,8 @@ import {
 import { registerProjectHandlers } from "./ipc/project";
 import { registerImageSettingsWindowHandlers } from "./ipc/imageSettingsWindow";
 
-import { ConfigRepositoryFactory } from "./repositories/ConfigRepositoryFactory";
+import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFactory";
+import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory";
 import { ProjectRepositoryFactory } from "./repositories/ProjectRepositoryFactory";
 import { WindowManager } from "./windows/windowManager";
 
@@ -24,12 +25,13 @@ if (!app.isPackaged) {
     app.commandLine.appendSwitch("remote-debugging-port", "9222");
 }
 
-// 設定ファイル
-const configRepository = ConfigRepositoryFactory.create();
-// プロジェクトファイル
+// リポジトリの作成
+const settingsRepository = SettingsRepositoryFactory.create();
+const windowRepository = WindowRepositoryFactory.create();
 const projectRepository = ProjectRepositoryFactory.create();
+
 // ウィンドウマネージャー
-const windowManager = new WindowManager(configRepository);
+const windowManager = new WindowManager(windowRepository);
 
 // Menu削除
 Menu.setApplicationMenu(null);
@@ -81,7 +83,7 @@ if (!gotTheLock) {
 
         // IPCハンドラ登録
         registerWindowHandlers(mainWindow);
-        registerAppConfigHandlers(configRepository);
+        registerAppConfigHandlers(settingsRepository, windowRepository);
         registerProjectHandlers(projectRepository);
         registerImageSettingsWindowHandlers(windowManager);
 

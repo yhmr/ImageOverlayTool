@@ -1,17 +1,12 @@
 import {
-    SettingType,
     DEFAULT_MAIN_WINDOW_SIZE,
     DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
 } from "../../shared/types/AppConfig";
 import { Point } from "../../shared/types/Point";
 import { Size } from "../../shared/types/Size";
-import { IConfigRepository } from "./ConfigRepository"; // 同じディレクトリにあるConfigRepositoryからインターフェースをインポート
+import { IWindowRepository } from "./WindowRepository";
 
-export class MockConfigRepository implements IConfigRepository {
-    // メモリ上で値を保持する（アプリを再起動するとリセットされる）
-    private settings = {
-        language: "en",
-    };
+export class MockWindowRepository implements IWindowRepository {
     private windowColor = "#FF000055"; // テストだと分かりやすいように赤にしておく
     private windowPos: Point = { x: 100, y: 100 };
     private windowSize: Size = {
@@ -24,21 +19,11 @@ export class MockConfigRepository implements IConfigRepository {
         height: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height,
     };
 
-    async loadSettings() {
-        return { ...this.settings };
-    }
-
-    async saveSettings(settings: SettingType) {
-        if (settings.language !== undefined) {
-            this.settings.language = settings.language;
-        }
-    }
-
-    async loadWindowColor() {
+    async loadWindowColor(): Promise<string> {
         return this.windowColor;
     }
 
-    async saveWindowColor(color: string) {
+    async saveWindowColor(color: string): Promise<void> {
         this.windowColor = color;
     }
 

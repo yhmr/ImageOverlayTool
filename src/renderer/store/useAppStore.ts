@@ -11,6 +11,7 @@ import {
 
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../../shared/types/ImageSet";
+import { getIPCService } from "../services/ipcService";
 
 type StoreActions = {
     resetAll: () => void;
@@ -21,8 +22,9 @@ type AppState = ProjectDataSlice & ViewSlice & InteractionSlice & StoreActions;
 
 export const useAppStore = create<AppState>()((...args) => {
     const [, get] = args;
+    const ipcService = getIPCService();
     return {
-        ...createProjectDataSlice(...args),
+        ...createProjectDataSlice(ipcService)(...args),
         ...createViewSlice(...args),
         ...createInteractionSlice(...args),
 

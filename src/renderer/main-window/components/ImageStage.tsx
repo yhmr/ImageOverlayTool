@@ -1,3 +1,4 @@
+"use no memo";
 import React, { memo, useCallback, useRef, useEffect } from "react";
 
 import { useAppStore } from "../../store/useAppStore";
@@ -73,7 +74,7 @@ export const ImageStage = memo(function ImageStage() {
 
     // Handlers wrapper
     const onMouseDown = useCallback(
-        (e: KonvaEventObject<MouseEvent>) => {
+        (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
             // dimensionモードでない場合はステージドラッグを有効化
             if (!isDimensionMode) {
                 Konva.dragButtons = [1, 2];
@@ -81,12 +82,19 @@ export const ImageStage = memo(function ImageStage() {
                     stageRef.current.draggable(true);
                 }
                 // ステージクリックで画像選択を解除
-                if (e.evt.button === 0 && e.target.getType() === "Stage") {
+                if (
+                    "button" in e.evt &&
+                    e.evt.button === 0 &&
+                    e.target.getType() === "Stage"
+                ) {
                     setSelectedImageId(null);
                 }
             } else {
                 // dimensionモードで中クリックまたは右クリックでステージドラッグを有効化
-                if (e.evt.button === 1 || e.evt.button === 2) {
+                if (
+                    "button" in e.evt &&
+                    (e.evt.button === 1 || e.evt.button === 2)
+                ) {
                     Konva.dragButtons = [1, 2];
                     if (stageRef.current) {
                         stageRef.current.draggable(true);

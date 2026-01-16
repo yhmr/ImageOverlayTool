@@ -6,7 +6,9 @@ import { DimensionLine } from "../../shared/types/DimensionLine";
 import { MIN_DIMENSION_LINE_DISTANCE } from "../constants";
 import { useDimensionKeyboard } from "./useDimensionKeyboard";
 
-export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
+export const useDimensionLineMode = (
+    stageRef: RefObject<Konva.Stage | null>
+) => {
     const {
         dimensionLines,
         unitFactor,
@@ -41,9 +43,9 @@ export const useDimensionLineMode = (stageRef: RefObject<Konva.Stage>) => {
     }, [stageRef]);
 
     const onStageMouseDown = useCallback(
-        (_e: KonvaEventObject<MouseEvent>) => {
+        (_e: KonvaEventObject<MouseEvent | TouchEvent>) => {
             if (!isDimensionMode) return;
-            if (_e.evt.button === 0) {
+            if ("button" in _e.evt && _e.evt.button === 0) {
                 const pos = getStagePointerPos();
                 if (pos) {
                     const id = crypto.randomUUID();

@@ -6,8 +6,7 @@ import { useProjectSync } from "../hooks/useProjectSync";
 import { useFileHandler } from "../hooks/useFileHandler";
 import "../../i18n/configs"; //i18
 
-import { Box } from "@mui/material";
-
+import "../shared/globals.css";
 import "./App.css";
 import { MenuBar } from "./components/MenuBar";
 import { ImageStage } from "./components/ImageStage";
@@ -48,11 +47,11 @@ const App = () => {
     return (
         <div className="container">
             <MenuBar />
-            <Box
-                sx={{
+            <div
+                style={{
                     width: "100%",
                     height: "100%",
-                    bgcolor: windowColor,
+                    backgroundColor: windowColor,
                 }}
             >
                 <div className="image-area">
@@ -64,7 +63,7 @@ const App = () => {
                         <ImageStage />
                     </ContextMenu>
                 </div>
-            </Box>
+            </div>
         </div>
     );
 };

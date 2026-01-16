@@ -1,10 +1,9 @@
+import "../shared/globals.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 
 import { useProjectSync } from "../hooks/useProjectSync";
 import "../../i18n/configs";
-
-import { CssBaseline } from "@mui/material";
 
 import { SettingsMenuBar } from "./components/SettingsMenuBar";
 import { ImageList } from "./components/ImageList";
@@ -22,8 +21,7 @@ const ImageSettingsApp = () => {
 
     return (
         <>
-            <CssBaseline />
-            <div className="settings-container">
+            <div className="settings-container bg-background text-foreground">
                 <SettingsMenuBar />
                 <div className="settings-content">
                     <ImageList />

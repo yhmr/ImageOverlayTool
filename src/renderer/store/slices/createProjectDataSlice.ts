@@ -3,7 +3,7 @@ import { ImageSet } from "../../../shared/types/ImageSet";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
 import UUID from "uuidjs";
-import { getIPCService } from "../../services/ipcService";
+import { IIPCService } from "../../services/ipcService";
 
 const createDefaultImageSet = (): ImageSet => ({
     id: UUID.generate(),
@@ -44,109 +44,117 @@ export interface ProjectDataSlice {
     resetProjectData: () => void;
 }
 
-export const createProjectDataSlice: StateCreator<ProjectDataSlice> = (
-    set
-) => ({
-    imageSets: [createDefaultImageSet()],
-    dimensionLines: [],
-    unitFactor: 1.0,
-    windowColor: "#00000000",
+/**
+ * ProjectDataSliceを作成するファクトリー関数
+ * @param ipcService 依存性注入されるIPCサービス
+ */
+export const createProjectDataSlice = (
+    ipcService: IIPCService
+): StateCreator<ProjectDataSlice> => {
+    return (set) => ({
+        imageSets: [createDefaultImageSet()],
+        dimensionLines: [],
+        unitFactor: 1.0,
+        windowColor: "#00000000",
 
-    // --- Image Sets ---
-    setImageSets: (imageSets) => {
-        set({ imageSets });
-        getIPCService().updateImageSets(imageSets);
-    },
+        // --- Image Sets ---
+        setImageSets: (imageSets) => {
+            set({ imageSets });
+            ipcService.updateImageSets(imageSets);
+        },
 
-    updateImageSet: (payload) => {
-        set((state) => {
-            const newImageSets = [...state.imageSets];
-            if (payload.index !== undefined) {
-                if (newImageSets.length > payload.index) {
-                    newImageSets[payload.index] = payload.imageSet;
+        updateImageSet: (payload) => {
+            set((state) => {
+                const newImageSets = [...state.imageSets];
+                if (payload.index !== undefined) {
+                    if (newImageSets.length > payload.index) {
+                        newImageSets[payload.index] = payload.imageSet;
+                    }
+                } else if (payload.id !== undefined) {
+                    const targetIndex = newImageSets.findIndex(
+                        (s) => s.id === payload.id
+                    );
+                    if (targetIndex >= 0) {
+                        newImageSets[targetIndex] = payload.imageSet;
+                    }
                 }
-            } else if (payload.id !== undefined) {
-                const targetIndex = newImageSets.findIndex(
-                    (set) => set.id === payload.id
+                ipcService.updateImageSets(newImageSets);
+                return { imageSets: newImageSets };
+            });
+        },
+
+        syncImageSets: (imageSets) => {
+            set({ imageSets });
+        },
+
+        // --- Dimension Lines ---
+        setDimensionLines: (lines) => set({ dimensionLines: lines }),
+
+        addDimensionLine: (line) =>
+            set((state) => ({
+                dimensionLines: [...state.dimensionLines, line],
+            })),
+
+        updateDimensionLine: (line) =>
+            set((state) => {
+                const index = state.dimensionLines.findIndex(
+                    (l) => l.id === line.id
                 );
-                if (targetIndex >= 0) {
-                    newImageSets[targetIndex] = payload.imageSet;
+                if (index !== -1) {
+                    const newLines = [...state.dimensionLines];
+                    newLines[index] = line;
+                    return { dimensionLines: newLines };
                 }
-            }
-            getIPCService().updateImageSets(newImageSets);
-            return { imageSets: newImageSets };
-        });
-    },
+                return state;
+            }),
 
-    syncImageSets: (imageSets) => {
-        set({ imageSets });
-    },
+        removeDimensionLine: (id) =>
+            set((state) => ({
+                dimensionLines: state.dimensionLines.filter((l) => l.id !== id),
+            })),
 
-    // --- Dimension Lines ---
-    setDimensionLines: (lines) => set({ dimensionLines: lines }),
+        // --- Settings ---
+        setUnitFactor: (factor) => {
+            set({ unitFactor: factor });
+            ipcService.updateUnitFactor(factor);
+        },
 
-    addDimensionLine: (line) =>
-        set((state) => ({ dimensionLines: [...state.dimensionLines, line] })),
+        syncUnitFactor: (factor) => {
+            set({ unitFactor: factor });
+        },
 
-    updateDimensionLine: (line) =>
-        set((state) => {
-            const index = state.dimensionLines.findIndex(
-                (l) => l.id === line.id
-            );
-            if (index !== -1) {
-                const newLines = [...state.dimensionLines];
-                newLines[index] = line;
-                return { dimensionLines: newLines };
-            }
-            return state;
-        }),
+        setWindowColor: (color) => {
+            set({ windowColor: color });
+        },
 
-    removeDimensionLine: (id) =>
-        set((state) => ({
-            dimensionLines: state.dimensionLines.filter((l) => l.id !== id),
-        })),
+        // --- Bulk Actions ---
+        loadProjectData: (project) => {
+            const newImageSets = project.images;
+            const newDimensionLines = project.dimensionLines || [];
+            const newUnitFactor = project.settings.unitFactor;
+            const newWindowColor = project.window.color;
 
-    // --- Settings ---
-    setUnitFactor: (factor) => {
-        set({ unitFactor: factor });
-        getIPCService().updateUnitFactor(factor);
-    },
+            set({
+                imageSets: newImageSets,
+                dimensionLines: newDimensionLines,
+                unitFactor: newUnitFactor,
+                windowColor: newWindowColor,
+            });
 
-    syncUnitFactor: (factor) => {
-        set({ unitFactor: factor });
-    },
+            ipcService.updateImageSets(newImageSets);
+            ipcService.updateUnitFactor(newUnitFactor);
+        },
 
-    setWindowColor: (color) => {
-        set({ windowColor: color });
-    },
-
-    // --- Bulk Actions ---
-    loadProjectData: (project) => {
-        const newImageSets = project.images;
-        const newDimensionLines = project.dimensionLines || [];
-        const newUnitFactor = project.settings.unitFactor;
-        const newWindowColor = project.window.color;
-
-        set({
-            imageSets: newImageSets,
-            dimensionLines: newDimensionLines,
-            unitFactor: newUnitFactor,
-            windowColor: newWindowColor,
-        });
-
-        getIPCService().updateImageSets(newImageSets);
-        getIPCService().updateUnitFactor(newUnitFactor);
-    },
-
-    resetProjectData: () => {
-        const defaultImageSets = [createDefaultImageSet()];
-        // windowColorは意図的に保持する（ユーザーの背景色設定を維持）
-        set({
-            imageSets: defaultImageSets,
-            dimensionLines: [],
-            unitFactor: 1.0,
-        });
-        getIPCService().updateImageSets(defaultImageSets);
-        getIPCService().updateUnitFactor(1.0);
-    },
-});
+        resetProjectData: () => {
+            const defaultImageSets = [createDefaultImageSet()];
+            // windowColorは意図的に保持する（ユーザーの背景色設定を維持）
+            set({
+                imageSets: defaultImageSets,
+                dimensionLines: [],
+                unitFactor: 1.0,
+            });
+            ipcService.updateImageSets(defaultImageSets);
+            ipcService.updateUnitFactor(1.0);
+        },
+    });
+};

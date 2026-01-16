@@ -1,7 +1,7 @@
 import path from "path";
 import { BrowserWindow, globalShortcut } from "electron";
 import { is } from "@electron-toolkit/utils";
-import { IConfigRepository } from "../repositories/ConfigRepository";
+import { IWindowRepository } from "../repositories/WindowRepository";
 
 /**
  * ウィンドウ管理クラス
@@ -10,12 +10,12 @@ import { IConfigRepository } from "../repositories/ConfigRepository";
 export class WindowManager {
     private mainWindow: BrowserWindow | null = null;
     private imageSettingsWindow: BrowserWindow | null = null;
-    private configRepository: IConfigRepository;
+    private windowRepository: IWindowRepository;
     private isQuitting = false;
     private pendingFilePath: string | null = null;
 
-    constructor(configRepository: IConfigRepository) {
-        this.configRepository = configRepository;
+    constructor(windowRepository: IWindowRepository) {
+        this.windowRepository = windowRepository;
     }
 
     /**
@@ -47,7 +47,7 @@ export class WindowManager {
      * メインウィンドウを作成
      */
     createMainWindow(): BrowserWindow {
-        const { pos, size } = this.configRepository.getWindowPositionAndSize();
+        const { pos, size } = this.windowRepository.getWindowPositionAndSize();
 
         this.mainWindow = new BrowserWindow({
             show: false,
@@ -87,7 +87,7 @@ export class WindowManager {
         // ウィンドウが閉じられる際にウィンドウ設定を保存
         this.mainWindow.on("close", () => {
             if (this.mainWindow) {
-                this.configRepository.saveWindowPositionAndSize(
+                this.windowRepository.saveWindowPositionAndSize(
                     this.mainWindow.getPosition(),
                     this.mainWindow.getSize()
                 );
@@ -136,7 +136,7 @@ export class WindowManager {
         }
 
         const { pos, size } =
-            this.configRepository.getImageSettingsWindowPositionAndSize();
+            this.windowRepository.getImageSettingsWindowPositionAndSize();
 
         this.imageSettingsWindow = new BrowserWindow({
             show: false,
@@ -165,7 +165,7 @@ export class WindowManager {
         // ウィンドウが閉じられる際に設定を保存
         this.imageSettingsWindow.on("close", (event) => {
             if (this.imageSettingsWindow) {
-                this.configRepository.saveImageSettingsWindowPositionAndSize(
+                this.windowRepository.saveImageSettingsWindowPositionAndSize(
                     this.imageSettingsWindow.getPosition(),
                     this.imageSettingsWindow.getSize()
                 );
@@ -210,7 +210,7 @@ export class WindowManager {
         }
 
         if (this.imageSettingsWindow.isVisible()) {
-            this.configRepository.saveImageSettingsWindowPositionAndSize(
+            this.windowRepository.saveImageSettingsWindowPositionAndSize(
                 this.imageSettingsWindow.getPosition(),
                 this.imageSettingsWindow.getSize()
             );

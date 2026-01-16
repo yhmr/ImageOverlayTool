@@ -19,6 +19,17 @@
             "rules": {
                 "@typescript-eslint/no-explicit-any": "off"
             }
+        },
+        {
+            "files": [
+                "**/ImageStage.tsx",
+                "**/PerspectiveImage.tsx",
+                "**/OverlayControls.tsx",
+                "**/DimensionLineLayer.tsx"
+            ],
+            "rules": {
+                "react-compiler/react-compiler": "off"
+            }
         }
     ],
     "parser": "@typescript-eslint/parser",
@@ -29,11 +40,13 @@
     "plugins": [
         "react",
         "@typescript-eslint",
-        "react-hooks"
+        "react-hooks",
+        "react-compiler"
     ],
     "rules": {
-        "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
-        "react-hooks/exhaustive-deps": "warn", // Checks effect dependencies
+        "react-compiler/react-compiler": "error",
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
         "react/react-in-jsx-scope": "off"
     },
     "settings": {

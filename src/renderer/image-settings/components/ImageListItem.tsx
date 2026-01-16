@@ -1,26 +1,14 @@
-import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAppStore } from "../../store/useAppStore";
-
-import {
-    Card,
-    CardContent,
-    IconButton,
-    Slider,
-    Stack,
-    TextField,
-    Tooltip,
-    Typography,
-} from "@mui/material";
-import FileOpenIcon from "@mui/icons-material/FileOpen";
-import ClearIcon from "@mui/icons-material/Clear";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import RotateRightIcon from "@mui/icons-material/RotateRight";
-
 import { ImageSet } from "../../../shared/types/ImageSet";
-
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
+
+import { Card, CardContent } from "@/renderer/components/ui/card";
+
+import { ImageItemHeader } from "./ImageItemHeader";
+import { TransparencyControl } from "./TransparencyControl";
+import { RotationControl } from "./RotationControl";
 
 interface ImageListItemProps {
     imageSet: ImageSet;
@@ -32,16 +20,14 @@ interface ImageListItemProps {
  * 画像リストの各アイテム
  * パス表示、透過度スライダー、削除ボタンを含む
  */
-export const ImageListItem = memo(function ImageListItem(
-    props: ImageListItemProps
-) {
+export function ImageListItem(props: ImageListItemProps) {
     const { imageSet, index, dragHandleProps } = props;
     const { t } = useTranslation();
 
     const { imageSets, updateImageSet, setImageSets } = useAppStore();
 
     // ファイルオープン
-    const handleFileOpen = useCallback(async () => {
+    const handleFileOpen = async () => {
         const res = await window.electronAPI.loadImage();
         if (res) {
             const newImageSet = { ...imageSets[index] };
@@ -53,51 +39,44 @@ export const ImageListItem = memo(function ImageListItem(
             newImageSet.current_anchor_pos = null;
             updateImageSet({ index: index, imageSet: newImageSet });
         }
-    }, [updateImageSet, imageSets, index]);
+    };
 
     // 削除
-    const handleDelete = useCallback(() => {
+    const handleDelete = () => {
         const newImageSets = [...imageSets];
         newImageSets.splice(index, 1);
         setImageSets(newImageSets);
-    }, [setImageSets, imageSets, index]);
+    };
 
-    // 透過度変更
-    const handleTransparencyChange = useCallback(
-        (_event: Event, value: number | number[]) => {
-            if (typeof value !== "number") return;
-            const newImageSet = { ...imageSet };
-            newImageSet.transparency = value;
-            updateImageSet({ index: index, imageSet: newImageSet });
-        },
-        [updateImageSet, imageSet, index]
-    );
+    // 透過度変更 (shadcn Slider returns number[])
+    const handleTransparencyChange = (value: number[]) => {
+        const newImageSet = { ...imageSet };
+        newImageSet.transparency = value[0];
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
 
     // 回転変更
-    const handleRotationChange = useCallback(
-        (_event: Event | React.SyntheticEvent, value: number | number[]) => {
-            if (typeof value !== "number") return;
-            if (!imageSet.current_anchor_pos) return;
+    const handleRotationChange = (value: number[]) => {
+        if (!imageSet.current_anchor_pos) return;
 
-            const newImageSet = { ...imageSet };
-            // 単純に値をセット
-            newImageSet.rotation = value;
+        const newImageSet = { ...imageSet };
+        newImageSet.rotation = value[0];
 
-            updateImageSet({ index: index, imageSet: newImageSet });
-        },
-        [updateImageSet, imageSet, index]
-    );
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
 
-    // 回転入力変更 (TextField)
-    const handleRotationInputChange = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const value = Number(event.target.value);
-            if (isNaN(value)) return;
-            // 範囲制限なし、または適度な制限
-            handleRotationChange(event, value);
-        },
-        [handleRotationChange]
-    );
+    // 回転入力変更 (Input)
+    const handleRotationInputChange = (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const value = Number(event.target.value);
+        if (isNaN(value)) return;
+
+        if (!imageSet.current_anchor_pos) return;
+        const newImageSet = { ...imageSet };
+        newImageSet.rotation = value;
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
 
     // ファイル名を抽出（パスから）
     const fileName = imageSet.path
@@ -105,133 +84,33 @@ export const ImageListItem = memo(function ImageListItem(
         : t("render.image_settings.no_image", "画像未選択");
 
     return (
-        <Card
-            variant="outlined"
-            sx={{
-                mb: 1,
-            }}
-        >
-            <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                    {/* ドラッグハンドル */}
-                    <div
-                        {...dragHandleProps}
-                        style={{ display: "flex", cursor: "grab" }}
-                    >
-                        <DragIndicatorIcon sx={{ color: "text.secondary" }} />
-                    </div>
-
-                    {/* ファイル名 */}
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            flexGrow: 1,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                        }}
-                        title={imageSet.path}
-                    >
-                        {fileName}
-                    </Typography>
-
-                    {/* ファイルオープンボタン */}
-                    <Tooltip
-                        title={t(
-                            "render.image_setting_dlg.tooltip.load_image",
-                            "画像を開く"
-                        )}
-                    >
-                        <IconButton size="small" onClick={handleFileOpen}>
-                            <FileOpenIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
-
-                    {/* 削除ボタン */}
-                    <Tooltip
-                        title={t(
-                            "render.image_setting_dlg.tooltip.delete_image",
-                            "削除"
-                        )}
-                    >
-                        <IconButton size="small" onClick={handleDelete}>
-                            <ClearIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
-                </Stack>
+        <Card className="mb-2">
+            <CardContent className="p-3">
+                <ImageItemHeader
+                    path={imageSet.path}
+                    fileName={fileName}
+                    onFileOpen={handleFileOpen}
+                    onDelete={handleDelete}
+                    dragHandleProps={dragHandleProps}
+                />
 
                 {/* 透過度スライダー */}
                 {imageSet.path && (
-                    <Stack
-                        direction="row"
-                        spacing={2}
-                        alignItems="center"
-                        sx={{ mt: 1 }}
-                    >
-                        <Typography variant="caption" sx={{ minWidth: 50 }}>
-                            {t("render.image_settings.transparency", "透過度")}
-                        </Typography>
-                        <Slider
-                            size="small"
-                            max={1}
-                            min={0}
-                            value={imageSet.transparency}
-                            step={0.01}
-                            valueLabelDisplay="auto"
-                            valueLabelFormat={(x) => Math.round(x * 100) + "%"}
-                            onChange={handleTransparencyChange}
-                            sx={{ flexGrow: 1 }}
-                        />
-                        <Typography
-                            variant="caption"
-                            sx={{ minWidth: 35, textAlign: "right" }}
-                        >
-                            {Math.round(imageSet.transparency * 100)}%
-                        </Typography>
-                    </Stack>
+                    <TransparencyControl
+                        transparency={imageSet.transparency}
+                        onChange={handleTransparencyChange}
+                    />
                 )}
 
                 {/* 回転スライダー */}
                 {imageSet.path && imageSet.current_anchor_pos && (
-                    <Stack
-                        direction="row"
-                        spacing={2}
-                        alignItems="center"
-                        sx={{ mt: 1 }}
-                    >
-                        <Typography variant="caption" sx={{ minWidth: 50 }}>
-                            {t("render.image_settings.rotation", "回転")}
-                        </Typography>
-                        <RotateRightIcon fontSize="small" color="action" />
-                        <Slider
-                            size="small"
-                            min={-180}
-                            max={180}
-                            value={imageSet.rotation || 0}
-                            valueLabelDisplay="auto"
-                            onChange={handleRotationChange}
-                            sx={{ flexGrow: 1 }}
-                        />
-                        <TextField
-                            variant="standard"
-                            size="small"
-                            value={Math.round(imageSet.rotation || 0)}
-                            onChange={handleRotationInputChange}
-                            inputProps={{
-                                step: 1,
-                                min: -360,
-                                max: 360,
-                                type: "number",
-                                style: {
-                                    textAlign: "right",
-                                    fontSize: "0.75rem",
-                                },
-                            }}
-                            sx={{ width: 45 }}
-                        />
-                    </Stack>
+                    <RotationControl
+                        rotation={imageSet.rotation || 0}
+                        onRotationChange={handleRotationChange}
+                        onInputChange={handleRotationInputChange}
+                    />
                 )}
             </CardContent>
         </Card>
     );
-});
+}
