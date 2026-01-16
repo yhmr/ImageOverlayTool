@@ -24,9 +24,9 @@
 このプロジェクトは以下の技術スタックで構築されています：
 
 - **Core**: [Electron](https://www.electronjs.org/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/)
-- **State Management**: [Redux Toolkit](https://redux-toolkit.js.org/)
+- **State Management**: [Zustand](https://zustand.docs.pmnd.rs/)
 - **Canvas Rendering**: [Konva](https://konvajs.org/) / [react-konva](https://konvajs.org/docs/react/)
-- **UI Components**: [Material UI (MUI)](https://mui.com/)
+- **UI Components**: [Radix UI](https://www.radix-ui.com/) / [shadcn/ui](https://ui.shadcn.com/)
 - **Build Tool**: [electron-vite](https://electron-vite.org/)
 - **Testing**: [Vitest](https://vitest.dev/), [Testing Library](https://testing-library.com/)
 
@@ -66,13 +66,33 @@ electron-vite の標準構成に従い、プロセスごとにソースコード
 
 ```
 src/
-├── main/       # Electron メインプロセス (ウィンドウ管理、IPC通信、ファイル操作)
-├── preload/    # Preload スクリプト (レンダラーへのセキュアなAPI露出)
-└── renderer/   # React レンダラープロセス (UIコンポーネント、Canvas描画ロジック)
-    ├── main-window/    # メインウィンドウ用コンポーネント (Canvasなど)
-    ├── image-settings/ # 画像設定ウィンドウ用コンポーネント
-    ├── hooks/          # 共通カスタムHooks
-    └── store/          # Redux ストア設定
+├── main/           # Electron メインプロセス
+│   ├── index.ts        # アプリエントリポイント
+│   ├── ipc/            # IPC通信ハンドラ (プロジェクト操作、ウィンドウ制御等)
+│   ├── repositories/   # データアクセス層 (リポジトリパターン)
+│   │   ├── ProjectRepository.ts     # プロジェクトファイル読み書き
+│   │   ├── SettingsRepository.ts    # アプリ設定永続化
+│   │   ├── WindowRepository.ts      # ウィンドウ位置/サイズ保存
+│   │   └── sharedStore.ts           # electron-store共有インスタンス
+│   ├── windows/        # ウィンドウ管理 (WindowManagerクラス)
+│   └── utils/          # ユーティリティ
+│
+├── preload/        # Preload スクリプト (レンダラーへのセキュアなAPI露出)
+│
+├── renderer/       # React レンダラープロセス
+│   ├── main-window/    # メインウィンドウ用コンポーネント (Canvasなど)
+│   ├── image-settings/ # 画像設定ウィンドウ用コンポーネント
+│   ├── hooks/          # 共通カスタムHooks
+│   ├── store/          # Zustand ストア設定
+│   │   ├── useAppStore.ts           # メインストア
+│   │   └── slices/                  # 状態スライス (ProjectData, View, Interaction)
+│   ├── services/       # サービス層 (IPC呼び出し抽象化)
+│   └── components/     # 共通UIコンポーネント (Radix UI/shadcn)
+│
+├── shared/         # Main/Renderer 共有コード
+│   └── types/          # 共通型定義 (ImageSet, ProjectFile等)
+│
+└── i18n/           # 国際化リソース (i18next)
 ```
 
 ## ⚠️ 開発上の注意点
