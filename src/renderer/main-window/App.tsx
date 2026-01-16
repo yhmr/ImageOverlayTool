@@ -11,6 +11,16 @@ import "./App.css";
 import { MenuBar } from "./components/MenuBar";
 import { ImageStage } from "./components/ImageStage";
 import { ContextMenu } from "./components/ContextMenu";
+import { logger } from "../services/loggerService";
+
+// グローバルエラーハンドリング
+window.addEventListener("error", (event) => {
+    logger.error("Renderer Uncaught Error:", event.error || event.message);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+    logger.error("Renderer Unhandled Rejection:", event.reason);
+});
 
 const App = () => {
     // 設定の読み込み

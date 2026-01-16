@@ -13,6 +13,12 @@ const mockUpdateUnitFactor = vi.fn();
 window.electronAPI = {
     updateImageSets: mockUpdateImageSets,
     updateUnitFactor: mockUpdateUnitFactor,
+    log: {
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+    },
     // ... other mocks if needed
 } as any;
 

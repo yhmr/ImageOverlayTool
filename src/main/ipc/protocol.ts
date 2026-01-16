@@ -1,6 +1,7 @@
 // src/main/protocol.ts
 import { protocol, net } from "electron";
 import { pathToFileURL } from "url";
+import log from "../logger";
 
 /**
  * カスタムプロトコルの登録
@@ -49,7 +50,7 @@ export function setupProtocolHandler() {
             const finalFileUrl = pathToFileURL(decodedPath).toString();
             return net.fetch(finalFileUrl);
         } catch (e) {
-            console.error("Protocol error:", e);
+            log.error("Protocol error:", e);
             return new Response("Not Found", { status: 404 });
         }
     });

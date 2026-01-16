@@ -6,6 +6,10 @@ import {
 } from "electron-devtools-installer";
 import { is } from "@electron-toolkit/utils";
 
+// ロガー（最初に初期化。ファイルの先頭でインポートして初期化コードを実行）
+import log from "./logger";
+import { registerLogHandlers } from "./ipc/log";
+
 import { registerWindowHandlers } from "./ipc/window";
 import { registerAppConfigHandlers } from "./ipc/appConfig";
 import {
@@ -36,13 +40,27 @@ const windowManager = new WindowManager(windowRepository);
 // Menu削除
 Menu.setApplicationMenu(null);
 
+// ログIPCハンドラー登録（app.ready前に登録可能）
+registerLogHandlers();
+
+// グローバル例外ハンドラー
+process.on("uncaughtException", (error) => {
+    log.error("Uncaught Exception:", error);
+});
+
+process.on("unhandledRejection", (reason) => {
+    log.error("Unhandled Rejection:", reason);
+});
+
 // プロトコルを事前登録
 registerLocalResourceProtocol();
 
 // 二重起動防止
 const gotTheLock = app.requestSingleInstanceLock();
+log.info("Application starting...");
 
 if (!gotTheLock) {
+    log.info("Another instance is already running. Quitting.");
     app.quit();
 } else {
     // 2つ目のインスタンスが起動されたときの処理
@@ -75,11 +93,14 @@ if (!gotTheLock) {
     });
 
     app.whenReady().then(() => {
+        log.info("App ready, creating main window...");
+
         // プロトコルハンドラ登録
         setupProtocolHandler();
 
         // メインウィンドウを作成
         const mainWindow = windowManager.createMainWindow();
+        log.info("Main window created.");
 
         // IPCハンドラ登録
         registerWindowHandlers(mainWindow);
@@ -117,6 +138,7 @@ if (!gotTheLock) {
 
     // アプリケーションが閉じられた際の処理
     app.once("window-all-closed", () => {
+        log.info("All windows closed. Quitting application.");
         windowManager.cleanup();
         app.quit();
     });

@@ -3,6 +3,7 @@ import { useAppStore } from "../store/useAppStore";
 import { useProjectOperations } from "./useProjectOperations";
 import UUID from "uuidjs";
 import { ImageSet } from "../../shared/types/ImageSet";
+import { logger } from "../services/loggerService";
 
 export const useFileHandler = () => {
     const { imageSets, setImageSets } = useAppStore();
@@ -10,6 +11,7 @@ export const useFileHandler = () => {
 
     useEffect(() => {
         const unsubscribe = window.electronAPI.onFileOpen((filePath, ext) => {
+            logger.debug(`File received via IPC: ${filePath} (${ext})`);
             // Project File
             if (ext === ".iot") {
                 handleLoadProjectFromPath(filePath);

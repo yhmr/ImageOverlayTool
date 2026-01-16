@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../../shared/types/ImageSet";
+import { logger } from "../services/loggerService";
 
 export const useProjectOperations = () => {
     const {
@@ -35,12 +36,14 @@ export const useProjectOperations = () => {
     );
 
     const handleNewProject = useCallback(async () => {
+        logger.info("New project requested");
         resetAll();
         setCurrentFilePath(null);
     }, [resetAll]);
 
     const applyProject = useCallback(
         async (project: ProjectFile<ImageSet>, filePath: string) => {
+            logger.info(`Applying project from: ${filePath}`);
             loadProject(project);
             if (project.window) {
                 await window.electronAPI.setWindowRect({
@@ -79,6 +82,7 @@ export const useProjectOperations = () => {
     );
 
     const handleSaveProjectAs = useCallback(async () => {
+        logger.info("Save Project As requested");
         const project = createProjectFile();
         const filePath = await window.electronAPI.saveProjectAs(project);
         if (filePath) {
@@ -92,6 +96,7 @@ export const useProjectOperations = () => {
             return;
         }
         const project = createProjectFile();
+        logger.info(`Saving project to: ${currentFilePath}`);
         await window.electronAPI.saveProject(currentFilePath, project);
     }, [currentFilePath, createProjectFile, handleSaveProjectAs]);
 

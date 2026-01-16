@@ -10,6 +10,7 @@ import { arrayMoveImmutable } from "array-move";
 import { Plus } from "lucide-react";
 
 import { useAppStore } from "../../store/useAppStore";
+import { logger } from "../../services/loggerService";
 
 import { ImageListItem } from "./ImageListItem";
 
@@ -35,6 +36,7 @@ export function ImageList() {
 
     // 新しいImageSetを追加
     const handleAddImageSet = () => {
+        logger.info("Adding new empty image slot");
         const newImageSets = [...imageSets];
         newImageSets.push({
             id: UUID.generate(),

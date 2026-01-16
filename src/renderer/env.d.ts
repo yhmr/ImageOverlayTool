@@ -4,6 +4,13 @@ import type { ImageSet } from "./types/ImageSet";
 
 // APIのインターフェースを定義
 export interface IElectronAPI {
+    // Logger
+    log: {
+        debug: (message: string, ...params: unknown[]) => Promise<void>;
+        info: (message: string, ...params: unknown[]) => Promise<void>;
+        warn: (message: string, ...params: unknown[]) => Promise<void>;
+        error: (message: string, ...params: unknown[]) => Promise<void>;
+    };
     loadImage: () => Promise<string | null>;
     // Window
     switchWindowSize: () => Promise<boolean>;
