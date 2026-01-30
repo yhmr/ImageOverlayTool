@@ -24,5 +24,12 @@ export default defineConfig({
         environment: 'node', // 現在のテストはDOM不要なのでnodeで実行
         globals: true,
         testTimeout: 30000,
+        coverage: {
+            provider: 'v8',
+            enabled: true,
+            reporter: ['text', 'json', 'html'],
+            reportsDirectory: './coverage',
+            exclude: ['**/node_modules/**', '**/dist/**', '**/out/**', '**/*.d.ts', '**/tests/**'],
+        },
     },
 });
