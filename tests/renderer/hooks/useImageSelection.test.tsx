@@ -3,8 +3,8 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useImageSelection } from "./useImageSelection";
-import { useAppStore } from "../store/useAppStore";
+import { useImageSelection } from "@/renderer/hooks/useImageSelection";
+import { useAppStore } from "@/renderer/store/useAppStore";
 
 // Mock Electron API
 window.electronAPI = {
@@ -66,3 +66,4 @@ describe("useImageSelection", () => {
         expect(result.current.selectedImageId).toBeNull();
     });
 });
+

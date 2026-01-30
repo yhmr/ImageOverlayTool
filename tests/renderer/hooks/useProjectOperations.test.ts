@@ -3,8 +3,8 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useProjectOperations } from "./useProjectOperations";
-import { useAppStore } from "../store/useAppStore";
+import { useProjectOperations } from "@/renderer/hooks/useProjectOperations";
+import { useAppStore } from "@/renderer/store/useAppStore";
 
 // Mock Electron API
 const mockLoadProject = vi.fn();
@@ -130,3 +130,4 @@ describe("useProjectOperations", () => {
         expect(result.current.currentFilePath).toBe("C:/new/path/project.json");
     });
 });
+

@@ -2,9 +2,9 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { useAppStore } from "./useAppStore";
-import { ImageSet } from "../../shared/types/ImageSet";
-import { DimensionLine } from "../../shared/types/DimensionLine";
+import { useAppStore } from "@/renderer/store/useAppStore";
+import { ImageSet } from "@/shared/types/ImageSet";
+import { DimensionLine } from "@/shared/types/DimensionLine";
 
 // Mock electronAPI
 const mockUpdateImageSets = vi.fn();
@@ -260,3 +260,4 @@ describe("useAppStore", () => {
         });
     });
 });
+

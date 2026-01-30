@@ -1,6 +1,6 @@
 import { expect, test, describe, vi, beforeEach } from "vitest";
-import { ProjectRepository } from "./ProjectRepository";
-import { ProjectFile } from "../../shared/types/ProjectFile";
+import { ProjectRepository } from "@/main/repositories/ProjectRepository";
+import { ProjectFile } from "@/shared/types/ProjectFile";
 import fs from "fs/promises";
 
 // Mock fs/promises

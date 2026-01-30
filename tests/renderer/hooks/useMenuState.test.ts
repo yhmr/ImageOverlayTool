@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
-import { useMenuState } from "./useMenuState";
+import { useMenuState } from "@/renderer/hooks/useMenuState";
 import { describe, it, expect } from "vitest";
 
 describe("useMenuState", () => {
@@ -20,3 +20,4 @@ describe("useMenuState", () => {
         expect(result.current.openSettingDlg).toBe(false);
     });
 });
+

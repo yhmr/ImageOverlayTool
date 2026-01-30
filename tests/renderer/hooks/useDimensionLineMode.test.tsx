@@ -3,8 +3,8 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useDimensionLineMode } from "./useDimensionLineMode";
-import { useAppStore } from "../store/useAppStore";
+import { useDimensionLineMode } from "@/renderer/hooks/useDimensionLineMode";
+import { useAppStore } from "@/renderer/store/useAppStore";
 import { RefObject } from "react";
 import Konva from "konva";
 
@@ -77,3 +77,4 @@ describe("useDimensionLineMode", () => {
         expect(result.current.selectedDimensionLineId).toBe(lines[0].id);
     });
 });
+

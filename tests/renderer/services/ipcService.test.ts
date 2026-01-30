@@ -7,7 +7,7 @@ import {
     setIPCService,
     resetIPCService,
     MockIPCService,
-} from "./ipcService";
+} from "@/renderer/services/ipcService";
 
 describe("ipcService", () => {
     beforeEach(() => {
@@ -78,3 +78,4 @@ describe("ipcService", () => {
         });
     });
 });
+

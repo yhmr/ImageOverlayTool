@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { rotateAnchorPos, getCenter, rotatePoint } from "./anchorUtils";
-import { AnchorPos } from "../../shared/types/AnchorPos";
+import { rotateAnchorPos, getCenter, rotatePoint } from "@/renderer/utils/anchorUtils";
+import { AnchorPos } from "@/shared/types/AnchorPos";
 
 describe("anchorUtils", () => {
     describe("getCenter", () => {
@@ -66,3 +66,4 @@ describe("anchorUtils", () => {
         });
     });
 });
+

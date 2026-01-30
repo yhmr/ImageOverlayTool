@@ -3,8 +3,8 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { useDimensionKeyboard } from "./useDimensionKeyboard";
-import { useAppStore } from "../store/useAppStore";
+import { useDimensionKeyboard } from "@/renderer/hooks/useDimensionKeyboard";
+import { useAppStore } from "@/renderer/store/useAppStore";
 
 // Mock Electron API
 window.electronAPI = {
@@ -112,3 +112,4 @@ describe("useDimensionKeyboard", () => {
         expect(useAppStore.getState().selectedDimensionLineId).toBe(lineId);
     });
 });
+
