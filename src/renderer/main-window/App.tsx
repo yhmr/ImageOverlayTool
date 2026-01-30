@@ -60,13 +60,14 @@ const App = () => {
     );
 
     return (
-        <div className="container">
+        <div className="main-app-container">
             <MenuBar />
             <div
                 style={{
                     width: "100%",
-                    height: "100%",
+                    flexGrow: 1,
                     backgroundColor: windowColor,
+                    overflow: "hidden",
                 }}
             >
                 <div className="image-area">
