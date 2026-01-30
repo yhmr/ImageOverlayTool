@@ -1,6 +1,6 @@
 # ImageOverlayTool
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)
 
 **ImageOverlayTool** は、Electron と React で構築された、画像の重ね合わせ調整用デスクトップアプリケーションです。
@@ -62,43 +62,45 @@ npm test
 
 ## 📁 ディレクトリ構成
 
-electron-vite の標準構成に従い、プロセスごとにソースコードを分離しています。
+electron-vite の標準的な構成に基づき、コードの分離を行っています。
 
 ```
-src/
-├── main/           # Electron メインプロセス
-│   ├── index.ts        # アプリエントリポイント
-│   ├── ipc/            # IPC通信ハンドラ (プロジェクト操作、ウィンドウ制御等)
-│   ├── repositories/   # データアクセス層 (リポジトリパターン)
-│   │   ├── ProjectRepository.ts     # プロジェクトファイル読み書き
-│   │   ├── SettingsRepository.ts    # アプリ設定永続化
-│   │   ├── WindowRepository.ts      # ウィンドウ位置/サイズ保存
-│   │   └── sharedStore.ts           # electron-store共有インスタンス
-│   ├── windows/        # ウィンドウ管理 (WindowManagerクラス)
-│   └── utils/          # ユーティリティ
+.
+├── src/
+│   ├── main/           # Electron メインプロセス
+│   │   ├── index.ts        # アプリエントリポイント
+│   │   ├── ipc/            # IPC通信ハンドラ
+│   │   ├── repositories/   # データアクセス層
+│   │   ├── windows/        # ウィンドウ管理
+│   │   └── utils/          # メインプロセス用ユーティリティ
+│   │
+│   ├── preload/        # Preload スクリプト
+│   │
+│   ├── renderer/       # React レンダラープロセス
+│   │   ├── main-window/    # メインウィンドウ UI
+│   │   ├── image-settings/ # 画像設定ウィンドウ UI
+│   │   ├── hooks/          # カスタムHooks
+│   │   ├── store/          # Zustand ストア定義
+│   │   ├── services/       # 外部通信・副作用の抽象化
+│   │   ├── components/     # 共通UIコンポーネント
+│   │   └── env.d.ts        # レンダラープロセス用型定義
+│   │
+│   ├── shared/         # プロセス間共有コード
+│   │   └── types/          # 共通型定義
+│   │
+│   └── i18n/           # 多言語対応リソース
 │
-├── preload/        # Preload スクリプト (レンダラーへのセキュアなAPI露出)
+├── tests/          # テストコード（Vitest）
+│   ├── main/           # メインプロセスのユニットテスト
+│   └── renderer/       # レンダラープロセスのユニットテスト
 │
-├── renderer/       # React レンダラープロセス
-│   ├── main-window/    # メインウィンドウ用コンポーネント (Canvasなど)
-│   ├── image-settings/ # 画像設定ウィンドウ用コンポーネント
-│   ├── hooks/          # 共通カスタムHooks
-│   ├── store/          # Zustand ストア設定
-│   │   ├── useAppStore.ts           # メインストア
-│   │   └── slices/                  # 状態スライス (ProjectData, View, Interaction)
-│   ├── services/       # サービス層 (IPC呼び出し抽象化)
-│   └── components/     # 共通UIコンポーネント (Radix UI/shadcn)
-│
-├── shared/         # Main/Renderer 共有コード
-│   └── types/          # 共通型定義 (ImageSet, ProjectFile等)
-│
-└── i18n/           # 国際化リソース (i18next)
+└── scripts/        # ビルド・補助スクリプト
 ```
 
 ## ⚠️ 開発上の注意点
 
 - **ローカルファイルの読み込み**: セキュリティ制限により、ローカル画像を表示する際は `local-file://[絶対パス]` 形式のカスタムプロトコルを使用しています。
-- **型定義**: `window.electronAPI` などのIPCインターフェースは `src/renderer/src/env.d.ts` で定義されています。
+- **型定義**: `window.electronAPI` などの独自APIは `src/renderer/env.d.ts` で定義されています。
 
 ## 📄 ライセンス
 
