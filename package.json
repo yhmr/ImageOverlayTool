@@ -19,7 +19,7 @@
     "build:linux": "npm run generate-licenses && npm run build && electron-builder --linux",
     "build:all": "npm run generate-licenses && npm run build && electron-builder --win --linux",
     "preview": "electron-vite preview",
-    "lint-fix": "eslint --cache --fix src/ && prettier --write src/",
+    "lint:fix": "eslint --cache --fix src/ && prettier --write src/",
     "test": "vitest run --reporter=verbose --exclude \"**/e2e/**\" --exclude \"**/node_modules/**\"",
     "test:watch": "vitest",
     "prepare": "husky"
