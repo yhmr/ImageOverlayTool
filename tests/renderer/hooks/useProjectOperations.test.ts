@@ -129,5 +129,74 @@ describe("useProjectOperations", () => {
         );
         expect(result.current.currentFilePath).toBe("C:/new/path/project.json");
     });
+
+    it("handleLoadProjectFromPath should load project data from specific path", async () => {
+        const mockProjectData = {
+            version: "1.0.0",
+            window: { width: 800, height: 600, x: 0, y: 0, color: "#000000" },
+            settings: { unitFactor: 1.0 },
+            canvas: { x: 0, y: 0, scale: 1.0 },
+            images: [],
+            dimensionLines: [],
+        };
+        mockLoadProjectFromPath.mockResolvedValue({
+            project: mockProjectData,
+            filePath: "C:/direct/path.json",
+        });
+
+        const { result } = renderHook(() => useProjectOperations());
+
+        await act(async () => {
+            await result.current.handleLoadProjectFromPath("C:/direct/path.json");
+        });
+
+        expect(mockLoadProjectFromPath).toHaveBeenCalledWith(
+            "C:/direct/path.json"
+        );
+        expect(result.current.currentFilePath).toBe("C:/direct/path.json");
+    });
+
+    it("handleSaveProject should overwrite existing file", async () => {
+        // First, set path by "opening"
+        mockLoadProject.mockResolvedValue({
+            project: {
+                version: "1.0.0",
+                window: { width: 800, height: 600, x: 0, y: 0, color: "#000000" },
+                settings: { unitFactor: 1.0 },
+                canvas: { x: 0, y: 0, scale: 1.0 },
+                images: [],
+                dimensionLines: [],
+            },
+            filePath: "C:/existing/project.json",
+        });
+
+        const { result } = renderHook(() => useProjectOperations());
+
+        await act(async () => {
+            await result.current.handleOpenProject();
+        });
+
+        // Now save
+        await act(async () => {
+            await result.current.handleSaveProject();
+        });
+
+        expect(mockSaveProject).toHaveBeenCalledWith(
+            "C:/existing/project.json",
+            expect.objectContaining({ version: "1.0.0" })
+        );
+    });
+
+    it("handleSaveProject should call SaveAs if no path exists", async () => {
+        mockSaveProjectAs.mockResolvedValue("C:/saved/via/as.json");
+        const { result } = renderHook(() => useProjectOperations());
+
+        await act(async () => {
+            await result.current.handleSaveProject();
+        });
+
+        expect(mockSaveProjectAs).toHaveBeenCalled();
+        expect(result.current.currentFilePath).toBe("C:/saved/via/as.json");
+    });
 });
 

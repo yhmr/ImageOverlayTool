@@ -19,5 +19,21 @@ describe("useMenuState", () => {
         });
         expect(result.current.openSettingDlg).toBe(false);
     });
+
+    it("should handle about dialog", () => {
+        const { result } = renderHook(() => useMenuState());
+
+        expect(result.current.openAboutDlg).toBe(false);
+
+        act(() => {
+            result.current.handleAboutDlgOpen();
+        });
+        expect(result.current.openAboutDlg).toBe(true);
+
+        act(() => {
+            result.current.handleAboutDlgClose();
+        });
+        expect(result.current.openAboutDlg).toBe(false);
+    });
 });
 

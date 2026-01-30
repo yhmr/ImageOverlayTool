@@ -62,5 +62,43 @@ describe("useImageAnchor", () => {
         expect(xMock).toHaveBeenCalledWith(0);
         expect(yMock).toHaveBeenCalledWith(0);
     });
+
+    it("should handle circle drag end", () => {
+        const imageSet = { id: "1" } as any;
+        const onUpdateAnchor = vi.fn();
+        const { result } = renderHook(() =>
+            useImageAnchor({ imageSet, onUpdateAnchor })
+        );
+
+        const createMockCircle = (x: number, y: number) => ({
+            current: {
+                x: vi.fn().mockReturnValue(x),
+                y: vi.fn().mockReturnValue(y),
+            },
+        });
+
+        const ltRef = createMockCircle(10, 10) as any;
+        const lbRef = createMockCircle(10, 110) as any;
+        const rtRef = createMockCircle(110, 10) as any;
+        const rbRef = createMockCircle(110, 110) as any;
+
+        const handler = result.current.onCircleDragEnd(
+            ltRef,
+            lbRef,
+            rtRef,
+            rbRef
+        );
+
+        act(() => {
+            handler();
+        });
+
+        expect(onUpdateAnchor).toHaveBeenCalledWith({
+            lt: { x: 10, y: 10 },
+            lb: { x: 10, y: 110 },
+            rt: { x: 110, y: 10 },
+            rb: { x: 110, y: 110 },
+        });
+    });
 });
 

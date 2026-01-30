@@ -76,5 +76,49 @@ describe("useDimensionLineMode", () => {
         expect(lines).toHaveLength(1);
         expect(result.current.selectedDimensionLineId).toBe(lines[0].id);
     });
-});
 
+    it("should update line on mouse move and handle mouse up", () => {
+        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        const mockPoint = mockStage.getAbsoluteTransform().copy().point as any;
+
+        act(() => {
+            result.current.setIsDimensionMode(true);
+        });
+
+        // 1. Long line (should persist)
+        mockPoint.mockReturnValue({ x: 100, y: 100 });
+        act(() => {
+            result.current.onMouseDown({ evt: { button: 0 } } as any);
+        });
+
+        mockPoint.mockReturnValue({ x: 200, y: 200 });
+        act(() => {
+            result.current.onMouseMove();
+        });
+
+        act(() => {
+            result.current.onMouseUp();
+        });
+
+        expect(useAppStore.getState().dimensionLines).toHaveLength(1);
+
+        // 2. Short line (should be removed)
+        mockPoint.mockReturnValue({ x: 300, y: 300 });
+        act(() => {
+            result.current.onMouseDown({ evt: { button: 0 } } as any);
+        });
+
+        // Distance = 1 (< MIN_DIMENSION_LINE_DISTANCE = 2)
+        mockPoint.mockReturnValue({ x: 301, y: 300 });
+        act(() => {
+            result.current.onMouseMove();
+        });
+
+        act(() => {
+            result.current.onMouseUp();
+        });
+
+        // Only the first long line should remain
+        expect(useAppStore.getState().dimensionLines).toHaveLength(1);
+    });
+});
