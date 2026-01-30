@@ -1,15 +1,18 @@
 import "../shared/globals.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { logger } from "../services/loggerService";
+import { getIPCService } from "../services/ipcService";
 
 // グローバルエラーハンドリング
 window.addEventListener("error", (event) => {
-    logger.error("Renderer Uncaught Error:", event.error || event.message);
+    getIPCService().log.error(
+        "Renderer Uncaught Error:",
+        event.error || event.message
+    );
 });
 
 window.addEventListener("unhandledrejection", (event) => {
-    logger.error("Renderer Unhandled Rejection:", event.reason);
+    getIPCService().log.error("Renderer Unhandled Rejection:", event.reason);
 });
 
 import { useProjectSync } from "../hooks/useProjectSync";
@@ -26,7 +29,7 @@ const ImageSettingsApp = () => {
 
     // マウント時に初期状態を要求
     React.useEffect(() => {
-        window.electronAPI.requestInitialState();
+        getIPCService().requestInitialState();
     }, []);
 
     return (

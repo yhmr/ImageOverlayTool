@@ -7,6 +7,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
+import { getIPCService } from "../../services/ipcService";
 
 /**
  * 画像設定ウィンドウ用のシンプルなタイトルバー
@@ -17,7 +18,7 @@ export function SettingsMenuBar() {
 
     // ウィンドウを非表示にする（トグル動作）
     const handleClose = async () => {
-        await window.electronAPI.toggleImageSettingsWindow();
+        await getIPCService().toggleImageSettingsWindow();
     };
 
     return (
