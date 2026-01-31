@@ -8,7 +8,14 @@ test('app launch', async () => {
 
     const app = await electron.launch({
         executablePath: electronPath,
-        args: [appPath],
+        args: [
+            appPath,
+            '--no-sandbox',
+            '--disable-gpu',
+            '--disable-dev-shm-usage',
+            '--disable-software-rasterizer' // CI環境によってはこれが有効な場合もあるが、まずはGPU無効化を優先
+        ],
+
     });
 
     const window = await app.firstWindow();
