@@ -2,20 +2,29 @@
 import { renderHook, act } from "@testing-library/react";
 import { useWindowOperations } from "@/renderer/hooks/useWindowOperations";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { setIPCService } from "@/renderer/services/ipcService";
+
+// Mock IPCService
+const mockIPC = vi.hoisted(() => ({
+    switchWindowSize: vi.fn(),
+    closeWindow: vi.fn(),
+    log: {
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+    },
+}));
+
+vi.mock("@/renderer/services/ipcService", () => ({
+    getIPCService: () => mockIPC,
+    setIPCService: vi.fn(),
+}));
 
 describe("useWindowOperations", () => {
     beforeEach(() => {
-        // Mock window.electronAPI
-        window.electronAPI = {
-            switchWindowSize: vi.fn().mockResolvedValue(true),
-            closeWindow: vi.fn(),
-            log: {
-                debug: vi.fn(),
-                info: vi.fn(),
-                warn: vi.fn(),
-                error: vi.fn(),
-            },
-        } as any;
+        vi.clearAllMocks();
+        mockIPC.switchWindowSize.mockResolvedValue(true);
     });
 
     it("should switch full screen", async () => {
@@ -27,7 +36,7 @@ describe("useWindowOperations", () => {
             await result.current.handleSwitchFullScreen();
         });
 
-        expect(window.electronAPI.switchWindowSize).toHaveBeenCalled();
+        expect(mockIPC.switchWindowSize).toHaveBeenCalled();
         expect(result.current.full).toBe(true);
     });
 
@@ -38,7 +47,6 @@ describe("useWindowOperations", () => {
             result.current.handleCloseWindow();
         });
 
-        expect(window.electronAPI.closeWindow).toHaveBeenCalled();
+        expect(mockIPC.closeWindow).toHaveBeenCalled();
     });
 });
-

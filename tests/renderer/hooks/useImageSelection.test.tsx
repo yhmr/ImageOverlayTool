@@ -5,14 +5,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useImageSelection } from "@/renderer/hooks/useImageSelection";
 import { useAppStore } from "@/renderer/store/useAppStore";
+import { setIPCService } from "@/renderer/services/ipcService";
 
-// Mock Electron API
-window.electronAPI = {
+// Mock IPCService
+const mockIPC = vi.hoisted(() => ({
     updateImageSets: vi.fn(),
     updateUnitFactor: vi.fn(),
     updateUnit: vi.fn(),
     onUnitUpdated: vi.fn(() => vi.fn()),
-} as any;
+}));
+
+vi.mock("@/renderer/services/ipcService", () => ({
+    getIPCService: () => mockIPC,
+    setIPCService: vi.fn(),
+}));
 
 describe("useImageSelection", () => {
     beforeEach(() => {

@@ -5,22 +5,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useProjectOperations } from "@/renderer/hooks/useProjectOperations";
 import { useAppStore } from "@/renderer/store/useAppStore";
+import { setIPCService } from "@/renderer/services/ipcService";
 
-// Mock Electron API
-const mockLoadProject = vi.fn();
-const mockLoadProjectFromPath = vi.fn();
-const mockSaveProject = vi.fn();
-const mockSaveProjectAs = vi.fn();
-const mockSetWindowRect = vi.fn();
-const mockSaveWindowColor = vi.fn();
-
-window.electronAPI = {
-    loadProject: mockLoadProject,
-    loadProjectFromPath: mockLoadProjectFromPath,
-    saveProject: mockSaveProject,
-    saveProjectAs: mockSaveProjectAs,
-    setWindowRect: mockSetWindowRect,
-    saveWindowColor: mockSaveWindowColor,
+const mockIPC = vi.hoisted(() => ({
+    loadProject: vi.fn(),
+    loadProjectFromPath: vi.fn(),
+    saveProject: vi.fn(),
+    saveProjectAs: vi.fn(),
+    setWindowRect: vi.fn(),
+    saveWindowColor: vi.fn(),
     updateUnit: vi.fn(),
     onUnitUpdated: vi.fn(() => vi.fn()),
     updateImageSets: vi.fn(),
@@ -31,7 +24,12 @@ window.electronAPI = {
         warn: vi.fn(),
         error: vi.fn(),
     },
-} as any;
+}));
+
+vi.mock("@/renderer/services/ipcService", () => ({
+    getIPCService: () => mockIPC,
+    setIPCService: vi.fn(),
+}));
 
 describe("useProjectOperations", () => {
     beforeEach(() => {
@@ -54,8 +52,6 @@ describe("useProjectOperations", () => {
                     current_anchor_pos: null,
                 },
             ]);
-            // currentFilePath is local state in hook, so we can't easily set it from outside without calling open/save.
-            // But handleNewProject checks logic.
         });
 
         await act(async () => {
@@ -73,7 +69,7 @@ describe("useProjectOperations", () => {
         const mockProjectData = {
             version: "1.0.0",
             window: { width: 800, height: 600, x: 0, y: 0, color: "#111111" },
-            settings: { unitFactor: 2.0, unit: "um" },
+            settings: { unitFactor: 2.0, unit: "um" as const },
             canvas: { x: 10, y: 10, scale: 1.5 },
             images: [
                 {
@@ -88,7 +84,7 @@ describe("useProjectOperations", () => {
             dimensionLines: [],
         };
 
-        mockLoadProject.mockResolvedValue({
+        mockIPC.loadProject.mockResolvedValue({
             project: mockProjectData,
             filePath: "C:/path/to/project.json",
         });
@@ -107,7 +103,7 @@ describe("useProjectOperations", () => {
         expect(result.current.currentFilePath).toBe("C:/path/to/project.json");
 
         // Verify window restoration
-        expect(mockSetWindowRect).toHaveBeenCalledWith({
+        expect(mockIPC.setWindowRect).toHaveBeenCalledWith({
             x: 0,
             y: 0,
             width: 800,
@@ -116,14 +112,14 @@ describe("useProjectOperations", () => {
     });
 
     it("handleSaveProjectAs should save and update path", async () => {
-        mockSaveProjectAs.mockResolvedValue("C:/new/path/project.json");
+        mockIPC.saveProjectAs.mockResolvedValue("C:/new/path/project.json");
         const { result } = renderHook(() => useProjectOperations());
 
         await act(async () => {
             await result.current.handleSaveProjectAs();
         });
 
-        expect(mockSaveProjectAs).toHaveBeenCalledWith(
+        expect(mockIPC.saveProjectAs).toHaveBeenCalledWith(
             expect.objectContaining({
                 version: "1.0.0",
                 settings: expect.objectContaining({ unitFactor: 1.0 }),
@@ -136,12 +132,12 @@ describe("useProjectOperations", () => {
         const mockProjectData = {
             version: "1.0.0",
             window: { width: 800, height: 600, x: 0, y: 0, color: "#000000" },
-            settings: { unitFactor: 1.0, unit: "um" },
+            settings: { unitFactor: 1.0, unit: "um" as const },
             canvas: { x: 0, y: 0, scale: 1.0 },
             images: [],
             dimensionLines: [],
         };
-        mockLoadProjectFromPath.mockResolvedValue({
+        mockIPC.loadProjectFromPath.mockResolvedValue({
             project: mockProjectData,
             filePath: "C:/direct/path.json",
         });
@@ -152,7 +148,7 @@ describe("useProjectOperations", () => {
             await result.current.handleLoadProjectFromPath("C:/direct/path.json");
         });
 
-        expect(mockLoadProjectFromPath).toHaveBeenCalledWith(
+        expect(mockIPC.loadProjectFromPath).toHaveBeenCalledWith(
             "C:/direct/path.json"
         );
         expect(result.current.currentFilePath).toBe("C:/direct/path.json");
@@ -160,11 +156,11 @@ describe("useProjectOperations", () => {
 
     it("handleSaveProject should overwrite existing file", async () => {
         // First, set path by "opening"
-        mockLoadProject.mockResolvedValue({
+        mockIPC.loadProject.mockResolvedValue({
             project: {
                 version: "1.0.0",
                 window: { width: 800, height: 600, x: 0, y: 0, color: "#000000" },
-                settings: { unitFactor: 1.0, unit: "um" },
+                settings: { unitFactor: 1.0, unit: "um" as const },
                 canvas: { x: 0, y: 0, scale: 1.0 },
                 images: [],
                 dimensionLines: [],
@@ -183,21 +179,21 @@ describe("useProjectOperations", () => {
             await result.current.handleSaveProject();
         });
 
-        expect(mockSaveProject).toHaveBeenCalledWith(
+        expect(mockIPC.saveProject).toHaveBeenCalledWith(
             "C:/existing/project.json",
             expect.objectContaining({ version: "1.0.0" })
         );
     });
 
     it("handleSaveProject should call SaveAs if no path exists", async () => {
-        mockSaveProjectAs.mockResolvedValue("C:/saved/via/as.json");
+        mockIPC.saveProjectAs.mockResolvedValue("C:/saved/via/as.json");
         const { result } = renderHook(() => useProjectOperations());
 
         await act(async () => {
             await result.current.handleSaveProject();
         });
 
-        expect(mockSaveProjectAs).toHaveBeenCalled();
+        expect(mockIPC.saveProjectAs).toHaveBeenCalled();
         expect(result.current.currentFilePath).toBe("C:/saved/via/as.json");
     });
 });

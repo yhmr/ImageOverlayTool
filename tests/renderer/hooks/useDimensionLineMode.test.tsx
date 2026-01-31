@@ -7,6 +7,7 @@ import { useDimensionLineMode } from "@/renderer/hooks/useDimensionLineMode";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { RefObject } from "react";
 import Konva from "konva";
+import { setIPCService } from "@/renderer/services/ipcService";
 
 // Mock Konva Stage
 const mockStage = {
@@ -21,13 +22,18 @@ const mockStage = {
 
 const stageRef = { current: mockStage } as RefObject<Konva.Stage>;
 
-// Mock Electron API
-window.electronAPI = {
+// Mock IPCService
+const mockIPC = vi.hoisted(() => ({
     updateImageSets: vi.fn(),
     updateUnitFactor: vi.fn(),
     updateUnit: vi.fn(),
     onUnitUpdated: vi.fn(() => vi.fn()),
-} as any;
+}));
+
+vi.mock("@/renderer/services/ipcService", () => ({
+    getIPCService: () => mockIPC,
+    setIPCService: vi.fn(),
+}));
 
 describe("useDimensionLineMode", () => {
     beforeEach(() => {
