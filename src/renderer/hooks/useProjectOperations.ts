@@ -7,6 +7,7 @@ import { getIPCService } from "../services/ipcService";
 export const useProjectOperations = () => {
     const {
         unitFactor,
+        unit,
         windowColor,
         canvas,
         dimensionLines,
@@ -28,12 +29,12 @@ export const useProjectOperations = () => {
                 y: window.screenY,
                 color: windowColor,
             },
-            settings: { unitFactor },
+            settings: { unitFactor, unit },
             canvas,
             images: imageSets,
             dimensionLines,
         }),
-        [imageSets, unitFactor, windowColor, canvas, dimensionLines]
+        [imageSets, unitFactor, unit, windowColor, canvas, dimensionLines]
     );
 
     const handleNewProject = useCallback(async () => {

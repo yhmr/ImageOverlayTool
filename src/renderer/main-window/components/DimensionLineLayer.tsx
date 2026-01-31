@@ -7,6 +7,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 interface DimensionLineLayerProps {
     dimensionLines: DimensionLine[];
     unitFactor: number;
+    unit: string;
     isSelected: (id: string) => boolean;
     onSelect: (id: string | null) => void;
     onUpdate: (line: DimensionLine) => void;
@@ -19,6 +20,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
     const {
         dimensionLines,
         unitFactor,
+        unit,
         isSelected,
         onSelect,
         onUpdate,
@@ -35,7 +37,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
         const dist = Math.sqrt(dx * dx + dy * dy);
         // ピクセルを実際の距離に変換
         const realDist = dist * unitFactor;
-        return `${realDist.toFixed(2)}`; //
+        return `${realDist.toFixed(2)} ${unit}`;
     };
 
     const getMidPoint = (

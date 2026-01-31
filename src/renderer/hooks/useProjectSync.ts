@@ -10,12 +10,10 @@ export const useProjectSync = () => {
     useEffect(() => {
         const ipcService = getIPCService();
 
-        // unit_factorの更新監視
-        const unsubscribeUnitFactor = ipcService.onUnitFactorUpdated(
-            (unitFactor) => {
-                useAppStore.getState().syncUnitFactor(unitFactor);
-            }
-        );
+        // unitの更新監視
+        const unsubscribeUnit = ipcService.onUnitUpdated((unit) => {
+            useAppStore.getState().syncUnit(unit);
+        });
 
         // imageSetsの更新監視
         const unsubscribeImageSets = ipcService.onImageSetsUpdated(
@@ -28,14 +26,14 @@ export const useProjectSync = () => {
         const unsubscribeRequestSync = ipcService.onRequestStateSync(() => {
             // 現在の状態を送信
             const currentImageSets = useAppStore.getState().imageSets;
-            const currentUnitFactor = useAppStore.getState().unitFactor;
+            const currentUnit = useAppStore.getState().unit;
 
             ipcService.updateImageSets(currentImageSets);
-            ipcService.updateUnitFactor(currentUnitFactor);
+            ipcService.updateUnit(currentUnit);
         });
 
         return () => {
-            unsubscribeUnitFactor();
+            unsubscribeUnit();
             unsubscribeImageSets();
             unsubscribeRequestSync();
         };

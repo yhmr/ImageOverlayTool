@@ -44,11 +44,18 @@ export interface IElectronAPI {
     onImageSetsUpdated: (
         callback: (imageSets: ImageSet[]) => void
     ) => () => void;
+    // Unit sync
+    updateUnit: (unit: "nm" | "um" | "mm") => Promise<void>;
+    onUnitUpdated: (callback: (unit: "nm" | "um" | "mm") => void) => () => void;
     // Unit Factor Sync
     updateUnitFactor: (unitFactor: number) => Promise<void>;
     onUnitFactorUpdated: (callback: (unitFactor: number) => void) => () => void;
     // Initial State Sync
-    requestInitialState: () => Promise<void>;
+    requestInitialState: () => Promise<{
+        imageSets: ImageSet[];
+        unitFactor: number;
+        unit: "nm" | "um" | "mm";
+    }>;
     onRequestStateSync: (callback: () => void) => () => void;
     // File Open
     onFileOpen: (

@@ -49,6 +49,16 @@ export const registerImageSettingsWindowHandlers = (
         });
     });
 
+    ipcMain.handle("unit:update", (event, unit: "nm" | "um" | "mm") => {
+        log.debug(`[IPC] unit:update called with value: ${unit}`);
+        const windows = windowManager.getAllWindows();
+        windows.forEach((win) => {
+            if (win.webContents.id !== event.sender.id) {
+                win.webContents.send("unit:updated", unit);
+            }
+        });
+    });
+
     /**
      * [IPC] 初期状態の要求
      * 設定ウィンドウが開いたときに呼ばれる。メインウィンドウに同期要求を送る。

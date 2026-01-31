@@ -42,7 +42,8 @@
             "title": "Setting",
             "done": "DONE",
             "language": "language",
-            "unitFactor": "um per pix",
+            "unitFactor": "resolution factor",
+            "unit": "unit",
             "helper": {
                 "language": "Change the language used in the UI",
                 "unitFactor": "Used for drawing dimension lines"

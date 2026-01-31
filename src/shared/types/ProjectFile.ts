@@ -9,6 +9,7 @@ export interface ProjectFile<TImage = unknown> {
     };
     settings: {
         unitFactor: number;
+        unit: "nm" | "um" | "mm";
     };
     canvas?: {
         x: number;

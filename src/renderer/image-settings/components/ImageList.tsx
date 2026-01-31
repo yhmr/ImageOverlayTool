@@ -23,6 +23,13 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/renderer/components/ui/select";
 
 /**
  * 画像設定ウィンドウの画像リスト
@@ -31,8 +38,14 @@ import {
 export function ImageList() {
     const { t } = useTranslation();
 
-    const { imageSets, setImageSets, unitFactor, setUnitFactor } =
-        useAppStore();
+    const {
+        imageSets,
+        setImageSets,
+        unitFactor,
+        setUnitFactor,
+        unit,
+        setUnit,
+    } = useAppStore();
 
     // 新しいImageSetを追加
     const handleAddImageSet = () => {
@@ -129,20 +142,63 @@ export function ImageList() {
                 </Tooltip>
 
                 {/* 単位設定 */}
-                <div className="grid w-full max-w-sm items-center gap-1.5 mt-2">
-                    <Label htmlFor="unitFactor">
-                        {t("render.setting_dlg.unitFactor", "単位係数")}
-                    </Label>
-                    <Input
-                        type="number"
-                        id="unitFactor"
-                        value={unitFactor}
-                        onChange={(e) => setUnitFactor(Number(e.target.value))}
-                        onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
-                            e.currentTarget.blur();
-                        }}
-                        className="w-[100px]"
-                    />
+                <div className="flex flex-col gap-2 mt-4 p-4 border rounded-lg bg-muted/30">
+                    <div className="flex items-center gap-4">
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="unitFactor">
+                                {t(
+                                    "render.setting_dlg.unitFactor",
+                                    "解像度係数"
+                                )}
+                            </Label>
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="number"
+                                    id="unitFactor"
+                                    value={unitFactor}
+                                    onChange={(e) =>
+                                        setUnitFactor(Number(e.target.value))
+                                    }
+                                    onWheel={(
+                                        e: React.WheelEvent<HTMLInputElement>
+                                    ) => {
+                                        e.currentTarget.blur();
+                                    }}
+                                    className="w-[100px]"
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                    {unit}/pix
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="unit">
+                                {t("render.setting_dlg.unit", "単位")}
+                            </Label>
+                            <Select
+                                value={unit}
+                                onValueChange={(value: "nm" | "um" | "mm") =>
+                                    setUnit(value)
+                                }
+                            >
+                                <SelectTrigger id="unit" className="w-[100px]">
+                                    <SelectValue placeholder="単位" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="nm">nm</SelectItem>
+                                    <SelectItem value="um">um</SelectItem>
+                                    <SelectItem value="mm">mm</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        {t(
+                            "render.setting_dlg.helper.unitFactor",
+                            "寸法線の描画で利用します"
+                        )}
+                    </p>
                 </div>
             </div>
         </TooltipProvider>

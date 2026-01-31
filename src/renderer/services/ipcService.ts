@@ -62,10 +62,15 @@ export interface IIPCService {
     updateUnitFactor(factor: number): Promise<void>;
     onUnitFactorUpdated: (callback: (factor: number) => void) => () => void;
 
+    // Unit sync
+    updateUnit(unit: "nm" | "um" | "mm"): Promise<void>;
+    onUnitUpdated: (callback: (unit: "nm" | "um" | "mm") => void) => () => void;
+
     // Initial State Sync
     requestInitialState: () => Promise<{
         imageSets: ImageSet[];
         unitFactor: number;
+        unit: "nm" | "um" | "mm";
     }>;
     onRequestStateSync: (callback: () => void) => () => void;
 
@@ -82,7 +87,7 @@ export interface IIPCService {
 }
 
 /**
- * 実際のElectron IPC通信を行うサービス
+ * 実際のElectron IPC通信を行う service
  */
 class IPCService implements IIPCService {
     log = {
@@ -192,15 +197,20 @@ class IPCService implements IIPCService {
         return window.electronAPI.onUnitFactorUpdated(callback);
     }
 
+    async updateUnit(unit: "nm" | "um" | "mm"): Promise<void> {
+        await window.electronAPI.updateUnit(unit);
+    }
+
+    onUnitUpdated(callback: (unit: "nm" | "um" | "mm") => void): () => void {
+        return window.electronAPI.onUnitUpdated(callback);
+    }
+
     async requestInitialState(): Promise<{
         imageSets: ImageSet[];
         unitFactor: number;
+        unit: "nm" | "um" | "mm";
     }> {
-        const res =
-            (await window.electronAPI.requestInitialState()) as unknown as {
-                imageSets: ImageSet[];
-                unitFactor: number;
-            };
+        const res = await window.electronAPI.requestInitialState();
         return res;
     }
 
@@ -270,6 +280,7 @@ export class MockIPCService implements IIPCService {
 
     public updateImageSetsCalls: ImageSet[][] = [];
     public updateUnitFactorCalls: number[] = [];
+    public updateUnitCalls: ("nm" | "um" | "mm")[] = [];
 
     async updateImageSets(imageSets: ImageSet[]): Promise<void> {
         this.updateImageSetsCalls.push(imageSets);
@@ -289,11 +300,21 @@ export class MockIPCService implements IIPCService {
         return () => {};
     }
 
+    async updateUnit(unit: "nm" | "um" | "mm"): Promise<void> {
+        this.updateUnitCalls.push(unit);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onUnitUpdated(callback: (unit: "nm" | "um" | "mm") => void): () => void {
+        return () => {};
+    }
+
     async requestInitialState(): Promise<{
         imageSets: ImageSet[];
         unitFactor: number;
+        unit: "nm" | "um" | "mm";
     }> {
-        return { imageSets: [], unitFactor: 1.0 };
+        return { imageSets: [], unitFactor: 1.0, unit: "um" };
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onRequestStateSync(callback: () => void): () => void {

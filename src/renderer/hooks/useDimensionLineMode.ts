@@ -12,6 +12,7 @@ export const useDimensionLineMode = (
     const {
         dimensionLines,
         unitFactor,
+        unit,
         addDimensionLine,
         updateDimensionLine,
         removeDimensionLine,
@@ -118,6 +119,7 @@ export const useDimensionLineMode = (
         setSelectedDimensionLineId: selectDimensionLine,
         dimensionLines,
         unitFactor,
+        unit,
         onSelectDimensionLine: selectDimensionLine,
         onUpdateDimensionLineHandler: updateDimensionLine,
         onMouseDown: onStageMouseDown,

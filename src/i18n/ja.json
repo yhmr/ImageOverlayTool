@@ -42,7 +42,8 @@
             "title": "設定",
             "done": "完了",
             "language": "言語",
-            "unitFactor": "um per pix",
+            "unitFactor": "解像度係数",
+            "unit": "単位",
             "helper": {
                 "language": "UIで使用する言語を変更します",
                 "unitFactor": "寸法線の描画で利用します"
