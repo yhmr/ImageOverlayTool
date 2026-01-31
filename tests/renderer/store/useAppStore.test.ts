@@ -110,8 +110,8 @@ describe("useAppStore", () => {
 
     describe("InteractionSlice", () => {
         it("should change interaction mode", () => {
-            useAppStore.getState().setInteractionMode("select");
-            expect(useAppStore.getState().interactionMode).toBe("select");
+            useAppStore.getState().setInteractionMode("dimension");
+            expect(useAppStore.getState().interactionMode).toBe("dimension");
         });
 
         it("should select image", () => {
@@ -137,7 +137,7 @@ describe("useAppStore", () => {
     describe("Combined Reset", () => {
         it("should reset all slices", () => {
             useAppStore.getState().setUnitFactor(2.0);
-            useAppStore.getState().setInteractionMode("select");
+            useAppStore.getState().setInteractionMode("dimension");
             useAppStore.getState().resetAll();
 
             const state = useAppStore.getState();
