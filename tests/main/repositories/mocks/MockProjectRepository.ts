@@ -1,5 +1,5 @@
-import { ProjectFile } from "../../shared/types/ProjectFile";
-import { IProjectRepository } from "./ProjectRepository";
+import { ProjectFile } from "@/shared/types/ProjectFile";
+import { IProjectRepository } from "@/main/repositories/ProjectRepository";
 
 export class MockProjectRepository implements IProjectRepository {
     private projects: Map<string, ProjectFile> = new Map();
@@ -23,6 +23,7 @@ export class MockProjectRepository implements IProjectRepository {
                 },
                 settings: {
                     unitFactor: 1,
+                    unit: "um",
                 },
                 images: [],
             };

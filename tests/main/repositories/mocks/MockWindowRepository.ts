@@ -1,10 +1,10 @@
 import {
     DEFAULT_MAIN_WINDOW_SIZE,
     DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
-} from "../../shared/types/AppConfig";
-import { Point } from "../../shared/types/Point";
-import { Size } from "../../shared/types/Size";
-import { IWindowRepository } from "./WindowRepository";
+} from "@/shared/types/AppConfig";
+import { Point } from "@/shared/types/Point";
+import { Size } from "@/shared/types/Size";
+import { IWindowRepository } from "@/main/repositories/WindowRepository";
 
 export class MockWindowRepository implements IWindowRepository {
     private windowColor = "#FF000055"; // テストだと分かりやすいように赤にしておく
