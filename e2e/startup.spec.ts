@@ -21,7 +21,7 @@ test('app launch', async () => {
 
     // Check if the window is visible/loaded
     // Increase timeout for CI environments
-    const container = await window.waitForSelector('.container', { timeout: 60000 });
+    const container = await window.waitForSelector('.main-app-container', { timeout: 60000 });
     expect(container).toBeTruthy();
 
     await app.close();
