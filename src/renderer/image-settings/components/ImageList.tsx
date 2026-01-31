@@ -146,10 +146,7 @@ export function ImageList() {
                     <div className="flex items-center gap-4">
                         <div className="grid gap-1.5">
                             <Label htmlFor="unitFactor">
-                                {t(
-                                    "render.setting_dlg.unitFactor",
-                                    "解像度係数"
-                                )}
+                                {t("render.setting_dlg.unitFactor")}
                             </Label>
                             <div className="flex items-center gap-2">
                                 <Input
@@ -174,7 +171,7 @@ export function ImageList() {
 
                         <div className="grid gap-1.5">
                             <Label htmlFor="unit">
-                                {t("render.setting_dlg.unit", "単位")}
+                                {t("render.setting_dlg.unit")}
                             </Label>
                             <Select
                                 value={unit}
@@ -194,10 +191,7 @@ export function ImageList() {
                         </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                        {t(
-                            "render.setting_dlg.helper.unitFactor",
-                            "寸法線の描画で利用します"
-                        )}
+                        {t("render.setting_dlg.helper.unitFactor")}
                     </p>
                 </div>
             </div>

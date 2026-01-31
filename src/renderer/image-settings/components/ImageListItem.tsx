@@ -87,7 +87,7 @@ export function ImageListItem(props: ImageListItemProps) {
     // ファイル名を抽出（パスから）
     const fileName = imageSet.path
         ? imageSet.path.split("/").pop() || imageSet.path
-        : t("render.image_settings.no_image", "画像未選択");
+        : t("render.image_settings.no_image");
 
     return (
         <Card className="mb-2">

@@ -16,7 +16,7 @@ export function RotationControl(props: RotationControlProps) {
     return (
         <div className="flex items-center gap-3 mt-2">
             <span className="text-xs min-w-[50px] text-muted-foreground">
-                {t("render.image_settings.rotation", "回転")}
+                {t("render.image_settings.rotation")}
             </span>
             <RotateCw className="h-4 w-4 text-muted-foreground" />
             <Slider
