@@ -13,13 +13,19 @@ const mockUpdateUnitFactor = vi.fn();
 window.electronAPI = {
     updateImageSets: mockUpdateImageSets,
     updateUnitFactor: mockUpdateUnitFactor,
+    updateUnit: vi.fn(),
+    onUnitUpdated: vi.fn(() => vi.fn()),
+    requestInitialState: vi.fn().mockResolvedValue({
+        imageSets: [],
+        unitFactor: 1.0,
+        unit: "um",
+    }),
     log: {
         debug: vi.fn(),
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn(),
     },
-    // ... other mocks if needed
 } as any;
 
 describe("useAppStore", () => {
@@ -162,7 +168,7 @@ describe("useAppStore", () => {
                         y: 0,
                         color: "#123456",
                     },
-                    settings: { unitFactor: 1.5 },
+                    settings: { unitFactor: 1.5, unit: "um" },
                     images: [sampleImageSet],
                     dimensionLines: [
                         {

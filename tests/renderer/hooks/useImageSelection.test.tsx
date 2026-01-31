@@ -10,6 +10,8 @@ import { useAppStore } from "@/renderer/store/useAppStore";
 window.electronAPI = {
     updateImageSets: vi.fn(),
     updateUnitFactor: vi.fn(),
+    updateUnit: vi.fn(),
+    onUnitUpdated: vi.fn(() => vi.fn()),
 } as any;
 
 describe("useImageSelection", () => {

@@ -25,6 +25,8 @@ const stageRef = { current: mockStage } as RefObject<Konva.Stage>;
 window.electronAPI = {
     updateImageSets: vi.fn(),
     updateUnitFactor: vi.fn(),
+    updateUnit: vi.fn(),
+    onUnitUpdated: vi.fn(() => vi.fn()),
 } as any;
 
 describe("useDimensionLineMode", () => {

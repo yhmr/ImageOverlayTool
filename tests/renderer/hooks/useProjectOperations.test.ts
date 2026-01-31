@@ -21,6 +21,8 @@ window.electronAPI = {
     saveProjectAs: mockSaveProjectAs,
     setWindowRect: mockSetWindowRect,
     saveWindowColor: mockSaveWindowColor,
+    updateUnit: vi.fn(),
+    onUnitUpdated: vi.fn(() => vi.fn()),
     updateImageSets: vi.fn(),
     updateUnitFactor: vi.fn(),
     log: {
@@ -71,7 +73,7 @@ describe("useProjectOperations", () => {
         const mockProjectData = {
             version: "1.0.0",
             window: { width: 800, height: 600, x: 0, y: 0, color: "#111111" },
-            settings: { unitFactor: 2.0 },
+            settings: { unitFactor: 2.0, unit: "um" },
             canvas: { x: 10, y: 10, scale: 1.5 },
             images: [
                 {
@@ -134,7 +136,7 @@ describe("useProjectOperations", () => {
         const mockProjectData = {
             version: "1.0.0",
             window: { width: 800, height: 600, x: 0, y: 0, color: "#000000" },
-            settings: { unitFactor: 1.0 },
+            settings: { unitFactor: 1.0, unit: "um" },
             canvas: { x: 0, y: 0, scale: 1.0 },
             images: [],
             dimensionLines: [],
@@ -162,7 +164,7 @@ describe("useProjectOperations", () => {
             project: {
                 version: "1.0.0",
                 window: { width: 800, height: 600, x: 0, y: 0, color: "#000000" },
-                settings: { unitFactor: 1.0 },
+                settings: { unitFactor: 1.0, unit: "um" },
                 canvas: { x: 0, y: 0, scale: 1.0 },
                 images: [],
                 dimensionLines: [],
@@ -199,4 +201,3 @@ describe("useProjectOperations", () => {
         expect(result.current.currentFilePath).toBe("C:/saved/via/as.json");
     });
 });
-
