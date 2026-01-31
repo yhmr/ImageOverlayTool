@@ -3,6 +3,7 @@ import { ipcMain, dialog } from "electron";
 import { registerProjectHandlers } from "@/main/ipc/project";
 import { MockProjectRepository } from "../repositories/mocks/MockProjectRepository";
 import { ProjectFile } from "@/shared/types/ProjectFile";
+import { invokeIpcHandler } from "../utils/ipcTestHelper";
 
 // Mock electron
 vi.mock("electron", () => ({
@@ -49,30 +50,32 @@ describe("IPC Project Handlers", () => {
 
     describe("project:save", () => {
         it("should save project using repository", async () => {
-            // Get the registered handler function
-            const calls = vi.mocked(ipcMain.handle).mock.calls;
-            const saveHandler = calls.find((call) => call[0] === "project:save")?.[1];
-            expect(saveHandler).toBeDefined();
+            const dummyProject: ProjectFile = {
+                version: "1.0.0",
+                window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
+                settings: { unitFactor: 1, unit: "um" },
+                images: [],
+            };
+            const filePath = "/path/to/project.iot";
 
-            if (saveHandler) {
-                const dummyProject: ProjectFile = {
-                    version: "1.0.0",
-                    window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
-                    settings: { unitFactor: 1, unit: "um" },
-                    images: [],
-                };
-                const filePath = "/path/to/project.iot";
+            // Execute the handler via helper
+            const result = await invokeIpcHandler("project:save", {}, { filePath, project: dummyProject });
 
-                // Execute the handler
-                const result = await saveHandler({} as any, { filePath, project: dummyProject });
+            // Verify result
+            expect(result).toBe(true);
 
-                // Verify result
-                expect(result).toBe(true);
+            // Verify data was saved in mock repo
+            const saved = await mockRepo.loadProject(filePath);
+            expect(saved).toEqual(dummyProject);
+        });
 
-                // Verify data was saved in mock repo
-                const saved = await mockRepo.loadProject(filePath);
-                expect(saved).toEqual(dummyProject);
-            }
+        it("should throw error if repository fails", async () => {
+            const error = new Error("Save failed");
+            vi.spyOn(mockRepo, "saveProject").mockRejectedValue(error);
+
+            await expect(
+                invokeIpcHandler("project:save", {}, { filePath: "test.iot", project: {} as any })
+            ).rejects.toThrow("Save failed");
         });
     });
 
@@ -85,30 +88,22 @@ describe("IPC Project Handlers", () => {
                 filePath: savePath,
             });
 
-            const calls = vi.mocked(ipcMain.handle).mock.calls;
-            const handler = calls.find((call) => call[0] === "project:saveAs")?.[1];
+            const dummyProject: ProjectFile = {
+                version: "1.0.0",
+                window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
+                settings: { unitFactor: 1, unit: "um" },
+                images: [],
+            };
 
-            if (handler) {
-                const dummyProject: ProjectFile = {
-                    version: "1.0.0",
-                    window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
-                    settings: { unitFactor: 1, unit: "um" },
-                    images: [],
-                };
+            // Execute handler (mock event with sender needed for BrowserWindow.fromWebContents)
+            const mockEvent = { sender: {} };
+            const result = await invokeIpcHandler("project:saveAs", mockEvent, dummyProject);
 
-                // Execute handler (event.sender is mocked implicitly by checking window logic inside handler, or we assume no window for simplecity if safe)
-                // The implementation uses BrowserWindow.fromWebContents(event.sender). 
-                // We need to mock event.sender.
-                const mockEvent = { sender: {} } as any;
+            expect(result).toBe(savePath);
 
-                const result = await handler(mockEvent, dummyProject);
-
-                expect(result).toBe(savePath);
-
-                // Verify repo saved
-                const saved = await mockRepo.loadProject(savePath);
-                expect(saved).toEqual(dummyProject);
-            }
+            // Verify repo saved
+            const saved = await mockRepo.loadProject(savePath);
+            expect(saved).toEqual(dummyProject);
         });
 
         it("should do nothing if dialog canceled", async () => {
@@ -117,13 +112,22 @@ describe("IPC Project Handlers", () => {
                 filePath: undefined as any,
             });
 
-            const calls = vi.mocked(ipcMain.handle).mock.calls;
-            const handler = calls.find((call) => call[0] === "project:saveAs")?.[1];
+            const result = await invokeIpcHandler("project:saveAs", { sender: {} }, {} as any);
+            expect(result).toBeNull();
+        });
 
-            if (handler) {
-                const result = await handler({ sender: {} } as any, {} as any);
-                expect(result).toBeNull();
-            }
+        it("should throw error if repository fails", async () => {
+            vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+                canceled: false,
+                filePath: "/path/to/save.iot",
+            });
+
+            const error = new Error("SaveAs failed");
+            vi.spyOn(mockRepo, "saveProject").mockRejectedValue(error);
+
+            await expect(
+                invokeIpcHandler("project:saveAs", { sender: {} }, {} as any)
+            ).rejects.toThrow("SaveAs failed");
         });
     });
 
@@ -144,13 +148,8 @@ describe("IPC Project Handlers", () => {
             };
             await mockRepo.saveProject(loadPath, existingProject);
 
-            const calls = vi.mocked(ipcMain.handle).mock.calls;
-            const handler = calls.find((call) => call[0] === "project:load")?.[1];
-
-            if (handler) {
-                const result = await handler({ sender: {} } as any);
-                expect(result).toEqual({ project: existingProject, filePath: loadPath });
-            }
+            const result = await invokeIpcHandler("project:load", { sender: {} });
+            expect(result).toEqual({ project: existingProject, filePath: loadPath });
         });
 
         it("should return null if dialog canceled", async () => {
@@ -159,13 +158,21 @@ describe("IPC Project Handlers", () => {
                 filePaths: [],
             });
 
-            const calls = vi.mocked(ipcMain.handle).mock.calls;
-            const handler = calls.find((call) => call[0] === "project:load")?.[1];
+            const result = await invokeIpcHandler("project:load", { sender: {} });
+            expect(result).toBeNull();
+        });
 
-            if (handler) {
-                const result = await handler({ sender: {} } as any);
-                expect(result).toBeNull();
-            }
+        it("should throw error if repository fails", async () => {
+            vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+                canceled: false,
+                filePaths: ["/path/to/load.iot"],
+            });
+
+            const error = new Error("Load failed");
+            vi.spyOn(mockRepo, "loadProject").mockRejectedValue(error);
+
+            await expect(invokeIpcHandler("project:load", { sender: {} }))
+                .rejects.toThrow("Load failed");
         });
     });
 
@@ -181,87 +188,19 @@ describe("IPC Project Handlers", () => {
             };
             await mockRepo.saveProject(filePath, existingProject);
 
-            // Get handler
-            const calls = vi.mocked(ipcMain.handle).mock.calls;
-            const loadHandler = calls.find((call) => call[0] === "project:loadFromPath")?.[1];
-            expect(loadHandler).toBeDefined();
+            // Execute handler
+            const result = await invokeIpcHandler("project:loadFromPath", {}, filePath);
 
-            if (loadHandler) {
-                // Execute handler
-                const result = await loadHandler({} as any, filePath);
-
-                // Verify result
-                expect(result).toEqual({ project: existingProject, filePath });
-            }
-        });
-        describe("project:save error handling", () => {
-            it("should throw error if repository fails", async () => {
-                const error = new Error("Save failed");
-                vi.spyOn(mockRepo, "saveProject").mockRejectedValue(error);
-
-                const calls = vi.mocked(ipcMain.handle).mock.calls;
-                const saveHandler = calls.find((call) => call[0] === "project:save")?.[1];
-
-                if (saveHandler) {
-                    await expect(saveHandler({} as any, { filePath: "test.iot", project: {} as any }))
-                        .rejects.toThrow("Save failed");
-                }
-            });
+            // Verify result
+            expect(result).toEqual({ project: existingProject, filePath });
         });
 
-        describe("project:saveAs error handling", () => {
-            it("should throw error if repository fails", async () => {
-                vi.mocked(dialog.showSaveDialog).mockResolvedValue({
-                    canceled: false,
-                    filePath: "/path/to/save.iot",
-                });
+        it("should return null if repository fails", async () => {
+            const error = new Error("LoadFromPath failed");
+            vi.spyOn(mockRepo, "loadProject").mockRejectedValue(error);
 
-                const error = new Error("SaveAs failed");
-                vi.spyOn(mockRepo, "saveProject").mockRejectedValue(error);
-
-                const calls = vi.mocked(ipcMain.handle).mock.calls;
-                const handler = calls.find((call) => call[0] === "project:saveAs")?.[1];
-
-                if (handler) {
-                    await expect(handler({ sender: {} } as any, {} as any))
-                        .rejects.toThrow("SaveAs failed");
-                }
-            });
-        });
-
-        describe("project:load error handling", () => {
-            it("should throw error if repository fails", async () => {
-                vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-                    canceled: false,
-                    filePaths: ["/path/to/load.iot"],
-                });
-
-                const error = new Error("Load failed");
-                vi.spyOn(mockRepo, "loadProject").mockRejectedValue(error);
-
-                const calls = vi.mocked(ipcMain.handle).mock.calls;
-                const handler = calls.find((call) => call[0] === "project:load")?.[1];
-
-                if (handler) {
-                    await expect(handler({ sender: {} } as any))
-                        .rejects.toThrow("Load failed");
-                }
-            });
-        });
-
-        describe("project:loadFromPath error handling", () => {
-            it("should return null if repository fails", async () => {
-                const error = new Error("LoadFromPath failed");
-                vi.spyOn(mockRepo, "loadProject").mockRejectedValue(error);
-
-                const calls = vi.mocked(ipcMain.handle).mock.calls;
-                const handler = calls.find((call) => call[0] === "project:loadFromPath")?.[1];
-
-                if (handler) {
-                    const result = await handler({} as any, "/failed/path.iot");
-                    expect(result).toBeNull();
-                }
-            });
+            const result = await invokeIpcHandler("project:loadFromPath", {}, "/failed/path.iot");
+            expect(result).toBeNull();
         });
     });
 });

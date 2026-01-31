@@ -19,6 +19,7 @@ describe("ProjectRepository", () => {
         },
         settings: {
             unitFactor: 1,
+            unit: "mm",
         },
         images: [],
     };

@@ -4,6 +4,7 @@ import { registerAppConfigHandlers } from "@/main/ipc/appConfig";
 import { MockSettingsRepository } from "../repositories/mocks/MockSettingsRepository";
 import { MockWindowRepository } from "../repositories/mocks/MockWindowRepository";
 import { SettingType } from "@/shared/types/AppConfig";
+import { invokeIpcHandler } from "../utils/ipcTestHelper";
 
 // Mock electron
 vi.mock("electron", () => ({
@@ -15,15 +16,6 @@ vi.mock("electron", () => ({
     },
 }));
 
-// Mock logger
-vi.mock("@/main/logger", () => ({
-    default: {
-        debug: vi.fn(),
-        info: vi.fn(),
-        error: vi.fn(),
-    },
-}));
-
 describe("IPC AppConfig Handlers", () => {
     let mockSettingsRepo: MockSettingsRepository;
     let mockWindowRepo: MockWindowRepository;
@@ -32,8 +24,7 @@ describe("IPC AppConfig Handlers", () => {
         vi.clearAllMocks();
         mockSettingsRepo = new MockSettingsRepository();
         mockWindowRepo = new MockWindowRepository();
-
-        // Register handlers using mock repositories
+        // Register handlers
         registerAppConfigHandlers(mockSettingsRepo, mockWindowRepo);
     });
 
@@ -46,75 +37,74 @@ describe("IPC AppConfig Handlers", () => {
 
     describe("setting:save & setting:load", () => {
         it("should save and load settings via repository", async () => {
-            const handlers = vi.mocked(ipcMain.handle).mock.calls;
-            const saveHandler = handlers.find((call) => call[0] === "setting:save")?.[1];
-            const loadHandler = handlers.find((call) => call[0] === "setting:load")?.[1];
+            const newSettings: SettingType = { language: "ja" };
 
-            expect(saveHandler).toBeDefined();
-            expect(loadHandler).toBeDefined();
+            // mocking event object
+            const event = { sender: {} };
 
-            if (saveHandler && loadHandler) {
-                // Save new settings
-                const newSettings: SettingType = { language: "ja" };
-                await saveHandler({} as any, newSettings);
+            // Test setting:save
+            await invokeIpcHandler("setting:save", event, newSettings);
 
-                // Load settings and verify
-                const result = await loadHandler({} as any);
-                expect(result).toEqual({ language: "ja" });
-            }
+            // Verify save (MockSettingsRepository updates internal state)
+            const saved = await mockSettingsRepo.loadSettings();
+            expect(saved).toEqual(newSettings);
+
+            // Test setting:load
+            const loaded = await invokeIpcHandler("setting:load", event);
+            expect(loaded).toEqual(newSettings);
         });
     });
 
     describe("window_color:save & window_color:load", () => {
         it("should save and load window color via repository", async () => {
-            const handlers = vi.mocked(ipcMain.handle).mock.calls;
-            const saveHandler = handlers.find((call) => call[0] === "window_color:save")?.[1];
-            const loadHandler = handlers.find((call) => call[0] === "window_color:load")?.[1];
+            const newColor = "#ff0000";
 
-            expect(saveHandler).toBeDefined();
-            expect(loadHandler).toBeDefined();
+            // mocking event object
+            const event = { sender: {} };
 
-            if (saveHandler && loadHandler) {
-                // Save new color
-                const newColor = "#12345678";
-                await saveHandler({} as any, newColor);
+            // Test window_color:save
+            await invokeIpcHandler("window_color:save", event, newColor);
 
-                // Load color and verify
-                const result = await loadHandler({} as any);
-                expect(result).toBe(newColor);
-            }
+            // Verify save
+            const saved = await mockWindowRepo.loadWindowColor();
+            expect(saved).toBe(newColor);
+
+            // Test window_color:load
+            const loaded = await invokeIpcHandler("window_color:load", event);
+            expect(loaded).toBe(newColor);
         });
+
         describe("Errors handling", () => {
             it("setting:load should throw error on failure", async () => {
-                vi.spyOn(mockSettingsRepo, "loadSettings").mockRejectedValue(new Error("Load failed"));
-                const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === "setting:load")?.[1];
-                if (handler) {
-                    await expect(handler({} as any)).rejects.toThrow("Load failed");
-                }
+                const error = new Error("Load settings failed");
+                vi.spyOn(mockSettingsRepo, "loadSettings").mockRejectedValue(error);
+
+                await expect(invokeIpcHandler("setting:load", { sender: {} }))
+                    .rejects.toThrow("Load settings failed");
             });
 
             it("setting:save should throw error on failure", async () => {
-                vi.spyOn(mockSettingsRepo, "saveSettings").mockRejectedValue(new Error("Save failed"));
-                const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === "setting:save")?.[1];
-                if (handler) {
-                    await expect(handler({} as any, {})).rejects.toThrow("Save failed");
-                }
+                const error = new Error("Save settings failed");
+                vi.spyOn(mockSettingsRepo, "saveSettings").mockRejectedValue(error);
+
+                await expect(invokeIpcHandler("setting:save", { sender: {} }, { language: "en" }))
+                    .rejects.toThrow("Save settings failed");
             });
 
             it("window_color:load should throw error on failure", async () => {
-                vi.spyOn(mockWindowRepo, "loadWindowColor").mockRejectedValue(new Error("Window Load failed"));
-                const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === "window_color:load")?.[1];
-                if (handler) {
-                    await expect(handler({} as any)).rejects.toThrow("Window Load failed");
-                }
+                const error = new Error("Load color failed");
+                vi.spyOn(mockWindowRepo, "loadWindowColor").mockRejectedValue(error);
+
+                await expect(invokeIpcHandler("window_color:load", { sender: {} }))
+                    .rejects.toThrow("Load color failed");
             });
 
             it("window_color:save should throw error on failure", async () => {
-                vi.spyOn(mockWindowRepo, "saveWindowColor").mockRejectedValue(new Error("Window Save failed"));
-                const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === "window_color:save")?.[1];
-                if (handler) {
-                    await expect(handler({} as any, "#fff")).rejects.toThrow("Window Save failed");
-                }
+                const error = new Error("Save color failed");
+                vi.spyOn(mockWindowRepo, "saveWindowColor").mockRejectedValue(error);
+
+                await expect(invokeIpcHandler("window_color:save", { sender: {} }, "#000"))
+                    .rejects.toThrow("Save color failed");
             });
         });
     });
