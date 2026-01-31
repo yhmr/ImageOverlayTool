@@ -132,12 +132,7 @@ export function ImageList() {
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>
-                            {t(
-                                "render.image_setting_dlg.tooltip.add",
-                                "画像を追加"
-                            )}
-                        </p>
+                        <p>{t("render.image_settings.tooltip.add")}</p>
                     </TooltipContent>
                 </Tooltip>
 

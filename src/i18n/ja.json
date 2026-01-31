@@ -29,13 +29,17 @@
                 "dimension_line": "寸法線の描画"
             }
         },
-        "image_setting_dlg": {
+        "image_settings": {
             "title": "画像設定",
             "done": "完了",
+            "transparency": "透過度",
+            "rotation": "回転",
+            "no_image": "画像未選択",
             "tooltip": {
                 "load_image": "画像の読み込み",
                 "delete_image": "画像削除",
-                "add": "新規追加"
+                "add": "新規追加",
+                "close": "閉じる"
             }
         },
         "setting_dlg": {
