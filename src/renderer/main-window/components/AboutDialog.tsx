@@ -86,20 +86,57 @@ export function AboutDialog(props: AboutDialogProps) {
                                     No license information available
                                 </p>
                             ) : (
-                                <div className="space-y-2">
-                                    {licenses.map((license, index) => (
-                                        <div
-                                            key={index}
-                                            className="text-xs border-b pb-2 last:border-b-0"
-                                        >
-                                            <div className="font-medium">
-                                                {license.name}
+                                <div className="space-y-3">
+                                    {licenses.map((license, index) => {
+                                        // "package@version" 形式の分割ロジック
+                                        // スコープパッケージ (@org/pkg@1.2.3) に対応
+                                        const lastAtIndex =
+                                            license.name.lastIndexOf("@");
+                                        let name = license.name;
+                                        let version = "";
+
+                                        if (
+                                            lastAtIndex > 0 &&
+                                            lastAtIndex <
+                                                license.name.length - 1
+                                        ) {
+                                            name = license.name.substring(
+                                                0,
+                                                lastAtIndex
+                                            );
+                                            version = license.name.substring(
+                                                lastAtIndex + 1
+                                            );
+                                        }
+
+                                        return (
+                                            <div
+                                                key={index}
+                                                className="text-xs border-b pb-2 last:border-b-0"
+                                            >
+                                                <div className="flex justify-between items-baseline mb-1">
+                                                    <div className="font-bold text-sm">
+                                                        {name}
+                                                    </div>
+                                                    {version && (
+                                                        <div className="text-muted-foreground ml-2">
+                                                            v{version}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex justify-between text-muted-foreground italic">
+                                                    <div>
+                                                        {license.licenses}
+                                                    </div>
+                                                    {license.publisher && (
+                                                        <div className="text-[10px] opacity-70">
+                                                            {license.publisher}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="text-muted-foreground">
-                                                {license.licenses}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </ScrollArea>
