@@ -6,6 +6,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/renderer/components/ui/dialog";
 import {
     Select,
@@ -58,6 +59,10 @@ export function SettingDialog(props: SettingDialogProps) {
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>{t("render.setting_dlg.title")}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                        This dialog allows you to change application settings
+                        such as language.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">

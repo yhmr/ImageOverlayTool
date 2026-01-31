@@ -6,6 +6,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/renderer/components/ui/dialog";
 import { Button } from "@/renderer/components/ui/button";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
@@ -61,6 +62,10 @@ export function AboutDialog(props: AboutDialogProps) {
             <DialogContent className="sm:max-w-[500px] max-h-[80vh]">
                 <DialogHeader>
                     <DialogTitle>{t("render.about_dlg.title")}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                        This dialog shows information about the application and
+                        licenses of third-party libraries.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     {/* バージョン情報 */}
