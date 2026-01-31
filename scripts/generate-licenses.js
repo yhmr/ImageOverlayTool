@@ -8,6 +8,8 @@ const fs = require('fs');
 const path = require('path');
 
 const outputPath = path.join(__dirname, '..', 'licenses.json');
+const pkg = require('../package.json');
+const selfPackageName = `${pkg.name}@${pkg.version}`;
 
 licenseChecker.init({
     start: path.join(__dirname, '..'),
@@ -19,14 +21,16 @@ licenseChecker.init({
         process.exit(1);
     }
 
-    // ライセンス情報を整形
-    const licenses = Object.entries(packages).map(([name, info]) => ({
-        name: name,
-        licenses: info.licenses || 'Unknown',
-        repository: info.repository || '',
-        publisher: info.publisher || '',
-        url: info.url || '',
-    }));
+    // ライセンス情報を整形（自パッケージを除外）
+    const licenses = Object.entries(packages)
+        .filter(([name]) => name !== selfPackageName)
+        .map(([name, info]) => ({
+            name: name,
+            licenses: info.licenses || 'Unknown',
+            repository: info.repository || '',
+            publisher: info.publisher || '',
+            url: info.url || '',
+        }));
 
     // JSONファイルとして出力
     fs.writeFileSync(outputPath, JSON.stringify(licenses, null, 2), 'utf-8');

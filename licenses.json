@@ -896,13 +896,6 @@
     "url": "https://github.com/jamuhl"
   },
   {
-    "name": "imageoverlaytool@0.1.0",
-    "licenses": "AGPL-3.0-only",
-    "repository": "",
-    "publisher": "yuhomori",
-    "url": ""
-  },
-  {
     "name": "is-obj@2.0.0",
     "licenses": "MIT",
     "repository": "https://github.com/sindresorhus/is-obj",
