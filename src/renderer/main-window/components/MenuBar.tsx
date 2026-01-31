@@ -39,7 +39,7 @@ export function MenuBar() {
 
     return (
         <TooltipProvider>
-            <div className="fixed top-0 left-0 w-full h-14 bg-background border-b z-50 flex items-center px-2 app-region-drag select-none text-foreground">
+            <div className="w-full h-14 bg-background border-b z-50 flex items-center px-2 app-region-drag select-none text-foreground">
                 {/* メニューボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>

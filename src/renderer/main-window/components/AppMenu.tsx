@@ -15,6 +15,8 @@ import {
     Info,
 } from "lucide-react";
 
+import { getIPCService } from "../../services/ipcService";
+
 interface AppMenuProps {
     handleSettingDlgOpen: () => void;
     handleAboutDlgOpen: () => void;
@@ -40,7 +42,8 @@ export function AppMenu(props: AppMenuProps) {
 
     // 画像設定ウィンドウを開く
     const handleOpenImageSettings = async () => {
-        await window.electronAPI.toggleImageSettingsWindow();
+        const ipcService = getIPCService();
+        await ipcService.toggleImageSettingsWindow();
     };
 
     return (

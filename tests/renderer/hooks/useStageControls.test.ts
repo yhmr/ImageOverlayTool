@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
-import { useStageControls } from "./useStageControls";
+import { useStageControls } from "@/renderer/hooks/useStageControls";
 import { describe, it, expect, vi, afterEach } from "vitest";
 
 describe("useStageControls", () => {
@@ -50,3 +50,4 @@ describe("useStageControls", () => {
         expect(onUpdate.mock.calls[0][0].scale).toBeGreaterThan(1);
     });
 });
+

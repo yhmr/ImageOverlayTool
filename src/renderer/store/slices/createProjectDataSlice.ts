@@ -19,6 +19,7 @@ export interface ProjectDataSlice {
     imageSets: ImageSet[];
     dimensionLines: DimensionLine[];
     unitFactor: number;
+    unit: "nm" | "um" | "mm";
     windowColor: string;
 
     // Actions
@@ -38,6 +39,9 @@ export interface ProjectDataSlice {
     setUnitFactor: (factor: number) => void;
     syncUnitFactor: (factor: number) => void;
 
+    setUnit: (unit: "nm" | "um" | "mm") => void;
+    syncUnit: (unit: "nm" | "um" | "mm") => void;
+
     setWindowColor: (color: string) => void;
 
     loadProjectData: (project: ProjectFile<ImageSet>) => void;
@@ -55,6 +59,7 @@ export const createProjectDataSlice = (
         imageSets: [createDefaultImageSet()],
         dimensionLines: [],
         unitFactor: 1.0,
+        unit: "um",
         windowColor: "#00000000",
 
         // --- Image Sets ---
@@ -123,6 +128,15 @@ export const createProjectDataSlice = (
             set({ unitFactor: factor });
         },
 
+        setUnit: (unit) => {
+            set({ unit });
+            ipcService.updateUnit(unit);
+        },
+
+        syncUnit: (unit) => {
+            set({ unit });
+        },
+
         setWindowColor: (color) => {
             set({ windowColor: color });
         },
@@ -132,17 +146,20 @@ export const createProjectDataSlice = (
             const newImageSets = project.images;
             const newDimensionLines = project.dimensionLines || [];
             const newUnitFactor = project.settings.unitFactor;
+            const newUnit = project.settings.unit || "um";
             const newWindowColor = project.window.color;
 
             set({
                 imageSets: newImageSets,
                 dimensionLines: newDimensionLines,
                 unitFactor: newUnitFactor,
+                unit: newUnit,
                 windowColor: newWindowColor,
             });
 
             ipcService.updateImageSets(newImageSets);
             ipcService.updateUnitFactor(newUnitFactor);
+            ipcService.updateUnit(newUnit);
         },
 
         resetProjectData: () => {
@@ -152,9 +169,11 @@ export const createProjectDataSlice = (
                 imageSets: defaultImageSets,
                 dimensionLines: [],
                 unitFactor: 1.0,
+                unit: "um",
             });
             ipcService.updateImageSets(defaultImageSets);
             ipcService.updateUnitFactor(1.0);
+            ipcService.updateUnit("um");
         },
     });
 };

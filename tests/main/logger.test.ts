@@ -44,7 +44,7 @@ describe("Logger Module", () => {
         });
 
         it("should suppress logs", async () => {
-            await import("./logger");
+            await import("@/main/logger");
             expect(mocks.file.level).toBe(false);
             expect(mocks.console.level).toBe(false);
         });
@@ -57,13 +57,13 @@ describe("Logger Module", () => {
         });
 
         it("should set debug level", async () => {
-            await import("./logger");
+            await import("@/main/logger");
             expect(mocks.file.level).toBe("debug");
             expect(mocks.console.level).toBe("debug");
         });
 
         it("should set format to include processType", async () => {
-            await import("./logger");
+            await import("@/main/logger");
             expect(mocks.file.format).toContain("[{processType}]");
             expect(mocks.console.format).toContain("[{processType}]");
         });
@@ -76,7 +76,7 @@ describe("Logger Module", () => {
         });
 
         it("should set info level for file", async () => {
-            await import("./logger");
+            await import("@/main/logger");
             expect(mocks.file.level).toBe("info");
             expect(mocks.console.level).toBe("debug");
         });
@@ -88,12 +88,12 @@ describe("Logger Module", () => {
         });
 
         it("should register a hook", async () => {
-            await import("./logger");
+            await import("@/main/logger");
             expect(mocks.hooks.push).toHaveBeenCalled();
         });
 
         it("should replace processType with scope if present", async () => {
-            await import("./logger");
+            await import("@/main/logger");
             // get the registered hook function
             const hookFn = mocks.hooks.push.mock.calls[0][0];
 

@@ -1,5 +1,5 @@
 import { expect, test, describe } from "vitest";
-import { calcCenterPosition } from "./calcCenterPosition";
+import { calcCenterPosition } from "@/main/utils/calcCenterPosition";
 
 describe("calcCenterPosition", () => {
     test("centers window correctly", () => {

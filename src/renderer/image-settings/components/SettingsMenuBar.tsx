@@ -7,6 +7,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
+import { getIPCService } from "../../services/ipcService";
 
 /**
  * 画像設定ウィンドウ用のシンプルなタイトルバー
@@ -17,7 +18,7 @@ export function SettingsMenuBar() {
 
     // ウィンドウを非表示にする（トグル動作）
     const handleClose = async () => {
-        await window.electronAPI.toggleImageSettingsWindow();
+        await getIPCService().toggleImageSettingsWindow();
     };
 
     return (
@@ -25,7 +26,7 @@ export function SettingsMenuBar() {
             <div className="flex shrink-0 items-center justify-between min-h-[40px] px-2 bg-background border-b app-region-drag select-none text-foreground">
                 {/* タイトル */}
                 <div className="flex-grow text-sm font-medium">
-                    {t("render.image_settings.title", "画像設定")}
+                    {t("render.image_settings.title")}
                 </div>
 
                 {/* 閉じるボタン（トグル動作） */}
@@ -41,9 +42,7 @@ export function SettingsMenuBar() {
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>
-                            {t("render.image_settings.tooltip.close", "閉じる")}
-                        </p>
+                        <p>{t("render.image_settings.tooltip.close")}</p>
                     </TooltipContent>
                 </Tooltip>
             </div>

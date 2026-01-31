@@ -13,7 +13,7 @@ export function TransparencyControl(props: TransparencyControlProps) {
     return (
         <div className="flex items-center gap-3 mt-2">
             <span className="text-xs min-w-[50px] text-muted-foreground">
-                {t("render.image_settings.transparency", "透過度")}
+                {t("render.image_settings.transparency")}
             </span>
             <Slider
                 value={[transparency]}

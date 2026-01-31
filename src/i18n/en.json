@@ -29,20 +29,25 @@
                 "dimension_line": "draw dimension line"
             }
         },
-        "image_setting_dlg": {
+        "image_settings": {
             "title": "Image Setting",
             "done": "DONE",
+            "transparency": "transparency",
+            "rotation": "rotation",
+            "no_image": "No Image Selected",
             "tooltip": {
                 "load_image": "Load Image",
                 "delete_image": "Delete Image",
-                "add": "Add"
+                "add": "Add",
+                "close": "Close"
             }
         },
         "setting_dlg": {
             "title": "Setting",
             "done": "DONE",
             "language": "language",
-            "unitFactor": "um per pix",
+            "unitFactor": "resolution factor",
+            "unit": "unit",
             "helper": {
                 "language": "Change the language used in the UI",
                 "unitFactor": "Used for drawing dimension lines"

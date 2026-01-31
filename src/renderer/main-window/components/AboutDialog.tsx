@@ -6,9 +6,12 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/renderer/components/ui/dialog";
 import { Button } from "@/renderer/components/ui/button";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
+
+import { getIPCService } from "../../services/ipcService";
 
 interface LicenseInfo {
     name: string;
@@ -33,10 +36,11 @@ export function AboutDialog(props: AboutDialogProps) {
     useEffect(() => {
         if (open) {
             setLoading(true);
+            const ipcService = getIPCService();
             // ライセンス情報とバージョンを並列で取得
             Promise.all([
-                window.electronAPI.getLicenseInfo(),
-                window.electronAPI.getAppVersion(),
+                ipcService.getLicenseInfo() as Promise<LicenseInfo[]>,
+                ipcService.getAppVersion(),
             ])
                 .then(([licenseData, version]) => {
                     setLicenses(licenseData);
@@ -58,6 +62,10 @@ export function AboutDialog(props: AboutDialogProps) {
             <DialogContent className="sm:max-w-[500px] max-h-[80vh]">
                 <DialogHeader>
                     <DialogTitle>{t("render.about_dlg.title")}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                        This dialog shows information about the application and
+                        licenses of third-party libraries.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     {/* バージョン情報 */}
@@ -83,20 +91,57 @@ export function AboutDialog(props: AboutDialogProps) {
                                     No license information available
                                 </p>
                             ) : (
-                                <div className="space-y-2">
-                                    {licenses.map((license, index) => (
-                                        <div
-                                            key={index}
-                                            className="text-xs border-b pb-2 last:border-b-0"
-                                        >
-                                            <div className="font-medium">
-                                                {license.name}
+                                <div className="space-y-3">
+                                    {licenses.map((license, index) => {
+                                        // "package@version" 形式の分割ロジック
+                                        // スコープパッケージ (@org/pkg@1.2.3) に対応
+                                        const lastAtIndex =
+                                            license.name.lastIndexOf("@");
+                                        let name = license.name;
+                                        let version = "";
+
+                                        if (
+                                            lastAtIndex > 0 &&
+                                            lastAtIndex <
+                                                license.name.length - 1
+                                        ) {
+                                            name = license.name.substring(
+                                                0,
+                                                lastAtIndex
+                                            );
+                                            version = license.name.substring(
+                                                lastAtIndex + 1
+                                            );
+                                        }
+
+                                        return (
+                                            <div
+                                                key={index}
+                                                className="text-xs border-b pb-2 last:border-b-0"
+                                            >
+                                                <div className="flex justify-between items-baseline mb-1">
+                                                    <div className="font-bold text-sm">
+                                                        {name}
+                                                    </div>
+                                                    {version && (
+                                                        <div className="text-muted-foreground ml-2">
+                                                            v{version}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex justify-between text-muted-foreground italic">
+                                                    <div>
+                                                        {license.licenses}
+                                                    </div>
+                                                    {license.publisher && (
+                                                        <div className="text-[10px] opacity-70">
+                                                            {license.publisher}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="text-muted-foreground">
-                                                {license.licenses}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </ScrollArea>

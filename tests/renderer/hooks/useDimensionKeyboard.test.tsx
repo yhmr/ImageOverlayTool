@@ -3,14 +3,22 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { useDimensionKeyboard } from "./useDimensionKeyboard";
-import { useAppStore } from "../store/useAppStore";
+import { useDimensionKeyboard } from "@/renderer/hooks/useDimensionKeyboard";
+import { useAppStore } from "@/renderer/store/useAppStore";
+import { setIPCService } from "@/renderer/services/ipcService";
 
-// Mock Electron API
-window.electronAPI = {
+// Mock IPCService
+const mockIPC = vi.hoisted(() => ({
     updateImageSets: vi.fn(),
     updateUnitFactor: vi.fn(),
-} as any;
+    updateUnit: vi.fn(),
+    onUnitUpdated: vi.fn(() => vi.fn()),
+}));
+
+vi.mock("@/renderer/services/ipcService", () => ({
+    getIPCService: () => mockIPC,
+    setIPCService: vi.fn(),
+}));
 
 describe("useDimensionKeyboard", () => {
     beforeEach(() => {

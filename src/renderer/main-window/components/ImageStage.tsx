@@ -62,6 +62,7 @@ export const ImageStage = memo(function ImageStage() {
         setSelectedDimensionLineId,
         dimensionLines,
         unitFactor,
+        unit,
         onSelectDimensionLine,
         onUpdateDimensionLineHandler,
         onMouseDown: onMouseDownDimension,
@@ -211,6 +212,7 @@ export const ImageStage = memo(function ImageStage() {
                     <DimensionLineLayer
                         dimensionLines={dimensionLines}
                         unitFactor={unitFactor}
+                        unit={unit}
                         isSelected={(id) => id === selectedDimensionLineId}
                         onSelect={onSelectDimensionLine}
                         onUpdate={onUpdateDimensionLineHandler}

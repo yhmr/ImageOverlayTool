@@ -11,20 +11,25 @@ import "./App.css";
 import { MenuBar } from "./components/MenuBar";
 import { ImageStage } from "./components/ImageStage";
 import { ContextMenu } from "./components/ContextMenu";
-import { logger } from "../services/loggerService";
+import { getIPCService } from "../services/ipcService";
 
 // グローバルエラーハンドリング
+
 window.addEventListener("error", (event) => {
-    logger.error("Renderer Uncaught Error:", event.error || event.message);
+    getIPCService().log.error(
+        "Renderer Uncaught Error:",
+        event.error || event.message
+    );
 });
 
 window.addEventListener("unhandledrejection", (event) => {
-    logger.error("Renderer Unhandled Rejection:", event.reason);
+    getIPCService().log.error("Renderer Unhandled Rejection:", event.reason);
 });
 
 const App = () => {
     // 設定の読み込み
     const { windowColor, setWindowColor } = useAppStore();
+    const ipcService = getIPCService();
 
     // 同期フックを使用
     useProjectSync();
@@ -35,16 +40,16 @@ const App = () => {
     useLayoutEffect(() => {
         // 設定を読み込み
         const loadColor = async () => {
-            const color = await window.electronAPI.loadWindowColor();
+            const color = await ipcService.loadWindowColor();
             setWindowColor(color);
         };
         loadColor();
-    }, [setWindowColor]);
+    }, [setWindowColor, ipcService]);
 
     // 色設定完了時にファイルに色を保存
     const onCompleteColor = useCallback(async () => {
-        await window.electronAPI.saveWindowColor(windowColor);
-    }, [windowColor]);
+        await ipcService.saveWindowColor(windowColor);
+    }, [windowColor, ipcService]);
 
     // 色設定の変更
     const handleSetColor = useCallback(
@@ -55,13 +60,14 @@ const App = () => {
     );
 
     return (
-        <div className="container">
+        <div className="main-app-container">
             <MenuBar />
             <div
                 style={{
                     width: "100%",
-                    height: "100%",
+                    flexGrow: 1,
                     backgroundColor: windowColor,
+                    overflow: "hidden",
                 }}
             >
                 <div className="image-area">

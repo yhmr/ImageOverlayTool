@@ -2,11 +2,12 @@ import { useCallback, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../../shared/types/ImageSet";
-import { logger } from "../services/loggerService";
+import { getIPCService } from "../services/ipcService";
 
 export const useProjectOperations = () => {
     const {
         unitFactor,
+        unit,
         windowColor,
         canvas,
         dimensionLines,
@@ -15,6 +16,7 @@ export const useProjectOperations = () => {
         resetAll,
     } = useAppStore();
 
+    const ipcService = getIPCService();
     const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
 
     const createProjectFile = useCallback(
@@ -27,26 +29,26 @@ export const useProjectOperations = () => {
                 y: window.screenY,
                 color: windowColor,
             },
-            settings: { unitFactor },
+            settings: { unitFactor, unit },
             canvas,
             images: imageSets,
             dimensionLines,
         }),
-        [imageSets, unitFactor, windowColor, canvas, dimensionLines]
+        [imageSets, unitFactor, unit, windowColor, canvas, dimensionLines]
     );
 
     const handleNewProject = useCallback(async () => {
-        logger.info("New project requested");
+        ipcService.log.info("New project requested");
         resetAll();
         setCurrentFilePath(null);
-    }, [resetAll]);
+    }, [resetAll, ipcService]);
 
     const applyProject = useCallback(
         async (project: ProjectFile<ImageSet>, filePath: string) => {
-            logger.info(`Applying project from: ${filePath}`);
+            ipcService.log.info(`Applying project from: ${filePath}`);
             loadProject(project);
             if (project.window) {
-                await window.electronAPI.setWindowRect({
+                await ipcService.setWindowRect({
                     x: project.window.x,
                     y: project.window.y,
                     width: project.window.width,
@@ -55,40 +57,34 @@ export const useProjectOperations = () => {
             }
             setCurrentFilePath(filePath);
         },
-        [loadProject]
+        [loadProject, ipcService]
     );
 
     const handleOpenProject = useCallback(async () => {
-        const result = await window.electronAPI.loadProject();
+        const result = await ipcService.loadProject();
         if (result) {
-            await applyProject(
-                result.project as ProjectFile<ImageSet>,
-                result.filePath
-            );
+            await applyProject(result.project, result.filePath);
         }
-    }, [applyProject]);
+    }, [applyProject, ipcService]);
 
     const handleLoadProjectFromPath = useCallback(
         async (path: string) => {
-            const result = await window.electronAPI.loadProjectFromPath(path);
+            const result = await ipcService.loadProjectFromPath(path);
             if (result) {
-                await applyProject(
-                    result.project as ProjectFile<ImageSet>,
-                    result.filePath
-                );
+                await applyProject(result.project, result.filePath);
             }
         },
-        [applyProject]
+        [applyProject, ipcService]
     );
 
     const handleSaveProjectAs = useCallback(async () => {
-        logger.info("Save Project As requested");
+        ipcService.log.info("Save Project As requested");
         const project = createProjectFile();
-        const filePath = await window.electronAPI.saveProjectAs(project);
+        const filePath = await ipcService.saveProjectAs(project);
         if (filePath) {
             setCurrentFilePath(filePath);
         }
-    }, [createProjectFile]);
+    }, [createProjectFile, ipcService]);
 
     const handleSaveProject = useCallback(async () => {
         if (!currentFilePath) {
@@ -96,9 +92,9 @@ export const useProjectOperations = () => {
             return;
         }
         const project = createProjectFile();
-        logger.info(`Saving project to: ${currentFilePath}`);
-        await window.electronAPI.saveProject(currentFilePath, project);
-    }, [currentFilePath, createProjectFile, handleSaveProjectAs]);
+        ipcService.log.info(`Saving project to: ${currentFilePath}`);
+        await ipcService.saveProject(currentFilePath, project);
+    }, [currentFilePath, createProjectFile, handleSaveProjectAs, ipcService]);
 
     return {
         currentFilePath,

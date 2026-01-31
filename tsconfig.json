@@ -19,6 +19,10 @@
       ]
     }
   },
+  "include": [
+    "src/**/*",
+    "tests/**/*"
+  ],
   "ts-node": {
     "compilerOptions": {
       "target": "ES2020",

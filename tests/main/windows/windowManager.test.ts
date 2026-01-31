@@ -79,8 +79,8 @@ vi.mock("@electron-toolkit/utils", () => ({
     },
 }));
 
-import { WindowManager } from "./windowManager";
-import { IWindowRepository } from "../repositories/WindowRepository";
+import { WindowManager } from "@/main/windows/windowManager";
+import { IWindowRepository } from "@/main/repositories/WindowRepository";
 
 describe("WindowManager", () => {
     let windowManager: WindowManager;

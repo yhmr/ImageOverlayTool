@@ -56,15 +56,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
         return () =>
             ipcRenderer.removeListener("imageSets:updated", subscription);
     },
-    // Unit Factor Sync
-    updateUnitFactor: (unitFactor: number) =>
-        ipcRenderer.invoke("unitFactor:update", unitFactor),
-    onUnitFactorUpdated: (callback: (unitFactor: number) => void) => {
-        const subscription = (_event: unknown, unitFactor: number) =>
-            callback(unitFactor);
-        ipcRenderer.on("unitFactor:updated", subscription);
-        return () =>
-            ipcRenderer.removeListener("unitFactor:updated", subscription);
+    // Unit sync
+    updateUnit: (unit: "nm" | "um" | "mm") =>
+        ipcRenderer.invoke("unit:update", unit),
+    onUnitUpdated: (callback: (unit: "nm" | "um" | "mm") => void) => {
+        const subscription = (_event: unknown, unit: "nm" | "um" | "mm") =>
+            callback(unit);
+        ipcRenderer.on("unit:updated", subscription);
+        return () => ipcRenderer.removeListener("unit:updated", subscription);
     },
     // Initial State Sync
     requestInitialState: () => ipcRenderer.invoke("state:requestInitial"),

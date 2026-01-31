@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/renderer/components/ui/card";
 import { ImageItemHeader } from "./ImageItemHeader";
 import { TransparencyControl } from "./TransparencyControl";
 import { RotationControl } from "./RotationControl";
-import { logger } from "../../services/loggerService";
+import { getIPCService } from "../../services/ipcService";
 
 interface ImageListItemProps {
     imageSet: ImageSet;
@@ -29,10 +29,11 @@ export function ImageListItem(props: ImageListItemProps) {
 
     // ファイルオープン
     const handleFileOpen = async () => {
-        logger.debug("Opening file dialog for image slot", { index });
-        const res = await window.electronAPI.loadImage();
+        const ipcService = getIPCService();
+        ipcService.log.debug("Opening file dialog for image slot", { index });
+        const res = await ipcService.loadImage();
         if (res) {
-            logger.info(`Image loaded for slot ${index}: ${res}`);
+            ipcService.log.info(`Image loaded for slot ${index}: ${res}`);
             const newImageSet = { ...imageSets[index] };
             newImageSet.path = `local-file://${res.replace(/\\/g, "/")}`;
             // ファイル読み込み直しの場合は、すべてのパラメータを初期化
@@ -42,7 +43,7 @@ export function ImageListItem(props: ImageListItemProps) {
             newImageSet.current_anchor_pos = null;
             updateImageSet({ index: index, imageSet: newImageSet });
         } else {
-            logger.debug("Image loading canceled by user");
+            ipcService.log.debug("Image loading canceled by user");
         }
     };
 
@@ -86,7 +87,7 @@ export function ImageListItem(props: ImageListItemProps) {
     // ファイル名を抽出（パスから）
     const fileName = imageSet.path
         ? imageSet.path.split("/").pop() || imageSet.path
-        : t("render.image_settings.no_image", "画像未選択");
+        : t("render.image_settings.no_image");
 
     return (
         <Card className="mb-2">

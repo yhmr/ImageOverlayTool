@@ -6,6 +6,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/renderer/components/ui/dialog";
 import {
     Select,
@@ -16,6 +17,7 @@ import {
 } from "@/renderer/components/ui/select";
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
+import { getIPCService } from "../../services/ipcService";
 
 interface SettingDialogProps {
     open: boolean;
@@ -25,6 +27,7 @@ interface SettingDialogProps {
 export function SettingDialog(props: SettingDialogProps) {
     const { open, handleClose } = props;
     const { t, i18n } = useTranslation();
+    const ipcService = getIPCService();
 
     // 言語切り替え
     const handleLanguageChange = (value: string) => {
@@ -33,7 +36,7 @@ export function SettingDialog(props: SettingDialogProps) {
 
     // 終了時に設定保存
     const handleCloseAndSave = async () => {
-        await window.electronAPI.saveSetting({
+        await ipcService.saveSetting({
             language: i18n.language,
         });
         handleClose();
@@ -42,11 +45,11 @@ export function SettingDialog(props: SettingDialogProps) {
     // 初期化
     useLayoutEffect(() => {
         const loadSetting = async () => {
-            const setting = await window.electronAPI.loadSetting();
+            const setting = await ipcService.loadSetting();
             i18n.changeLanguage(setting.language);
         };
         loadSetting();
-    }, [i18n]);
+    }, [i18n, ipcService]);
 
     return (
         <Dialog
@@ -56,6 +59,10 @@ export function SettingDialog(props: SettingDialogProps) {
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>{t("render.setting_dlg.title")}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                        This dialog allows you to change application settings
+                        such as language.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">

@@ -1,20 +1,22 @@
 import { useState, useCallback } from "react";
-import { logger } from "../services/loggerService";
+import { getIPCService } from "../services/ipcService";
 
 export const useWindowOperations = () => {
     // スクリーンサイズ
     const [full, setFull] = useState(false);
 
     const handleSwitchFullScreen = useCallback(async () => {
-        logger.debug("Toggling fullscreen mode");
-        const res = await window.electronAPI.switchWindowSize();
+        const ipcService = getIPCService();
+        ipcService.log.debug("Toggling fullscreen mode");
+        const res = await ipcService.switchWindowSize();
         setFull(res);
     }, []);
 
     // Windowを閉じる
     const handleCloseWindow = useCallback(() => {
-        logger.info("Close button clicked");
-        window.electronAPI.closeWindow();
+        const ipcService = getIPCService();
+        ipcService.log.info("Close button clicked");
+        ipcService.closeWindow();
     }, []);
 
     return {

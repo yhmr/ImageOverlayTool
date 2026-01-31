@@ -54,12 +54,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>
-                            {t(
-                                "render.image_setting_dlg.tooltip.load_image",
-                                "画像を開く"
-                            )}
-                        </p>
+                        <p>{t("render.image_settings.tooltip.load_image")}</p>
                     </TooltipContent>
                 </Tooltip>
 
@@ -76,12 +71,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>
-                            {t(
-                                "render.image_setting_dlg.tooltip.delete_image",
-                                "削除"
-                            )}
-                        </p>
+                        <p>{t("render.image_settings.tooltip.delete_image")}</p>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>

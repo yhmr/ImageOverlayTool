@@ -1,5 +1,5 @@
-import { SettingType } from "../../shared/types/AppConfig";
-import { ISettingsRepository } from "./SettingsRepository";
+import { SettingType } from "@/shared/types/AppConfig";
+import { ISettingsRepository } from "@/main/repositories/SettingsRepository";
 
 export class MockSettingsRepository implements ISettingsRepository {
     private settings = {
