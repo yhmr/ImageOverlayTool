@@ -10,6 +10,8 @@ import {
 import { Button } from "@/renderer/components/ui/button";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 
+import { getIPCService } from "../../services/ipcService";
+
 interface LicenseInfo {
     name: string;
     licenses: string;
@@ -33,10 +35,11 @@ export function AboutDialog(props: AboutDialogProps) {
     useEffect(() => {
         if (open) {
             setLoading(true);
+            const ipcService = getIPCService();
             // ライセンス情報とバージョンを並列で取得
             Promise.all([
-                window.electronAPI.getLicenseInfo(),
-                window.electronAPI.getAppVersion(),
+                ipcService.getLicenseInfo() as Promise<LicenseInfo[]>,
+                ipcService.getAppVersion(),
             ])
                 .then(([licenseData, version]) => {
                     setLicenses(licenseData);

@@ -7,6 +7,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
+import { getIPCService } from "../../services/ipcService";
 import { cn } from "@/renderer/lib/utils";
 
 interface ControlButtonProps {
@@ -20,7 +21,8 @@ export function ControlButton(props: ControlButtonProps) {
 
     // 画像設定ウィンドウを開く
     const handleOpenImageSettings = async () => {
-        await window.electronAPI.toggleImageSettingsWindow();
+        const ipcService = getIPCService();
+        await ipcService.toggleImageSettingsWindow();
     };
 
     return (
