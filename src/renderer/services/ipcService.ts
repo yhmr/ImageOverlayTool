@@ -6,6 +6,7 @@
 import type { ImageSet } from "../../shared/types/ImageSet";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
+import type { CaptureResult } from "../../shared/types/CaptureResult";
 
 /**
  * IPCサービスのインターフェース
@@ -84,6 +85,9 @@ export interface IIPCService {
 
     // App Version
     getAppVersion: () => Promise<string>;
+
+    // Capture
+    captureScreen: () => Promise<CaptureResult>;
 }
 
 /**
@@ -229,6 +233,10 @@ class IPCService implements IIPCService {
     async getAppVersion(): Promise<string> {
         return (await window.electronAPI.getAppVersion()) as string;
     }
+
+    async captureScreen(): Promise<CaptureResult> {
+        return (await window.electronAPI.captureScreen()) as CaptureResult;
+    }
 }
 
 /**
@@ -331,6 +339,14 @@ export class MockIPCService implements IIPCService {
     }
     async getAppVersion(): Promise<string> {
         return "1.0.0";
+    }
+
+    async captureScreen(): Promise<CaptureResult> {
+        return {
+            filePath: "path/to/capture.png",
+            width: 800,
+            height: 600,
+        };
     }
 
     reset(): void {

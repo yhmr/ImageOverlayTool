@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { Settings2, Scaling } from "lucide-react";
+import { Settings2, Scaling, Camera } from "lucide-react";
 import { Button } from "@/renderer/components/ui/button";
+import { useCapture } from "../../hooks/useCapture";
 import {
     Tooltip,
     TooltipContent,
@@ -18,6 +19,7 @@ interface ControlButtonProps {
 export function ControlButton(props: ControlButtonProps) {
     const { isDimensionMode, onToggleDimensionMode } = props;
     const { t } = useTranslation();
+    const { handleCapture } = useCapture();
 
     // 画像設定ウィンドウを開く
     const handleOpenImageSettings = async () => {
@@ -44,6 +46,27 @@ export function ControlButton(props: ControlButtonProps) {
                             {t(
                                 "render.control_button.tooltip.image_settings",
                                 "画像設定 (Ctrl+I)"
+                            )}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* 背景キャプチャボタン */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="secondary"
+                            onClick={handleCapture}
+                            className="absolute bottom-9 right-36 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                        >
+                            <Camera className="h-6 w-6" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                        <p>
+                            {t(
+                                "render.control_button.tooltip.capture",
+                                "背景をキャプチャ"
                             )}
                         </p>
                     </TooltipContent>

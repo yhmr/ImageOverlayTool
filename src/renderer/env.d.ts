@@ -1,6 +1,7 @@
 import type { SettingType } from "../shared/types/AppConfig";
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "./types/ImageSet";
+import type { CaptureResult } from "../../shared/types/CaptureResult";
 
 // APIのインターフェースを定義
 export interface IElectronAPI {
@@ -73,6 +74,8 @@ export interface IElectronAPI {
     >;
     // App Version
     getAppVersion: () => Promise<string>;
+    // Capture
+    captureScreen: () => Promise<CaptureResult>;
 }
 
 declare global {

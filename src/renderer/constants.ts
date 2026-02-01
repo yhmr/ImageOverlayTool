@@ -2,6 +2,11 @@
  * レンダラー共通の定数定義
  */
 
+// === Layout ===
+
+/** メインウィンドウのタイトルバー（MenuBar）の高さ（px） */
+export const TITLE_BAR_HEIGHT = 56;
+
 // === Dimension Line ===
 
 /** 寸法線として認識する最小距離（px） */

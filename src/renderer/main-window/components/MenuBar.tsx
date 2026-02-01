@@ -14,6 +14,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
+import { TITLE_BAR_HEIGHT } from "../../constants";
 
 export function MenuBar() {
     const { t } = useTranslation();
@@ -39,7 +40,10 @@ export function MenuBar() {
 
     return (
         <TooltipProvider>
-            <div className="w-full h-14 bg-background border-b z-50 flex items-center px-2 app-region-drag select-none text-foreground">
+            <div
+                className="w-full bg-background border-b z-50 flex items-center px-2 app-region-drag select-none text-foreground"
+                style={{ height: TITLE_BAR_HEIGHT }}
+            >
                 {/* メニューボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>

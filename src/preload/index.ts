@@ -96,4 +96,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     getLicenseInfo: () => ipcRenderer.invoke("license:get"),
     // App Version
     getAppVersion: () => ipcRenderer.invoke("app:getVersion"),
+    // Capture
+    captureScreen: () => ipcRenderer.invoke("capture-screen"),
 });
