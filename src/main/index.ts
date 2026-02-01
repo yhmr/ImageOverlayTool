@@ -100,17 +100,19 @@ if (!gotTheLock) {
         // プロトコルハンドラ登録
         setupProtocolHandler();
 
-        // メインウィンドウを作成
-        const mainWindow = windowManager.createMainWindow();
-        log.info("Main window created.");
-
-        // IPCハンドラ登録
-        registerWindowHandlers(mainWindow);
+        // IPCハンドラ登録（ウィンドウ作成前に可能なもの）
         registerAppConfigHandlers(settingsRepository, windowRepository);
         registerProjectHandlers(projectRepository);
         registerImageSettingsWindowHandlers(windowManager);
         registerLicenseIpc();
         registerCaptureHandlers();
+
+        // メインウィンドウを作成
+        const mainWindow = windowManager.createMainWindow();
+        log.info("Main window created.");
+
+        // IPCハンドラ登録（ウィンドウ依存）
+        registerWindowHandlers(mainWindow);
 
         // グローバルショートカットを登録
         windowManager.registerShortcuts();
