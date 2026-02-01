@@ -12,6 +12,7 @@ const createDefaultImageSet = (): ImageSet => ({
     rotation: 0,
     init_anchor_pos: null,
     current_anchor_pos: null,
+    locked: false,
 });
 
 export interface ProjectDataSlice {

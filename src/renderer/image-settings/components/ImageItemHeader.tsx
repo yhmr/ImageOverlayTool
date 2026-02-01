@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { FolderOpen, Trash2, GripVertical } from "lucide-react";
+import { FolderOpen, Trash2, GripVertical, Lock, Unlock } from "lucide-react";
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 import { Button } from "@/renderer/components/ui/button";
@@ -13,13 +13,23 @@ import {
 interface ImageItemHeaderProps {
     path: string;
     fileName: string;
+    isLocked?: boolean;
     onFileOpen: () => void;
+    onToggleLock: () => void;
     onDelete: () => void;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
 
 export function ImageItemHeader(props: ImageItemHeaderProps) {
-    const { path, fileName, onFileOpen, onDelete, dragHandleProps } = props;
+    const {
+        path,
+        fileName,
+        isLocked,
+        onFileOpen,
+        onToggleLock,
+        onDelete,
+        dragHandleProps,
+    } = props;
     const { t } = useTranslation();
 
     return (
@@ -55,6 +65,31 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
                     </TooltipTrigger>
                     <TooltipContent>
                         <p>{t("render.image_settings.tooltip.load_image")}</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* ロックボタン */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={onToggleLock}
+                        >
+                            {isLocked ? (
+                                <Lock className="h-4 w-4" />
+                            ) : (
+                                <Unlock className="h-4 w-4" />
+                            )}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>
+                            {isLocked
+                                ? t("render.image_settings.tooltip.unlock")
+                                : t("render.image_settings.tooltip.lock")}
+                        </p>
                     </TooltipContent>
                 </Tooltip>
 

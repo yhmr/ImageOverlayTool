@@ -28,3 +28,6 @@ export const OVERLAY_STROKE_COLOR = "#4e4eff";
 
 /** オーバーレイ枠線の幅（px） */
 export const OVERLAY_STROKE_WIDTH = 3;
+
+/** ロック時のオーバーレイ枠線の色 */
+export const LOCKED_OVERLAY_STROKE_COLOR = "#ff4e4e";

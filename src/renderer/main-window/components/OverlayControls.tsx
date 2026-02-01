@@ -12,6 +12,7 @@ import {
     ANCHOR_FILL_COLOR,
     OVERLAY_STROKE_COLOR,
     OVERLAY_STROKE_WIDTH,
+    LOCKED_OVERLAY_STROKE_COLOR,
 } from "../../constants";
 
 interface OverlayControlsProps {
@@ -59,6 +60,8 @@ export const OverlayControls = ({
 
     // 選択時の処理（ドラッグ有効化など）
     const onMouseDown = useCallback(() => {
+        if (imageSet.locked) return;
+
         // ドラッグボタンを上書きし、ドラッグ有効化
         Konva.dragButtons = [0];
         if (lineRef.current) lineRef.current.draggable(true);
@@ -122,29 +125,34 @@ export const OverlayControls = ({
         }
     }, [imageSet]);
 
+    const strokeColor = imageSet.locked
+        ? LOCKED_OVERLAY_STROKE_COLOR
+        : OVERLAY_STROKE_COLOR;
+
     return (
         <>
             <Line
                 ref={lineRef}
                 closed={true}
-                stroke={OVERLAY_STROKE_COLOR}
+                stroke={strokeColor}
                 strokeWidth={OVERLAY_STROKE_WIDTH}
                 onMouseDown={onMouseDown}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
             />
-            {cRefs.map((ref, index) => (
-                <Circle
-                    key={index}
-                    draggable={false} // onMouseDownでtrueにする
-                    onMouseDown={onMouseDown}
-                    onDragEnd={circleDragHandler}
-                    ref={ref}
-                    radius={ANCHOR_RADIUS}
-                    stroke={ANCHOR_STROKE_COLOR}
-                    fill={ANCHOR_FILL_COLOR}
-                />
-            ))}
+            {!imageSet.locked &&
+                cRefs.map((ref, index) => (
+                    <Circle
+                        key={index}
+                        draggable={false} // onMouseDownでtrueにする
+                        onMouseDown={onMouseDown}
+                        onDragEnd={circleDragHandler}
+                        ref={ref}
+                        radius={ANCHOR_RADIUS}
+                        stroke={ANCHOR_STROKE_COLOR}
+                        fill={ANCHOR_FILL_COLOR}
+                    />
+                ))}
         </>
     );
 };
