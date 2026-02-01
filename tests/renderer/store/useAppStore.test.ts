@@ -134,6 +134,32 @@ describe("useAppStore", () => {
         });
     });
 
+    describe("ViewSlice", () => {
+        it("should update canvas state", () => {
+            const newCanvas = { x: 10, y: 20, scale: 2 };
+            useAppStore.getState().setCanvasState(newCanvas);
+            expect(useAppStore.getState().canvas).toEqual(newCanvas);
+        });
+
+        it("should reset view", () => {
+            useAppStore.getState().setCanvasState({ x: 10, y: 20, scale: 2 });
+            useAppStore.getState().setUIHidden(true);
+
+            useAppStore.getState().resetView();
+
+            expect(useAppStore.getState().canvas).toEqual({ x: 0, y: 0, scale: 1 });
+            expect(useAppStore.getState().isUIHidden).toBe(false);
+        });
+
+        it("should toggle UI hidden state", () => {
+            expect(useAppStore.getState().isUIHidden).toBe(false);
+            useAppStore.getState().setUIHidden(true);
+            expect(useAppStore.getState().isUIHidden).toBe(true);
+            useAppStore.getState().setUIHidden(false);
+            expect(useAppStore.getState().isUIHidden).toBe(false);
+        });
+    });
+
     describe("Combined Reset", () => {
         it("should reset all slices", () => {
             useAppStore.getState().setUnitFactor(2.0);
