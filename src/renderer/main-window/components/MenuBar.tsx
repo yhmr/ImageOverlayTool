@@ -15,9 +15,11 @@ import {
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
+import { useAppStore } from "../../store/useAppStore";
 
 export function MenuBar() {
     const { t } = useTranslation();
+    const { isUIHidden } = useAppStore();
 
     const {
         openSettingDlg,
@@ -42,7 +44,11 @@ export function MenuBar() {
         <TooltipProvider>
             <div
                 className="w-full bg-background border-b z-50 flex items-center px-2 app-region-drag select-none text-foreground"
-                style={{ height: TITLE_BAR_HEIGHT }}
+                style={{
+                    height: TITLE_BAR_HEIGHT,
+                    opacity: isUIHidden ? 0 : 1,
+                    transition: "opacity 0.2s",
+                }}
             >
                 {/* メニューボタン */}
                 <Tooltip>

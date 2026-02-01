@@ -20,6 +20,7 @@ type StoreActions = {
 
 type AppState = ProjectDataSlice & ViewSlice & InteractionSlice & StoreActions;
 
+// AppStore definition
 export const useAppStore = create<AppState>()((...args) => {
     const [, get] = args;
     const ipcService = getIPCService();

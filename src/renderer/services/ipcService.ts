@@ -88,6 +88,8 @@ export interface IIPCService {
 
     // Capture
     captureScreen: () => Promise<CaptureResult>;
+    captureWindow: () => Promise<CaptureResult>;
+    saveImage: (dataUrl: string) => Promise<string | null>;
 }
 
 /**
@@ -237,6 +239,14 @@ class IPCService implements IIPCService {
     async captureScreen(): Promise<CaptureResult> {
         return (await window.electronAPI.captureScreen()) as CaptureResult;
     }
+
+    async captureWindow(): Promise<CaptureResult> {
+        return (await window.electronAPI.captureWindow()) as CaptureResult;
+    }
+
+    async saveImage(dataUrl: string): Promise<string | null> {
+        return (await window.electronAPI.saveImage(dataUrl)) as string | null;
+    }
 }
 
 /**
@@ -347,6 +357,18 @@ export class MockIPCService implements IIPCService {
             width: 800,
             height: 600,
         };
+    }
+
+    async captureWindow(): Promise<CaptureResult> {
+        return {
+            filePath: "path/to/capture_window.png",
+            width: 800,
+            height: 600,
+        };
+    }
+
+    async saveImage(): Promise<string | null> {
+        return "path/to/image.png";
     }
 
     reset(): void {

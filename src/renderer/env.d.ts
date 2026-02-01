@@ -76,6 +76,8 @@ export interface IElectronAPI {
     getAppVersion: () => Promise<string>;
     // Capture
     captureScreen: () => Promise<CaptureResult>;
+    captureWindow: () => Promise<CaptureResult>;
+    saveImage: (dataUrl: string) => Promise<string | null>;
 }
 
 declare global {

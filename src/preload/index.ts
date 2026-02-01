@@ -98,4 +98,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     getAppVersion: () => ipcRenderer.invoke("app:getVersion"),
     // Capture
     captureScreen: () => ipcRenderer.invoke("capture-screen"),
+    captureWindow: () => ipcRenderer.invoke("capture-window"),
+    saveImage: (dataUrl: string) =>
+        ipcRenderer.invoke("save-image-data", dataUrl),
 });
