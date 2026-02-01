@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { Settings2, Scaling } from "lucide-react";
+import { Settings2, Scaling, Camera, Save } from "lucide-react";
 import { Button } from "@/renderer/components/ui/button";
+import { useCapture } from "../../hooks/useCapture";
 import {
     Tooltip,
     TooltipContent,
@@ -9,21 +10,28 @@ import {
 } from "@/renderer/components/ui/tooltip";
 import { getIPCService } from "../../services/ipcService";
 import { cn } from "@/renderer/lib/utils";
+import { useAppStore } from "../../store/useAppStore";
 
 interface ControlButtonProps {
     isDimensionMode: boolean;
     onToggleDimensionMode: () => void;
+    onOpenExportDialog: () => void;
 }
 
 export function ControlButton(props: ControlButtonProps) {
-    const { isDimensionMode, onToggleDimensionMode } = props;
+    const { isDimensionMode, onToggleDimensionMode, onOpenExportDialog } =
+        props;
     const { t } = useTranslation();
+    const { handleCapture } = useCapture();
+    const { isUIHidden } = useAppStore();
 
     // 画像設定ウィンドウを開く
     const handleOpenImageSettings = async () => {
         const ipcService = getIPCService();
         await ipcService.toggleImageSettingsWindow();
     };
+
+    if (isUIHidden) return null;
 
     return (
         <TooltipProvider>
@@ -44,6 +52,48 @@ export function ControlButton(props: ControlButtonProps) {
                             {t(
                                 "render.control_button.tooltip.image_settings",
                                 "画像設定 (Ctrl+I)"
+                            )}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* 背景キャプチャボタン */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="secondary"
+                            onClick={handleCapture}
+                            className="absolute bottom-9 right-36 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                        >
+                            <Camera className="h-6 w-6" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                        <p>
+                            {t(
+                                "render.control_button.tooltip.capture",
+                                "背景をキャプチャ"
+                            )}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* 保存ボタン */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="secondary"
+                            onClick={onOpenExportDialog}
+                            className="absolute bottom-9 right-52 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                        >
+                            <Save className="h-6 w-6" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                        <p>
+                            {t(
+                                "render.control_button.tooltip.save",
+                                "画像を保存"
                             )}
                         </p>
                     </TooltipContent>

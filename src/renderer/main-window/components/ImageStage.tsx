@@ -13,17 +13,50 @@ import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
 import { OverlayControls } from "./OverlayControls";
 import { DimensionLineLayer } from "./DimensionLineLayer";
+import { ExportDialog } from "./ExportDialog";
 
 import { useStageControls } from "../../hooks/useStageControls";
 import { useDimensionLineMode } from "../../hooks/useDimensionLineMode";
 import { useImageSelection } from "../../hooks/useImageSelection";
+import { useMenuState } from "../../hooks/useMenuState";
+import { getIPCService } from "../../services/ipcService";
 
 export const ImageStage = memo(function ImageStage() {
     // imageSet取得
-    const { imageSets, updateImageSet, canvas, setCanvasState } = useAppStore();
+    const { imageSets, updateImageSet, canvas, setCanvasState, setUIHidden } =
+        useAppStore();
 
     // ステージのref
     const stageRef = useRef<Konva.Stage>(null);
+
+    const { openExportDlg, handleExportDlgOpen, handleExportDlgClose } =
+        useMenuState();
+
+    const handleExport = async (includeBackground: boolean) => {
+        const ipcService = getIPCService();
+        if (includeBackground) {
+            // UIを隠す
+            setUIHidden(true);
+            // ダイアログのアニメーション等を待つ
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
+            try {
+                await ipcService.captureWindow();
+            } finally {
+                // UIを戻す
+                setUIHidden(false);
+            }
+        } else {
+            const stage = stageRef.current;
+            if (stage) {
+                // 背景透明、高画質で保存
+                // pixelRatioはディスプレイのそれに合わせるか、固定で高くするか。
+                // 2くらいが丁度よい
+                const dataUrl = stage.toDataURL({ pixelRatio: 2 });
+                await ipcService.saveImage(dataUrl);
+            }
+        }
+    };
 
     // useStageControlsを使用
     // Stageの状態更新(Zoom/Pan)時にReduxへ通知するコールバック
@@ -232,6 +265,12 @@ export const ImageStage = memo(function ImageStage() {
                         setSelectedDimensionLineId(null);
                     }
                 }}
+                onOpenExportDialog={handleExportDlgOpen}
+            />
+            <ExportDialog
+                open={openExportDlg}
+                onClose={handleExportDlgClose}
+                onExport={handleExport}
             />
         </>
     );

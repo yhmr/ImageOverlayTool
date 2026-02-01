@@ -6,8 +6,8 @@ import {
     getIPCService,
     setIPCService,
     resetIPCService,
-    MockIPCService,
 } from "@/renderer/services/ipcService";
+import { MockIPCService } from "../../mocks/MockIPCService";
 
 describe("ipcService", () => {
     beforeEach(() => {

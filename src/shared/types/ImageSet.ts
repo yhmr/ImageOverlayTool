@@ -17,4 +17,6 @@ export interface ImageSet {
     init_anchor_pos: AnchorPos | null;
     /** アンカー現在のポジション */
     current_anchor_pos: AnchorPos | null;
+    /** ロック状態 */
+    locked?: boolean;
 }

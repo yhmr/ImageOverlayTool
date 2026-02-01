@@ -1,4 +1,8 @@
 {
+    "common": {
+        "save": "保存",
+        "cancel": "キャンセル"
+    },
     "main": {},
     "render": {
         "menu": {
@@ -26,7 +30,19 @@
         "control_button": {
             "tooltip": {
                 "image_transparency": "画像の透過度",
-                "dimension_line": "寸法線の描画"
+                "dimension_line": "寸法線の描画",
+                "save": "画像を保存",
+                "capture": "背景をキャプチャ",
+                "image_settings": "画像設定"
+            }
+        },
+        "export_dialog": {
+            "title": "画像を保存",
+            "description": "保存オプションを選択してください。",
+            "option": {
+                "canvas_only": "Canvasのみ（背景透明）",
+                "include_background": "背景を含める",
+                "include_background_desc": "ウィンドウの裏にあるデスクトップ画面も一緒に保存します"
             }
         },
         "image_settings": {

@@ -84,6 +84,14 @@ export function ImageListItem(props: ImageListItemProps) {
         updateImageSet({ index: index, imageSet: newImageSet });
     };
 
+    // ロック切り替え
+    const handleToggleLock = () => {
+        const newImageSet = { ...imageSet };
+        // undefinedの場合はfalseとして扱う
+        newImageSet.locked = !newImageSet.locked;
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
+
     // ファイル名を抽出（パスから）
     const fileName = imageSet.path
         ? imageSet.path.split("/").pop() || imageSet.path
@@ -95,7 +103,9 @@ export function ImageListItem(props: ImageListItemProps) {
                 <ImageItemHeader
                     path={imageSet.path}
                     fileName={fileName}
+                    isLocked={imageSet.locked}
                     onFileOpen={handleFileOpen}
+                    onToggleLock={handleToggleLock}
                     onDelete={handleDelete}
                     dragHandleProps={dragHandleProps}
                 />

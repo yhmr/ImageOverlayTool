@@ -6,6 +6,7 @@
 import type { ImageSet } from "../../shared/types/ImageSet";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
+import type { CaptureResult } from "../../shared/types/CaptureResult";
 
 /**
  * IPCサービスのインターフェース
@@ -84,6 +85,11 @@ export interface IIPCService {
 
     // App Version
     getAppVersion: () => Promise<string>;
+
+    // Capture
+    captureScreen: () => Promise<CaptureResult>;
+    captureWindow: () => Promise<CaptureResult>;
+    saveImage: (dataUrl: string) => Promise<string | null>;
 }
 
 /**
@@ -229,113 +235,17 @@ class IPCService implements IIPCService {
     async getAppVersion(): Promise<string> {
         return (await window.electronAPI.getAppVersion()) as string;
     }
-}
 
-/**
- * テスト用モックサービス
- */
-export class MockIPCService implements IIPCService {
-    log = {
-        debug: async () => {},
-        info: async () => {},
-        warn: async () => {},
-        error: async () => {},
-    };
-
-    async switchWindowSize(): Promise<boolean> {
-        return true;
-    }
-    async setWindowRect(): Promise<void> {}
-    async closeWindow(): Promise<void> {}
-    async loadSetting(): Promise<{ language: string }> {
-        return { language: "en" };
-    }
-    async saveSetting(): Promise<void> {}
-    async loadWindowColor(): Promise<string> {
-        return "#ffffff";
-    }
-    async saveWindowColor(): Promise<void> {}
-    async saveProjectAs(): Promise<string | null> {
-        return "path/to/project.iot";
-    }
-    async saveProject(): Promise<boolean> {
-        return true;
-    }
-    async loadProject(): Promise<{
-        project: ProjectFile<ImageSet>;
-        filePath: string;
-    } | null> {
-        return null;
-    }
-    async loadProjectFromPath(): Promise<{
-        project: ProjectFile<ImageSet>;
-        filePath: string;
-    } | null> {
-        return null;
-    }
-    async loadImage(): Promise<string | null> {
-        return "path/to/image.png";
-    }
-    async toggleImageSettingsWindow(): Promise<void> {}
-
-    public updateImageSetsCalls: ImageSet[][] = [];
-    public updateUnitFactorCalls: number[] = [];
-    public updateUnitCalls: ("nm" | "um" | "mm")[] = [];
-
-    async updateImageSets(imageSets: ImageSet[]): Promise<void> {
-        this.updateImageSetsCalls.push(imageSets);
+    async captureScreen(): Promise<CaptureResult> {
+        return (await window.electronAPI.captureScreen()) as CaptureResult;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onImageSetsUpdated(callback: (imageSets: ImageSet[]) => void): () => void {
-        return () => {};
+    async captureWindow(): Promise<CaptureResult> {
+        return (await window.electronAPI.captureWindow()) as CaptureResult;
     }
 
-    async updateUnitFactor(factor: number): Promise<void> {
-        this.updateUnitFactorCalls.push(factor);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onUnitFactorUpdated(callback: (factor: number) => void): () => void {
-        return () => {};
-    }
-
-    async updateUnit(unit: "nm" | "um" | "mm"): Promise<void> {
-        this.updateUnitCalls.push(unit);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onUnitUpdated(callback: (unit: "nm" | "um" | "mm") => void): () => void {
-        return () => {};
-    }
-
-    async requestInitialState(): Promise<{
-        imageSets: ImageSet[];
-        unitFactor: number;
-        unit: "nm" | "um" | "mm";
-    }> {
-        return { imageSets: [], unitFactor: 1.0, unit: "um" };
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onRequestStateSync(callback: () => void): () => void {
-        return () => {};
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onFileOpen(callback: (filePath: string, ext: string) => void): () => void {
-        return () => {};
-    }
-
-    async getLicenseInfo(): Promise<unknown> {
-        return {};
-    }
-    async getAppVersion(): Promise<string> {
-        return "1.0.0";
-    }
-
-    reset(): void {
-        this.updateImageSetsCalls = [];
-        this.updateUnitFactorCalls = [];
+    async saveImage(dataUrl: string): Promise<string | null> {
+        return (await window.electronAPI.saveImage(dataUrl)) as string | null;
     }
 }
 

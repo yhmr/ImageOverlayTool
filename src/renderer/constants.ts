@@ -2,6 +2,11 @@
  * レンダラー共通の定数定義
  */
 
+// === Layout ===
+
+/** メインウィンドウのタイトルバー（MenuBar）の高さ（px） */
+export const TITLE_BAR_HEIGHT = 56;
+
 // === Dimension Line ===
 
 /** 寸法線として認識する最小距離（px） */
@@ -23,3 +28,6 @@ export const OVERLAY_STROKE_COLOR = "#4e4eff";
 
 /** オーバーレイ枠線の幅（px） */
 export const OVERLAY_STROKE_WIDTH = 3;
+
+/** ロック時のオーバーレイ枠線の色 */
+export const LOCKED_OVERLAY_STROKE_COLOR = "#ff4e4e";

@@ -65,6 +65,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.on("unit:updated", subscription);
         return () => ipcRenderer.removeListener("unit:updated", subscription);
     },
+    // Unit Factor Sync
+    updateUnitFactor: (unitFactor: number) =>
+        ipcRenderer.invoke("unitFactor:update", unitFactor),
+    onUnitFactorUpdated: (callback: (unitFactor: number) => void) => {
+        const subscription = (_event: unknown, unitFactor: number) =>
+            callback(unitFactor);
+        ipcRenderer.on("unitFactor:updated", subscription);
+        return () =>
+            ipcRenderer.removeListener("unitFactor:updated", subscription);
+    },
     // Initial State Sync
     requestInitialState: () => ipcRenderer.invoke("state:requestInitial"),
     onRequestStateSync: (callback: () => void) => {
@@ -86,4 +96,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     getLicenseInfo: () => ipcRenderer.invoke("license:get"),
     // App Version
     getAppVersion: () => ipcRenderer.invoke("app:getVersion"),
+    // Capture
+    captureScreen: () => ipcRenderer.invoke("capture-screen"),
+    captureWindow: () => ipcRenderer.invoke("capture-window"),
+    saveImage: (dataUrl: string) =>
+        ipcRenderer.invoke("save-image-data", dataUrl),
 });

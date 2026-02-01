@@ -19,6 +19,15 @@ export const useMenuState = () => {
         setOpenAboutDlg(false);
     }, []);
 
+    // ExportDialog関連
+    const [openExportDlg, setOpenExportDlg] = useState(false);
+    const handleExportDlgOpen = useCallback(() => {
+        setOpenExportDlg(true);
+    }, []);
+    const handleExportDlgClose = useCallback(() => {
+        setOpenExportDlg(false);
+    }, []);
+
     return {
         openSettingDlg,
         handleSettingDlgOpen,
@@ -26,5 +35,8 @@ export const useMenuState = () => {
         openAboutDlg,
         handleAboutDlgOpen,
         handleAboutDlgClose,
+        openExportDlg,
+        handleExportDlgOpen,
+        handleExportDlgClose,
     };
 };
