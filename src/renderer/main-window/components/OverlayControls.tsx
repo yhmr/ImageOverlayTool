@@ -69,7 +69,7 @@ export const OverlayControls = ({
         if (lbRef.current) lbRef.current.draggable(true);
         if (rtRef.current) rtRef.current.draggable(true);
         if (rbRef.current) rbRef.current.draggable(true);
-    }, []);
+    }, [imageSet.locked]);
 
     const circleDragHandler = onCircleDragEnd(ltRef, lbRef, rtRef, rbRef);
 

@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Image as KonvaImage } from "react-konva";
 import Perspective from "perspectivets";
 import { KonvaEventObject } from "konva/lib/Node";
+import { Context } from "konva/lib/Context";
 import type { ImageSet } from "../../../shared/types/ImageSet";
 import { getBoundingBox, getCenter } from "../../utils/anchorUtils";
 
@@ -22,7 +23,14 @@ export const PerspectiveImage = ({
     const [renderTrigger, setRenderTrigger] = useState(0); // 再描画用
 
     // 描画位置情報の保持
-    const [pos, setPos] = useState({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
+    const [pos, setPos] = useState({
+        x: 0,
+        y: 0,
+        offsetX: 0,
+        offsetY: 0,
+        left: 0,
+        top: 0,
+    });
 
     useEffect(() => {
         if (image && imageSet.current_anchor_pos) {
@@ -47,6 +55,8 @@ export const PerspectiveImage = ({
                 y: center.y,
                 offsetX: center.x - left,
                 offsetY: center.y - top,
+                left,
+                top,
             });
 
             const ctx = canvas.getContext("2d");
@@ -102,6 +112,36 @@ export const PerspectiveImage = ({
             onTap={handleClick}
             onMouseDown={handleMouseDown}
             listening={true} // Ensure it catches events
+            // カスタムヒットファンクション：四角形の内側だけをヒットにする
+            hitFunc={(ctx: Context, shape) => {
+                if (!imageSet.current_anchor_pos) {
+                    ctx.fillStrokeShape(shape);
+                    return;
+                }
+                const { current_anchor_pos } = imageSet;
+                const { left, top } = pos;
+
+                ctx.beginPath();
+                ctx.moveTo(
+                    current_anchor_pos.lt.x - left,
+                    current_anchor_pos.lt.y - top
+                );
+                ctx.lineTo(
+                    current_anchor_pos.rt.x - left,
+                    current_anchor_pos.rt.y - top
+                );
+                ctx.lineTo(
+                    current_anchor_pos.rb.x - left,
+                    current_anchor_pos.rb.y - top
+                );
+                ctx.lineTo(
+                    current_anchor_pos.lb.x - left,
+                    current_anchor_pos.lb.y - top
+                );
+                ctx.closePath();
+                // Konvaのヒット検出用に形状を描画
+                ctx.fillStrokeShape(shape);
+            }}
             // Konva.Imageはデフォルトでlistening=true
             // キャッシュを無効化して常に最新のcanvasを表示するためにkeyを変えるか、
             // imageオブジェクト自体は変わらないので、Konvaが内部でredrawしてくれることを期待
