@@ -1,10 +1,17 @@
 import { useEffect } from "react";
 import { useStore } from "zustand";
-import { useAppStore } from "../store/useAppStore";
+import type { TemporalState } from "zundo";
+import { useAppStore, type AppState } from "../store/useAppStore";
 
 export const useKeyboardShortcuts = () => {
     // zundo temporal store
-    const { undo, redo } = useStore(useAppStore.temporal, (state) => state);
+    const { undo, redo } = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => ({
+            undo: state.undo,
+            redo: state.redo,
+        })
+    );
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

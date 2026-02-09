@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Maximize, Minimize, X, Undo, Redo } from "lucide-react";
 import { useStore } from "zustand";
+import type { TemporalState } from "zundo";
 
 import { SettingDialog } from "./SettingDialog";
 import { AboutDialog } from "./AboutDialog";
@@ -16,7 +17,7 @@ import {
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
-import { useAppStore } from "../../store/useAppStore";
+import { useAppStore, type AppState } from "../../store/useAppStore";
 
 export function MenuBar() {
     const { t } = useTranslation();
@@ -25,7 +26,12 @@ export function MenuBar() {
     // zundo temporal store
     const { undo, redo, pastStates, futureStates } = useStore(
         useAppStore.temporal,
-        (state) => state
+        (state: TemporalState<Partial<AppState>>) => ({
+            undo: state.undo,
+            redo: state.redo,
+            pastStates: state.pastStates,
+            futureStates: state.futureStates,
+        })
     );
 
     const {

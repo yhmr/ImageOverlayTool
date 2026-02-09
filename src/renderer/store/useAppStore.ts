@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { temporal } from "zundo";
+import { create, type StoreApi } from "zustand";
+import { temporal, type TemporalState } from "zundo";
 import {
     ProjectDataSlice,
     createProjectDataSlice,
@@ -19,7 +19,16 @@ type StoreActions = {
     loadProject: (project: ProjectFile<ImageSet>) => void;
 };
 
-type AppState = ProjectDataSlice & ViewSlice & InteractionSlice & StoreActions;
+export type AppState = ProjectDataSlice &
+    ViewSlice &
+    InteractionSlice &
+    StoreActions;
+
+const temporalStoreRef: {
+    current: StoreApi<TemporalState<unknown>> | undefined;
+} = {
+    current: undefined,
+};
 
 // AppStore definition
 export const useAppStore = create<AppState>()(
@@ -27,12 +36,14 @@ export const useAppStore = create<AppState>()(
         (...args) => {
             const [, get] = args;
             const ipcService = getIPCService();
+            const clearHistory = () => {
+                temporalStoreRef.current?.getState().clear();
+            };
+
             return {
                 ...createProjectDataSlice(
                     ipcService,
-                    () =>
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        (useAppStore as any).temporal
+                    () => temporalStoreRef.current
                 )(...args),
                 ...createViewSlice(...args),
                 ...createInteractionSlice(...args),
@@ -51,7 +62,7 @@ export const useAppStore = create<AppState>()(
                     get().setInteractionMode("default");
 
                     // 履歴をクリア
-                    useAppStore.temporal.getState().clear();
+                    clearHistory();
                 },
 
                 resetAll: () => {
@@ -61,7 +72,7 @@ export const useAppStore = create<AppState>()(
                     get().setInteractionMode("default");
 
                     // 履歴をクリア
-                    useAppStore.temporal.getState().clear();
+                    clearHistory();
                 },
             };
         },
@@ -86,3 +97,5 @@ export const useAppStore = create<AppState>()(
         }
     )
 );
+
+temporalStoreRef.current = useAppStore.temporal;

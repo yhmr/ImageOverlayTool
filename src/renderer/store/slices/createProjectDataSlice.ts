@@ -57,7 +57,7 @@ export interface ProjectDataSlice {
  */
 export const createProjectDataSlice = (
     ipcService: IIPCService,
-    getTemporal: () => StoreApi<TemporalState<unknown>>
+    getTemporal: () => StoreApi<TemporalState<unknown>> | undefined
 ): StateCreator<ProjectDataSlice> => {
     return (set) => ({
         imageSets: [createDefaultImageSet()],
