@@ -2,15 +2,7 @@ import { ipcMain, app } from "electron";
 import * as fs from "fs";
 import * as path from "path";
 import log from "../logger";
-
-/** ライセンス情報の型定義 */
-export interface LicenseInfo {
-    name: string;
-    licenses: string;
-    repository: string;
-    publisher: string;
-    url: string;
-}
+import type { LicenseInfo } from "../../shared/types/LicenseInfo";
 
 /**
  * ライセンス情報取得用IPCハンドラを登録

@@ -7,6 +7,7 @@ import type { ImageSet } from "../../shared/types/ImageSet";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
+import type { LicenseInfo } from "../../shared/types/LicenseInfo";
 /**
  * IPCサービスのドメイン別インターフェース
  */
@@ -83,7 +84,7 @@ export interface IStateSyncIPCService {
 }
 
 export interface ILicenseIPCService {
-    getLicenseInfo: () => Promise<unknown>;
+    getLicenseInfo: () => Promise<LicenseInfo[]>;
     getAppVersion: () => Promise<string>;
 }
 
@@ -231,7 +232,7 @@ class IPCService implements IIPCService {
         return window.electronAPI.onFileOpen(callback);
     }
 
-    async getLicenseInfo(): Promise<unknown> {
+    async getLicenseInfo(): Promise<LicenseInfo[]> {
         return await window.electronAPI.getLicenseInfo();
     }
 

@@ -3,6 +3,7 @@ import { ImageSet } from "@/shared/types/ImageSet";
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import { CaptureResult } from "@/shared/types/CaptureResult";
 import { SettingType } from "@/shared/types/AppConfig";
+import { LicenseInfo } from "@/shared/types/LicenseInfo";
 
 /**
  * テスト用モックサービス
@@ -111,8 +112,8 @@ export class MockIPCService implements IIPCService {
         return () => {};
     }
 
-    async getLicenseInfo(): Promise<unknown> {
-        return {};
+    async getLicenseInfo(): Promise<LicenseInfo[]> {
+        return [];
     }
 
     async getAppVersion(): Promise<string> {

@@ -2,6 +2,7 @@ import type { SettingType } from "../shared/types/AppConfig";
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
+import type { LicenseInfo } from "../shared/types/LicenseInfo";
 
 // APIのインターフェースを定義
 export interface IElectronAPI {
@@ -62,15 +63,7 @@ export interface IElectronAPI {
         callback: (filePath: string, ext: string) => void
     ) => () => void;
     // License
-    getLicenseInfo: () => Promise<
-        {
-            name: string;
-            licenses: string;
-            repository: string;
-            publisher: string;
-            url: string;
-        }[]
-    >;
+    getLicenseInfo: () => Promise<LicenseInfo[]>;
     // App Version
     getAppVersion: () => Promise<string>;
     // Capture
