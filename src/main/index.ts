@@ -25,9 +25,23 @@ import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFact
 import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory";
 import { ProjectRepositoryFactory } from "./repositories/ProjectRepositoryFactory";
 import { WindowManager } from "./windows/windowManager";
+import { resolveE2ERuntimeConfig } from "./e2e/runtimeConfig";
+
+const e2eConfig = resolveE2ERuntimeConfig();
+if (e2eConfig.enabled) {
+    process.env.IOT_E2E_MODE = "1";
+    process.env.IOT_E2E_ARTIFACTS_DIR = e2eConfig.artifactsDir;
+    process.env.IOT_E2E_FIXED_NOW = String(e2eConfig.fixedNow);
+    process.env.IOT_E2E_RANDOM_SEED = String(e2eConfig.randomSeed);
+    log.info("E2E test mode enabled", {
+        artifactsDir: e2eConfig.artifactsDir,
+        fixedNow: e2eConfig.fixedNow,
+        randomSeed: e2eConfig.randomSeed,
+    });
+}
 
 // 開発中のみ、外部からのデバッグ接続(9222)を許可する
-if (!app.isPackaged) {
+if (!app.isPackaged && !e2eConfig.enabled) {
     app.commandLine.appendSwitch("remote-debugging-port", "9222");
 }
 
@@ -102,10 +116,31 @@ if (!gotTheLock) {
 
         // IPCハンドラ登録（ウィンドウ作成前に可能なもの）
         registerAppConfigHandlers(settingsRepository, windowRepository);
-        registerProjectHandlers(projectRepository);
+        registerProjectHandlers(
+            projectRepository,
+            e2eConfig.enabled
+                ? {
+                      testMode: {
+                          enabled: true,
+                          projectFilePath: e2eConfig.projectFilePath,
+                      },
+                  }
+                : undefined
+        );
         registerImageSettingsWindowHandlers(windowManager);
         registerLicenseIpc();
-        registerCaptureHandlers();
+        registerCaptureHandlers(
+            e2eConfig.enabled
+                ? {
+                      testMode: {
+                          enabled: true,
+                          captureFilePath: e2eConfig.captureFilePath,
+                          exportImagePath: e2eConfig.exportImagePath,
+                          fixedNow: e2eConfig.fixedNow,
+                      },
+                  }
+                : undefined
+        );
 
         // メインウィンドウを作成
         const mainWindow = windowManager.createMainWindow();
@@ -127,7 +162,7 @@ if (!gotTheLock) {
         }
 
         // 開発時はデベロッパーツールを開く
-        if (is.dev) {
+        if (is.dev && !e2eConfig.enabled) {
             installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
                 .then(() => {
                     // console.log(`Added Extensions:  ${redux.name}, ${react.name}`)
@@ -137,7 +172,7 @@ if (!gotTheLock) {
                 });
         }
         // デバッグの際はデベロッパーツールを開く
-        if (!app.isPackaged) {
+        if (!app.isPackaged && !e2eConfig.enabled) {
             mainWindow.webContents.openDevTools({ mode: "detach" });
         }
     });

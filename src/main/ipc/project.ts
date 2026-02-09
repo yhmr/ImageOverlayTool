@@ -3,12 +3,33 @@ import { IProjectRepository } from "../repositories/ProjectRepository";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import log from "../logger";
 
-export const registerProjectHandlers = (repository: IProjectRepository) => {
+export interface ProjectHandlerOptions {
+    testMode?: {
+        enabled: boolean;
+        projectFilePath: string;
+    };
+}
+
+export const registerProjectHandlers = (
+    repository: IProjectRepository,
+    options?: ProjectHandlerOptions
+) => {
+    const testMode = options?.testMode;
+
     /**
      * [IPC] プロジェクトファイルの保存
      */
     ipcMain.handle("project:saveAs", async (event, project: ProjectFile) => {
         log.debug("[IPC] project:saveAs called");
+
+        if (testMode?.enabled) {
+            await repository.saveProject(testMode.projectFilePath, project);
+            log.info(
+                `[IPC] project:saveAs saved in e2e mode: ${testMode.projectFilePath}`
+            );
+            return testMode.projectFilePath;
+        }
+
         const window = BrowserWindow.fromWebContents(event.sender);
         const options = {
             title: "Save Project",
@@ -60,6 +81,24 @@ export const registerProjectHandlers = (repository: IProjectRepository) => {
      */
     ipcMain.handle("project:load", async (event) => {
         log.debug("[IPC] project:load called");
+
+        if (testMode?.enabled) {
+            try {
+                const project = await repository.loadProject(
+                    testMode.projectFilePath
+                );
+                log.info(
+                    `[IPC] project:load completed in e2e mode: ${testMode.projectFilePath}`
+                );
+                return { project, filePath: testMode.projectFilePath };
+            } catch {
+                log.debug(
+                    `[IPC] project:load e2e source unavailable: ${testMode.projectFilePath}`
+                );
+                return null;
+            }
+        }
+
         const window = BrowserWindow.fromWebContents(event.sender);
         const options: Electron.OpenDialogOptions = {
             title: "Open Project",

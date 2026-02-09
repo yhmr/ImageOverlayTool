@@ -12,10 +12,51 @@ import fs from "fs/promises";
 import path from "path";
 import log from "../logger";
 
+export interface CaptureHandlerOptions {
+    testMode?: {
+        enabled: boolean;
+        captureFilePath: string;
+        exportImagePath: string;
+        fixedNow?: number;
+        captureWidth?: number;
+        captureHeight?: number;
+    };
+}
+
+const E2E_PLACEHOLDER_IMAGE =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==";
+
+const ensureParentDir = async (filePath: string): Promise<void> => {
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+};
+
+const ensurePlaceholderCapture = async (filePath: string): Promise<void> => {
+    await ensureParentDir(filePath);
+    const image = nativeImage.createFromDataURL(E2E_PLACEHOLDER_IMAGE);
+    await fs.writeFile(filePath, image.toPNG());
+};
+
+const resolveTimestamp = (fixedNow?: number): number => {
+    return typeof fixedNow === "number" ? fixedNow : Date.now();
+};
+
 // キャプチャの共通ロジック
 // hideWindow: trueなら撮影前にウィンドウを隠し、撮影後に戻す（背景キャプチャ用）
 // hideWindow: falseならそのまま撮影する（エクスポート用）
-const captureLogic = async (event: IpcMainInvokeEvent, hideWindow: boolean) => {
+const captureLogic = async (
+    event: IpcMainInvokeEvent,
+    hideWindow: boolean,
+    testMode?: CaptureHandlerOptions["testMode"]
+) => {
+    if (testMode?.enabled) {
+        await ensurePlaceholderCapture(testMode.captureFilePath);
+        return {
+            filePath: testMode.captureFilePath,
+            width: testMode.captureWidth ?? 1280,
+            height: testMode.captureHeight ?? 720,
+        };
+    }
+
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win) return null;
 
@@ -96,16 +137,12 @@ const captureLogic = async (event: IpcMainInvokeEvent, hideWindow: boolean) => {
         }
 
         // 6. 保存ダイアログ
-        // hideWindow=false（エクスポート）の場合はここでは保存せず、データとして返す手もあるが、
-        // Issueの要件的に「保存」なのでここでDialogを出しても良い。
-        // ただし、呼び出し元でファイル形式を選ばせたい場合は拡張子が固定だと困るかもしれない。
-        // ここでは一旦PNG固定のままだが、拡張子選択に対応させる。
-
+        const now = resolveTimestamp(testMode?.fixedNow);
         const { filePath } = await dialog.showSaveDialog(win, {
             title: "Save Capture",
             defaultPath: path.join(
                 app.getPath("pictures"),
-                `capture_${Date.now()}.png`
+                `capture_${now}.png`
             ),
             filters: [
                 { name: "PNG Images", extensions: ["png"] },
@@ -141,29 +178,48 @@ const captureLogic = async (event: IpcMainInvokeEvent, hideWindow: boolean) => {
     }
 };
 
-export const registerCaptureHandlers = (): void => {
+export const registerCaptureHandlers = (
+    options?: CaptureHandlerOptions
+): void => {
+    const testMode = options?.testMode;
+
     // 既存のキャプチャ（ウィンドウを隠す）
     ipcMain.handle("capture-screen", async (event: IpcMainInvokeEvent) => {
-        return captureLogic(event, true);
+        return captureLogic(event, true, testMode);
     });
 
     // 新規：ウィンドウ込みキャプチャ（ウィンドウを隠さない）
     ipcMain.handle("capture-window", async (event: IpcMainInvokeEvent) => {
-        return captureLogic(event, false);
+        return captureLogic(event, false, testMode);
     });
 
     // 新規：データURLを保存
     ipcMain.handle(
         "save-image-data",
         async (event: IpcMainInvokeEvent, dataUrl: string) => {
+            if (testMode?.enabled) {
+                await ensureParentDir(testMode.exportImagePath);
+                const image = nativeImage.createFromDataURL(dataUrl);
+                const ext = path
+                    .extname(testMode.exportImagePath)
+                    .toLowerCase();
+                const buffer =
+                    ext === ".jpg" || ext === ".jpeg"
+                        ? image.toJPEG(90)
+                        : image.toPNG();
+                await fs.writeFile(testMode.exportImagePath, buffer);
+                return testMode.exportImagePath;
+            }
+
             const win = BrowserWindow.fromWebContents(event.sender);
             if (!win) return null;
 
+            const now = resolveTimestamp(testMode?.fixedNow);
             const { filePath } = await dialog.showSaveDialog(win, {
                 title: "Save Image",
                 defaultPath: path.join(
                     app.getPath("pictures"),
-                    `image_${Date.now()}.png`
+                    `image_${now}.png`
                 ),
                 filters: [
                     { name: "PNG Images", extensions: ["png"] },
