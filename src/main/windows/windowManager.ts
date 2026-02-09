@@ -1,9 +1,24 @@
 import path from "path";
-import { BrowserWindow, globalShortcut } from "electron";
+import { BrowserWindow } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
+import {
+    ElectronWindowShortcutManager,
+    type IWindowShortcutManager,
+} from "./windowShortcutManager";
 
+export interface IMainWindowProvider {
+    getMainWindow(): BrowserWindow | null;
+}
+
+export interface IWindowCollectionProvider {
+    getAllWindows(): BrowserWindow[];
+}
+
+export interface IImageSettingsWindowController {
+    toggleImageSettingsWindow(): boolean;
+}
 /**
  * ウィンドウ管理クラス
  * メインウィンドウと画像設定ウィンドウの作成・管理を行う
@@ -12,11 +27,16 @@ export class WindowManager {
     private mainWindow: BrowserWindow | null = null;
     private imageSettingsWindow: BrowserWindow | null = null;
     private windowRepository: IWindowRepository;
+    private readonly shortcutManager: IWindowShortcutManager;
     private isQuitting = false;
     private pendingFilePath: string | null = null;
 
-    constructor(windowRepository: IWindowRepository) {
+    constructor(
+        windowRepository: IWindowRepository,
+        shortcutManager: IWindowShortcutManager = new ElectronWindowShortcutManager()
+    ) {
         this.windowRepository = windowRepository;
+        this.shortcutManager = shortcutManager;
     }
 
     /**
@@ -239,7 +259,7 @@ export class WindowManager {
      * グローバルショートカットを登録
      */
     registerShortcuts(): void {
-        globalShortcut.register("CommandOrControl+I", () => {
+        this.shortcutManager.registerToggleImageSettings(() => {
             this.toggleImageSettingsWindow();
         });
     }
@@ -248,7 +268,7 @@ export class WindowManager {
      * グローバルショートカットを解除
      */
     unregisterShortcuts(): void {
-        globalShortcut.unregisterAll();
+        this.shortcutManager.unregisterAll();
     }
 
     /**

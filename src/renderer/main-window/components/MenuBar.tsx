@@ -24,14 +24,21 @@ export function MenuBar() {
     const { isUIHidden } = useAppStore();
 
     // zundo temporal store
-    const { undo, redo, pastStates, futureStates } = useStore(
+    const undo = useStore(
         useAppStore.temporal,
-        (state: TemporalState<Partial<AppState>>) => ({
-            undo: state.undo,
-            redo: state.redo,
-            pastStates: state.pastStates,
-            futureStates: state.futureStates,
-        })
+        (state: TemporalState<Partial<AppState>>) => state.undo
+    );
+    const redo = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => state.redo
+    );
+    const pastStates = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => state.pastStates
+    );
+    const futureStates = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => state.futureStates
     );
 
     const {

@@ -3,7 +3,7 @@ import { ImageSet } from "../../../shared/types/ImageSet";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
 import UUID from "uuidjs";
-import { IIPCService } from "../../services/ipcService";
+import { IProjectDataSyncIPCService } from "../../services/ipcService";
 import { TemporalState } from "zundo";
 
 const createDefaultImageSet = (): ImageSet => ({
@@ -56,7 +56,7 @@ export interface ProjectDataSlice {
  * @param getTemporal zundoのtemporal stateを取得する関数
  */
 export const createProjectDataSlice = (
-    ipcService: IIPCService,
+    ipcService: IProjectDataSyncIPCService,
     getTemporal: () => StoreApi<TemporalState<unknown>> | undefined
 ): StateCreator<ProjectDataSlice> => {
     return (set) => ({

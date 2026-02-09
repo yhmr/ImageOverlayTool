@@ -5,12 +5,13 @@ import { useAppStore, type AppState } from "../store/useAppStore";
 
 export const useKeyboardShortcuts = () => {
     // zundo temporal store
-    const { undo, redo } = useStore(
+    const undo = useStore(
         useAppStore.temporal,
-        (state: TemporalState<Partial<AppState>>) => ({
-            undo: state.undo,
-            redo: state.redo,
-        })
+        (state: TemporalState<Partial<AppState>>) => state.undo
+    );
+    const redo = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => state.redo
     );
 
     useEffect(() => {

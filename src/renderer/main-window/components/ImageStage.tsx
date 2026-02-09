@@ -14,6 +14,7 @@ import { ControlButton } from "./ControlButton";
 import { OverlayControls } from "./OverlayControls";
 import { DimensionLineLayer } from "./DimensionLineLayer";
 import { ExportDialog } from "./ExportDialog";
+import { bindStageDragEndDisable } from "./imageStageDragEnd";
 
 import { useStageControls } from "../../hooks/useStageControls";
 import { useDimensionLineMode } from "../../hooks/useDimensionLineMode";
@@ -23,8 +24,14 @@ import { getIPCService } from "../../services/ipcService";
 
 export const ImageStage = memo(function ImageStage() {
     // imageSet取得
-    const { imageSets, updateImageSet, canvas, setCanvasState, setUIHidden } =
-        useAppStore();
+    const {
+        imageSets,
+        updateImageSet,
+        syncImageSets,
+        canvas,
+        setCanvasState,
+        setUIHidden,
+    } = useAppStore();
 
     // ステージのref
     const stageRef = useRef<Konva.Stage>(null);
@@ -154,7 +161,12 @@ export const ImageStage = memo(function ImageStage() {
     const onInitImage = useCallback(
         (imageSet: ImageSet, index: number) => {
             return (image: HTMLImageElement) => {
-                const newImageSet = { ...imageSet };
+                const current = imageSets[index];
+                if (!current || current.id !== imageSet.id) {
+                    return;
+                }
+
+                const newImageSet = { ...current };
                 // データを埋める
                 newImageSet.init_anchor_pos = {
                     lt: { x: 0, y: 0 },
@@ -169,10 +181,15 @@ export const ImageStage = memo(function ImageStage() {
                     rb: { x: image.width, y: image.height },
                 };
 
-                updateImageSet({ index: index, imageSet: newImageSet });
+                const nextImageSets = [...imageSets];
+                nextImageSets[index] = newImageSet;
+
+                // 画像ロード時の正規化更新は履歴に積まない
+                syncImageSets(nextImageSets);
+                void getIPCService().updateImageSets(nextImageSets);
             };
         },
-        [updateImageSet]
+        [imageSets, syncImageSets]
     );
 
     // アンカーポジションの更新
@@ -188,13 +205,12 @@ export const ImageStage = memo(function ImageStage() {
     );
 
     useEffect(() => {
-        // ドラッグ終了時にドラッグ無効化
         const stage = stageRef.current;
-        if (stage) {
-            stage.on("dragend", () => {
-                stage.draggable(false);
-            });
+        if (!stage) {
+            return;
         }
+
+        return bindStageDragEndDisable(stage);
     }, []);
 
     return (

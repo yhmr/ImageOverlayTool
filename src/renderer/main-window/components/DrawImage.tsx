@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 
 import useImage from "use-image";
 
@@ -17,16 +17,21 @@ export const DrawImage = (props: DrawImageProps) => {
     // 画像
     const [image] = useImage(imageSet.path);
 
-    // ImageSetの関連初期化
+    const onInitImageRef = useRef(onInitImage);
+
+    useEffect(() => {
+        onInitImageRef.current = onInitImage;
+    }, [onInitImage]);
+
+    // 画像読み込み後、未初期化のアンカーのみ初期化する
     useLayoutEffect(() => {
-        // 画像読み込み完了時、初期imageSetなら
         if (
             image &&
             (!imageSet.init_anchor_pos || !imageSet.current_anchor_pos)
         ) {
-            onInitImage(image);
+            onInitImageRef.current(image);
         }
-    });
+    }, [image, imageSet.init_anchor_pos, imageSet.current_anchor_pos]);
 
     return (
         <>

@@ -1,5 +1,8 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
-import { WindowManager } from "../windows/windowManager";
+import type {
+    IImageSettingsWindowController,
+    IWindowCollectionProvider,
+} from "../windows/windowManager";
 import { ImageSet } from "../../shared/types/ImageSet";
 import log from "../logger";
 
@@ -7,7 +10,7 @@ import log from "../logger";
  * 画像設定ウィンドウ用のIPCハンドラを登録
  */
 export const registerImageSettingsWindowHandlers = (
-    windowManager: WindowManager
+    windowManager: IImageSettingsWindowController & IWindowCollectionProvider
 ) => {
     /**
      * [IPC] 画像設定ウィンドウの表示/非表示をトグル
