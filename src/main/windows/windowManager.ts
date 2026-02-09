@@ -7,6 +7,7 @@ import {
     ElectronWindowShortcutManager,
     type IWindowShortcutManager,
 } from "./windowShortcutManager";
+import { IPC_EVENTS } from "../../shared/ipc/channels";
 
 export interface IMainWindowProvider {
     getMainWindow(): BrowserWindow | null;
@@ -60,7 +61,10 @@ export class WindowManager {
             this.mainWindow.isVisible()
         ) {
             log.info(`Sending file to renderer: ${filePath}`);
-            this.mainWindow.webContents.send("file:open", { filePath, ext });
+            this.mainWindow.webContents.send(IPC_EVENTS.fileOpen, {
+                filePath,
+                ext,
+            });
         } else {
             log.debug(`Window not ready, pending file: ${filePath}`);
             this.pendingFilePath = filePath;

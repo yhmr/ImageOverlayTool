@@ -3,85 +3,109 @@ import type { SettingType } from "../shared/types/AppConfig";
 
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
+import { IPC_CHANNELS, IPC_EVENTS } from "../shared/ipc/channels";
 
 contextBridge.exposeInMainWorld("electronAPI", {
     // Logger
     log: {
         debug: (message: string, ...params: unknown[]) =>
-            ipcRenderer.invoke("log:write", "debug", message, params),
+            ipcRenderer.invoke(
+                IPC_CHANNELS.log.write,
+                "debug",
+                message,
+                params
+            ),
         info: (message: string, ...params: unknown[]) =>
-            ipcRenderer.invoke("log:write", "info", message, params),
+            ipcRenderer.invoke(IPC_CHANNELS.log.write, "info", message, params),
         warn: (message: string, ...params: unknown[]) =>
-            ipcRenderer.invoke("log:write", "warn", message, params),
+            ipcRenderer.invoke(IPC_CHANNELS.log.write, "warn", message, params),
         error: (message: string, ...params: unknown[]) =>
-            ipcRenderer.invoke("log:write", "error", message, params),
+            ipcRenderer.invoke(
+                IPC_CHANNELS.log.write,
+                "error",
+                message,
+                params
+            ),
     },
     // Window
     switchWindowSize: (): Promise<boolean> =>
-        ipcRenderer.invoke("window:switchSize"),
+        ipcRenderer.invoke(IPC_CHANNELS.window.switchSize),
     setWindowRect: (rect: {
         x: number;
         y: number;
         width: number;
         height: number;
-    }) => ipcRenderer.invoke("window:setRect", rect),
-    closeWindow: () => ipcRenderer.invoke("window:close"),
+    }) => ipcRenderer.invoke(IPC_CHANNELS.window.setRect, rect),
+    closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.window.close),
     // Setting
-    loadSetting: () => ipcRenderer.invoke("setting:load"),
+    loadSetting: () => ipcRenderer.invoke(IPC_CHANNELS.setting.load),
     saveSetting: (setting: SettingType) =>
-        ipcRenderer.invoke("setting:save", setting),
+        ipcRenderer.invoke(IPC_CHANNELS.setting.save, setting),
     // Window Color
-    loadWindowColor: () => ipcRenderer.invoke("window_color:load"),
+    loadWindowColor: () =>
+        ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorLoad),
     saveWindowColor: (color: string) =>
-        ipcRenderer.invoke("window_color:save", color),
+        ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorSave, color),
     // Project
     saveProjectAs: (project: ProjectFile) =>
-        ipcRenderer.invoke("project:saveAs", project),
+        ipcRenderer.invoke(IPC_CHANNELS.project.saveAs, project),
     saveProject: (filePath: string, project: ProjectFile) =>
-        ipcRenderer.invoke("project:save", { filePath, project }),
-    loadProject: () => ipcRenderer.invoke("project:load"),
+        ipcRenderer.invoke(IPC_CHANNELS.project.save, { filePath, project }),
+    loadProject: () => ipcRenderer.invoke(IPC_CHANNELS.project.load),
     loadProjectFromPath: (filePath: string) =>
-        ipcRenderer.invoke("project:loadFromPath", filePath),
+        ipcRenderer.invoke(IPC_CHANNELS.project.loadFromPath, filePath),
     // Image Settings Window
-    loadImage: () => ipcRenderer.invoke("image:load"),
+    loadImage: () =>
+        ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.loadImage),
     toggleImageSettingsWindow: () =>
-        ipcRenderer.invoke("imageSettingsWindow:toggle"),
+        ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.toggle),
     // ImageSets Sync
     updateImageSets: (imageSets: ImageSet[]) =>
-        ipcRenderer.invoke("imageSets:update", imageSets),
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateImageSets, imageSets),
     onImageSetsUpdated: (callback: (imageSets: ImageSet[]) => void) => {
         const subscription = (_event: unknown, imageSets: ImageSet[]) =>
             callback(imageSets);
-        ipcRenderer.on("imageSets:updated", subscription);
+        ipcRenderer.on(IPC_EVENTS.imageSetsUpdated, subscription);
         return () =>
-            ipcRenderer.removeListener("imageSets:updated", subscription);
+            ipcRenderer.removeListener(
+                IPC_EVENTS.imageSetsUpdated,
+                subscription
+            );
     },
     // Unit sync
     updateUnit: (unit: "nm" | "um" | "mm") =>
-        ipcRenderer.invoke("unit:update", unit),
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateUnit, unit),
     onUnitUpdated: (callback: (unit: "nm" | "um" | "mm") => void) => {
         const subscription = (_event: unknown, unit: "nm" | "um" | "mm") =>
             callback(unit);
-        ipcRenderer.on("unit:updated", subscription);
-        return () => ipcRenderer.removeListener("unit:updated", subscription);
+        ipcRenderer.on(IPC_EVENTS.unitUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(IPC_EVENTS.unitUpdated, subscription);
     },
     // Unit Factor Sync
     updateUnitFactor: (unitFactor: number) =>
-        ipcRenderer.invoke("unitFactor:update", unitFactor),
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateUnitFactor, unitFactor),
     onUnitFactorUpdated: (callback: (unitFactor: number) => void) => {
         const subscription = (_event: unknown, unitFactor: number) =>
             callback(unitFactor);
-        ipcRenderer.on("unitFactor:updated", subscription);
+        ipcRenderer.on(IPC_EVENTS.unitFactorUpdated, subscription);
         return () =>
-            ipcRenderer.removeListener("unitFactor:updated", subscription);
+            ipcRenderer.removeListener(
+                IPC_EVENTS.unitFactorUpdated,
+                subscription
+            );
     },
     // Initial State Sync
-    requestInitialState: () => ipcRenderer.invoke("state:requestInitial"),
+    requestInitialState: () =>
+        ipcRenderer.invoke(IPC_CHANNELS.sync.requestInitialState),
     onRequestStateSync: (callback: () => void) => {
         const subscription = () => callback();
-        ipcRenderer.on("state:requestSync", subscription);
+        ipcRenderer.on(IPC_EVENTS.requestStateSync, subscription);
         return () =>
-            ipcRenderer.removeListener("state:requestSync", subscription);
+            ipcRenderer.removeListener(
+                IPC_EVENTS.requestStateSync,
+                subscription
+            );
     },
     // File Open (Startup/DragDrop)
     onFileOpen: (callback: (filePath: string, ext: string) => void) => {
@@ -89,16 +113,17 @@ contextBridge.exposeInMainWorld("electronAPI", {
             _event: unknown,
             { filePath, ext }: { filePath: string; ext: string }
         ) => callback(filePath, ext);
-        ipcRenderer.on("file:open", subscription);
-        return () => ipcRenderer.removeListener("file:open", subscription);
+        ipcRenderer.on(IPC_EVENTS.fileOpen, subscription);
+        return () =>
+            ipcRenderer.removeListener(IPC_EVENTS.fileOpen, subscription);
     },
     // License
-    getLicenseInfo: () => ipcRenderer.invoke("license:get"),
+    getLicenseInfo: () => ipcRenderer.invoke(IPC_CHANNELS.license.get),
     // App Version
-    getAppVersion: () => ipcRenderer.invoke("app:getVersion"),
+    getAppVersion: () => ipcRenderer.invoke(IPC_CHANNELS.license.appVersion),
     // Capture
-    captureScreen: () => ipcRenderer.invoke("capture-screen"),
-    captureWindow: () => ipcRenderer.invoke("capture-window"),
+    captureScreen: () => ipcRenderer.invoke(IPC_CHANNELS.capture.screen),
+    captureWindow: () => ipcRenderer.invoke(IPC_CHANNELS.capture.window),
     saveImage: (dataUrl: string) =>
-        ipcRenderer.invoke("save-image-data", dataUrl),
+        ipcRenderer.invoke(IPC_CHANNELS.capture.saveImageData, dataUrl),
 });
