@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Maximize, Minimize, X } from "lucide-react";
+import { Maximize, Minimize, X, Undo, Redo } from "lucide-react";
+import { useStore } from "zustand";
 
 import { SettingDialog } from "./SettingDialog";
 import { AboutDialog } from "./AboutDialog";
@@ -20,6 +21,12 @@ import { useAppStore } from "../../store/useAppStore";
 export function MenuBar() {
     const { t } = useTranslation();
     const { isUIHidden } = useAppStore();
+
+    // zundo temporal store
+    const { undo, redo, pastStates, futureStates } = useStore(
+        useAppStore.temporal,
+        (state) => state
+    );
 
     const {
         openSettingDlg,
@@ -53,7 +60,7 @@ export function MenuBar() {
                 {/* メニューボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <div>
+                        <div className="mr-2">
                             {" "}
                             {/* Wrapper for TooltipTrigger asChild issue if any, or just direct AppMenu */}
                             <AppMenu
@@ -71,6 +78,42 @@ export function MenuBar() {
                         <p>{t("render.menu_button.tooltip.menu")}</p>
                     </TooltipContent>
                 </Tooltip>
+
+                {/* Undo / Redo */}
+                <div className="flex items-center gap-1 app-region-no-drag">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => undo()}
+                                disabled={pastStates.length === 0}
+                                className="h-8 w-8"
+                            >
+                                <Undo className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{t("common.undo", "Undo")}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => redo()}
+                                disabled={futureStates.length === 0}
+                                className="h-8 w-8"
+                            >
+                                <Redo className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{t("common.redo", "Redo")}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
 
                 {/* タイトル */}
                 <div className="flex-grow text-center text-lg font-medium app-region-drag pointer-events-none">

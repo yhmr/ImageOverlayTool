@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { useAppStore } from "../store/useAppStore";
 import { useProjectSync } from "../hooks/useProjectSync";
 import { useFileHandler } from "../hooks/useFileHandler";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import "../../i18n/configs"; //i18
 
 import "../shared/globals.css";
@@ -35,6 +36,8 @@ const App = () => {
     useProjectSync();
     // ファイルハンドラフックを使用 (起動時引数など)
     useFileHandler();
+    // キーボードショートカット (Undo/Redo)
+    useKeyboardShortcuts();
 
     // 初めの一度のみ描画前にファイルから色を取得
     useLayoutEffect(() => {
@@ -42,6 +45,8 @@ const App = () => {
         const loadColor = async () => {
             const color = await ipcService.loadWindowColor();
             setWindowColor(color);
+            // 初期設定による変更なので履歴をクリアする
+            useAppStore.temporal.getState().clear();
         };
         loadColor();
     }, [setWindowColor, ipcService]);

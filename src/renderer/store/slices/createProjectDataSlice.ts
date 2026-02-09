@@ -1,9 +1,10 @@
-import { StateCreator } from "zustand";
+import { StateCreator, StoreApi } from "zustand";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
 import UUID from "uuidjs";
 import { IIPCService } from "../../services/ipcService";
+import { TemporalState } from "zundo";
 
 const createDefaultImageSet = (): ImageSet => ({
     id: UUID.generate(),
@@ -52,9 +53,11 @@ export interface ProjectDataSlice {
 /**
  * ProjectDataSliceを作成するファクトリー関数
  * @param ipcService 依存性注入されるIPCサービス
+ * @param getTemporal zundoのtemporal stateを取得する関数
  */
 export const createProjectDataSlice = (
-    ipcService: IIPCService
+    ipcService: IIPCService,
+    getTemporal: () => StoreApi<TemporalState<unknown>>
 ): StateCreator<ProjectDataSlice> => {
     return (set) => ({
         imageSets: [createDefaultImageSet()],
@@ -90,7 +93,10 @@ export const createProjectDataSlice = (
         },
 
         syncImageSets: (imageSets) => {
+            const temporal = getTemporal();
+            if (temporal) temporal.getState().pause();
             set({ imageSets });
+            if (temporal) temporal.getState().resume();
         },
 
         // --- Dimension Lines ---
@@ -126,7 +132,10 @@ export const createProjectDataSlice = (
         },
 
         syncUnitFactor: (factor) => {
+            const temporal = getTemporal();
+            if (temporal) temporal.getState().pause();
             set({ unitFactor: factor });
+            if (temporal) temporal.getState().resume();
         },
 
         setUnit: (unit) => {
@@ -135,7 +144,10 @@ export const createProjectDataSlice = (
         },
 
         syncUnit: (unit) => {
+            const temporal = getTemporal();
+            if (temporal) temporal.getState().pause();
             set({ unit });
+            if (temporal) temporal.getState().resume();
         },
 
         setWindowColor: (color) => {
