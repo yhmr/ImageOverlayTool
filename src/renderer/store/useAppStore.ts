@@ -15,6 +15,8 @@ import { ImageSet } from "../../shared/types/ImageSet";
 import { getIPCService } from "../services/ipcService";
 
 type StoreActions = {
+    currentProjectFilePath: string | null;
+    setCurrentProjectFilePath: (filePath: string | null) => void;
     resetAll: () => void;
     loadProject: (project: ProjectFile<ImageSet>) => void;
 };
@@ -34,7 +36,7 @@ const temporalStoreRef: {
 export const useAppStore = create<AppState>()(
     temporal(
         (...args) => {
-            const [, get] = args;
+            const [set, get] = args;
             const ipcService = getIPCService();
             const clearHistory = () => {
                 temporalStoreRef.current?.getState().clear();
@@ -47,6 +49,10 @@ export const useAppStore = create<AppState>()(
                 )(...args),
                 ...createViewSlice(...args),
                 ...createInteractionSlice(...args),
+
+                currentProjectFilePath: null,
+                setCurrentProjectFilePath: (filePath: string | null) =>
+                    set({ currentProjectFilePath: filePath }),
 
                 loadProject: (project: ProjectFile<ImageSet>) => {
                     // プロジェクトデータをロード (ProjectDataSlice)
@@ -70,6 +76,7 @@ export const useAppStore = create<AppState>()(
                     get().resetView();
                     get().deselectAll();
                     get().setInteractionMode("default");
+                    get().setCurrentProjectFilePath(null);
 
                     // 履歴をクリア
                     clearHistory();

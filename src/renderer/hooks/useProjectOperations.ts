@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../../shared/types/ImageSet";
@@ -12,12 +12,13 @@ export const useProjectOperations = () => {
         canvas,
         dimensionLines,
         imageSets,
+        currentProjectFilePath,
+        setCurrentProjectFilePath,
         loadProject,
         resetAll,
     } = useAppStore();
 
     const ipcService = getIPCService();
-    const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
 
     const createProjectFile = useCallback(
         (): ProjectFile<ImageSet> => ({
@@ -40,8 +41,8 @@ export const useProjectOperations = () => {
     const handleNewProject = useCallback(async () => {
         ipcService.log.info("New project requested");
         resetAll();
-        setCurrentFilePath(null);
-    }, [resetAll, ipcService]);
+        setCurrentProjectFilePath(null);
+    }, [resetAll, setCurrentProjectFilePath, ipcService]);
 
     const applyProject = useCallback(
         async (project: ProjectFile<ImageSet>, filePath: string) => {
@@ -55,9 +56,9 @@ export const useProjectOperations = () => {
                     height: project.window.height,
                 });
             }
-            setCurrentFilePath(filePath);
+            setCurrentProjectFilePath(filePath);
         },
-        [loadProject, ipcService]
+        [loadProject, setCurrentProjectFilePath, ipcService]
     );
 
     const handleOpenProject = useCallback(async () => {
@@ -82,22 +83,27 @@ export const useProjectOperations = () => {
         const project = createProjectFile();
         const filePath = await ipcService.saveProjectAs(project);
         if (filePath) {
-            setCurrentFilePath(filePath);
+            setCurrentProjectFilePath(filePath);
         }
-    }, [createProjectFile, ipcService]);
+    }, [createProjectFile, setCurrentProjectFilePath, ipcService]);
 
     const handleSaveProject = useCallback(async () => {
-        if (!currentFilePath) {
+        if (!currentProjectFilePath) {
             await handleSaveProjectAs();
             return;
         }
         const project = createProjectFile();
-        ipcService.log.info(`Saving project to: ${currentFilePath}`);
-        await ipcService.saveProject(currentFilePath, project);
-    }, [currentFilePath, createProjectFile, handleSaveProjectAs, ipcService]);
+        ipcService.log.info(`Saving project to: ${currentProjectFilePath}`);
+        await ipcService.saveProject(currentProjectFilePath, project);
+    }, [
+        currentProjectFilePath,
+        createProjectFile,
+        handleSaveProjectAs,
+        ipcService,
+    ]);
 
     return {
-        currentFilePath,
+        currentFilePath: currentProjectFilePath,
         handleNewProject,
         handleOpenProject,
         handleLoadProjectFromPath,
