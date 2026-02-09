@@ -39,8 +39,11 @@ export interface IIPCService {
     saveWindowColor: (color: string) => Promise<void>;
 
     // Project
-    saveProjectAs: (project: ProjectFile) => Promise<string | null>;
-    saveProject: (filePath: string, project: ProjectFile) => Promise<boolean>;
+    saveProjectAs: (project: ProjectFile<ImageSet>) => Promise<string | null>;
+    saveProject: (
+        filePath: string,
+        project: ProjectFile<ImageSet>
+    ) => Promise<boolean>;
     loadProject: () => Promise<{
         project: ProjectFile<ImageSet>;
         filePath: string;
@@ -51,7 +54,7 @@ export interface IIPCService {
 
     // Image Settings Window
     loadImage: () => Promise<string | null>;
-    toggleImageSettingsWindow: () => Promise<void>;
+    toggleImageSettingsWindow: () => Promise<boolean>;
 
     // ImageSets Sync
     updateImageSets(imageSets: ImageSet[]): Promise<void>;
@@ -68,11 +71,7 @@ export interface IIPCService {
     onUnitUpdated: (callback: (unit: "nm" | "um" | "mm") => void) => () => void;
 
     // Initial State Sync
-    requestInitialState: () => Promise<{
-        imageSets: ImageSet[];
-        unitFactor: number;
-        unit: "nm" | "um" | "mm";
-    }>;
+    requestInitialState: () => Promise<void>;
     onRequestStateSync: (callback: () => void) => () => void;
 
     // File Open
@@ -125,7 +124,7 @@ class IPCService implements IIPCService {
     }
 
     async loadSetting(): Promise<{ language: string }> {
-        return (await window.electronAPI.loadSetting()) as { language: string };
+        return await window.electronAPI.loadSetting();
     }
 
     async saveSetting(setting: SettingType): Promise<void> {
@@ -133,58 +132,45 @@ class IPCService implements IIPCService {
     }
 
     async loadWindowColor(): Promise<string> {
-        return (await window.electronAPI.loadWindowColor()) as string;
+        return await window.electronAPI.loadWindowColor();
     }
 
     async saveWindowColor(color: string): Promise<void> {
         await window.electronAPI.saveWindowColor(color);
     }
 
-    async saveProjectAs(project: ProjectFile): Promise<string | null> {
-        return (await window.electronAPI.saveProjectAs(project)) as
-            | string
-            | null;
+    async saveProjectAs(
+        project: ProjectFile<ImageSet>
+    ): Promise<string | null> {
+        return await window.electronAPI.saveProjectAs(project);
     }
 
     async saveProject(
         filePath: string,
-        project: ProjectFile
+        project: ProjectFile<ImageSet>
     ): Promise<boolean> {
-        return (await window.electronAPI.saveProject(
-            filePath,
-            project
-        )) as unknown as boolean;
+        return await window.electronAPI.saveProject(filePath, project);
     }
 
     async loadProject(): Promise<{
         project: ProjectFile<ImageSet>;
         filePath: string;
     } | null> {
-        const res = (await window.electronAPI.loadProject()) as unknown as {
-            project: ProjectFile<ImageSet>;
-            filePath: string;
-        } | null;
-        return res;
+        return await window.electronAPI.loadProject();
     }
 
     async loadProjectFromPath(
         filePath: string
     ): Promise<{ project: ProjectFile<ImageSet>; filePath: string } | null> {
-        const res = (await window.electronAPI.loadProjectFromPath(
-            filePath
-        )) as unknown as {
-            project: ProjectFile<ImageSet>;
-            filePath: string;
-        } | null;
-        return res;
+        return await window.electronAPI.loadProjectFromPath(filePath);
     }
 
     async loadImage(): Promise<string | null> {
-        return (await window.electronAPI.loadImage()) as string | null;
+        return await window.electronAPI.loadImage();
     }
 
-    async toggleImageSettingsWindow(): Promise<void> {
-        await window.electronAPI.toggleImageSettingsWindow();
+    async toggleImageSettingsWindow(): Promise<boolean> {
+        return await window.electronAPI.toggleImageSettingsWindow();
     }
 
     async updateImageSets(imageSets: ImageSet[]): Promise<void> {
@@ -211,13 +197,8 @@ class IPCService implements IIPCService {
         return window.electronAPI.onUnitUpdated(callback);
     }
 
-    async requestInitialState(): Promise<{
-        imageSets: ImageSet[];
-        unitFactor: number;
-        unit: "nm" | "um" | "mm";
-    }> {
-        const res = await window.electronAPI.requestInitialState();
-        return res;
+    async requestInitialState(): Promise<void> {
+        await window.electronAPI.requestInitialState();
     }
 
     onRequestStateSync(callback: () => void): () => void {
@@ -229,23 +210,23 @@ class IPCService implements IIPCService {
     }
 
     async getLicenseInfo(): Promise<unknown> {
-        return (await window.electronAPI.getLicenseInfo()) as unknown;
+        return await window.electronAPI.getLicenseInfo();
     }
 
     async getAppVersion(): Promise<string> {
-        return (await window.electronAPI.getAppVersion()) as string;
+        return await window.electronAPI.getAppVersion();
     }
 
     async captureScreen(): Promise<CaptureResult> {
-        return (await window.electronAPI.captureScreen()) as CaptureResult;
+        return await window.electronAPI.captureScreen();
     }
 
     async captureWindow(): Promise<CaptureResult> {
-        return (await window.electronAPI.captureWindow()) as CaptureResult;
+        return await window.electronAPI.captureWindow();
     }
 
     async saveImage(dataUrl: string): Promise<string | null> {
-        return (await window.electronAPI.saveImage(dataUrl)) as string | null;
+        return await window.electronAPI.saveImage(dataUrl);
     }
 }
 

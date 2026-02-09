@@ -9,47 +9,69 @@ import { SettingType } from "@/shared/types/AppConfig";
  */
 export class MockIPCService implements IIPCService {
     log = {
-        debug: async () => { },
-        info: async () => { },
-        warn: async () => { },
-        error: async () => { },
+        debug: async () => {},
+        info: async () => {},
+        warn: async () => {},
+        error: async () => {},
     };
 
     async switchWindowSize(): Promise<boolean> {
         return true;
     }
-    async setWindowRect(): Promise<void> { }
-    async closeWindow(): Promise<void> { }
+
+    async setWindowRect(_rect: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }): Promise<void> {}
+
+    async closeWindow(): Promise<void> {}
+
     async loadSetting(): Promise<{ language: string }> {
         return { language: "en" };
     }
-    async saveSetting(): Promise<void> { }
+
+    async saveSetting(_setting: SettingType): Promise<void> {}
+
     async loadWindowColor(): Promise<string> {
         return "#ffffff";
     }
-    async saveWindowColor(): Promise<void> { }
-    async saveProjectAs(): Promise<string | null> {
+
+    async saveWindowColor(_color: string): Promise<void> {}
+
+    async saveProjectAs(_project: ProjectFile<ImageSet>): Promise<string | null> {
         return "path/to/project.iot";
     }
-    async saveProject(): Promise<boolean> {
+
+    async saveProject(
+        _filePath: string,
+        _project: ProjectFile
+    ): Promise<boolean> {
         return true;
     }
+
     async loadProject(): Promise<{
         project: ProjectFile<ImageSet>;
         filePath: string;
     } | null> {
         return null;
     }
+
     async loadProjectFromPath(): Promise<{
         project: ProjectFile<ImageSet>;
         filePath: string;
     } | null> {
         return null;
     }
+
     async loadImage(): Promise<string | null> {
         return "path/to/image.png";
     }
-    async toggleImageSettingsWindow(): Promise<void> { }
+
+    async toggleImageSettingsWindow(): Promise<boolean> {
+        return true;
+    }
 
     public updateImageSetsCalls: ImageSet[][] = [];
     public updateUnitFactorCalls: number[] = [];
@@ -59,49 +81,40 @@ export class MockIPCService implements IIPCService {
         this.updateImageSetsCalls.push(imageSets);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onImageSetsUpdated(callback: (imageSets: ImageSet[]) => void): () => void {
-        return () => { };
+    onImageSetsUpdated(_callback: (imageSets: ImageSet[]) => void): () => void {
+        return () => {};
     }
 
     async updateUnitFactor(factor: number): Promise<void> {
         this.updateUnitFactorCalls.push(factor);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onUnitFactorUpdated(callback: (factor: number) => void): () => void {
-        return () => { };
+    onUnitFactorUpdated(_callback: (factor: number) => void): () => void {
+        return () => {};
     }
 
     async updateUnit(unit: "nm" | "um" | "mm"): Promise<void> {
         this.updateUnitCalls.push(unit);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onUnitUpdated(callback: (unit: "nm" | "um" | "mm") => void): () => void {
-        return () => { };
+    onUnitUpdated(_callback: (unit: "nm" | "um" | "mm") => void): () => void {
+        return () => {};
     }
 
-    async requestInitialState(): Promise<{
-        imageSets: ImageSet[];
-        unitFactor: number;
-        unit: "nm" | "um" | "mm";
-    }> {
-        return { imageSets: [], unitFactor: 1.0, unit: "um" };
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onRequestStateSync(callback: () => void): () => void {
-        return () => { };
+    async requestInitialState(): Promise<void> {}
+
+    onRequestStateSync(_callback: () => void): () => void {
+        return () => {};
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onFileOpen(callback: (filePath: string, ext: string) => void): () => void {
-        return () => { };
+    onFileOpen(_callback: (filePath: string, ext: string) => void): () => void {
+        return () => {};
     }
 
     async getLicenseInfo(): Promise<unknown> {
         return {};
     }
+
     async getAppVersion(): Promise<string> {
         return "1.0.0";
     }
@@ -122,7 +135,7 @@ export class MockIPCService implements IIPCService {
         };
     }
 
-    async saveImage(): Promise<string | null> {
+    async saveImage(_dataUrl: string): Promise<string | null> {
         return "path/to/image.png";
     }
 

@@ -2,10 +2,9 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { useDimensionKeyboard } from "@/renderer/hooks/useDimensionKeyboard";
 import { useAppStore } from "@/renderer/store/useAppStore";
-import { setIPCService } from "@/renderer/services/ipcService";
 
 // Mock IPCService
 const mockIPC = vi.hoisted(() => ({
@@ -44,8 +43,10 @@ describe("useDimensionKeyboard", () => {
         renderHook(() => useDimensionKeyboard());
 
         // Simulate Delete key press
-        const event = new KeyboardEvent("keydown", { key: "Delete" });
-        window.dispatchEvent(event);
+        act(() => {
+            const event = new KeyboardEvent("keydown", { key: "Delete" });
+            window.dispatchEvent(event);
+        });
 
         // Verify line was deleted
         expect(useAppStore.getState().dimensionLines).toHaveLength(0);
@@ -66,8 +67,10 @@ describe("useDimensionKeyboard", () => {
         renderHook(() => useDimensionKeyboard());
 
         // Simulate Backspace key press
-        const event = new KeyboardEvent("keydown", { key: "Backspace" });
-        window.dispatchEvent(event);
+        act(() => {
+            const event = new KeyboardEvent("keydown", { key: "Backspace" });
+            window.dispatchEvent(event);
+        });
 
         // Verify line was deleted
         expect(useAppStore.getState().dimensionLines).toHaveLength(0);
@@ -91,8 +94,10 @@ describe("useDimensionKeyboard", () => {
         renderHook(() => useDimensionKeyboard());
 
         // Simulate Delete key press
-        const event = new KeyboardEvent("keydown", { key: "Delete" });
-        window.dispatchEvent(event);
+        act(() => {
+            const event = new KeyboardEvent("keydown", { key: "Delete" });
+            window.dispatchEvent(event);
+        });
 
         // Verify line was NOT deleted
         expect(useAppStore.getState().dimensionLines).toHaveLength(1);
@@ -112,8 +117,10 @@ describe("useDimensionKeyboard", () => {
         renderHook(() => useDimensionKeyboard());
 
         // Simulate other key press
-        const event = new KeyboardEvent("keydown", { key: "Escape" });
-        window.dispatchEvent(event);
+        act(() => {
+            const event = new KeyboardEvent("keydown", { key: "Escape" });
+            window.dispatchEvent(event);
+        });
 
         // Verify line was NOT deleted
         expect(useAppStore.getState().dimensionLines).toHaveLength(1);

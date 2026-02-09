@@ -1,6 +1,6 @@
 import type { SettingType } from "../shared/types/AppConfig";
 import type { ProjectFile } from "../shared/types/ProjectFile";
-import type { ImageSet } from "./types/ImageSet";
+import type { ImageSet } from "../shared/types/ImageSet";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 
 // APIのインターフェースを定義
@@ -24,20 +24,23 @@ export interface IElectronAPI {
     closeWindow: () => Promise<void>;
     // Setting
     loadSetting: () => Promise<SettingType>;
-    saveSetting: (setting: SettingType) => void;
+    saveSetting: (setting: SettingType) => Promise<void>;
     // Window Color
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;
     // Project
     loadProject: () => Promise<{
-        project: ProjectFile;
+        project: ProjectFile<ImageSet>;
         filePath: string;
     } | null>;
     loadProjectFromPath: (
         filePath: string
-    ) => Promise<{ project: ProjectFile; filePath: string } | null>;
-    saveProject: (filePath: string, project: ProjectFile) => Promise<void>;
-    saveProjectAs: (project: ProjectFile) => Promise<string | null>;
+    ) => Promise<{ project: ProjectFile<ImageSet>; filePath: string } | null>;
+    saveProject: (
+        filePath: string,
+        project: ProjectFile<ImageSet>
+    ) => Promise<boolean>;
+    saveProjectAs: (project: ProjectFile<ImageSet>) => Promise<string | null>;
     // Image Settings Window
     toggleImageSettingsWindow: () => Promise<boolean>;
     // ImageSets Sync
@@ -52,11 +55,7 @@ export interface IElectronAPI {
     updateUnitFactor: (unitFactor: number) => Promise<void>;
     onUnitFactorUpdated: (callback: (unitFactor: number) => void) => () => void;
     // Initial State Sync
-    requestInitialState: () => Promise<{
-        imageSets: ImageSet[];
-        unitFactor: number;
-        unit: "nm" | "um" | "mm";
-    }>;
+    requestInitialState: () => Promise<void>;
     onRequestStateSync: (callback: () => void) => () => void;
     // File Open
     onFileOpen: (
