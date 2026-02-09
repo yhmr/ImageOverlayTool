@@ -23,7 +23,9 @@
     "lint:fix": "eslint --cache --fix src/ && prettier --write src/",
     "test": "vitest run --reporter=verbose --exclude \"**/e2e/**\" --exclude \"**/node_modules/**\"",
     "test:watch": "vitest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test e2e/startup.spec.ts"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",

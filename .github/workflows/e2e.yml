@@ -1,14 +1,19 @@
 name: E2E Tests
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: "0 18 * * *"
+  workflow_dispatch:
 
 jobs:
-  e2e-test:
+  e2e-smoke-pr:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -29,5 +34,50 @@ jobs:
       - name: Build Application
         run: npm run build
 
-      - name: Run Playwright tests
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npx playwright test
+      - name: Run Playwright smoke tests
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e:smoke
+
+      - name: Upload Playwright artifacts (smoke)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-smoke
+          path: |
+            playwright-report
+            test-results
+
+  e2e-full-main-nightly:
+    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Run Playwright full suite
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e
+
+      - name: Upload Playwright artifacts (full)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-full
+          path: |
+            playwright-report
+            test-results
