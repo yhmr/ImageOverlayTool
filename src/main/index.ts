@@ -72,7 +72,10 @@ process.on("unhandledRejection", (reason) => {
 registerLocalResourceProtocol();
 
 // 二重起動防止
-const gotTheLock = app.requestSingleInstanceLock();
+const gotTheLock = e2eConfig.enabled ? true : app.requestSingleInstanceLock();
+if (e2eConfig.enabled) {
+    log.info("Single instance lock disabled in e2e mode.");
+}
 log.info("Application starting...");
 
 if (!gotTheLock) {
