@@ -24,7 +24,10 @@ export function SettingsMenuBar() {
 
     return (
         <TooltipProvider>
-            <div className="flex shrink-0 items-center justify-between min-h-[40px] px-2 bg-background border-b app-region-drag select-none text-foreground">
+            <div
+                className="flex shrink-0 items-center justify-between min-h-[40px] px-2 bg-background border-b app-region-drag select-none text-foreground"
+                data-testid="settings.menu.bar"
+            >
                 {/* タイトル */}
                 <div className="flex-grow text-sm font-medium">
                     {t("render.image_settings.title")}
@@ -38,6 +41,7 @@ export function SettingsMenuBar() {
                             size="icon"
                             onClick={handleCapture}
                             className="h-8 w-8 app-region-no-drag hover:bg-accent hover:text-accent-foreground mr-1"
+                            data-testid="settings.menu.capture"
                         >
                             <Camera className="h-4 w-4" />
                         </Button>
@@ -60,6 +64,7 @@ export function SettingsMenuBar() {
                             size="icon"
                             onClick={handleClose}
                             className="h-8 w-8 app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
+                            data-testid="settings.menu.close"
                         >
                             <X className="h-4 w-4" />
                         </Button>

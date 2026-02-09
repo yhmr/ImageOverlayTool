@@ -65,7 +65,7 @@ const App = () => {
     );
 
     return (
-        <div className="main-app-container">
+        <div className="main-app-container" data-testid="main.app.root">
             <MenuBar />
             <div
                 style={{
@@ -75,7 +75,7 @@ const App = () => {
                     overflow: "hidden",
                 }}
             >
-                <div className="image-area">
+                <div className="image-area" data-testid="main.canvas.area">
                     <ContextMenu
                         color={windowColor}
                         setColor={handleSetColor}

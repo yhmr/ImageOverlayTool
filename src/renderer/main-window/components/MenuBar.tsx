@@ -69,13 +69,12 @@ export function MenuBar() {
                     opacity: isUIHidden ? 0 : 1,
                     transition: "opacity 0.2s",
                 }}
+                data-testid="main.menu.bar"
             >
                 {/* メニューボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div className="mr-2">
-                            {" "}
-                            {/* Wrapper for TooltipTrigger asChild issue if any, or just direct AppMenu */}
                             <AppMenu
                                 handleSettingDlgOpen={handleSettingDlgOpen}
                                 handleAboutDlgOpen={handleAboutDlgOpen}
@@ -102,6 +101,7 @@ export function MenuBar() {
                                 onClick={() => undo()}
                                 disabled={pastStates.length === 0}
                                 className="h-8 w-8"
+                                data-testid="main.action.undo"
                             >
                                 <Undo className="h-4 w-4" />
                             </Button>
@@ -118,6 +118,7 @@ export function MenuBar() {
                                 onClick={() => redo()}
                                 disabled={futureStates.length === 0}
                                 className="h-8 w-8"
+                                data-testid="main.action.redo"
                             >
                                 <Redo className="h-4 w-4" />
                             </Button>
@@ -141,6 +142,7 @@ export function MenuBar() {
                             size="icon"
                             onClick={handleSwitchFullScreen}
                             className="app-region-no-drag"
+                            data-testid="main.action.window-toggle"
                         >
                             {full ? (
                                 <Minimize className="h-6 w-6" />
@@ -166,6 +168,7 @@ export function MenuBar() {
                             size="icon"
                             onClick={handleCloseWindow}
                             className="app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
+                            data-testid="main.action.window-close"
                         >
                             <X className="h-6 w-6" />
                         </Button>

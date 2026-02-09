@@ -43,6 +43,7 @@ export function ControlButton(props: ControlButtonProps) {
                             variant="secondary"
                             onClick={handleOpenImageSettings}
                             className="absolute bottom-9 right-20 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                            data-testid="main.fab.open-image-settings"
                         >
                             <Settings2 className="h-6 w-6" />
                         </Button>
@@ -64,6 +65,7 @@ export function ControlButton(props: ControlButtonProps) {
                             variant="secondary"
                             onClick={handleCapture}
                             className="absolute bottom-9 right-36 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                            data-testid="main.fab.capture"
                         >
                             <Camera className="h-6 w-6" />
                         </Button>
@@ -85,6 +87,7 @@ export function ControlButton(props: ControlButtonProps) {
                             variant="secondary"
                             onClick={onOpenExportDialog}
                             className="absolute bottom-9 right-52 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                            data-testid="main.fab.export"
                         >
                             <Save className="h-6 w-6" />
                         </Button>
@@ -111,6 +114,7 @@ export function ControlButton(props: ControlButtonProps) {
                                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
                                     : "bg-background/80 hover:bg-background/90"
                             )}
+                            data-testid="main.fab.dimension"
                         >
                             <Scaling className="h-6 w-6" />
                         </Button>

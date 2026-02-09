@@ -53,39 +53,68 @@ export function AppMenu(props: AppMenuProps) {
                     variant="ghost"
                     size="icon"
                     className="app-region-no-drag"
+                    data-testid="main.menu.trigger"
                 >
                     <MenuIcon className="h-6 w-6" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" sideOffset={5}>
-                <DropdownMenuItem onClick={handleNewProject}>
+            <DropdownMenuContent
+                align="start"
+                sideOffset={5}
+                data-testid="main.menu.content"
+            >
+                <DropdownMenuItem
+                    onClick={handleNewProject}
+                    data-testid="main.menu.item.new-project"
+                >
                     {t("render.menu.new_project")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleOpenProject}>
+                <DropdownMenuItem
+                    onClick={handleOpenProject}
+                    data-testid="main.menu.item.open-project"
+                >
                     {t("render.menu.open_project")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSaveProject}>
+                <DropdownMenuItem
+                    onClick={handleSaveProject}
+                    data-testid="main.menu.item.save-project"
+                >
                     {t("render.menu.save_project")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSaveProjectAs}>
+                <DropdownMenuItem
+                    onClick={handleSaveProjectAs}
+                    data-testid="main.menu.item.save-project-as"
+                >
                     {t("render.menu.save_project_as")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleOpenImageSettings}>
+                <DropdownMenuItem
+                    onClick={handleOpenImageSettings}
+                    data-testid="main.menu.item.open-image-settings"
+                >
                     <ImagePlus className="mr-2 h-4 w-4" />
                     {t("render.menu.load_image")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSettingDlgOpen}>
+                <DropdownMenuItem
+                    onClick={handleSettingDlgOpen}
+                    data-testid="main.menu.item.settings"
+                >
                     <Settings className="mr-2 h-4 w-4" />
                     {t("render.menu.settings")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleAboutDlgOpen}>
+                <DropdownMenuItem
+                    onClick={handleAboutDlgOpen}
+                    data-testid="main.menu.item.about"
+                >
                     <Info className="mr-2 h-4 w-4" />
                     {t("render.menu.about")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleCloseWindow}>
+                <DropdownMenuItem
+                    onClick={handleCloseWindow}
+                    data-testid="main.menu.item.exit"
+                >
                     <LogOut className="mr-2 h-4 w-4" />
                     {t("render.menu.exit")}
                 </DropdownMenuItem>

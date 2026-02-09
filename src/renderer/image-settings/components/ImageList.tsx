@@ -78,7 +78,10 @@ export function ImageList() {
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col gap-2 p-4">
+            <div
+                className="flex flex-col gap-2 p-4"
+                data-testid="settings.image-list.root"
+            >
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="image-list">
                         {(provided: DroppableProvided) => (
@@ -86,6 +89,7 @@ export function ImageList() {
                                 {...provided.droppableProps}
                                 ref={provided.innerRef}
                                 className="flex flex-col gap-2"
+                                data-testid="settings.image-list.items"
                             >
                                 {imageSets.map((imageSet, index) => (
                                     <Draggable
@@ -127,6 +131,7 @@ export function ImageList() {
                             size="icon"
                             onClick={handleAddImageSet}
                             className="self-start"
+                            data-testid="settings.image-list.add"
                         >
                             <Plus className="h-4 w-4" />
                         </Button>
@@ -157,6 +162,7 @@ export function ImageList() {
                                         e.currentTarget.blur();
                                     }}
                                     className="w-[100px]"
+                                    data-testid="settings.unit.factor-input"
                                 />
                                 <span className="text-sm text-muted-foreground">
                                     {unit}/pix
@@ -174,7 +180,11 @@ export function ImageList() {
                                     setUnit(value)
                                 }
                             >
-                                <SelectTrigger id="unit" className="w-[100px]">
+                                <SelectTrigger
+                                    id="unit"
+                                    className="w-[100px]"
+                                    data-testid="settings.unit.select"
+                                >
                                     <SelectValue placeholder="単位" />
                                 </SelectTrigger>
                                 <SelectContent>
