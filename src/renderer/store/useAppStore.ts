@@ -12,7 +12,6 @@ import {
 
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../../shared/types/ImageSet";
-import { getIPCService } from "../services/ipcService";
 
 type StoreActions = {
     currentProjectFilePath: string | null;
@@ -37,16 +36,14 @@ export const useAppStore = create<AppState>()(
     temporal(
         (...args) => {
             const [set, get] = args;
-            const ipcService = getIPCService();
             const clearHistory = () => {
                 temporalStoreRef.current?.getState().clear();
             };
 
             return {
-                ...createProjectDataSlice(
-                    ipcService,
-                    () => temporalStoreRef.current
-                )(...args),
+                ...createProjectDataSlice(() => temporalStoreRef.current)(
+                    ...args
+                ),
                 ...createViewSlice(...args),
                 ...createInteractionSlice(...args),
 

@@ -16,6 +16,7 @@ window.addEventListener("unhandledrejection", (event) => {
 });
 
 import { useProjectSync } from "../hooks/useProjectSync";
+import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import "../../i18n/configs";
 
 import { SettingsMenuBar } from "./components/SettingsMenuBar";
@@ -24,6 +25,8 @@ import { ImageList } from "./components/ImageList";
 import "./ImageSettingsApp.css";
 
 const ImageSettingsApp = () => {
+    // ローカル編集を他ウィンドウへ同期
+    useProjectDataSyncBridge();
     // 同期フックを使用
     useProjectSync();
 

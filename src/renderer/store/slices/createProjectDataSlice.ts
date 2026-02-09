@@ -3,7 +3,6 @@ import { ImageSet } from "../../../shared/types/ImageSet";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
 import UUID from "uuidjs";
-import { IProjectDataSyncIPCService } from "../../services/ipcService";
 import { TemporalState } from "zundo";
 
 const createDefaultImageSet = (): ImageSet => ({
@@ -23,6 +22,7 @@ export interface ProjectDataSlice {
     unitFactor: number;
     unit: "nm" | "um" | "mm";
     windowColor: string;
+    projectDataChangeOrigin: "local" | "remote";
 
     // Actions
     setImageSets: (imageSets: ImageSet[]) => void;
@@ -52,11 +52,9 @@ export interface ProjectDataSlice {
 
 /**
  * ProjectDataSliceを作成するファクトリー関数
- * @param ipcService 依存性注入されるIPCサービス
  * @param getTemporal zundoのtemporal stateを取得する関数
  */
 export const createProjectDataSlice = (
-    ipcService: IProjectDataSyncIPCService,
     getTemporal: () => StoreApi<TemporalState<unknown>> | undefined
 ): StateCreator<ProjectDataSlice> => {
     return (set) => ({
@@ -65,11 +63,11 @@ export const createProjectDataSlice = (
         unitFactor: 1.0,
         unit: "um",
         windowColor: "#00000000",
+        projectDataChangeOrigin: "local",
 
         // --- Image Sets ---
         setImageSets: (imageSets) => {
-            set({ imageSets });
-            ipcService.updateImageSets(imageSets);
+            set({ imageSets, projectDataChangeOrigin: "local" });
         },
 
         updateImageSet: (payload) => {
@@ -87,24 +85,28 @@ export const createProjectDataSlice = (
                         newImageSets[targetIndex] = payload.imageSet;
                     }
                 }
-                ipcService.updateImageSets(newImageSets);
-                return { imageSets: newImageSets };
+                return {
+                    imageSets: newImageSets,
+                    projectDataChangeOrigin: "local",
+                };
             });
         },
 
         syncImageSets: (imageSets) => {
             const temporal = getTemporal();
             if (temporal) temporal.getState().pause();
-            set({ imageSets });
+            set({ imageSets, projectDataChangeOrigin: "remote" });
             if (temporal) temporal.getState().resume();
         },
 
         // --- Dimension Lines ---
-        setDimensionLines: (lines) => set({ dimensionLines: lines }),
+        setDimensionLines: (lines) =>
+            set({ dimensionLines: lines, projectDataChangeOrigin: "local" }),
 
         addDimensionLine: (line) =>
             set((state) => ({
                 dimensionLines: [...state.dimensionLines, line],
+                projectDataChangeOrigin: "local",
             })),
 
         updateDimensionLine: (line) =>
@@ -115,7 +117,10 @@ export const createProjectDataSlice = (
                 if (index !== -1) {
                     const newLines = [...state.dimensionLines];
                     newLines[index] = line;
-                    return { dimensionLines: newLines };
+                    return {
+                        dimensionLines: newLines,
+                        projectDataChangeOrigin: "local",
+                    };
                 }
                 return state;
             }),
@@ -123,35 +128,34 @@ export const createProjectDataSlice = (
         removeDimensionLine: (id) =>
             set((state) => ({
                 dimensionLines: state.dimensionLines.filter((l) => l.id !== id),
+                projectDataChangeOrigin: "local",
             })),
 
         // --- Settings ---
         setUnitFactor: (factor) => {
-            set({ unitFactor: factor });
-            ipcService.updateUnitFactor(factor);
+            set({ unitFactor: factor, projectDataChangeOrigin: "local" });
         },
 
         syncUnitFactor: (factor) => {
             const temporal = getTemporal();
             if (temporal) temporal.getState().pause();
-            set({ unitFactor: factor });
+            set({ unitFactor: factor, projectDataChangeOrigin: "remote" });
             if (temporal) temporal.getState().resume();
         },
 
         setUnit: (unit) => {
-            set({ unit });
-            ipcService.updateUnit(unit);
+            set({ unit, projectDataChangeOrigin: "local" });
         },
 
         syncUnit: (unit) => {
             const temporal = getTemporal();
             if (temporal) temporal.getState().pause();
-            set({ unit });
+            set({ unit, projectDataChangeOrigin: "remote" });
             if (temporal) temporal.getState().resume();
         },
 
         setWindowColor: (color) => {
-            set({ windowColor: color });
+            set({ windowColor: color, projectDataChangeOrigin: "local" });
         },
 
         // --- Bulk Actions ---
@@ -168,11 +172,8 @@ export const createProjectDataSlice = (
                 unitFactor: newUnitFactor,
                 unit: newUnit,
                 windowColor: newWindowColor,
+                projectDataChangeOrigin: "local",
             });
-
-            ipcService.updateImageSets(newImageSets);
-            ipcService.updateUnitFactor(newUnitFactor);
-            ipcService.updateUnit(newUnit);
         },
 
         resetProjectData: () => {
@@ -183,10 +184,8 @@ export const createProjectDataSlice = (
                 dimensionLines: [],
                 unitFactor: 1.0,
                 unit: "um",
+                projectDataChangeOrigin: "local",
             });
-            ipcService.updateImageSets(defaultImageSets);
-            ipcService.updateUnitFactor(1.0);
-            ipcService.updateUnit("um");
         },
     });
 };

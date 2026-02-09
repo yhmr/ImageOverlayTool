@@ -1,34 +1,14 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
-import { setIPCService } from "@/renderer/services/ipcService";
-
-// Mock IPCService
-const mockIPC = vi.hoisted(() => ({
-    updateImageSets: vi.fn(),
-    updateUnitFactor: vi.fn(),
-    updateUnit: vi.fn(),
-    onUnitUpdated: vi.fn(() => vi.fn()),
-    requestInitialState: vi.fn().mockResolvedValue({
-        imageSets: [],
-        unitFactor: 1.0,
-        unit: "um",
-    }),
-}));
-
-vi.mock("@/renderer/services/ipcService", () => ({
-    getIPCService: () => mockIPC,
-    setIPCService: vi.fn(),
-}));
 
 describe("useAppStore", () => {
     beforeEach(() => {
         useAppStore.getState().resetAll();
-        vi.clearAllMocks();
     });
 
     describe("ProjectDataSlice", () => {
@@ -42,49 +22,48 @@ describe("useAppStore", () => {
         };
 
         describe("Image Sets Actions", () => {
-            it("should set image sets and call IPC", () => {
+            it("should set image sets", () => {
                 const newSets = [sampleImageSet];
                 useAppStore.getState().setImageSets(newSets);
 
                 const state = useAppStore.getState();
                 expect(state.imageSets).toEqual(newSets);
-                expect(mockIPC.updateImageSets).toHaveBeenCalledWith(newSets);
+                expect(state.projectDataChangeOrigin).toBe("local");
             });
 
-            it("should sync image sets WITHOUT calling IPC", () => {
+            it("should sync image sets as remote change", () => {
                 const newSets = [sampleImageSet];
                 useAppStore.getState().syncImageSets(newSets);
 
                 const state = useAppStore.getState();
                 expect(state.imageSets).toEqual(newSets);
-                expect(mockIPC.updateImageSets).not.toHaveBeenCalled();
+                expect(state.projectDataChangeOrigin).toBe("remote");
             });
 
-            it("should update image set by index and call IPC", () => {
+            it("should update image set by index", () => {
                 const initialSet: ImageSet = { ...sampleImageSet, path: "old.png" };
                 useAppStore.getState().setImageSets([initialSet]);
-                mockIPC.updateImageSets.mockClear();
 
                 const updatedSet: ImageSet = { ...sampleImageSet, path: "new.png" };
                 useAppStore.getState().updateImageSet({ index: 0, imageSet: updatedSet });
 
                 const state = useAppStore.getState();
                 expect(state.imageSets[0]).toEqual(updatedSet);
-                expect(mockIPC.updateImageSets).toHaveBeenCalledWith([updatedSet]);
+                expect(state.projectDataChangeOrigin).toBe("local");
             });
         });
 
         describe("Unit Factor Actions", () => {
-            it("should update unit factor and call IPC", () => {
+            it("should update unit factor", () => {
                 useAppStore.getState().setUnitFactor(2.5);
                 expect(useAppStore.getState().unitFactor).toBe(2.5);
-                expect(mockIPC.updateUnitFactor).toHaveBeenCalledWith(2.5);
+                expect(useAppStore.getState().projectDataChangeOrigin).toBe("local");
             });
 
-            it("should sync unit factor WITHOUT calling IPC", () => {
+            it("should sync unit factor as remote change", () => {
                 useAppStore.getState().syncUnitFactor(3.0);
                 expect(useAppStore.getState().unitFactor).toBe(3.0);
-                expect(mockIPC.updateUnitFactor).not.toHaveBeenCalled();
+                expect(useAppStore.getState().projectDataChangeOrigin).toBe("remote");
             });
         });
 
@@ -164,11 +143,13 @@ describe("useAppStore", () => {
         it("should reset all slices", () => {
             useAppStore.getState().setUnitFactor(2.0);
             useAppStore.getState().setInteractionMode("dimension");
+            useAppStore.getState().setCurrentProjectFilePath("C:/tmp/test.iot");
             useAppStore.getState().resetAll();
 
             const state = useAppStore.getState();
             expect(state.unitFactor).toBe(1.0);
             expect(state.interactionMode).toBe("default");
+            expect(state.currentProjectFilePath).toBeNull();
         });
     });
 
@@ -204,10 +185,6 @@ describe("useAppStore", () => {
             expect(state.windowColor).toBe("#123456");
             expect(state.imageSets).toEqual([sampleImageSet]);
             expect(state.dimensionLines).toHaveLength(1);
-
-            // Check if IPC was called
-            expect(mockIPC.updateImageSets).toHaveBeenCalledWith([sampleImageSet]);
-            expect(mockIPC.updateUnitFactor).toHaveBeenCalledWith(1.5);
         });
 
         it("should reset project data", () => {

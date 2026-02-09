@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import { useAppStore } from "../store/useAppStore";
 import { useProjectSync } from "../hooks/useProjectSync";
+import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import { useFileHandler } from "../hooks/useFileHandler";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import "../../i18n/configs"; //i18
@@ -32,6 +33,8 @@ const App = () => {
     const { windowColor, setWindowColor } = useAppStore();
     const ipcService = getIPCService();
 
+    // ローカル編集を他ウィンドウへ同期
+    useProjectDataSyncBridge();
     // 同期フックを使用
     useProjectSync();
     // ファイルハンドラフックを使用 (起動時引数など)

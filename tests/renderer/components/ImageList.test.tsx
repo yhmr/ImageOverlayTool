@@ -45,7 +45,7 @@ describe("ImageList test ids", () => {
         fireEvent.click(screen.getByTestId("settings.image-list.add"));
 
         expect(useAppStore.getState().imageSets.length).toBe(2);
-        expect(mockIPC.updateImageSets).toHaveBeenCalledTimes(1);
+        // 単体テストでは同期ブリッジをマウントしないためIPC送信は行われない
+        expect(mockIPC.updateImageSets).not.toHaveBeenCalled();
     });
 });
-
