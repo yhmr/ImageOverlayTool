@@ -5,7 +5,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useProjectOperations } from "@/renderer/hooks/useProjectOperations";
 import { useAppStore } from "@/renderer/store/useAppStore";
-import { setIPCService } from "@/renderer/services/ipcService";
 
 const mockIPC = vi.hoisted(() => ({
     loadProject: vi.fn(),
@@ -34,11 +33,10 @@ vi.mock("@/renderer/services/ipcService", () => ({
 describe("useProjectOperations", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        useAppStore.getState().resetAll(); // Reset store
+        useAppStore.getState().resetAll();
     });
 
     it("handleNewProject should reset store and file path", async () => {
-        // Setup initial state
         const { result } = renderHook(() => useProjectOperations());
 
         act(() => {
@@ -59,7 +57,6 @@ describe("useProjectOperations", () => {
         });
 
         const state = useAppStore.getState();
-        // Reset should set imageSets to default (1 empty set)
         expect(state.imageSets).toHaveLength(1);
         expect(state.imageSets[0].path).toBe("");
         expect(result.current.currentFilePath).toBeNull();
@@ -102,13 +99,73 @@ describe("useProjectOperations", () => {
         expect(state.imageSets[0].id).toBe("loaded-img");
         expect(result.current.currentFilePath).toBe("C:/path/to/project.json");
 
-        // Verify window restoration
         expect(mockIPC.setWindowRect).toHaveBeenCalledWith({
             x: 0,
             y: 0,
             width: 800,
             height: 600,
         });
+    });
+
+    it("handleOpenProject should clear undo and redo history", async () => {
+        const mockProjectData = {
+            version: "1.0.0",
+            window: { width: 800, height: 600, x: 0, y: 0, color: "#111111" },
+            settings: { unitFactor: 2.0, unit: "um" as const },
+            canvas: { x: 10, y: 10, scale: 1.5 },
+            images: [
+                {
+                    id: "loaded-img",
+                    path: "loaded.png",
+                    transparency: 0.5,
+                    rotation: 90,
+                    init_anchor_pos: null,
+                    current_anchor_pos: null,
+                },
+            ],
+            dimensionLines: [],
+        };
+
+        mockIPC.loadProject.mockResolvedValue({
+            project: mockProjectData,
+            filePath: "C:/path/to/project.json",
+        });
+
+        act(() => {
+            useAppStore.getState().setImageSets([
+                {
+                    id: "img-1",
+                    path: "a.png",
+                    transparency: 0,
+                    rotation: 0,
+                    init_anchor_pos: null,
+                    current_anchor_pos: null,
+                },
+            ]);
+            useAppStore.getState().setImageSets([
+                {
+                    id: "img-2",
+                    path: "b.png",
+                    transparency: 0,
+                    rotation: 0,
+                    init_anchor_pos: null,
+                    current_anchor_pos: null,
+                },
+            ]);
+            useAppStore.temporal.getState().undo();
+        });
+
+        expect(useAppStore.temporal.getState().pastStates.length).toBeGreaterThan(0);
+        expect(useAppStore.temporal.getState().futureStates.length).toBeGreaterThan(0);
+
+        const { result } = renderHook(() => useProjectOperations());
+
+        await act(async () => {
+            await result.current.handleOpenProject();
+        });
+
+        expect(useAppStore.temporal.getState().pastStates.length).toBe(0);
+        expect(useAppStore.temporal.getState().futureStates.length).toBe(0);
     });
 
     it("handleSaveProjectAs should save and update path", async () => {
@@ -155,7 +212,6 @@ describe("useProjectOperations", () => {
     });
 
     it("handleSaveProject should overwrite existing file", async () => {
-        // First, set path by "opening"
         mockIPC.loadProject.mockResolvedValue({
             project: {
                 version: "1.0.0",
@@ -174,7 +230,6 @@ describe("useProjectOperations", () => {
             await result.current.handleOpenProject();
         });
 
-        // Now save
         await act(async () => {
             await result.current.handleSaveProject();
         });

@@ -20,6 +20,11 @@ type StoreActions = {
     loadProject: (project: ProjectFile<ImageSet>) => void;
 };
 
+type UndoSnapshot = Pick<
+    AppState,
+    "imageSets" | "dimensionLines" | "unitFactor" | "unit" | "windowColor"
+>;
+
 export type AppState = ProjectDataSlice &
     ViewSlice &
     InteractionSlice &
@@ -31,6 +36,19 @@ const temporalStoreRef: {
     current: undefined,
 };
 
+const isSameUndoSnapshot = (
+    pastState: Partial<UndoSnapshot>,
+    currentState: Partial<UndoSnapshot>
+): boolean => {
+    return (
+        pastState.imageSets === currentState.imageSets &&
+        pastState.dimensionLines === currentState.dimensionLines &&
+        pastState.unitFactor === currentState.unitFactor &&
+        pastState.unit === currentState.unit &&
+        pastState.windowColor === currentState.windowColor
+    );
+};
+
 // AppStore definition
 export const useAppStore = create<AppState>()(
     temporal(
@@ -38,6 +56,16 @@ export const useAppStore = create<AppState>()(
             const [set, get] = args;
             const clearHistory = () => {
                 temporalStoreRef.current?.getState().clear();
+            };
+
+            const withHistoryPaused = (fn: () => void) => {
+                const temporalState = temporalStoreRef.current?.getState();
+                temporalState?.pause();
+                try {
+                    fn();
+                } finally {
+                    temporalState?.resume();
+                }
             };
 
             return {
@@ -52,28 +80,32 @@ export const useAppStore = create<AppState>()(
                     set({ currentProjectFilePath: filePath }),
 
                 loadProject: (project: ProjectFile<ImageSet>) => {
-                    // プロジェクトデータをロード (ProjectDataSlice)
-                    get().loadProjectData(project);
-                    // View情報をロード (ViewSlice)
-                    if (project.canvas) {
-                        get().setCanvasState(project.canvas);
-                    } else {
-                        get().resetView();
-                    }
-                    // 選択状態などをリセット
-                    get().deselectAll();
-                    get().setInteractionMode("default");
+                    withHistoryPaused(() => {
+                        // プロジェクトデータをロード (ProjectDataSlice)
+                        get().loadProjectData(project);
+                        // View情報をロード (ViewSlice)
+                        if (project.canvas) {
+                            get().setCanvasState(project.canvas);
+                        } else {
+                            get().resetView();
+                        }
+                        // 選択状態などをリセット
+                        get().deselectAll();
+                        get().setInteractionMode("default");
+                    });
 
                     // 履歴をクリア
                     clearHistory();
                 },
 
                 resetAll: () => {
-                    get().resetProjectData();
-                    get().resetView();
-                    get().deselectAll();
-                    get().setInteractionMode("default");
-                    get().setCurrentProjectFilePath(null);
+                    withHistoryPaused(() => {
+                        get().resetProjectData();
+                        get().resetView();
+                        get().deselectAll();
+                        get().setInteractionMode("default");
+                        get().setCurrentProjectFilePath(null);
+                    });
 
                     // 履歴をクリア
                     clearHistory();
@@ -97,6 +129,7 @@ export const useAppStore = create<AppState>()(
                     windowColor,
                 };
             },
+            equality: isSameUndoSnapshot,
             limit: 50,
         }
     )
