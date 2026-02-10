@@ -21,11 +21,11 @@ import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface SettingDialogProps {
     open: boolean;
-    handleClose: () => void;
+    onClose: () => void;
 }
 
 export function SettingDialog(props: SettingDialogProps) {
-    const { open, handleClose } = props;
+    const { open, onClose } = props;
     const { t, i18n } = useTranslation();
     const ipcService = useIpcService();
 
@@ -35,11 +35,11 @@ export function SettingDialog(props: SettingDialogProps) {
     };
 
     // 終了時に設定保存
-    const handleCloseAndSave = async () => {
+    const saveAndClose = async () => {
         await ipcService.saveSetting({
             language: i18n.language,
         });
-        handleClose();
+        onClose();
     };
 
     // 初期化
@@ -54,7 +54,7 @@ export function SettingDialog(props: SettingDialogProps) {
     return (
         <Dialog
             open={open}
-            onOpenChange={(isOpen) => !isOpen && handleCloseAndSave()}
+            onOpenChange={(isOpen) => !isOpen && saveAndClose()}
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -99,7 +99,7 @@ export function SettingDialog(props: SettingDialogProps) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleCloseAndSave}>
+                    <Button onClick={saveAndClose}>
                         {t("render.setting_dlg.done")}
                     </Button>
                 </DialogFooter>

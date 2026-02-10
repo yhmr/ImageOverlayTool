@@ -23,11 +23,11 @@ interface LicenseInfo {
 
 interface AboutDialogProps {
     open: boolean;
-    handleClose: () => void;
+    onClose: () => void;
 }
 
 export function AboutDialog(props: AboutDialogProps) {
-    const { open, handleClose } = props;
+    const { open, onClose } = props;
     const { t } = useTranslation();
     const ipcService = useIpcService();
 
@@ -59,7 +59,7 @@ export function AboutDialog(props: AboutDialogProps) {
     }, [open, ipcService]);
 
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
             <DialogContent className="sm:max-w-[500px] max-h-[80vh]">
                 <DialogHeader>
                     <DialogTitle>{t("render.about_dlg.title")}</DialogTitle>
@@ -149,7 +149,7 @@ export function AboutDialog(props: AboutDialogProps) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleClose}>
+                    <Button onClick={onClose}>
                         {t("render.about_dlg.done")}
                     </Button>
                 </DialogFooter>

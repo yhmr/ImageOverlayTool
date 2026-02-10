@@ -175,11 +175,11 @@ export function MenuBar() {
 
                 <SettingDialog
                     open={isSettingDialogOpen}
-                    handleClose={closeSettingDialog}
+                    onClose={closeSettingDialog}
                 />
                 <AboutDialog
                     open={isAboutDialogOpen}
-                    handleClose={closeAboutDialog}
+                    onClose={closeAboutDialog}
                 />
             </div>
         </TooltipProvider>
