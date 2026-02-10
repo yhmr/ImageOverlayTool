@@ -6,7 +6,7 @@
     "main": {},
     "render": {
         "menu": {
-            "load_image": "画像読み込み",
+            "load_image": "画像設定",
             "new_project": "新規作成",
             "open_project": "プロジェクトを開く",
             "save_project": "プロジェクトを保存",

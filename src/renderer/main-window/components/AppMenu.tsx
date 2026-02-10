@@ -11,8 +11,12 @@ import {
     Menu as MenuIcon,
     Settings,
     LogOut,
-    ImagePlus,
+    Settings2,
     Info,
+    FilePlus,
+    FolderOpen,
+    Save,
+    SaveAll,
 } from "lucide-react";
 
 import { useIpcService } from "../../providers/IpcServiceProvider";
@@ -67,24 +71,28 @@ export function AppMenu(props: AppMenuProps) {
                     onClick={newProject}
                     data-testid="main.menu.item.new-project"
                 >
+                    <FilePlus className="mr-2 h-4 w-4" />
                     {t("render.menu.new_project")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                     onClick={openProject}
                     data-testid="main.menu.item.open-project"
                 >
+                    <FolderOpen className="mr-2 h-4 w-4" />
                     {t("render.menu.open_project")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                     onClick={saveProject}
                     data-testid="main.menu.item.save-project"
                 >
+                    <Save className="mr-2 h-4 w-4" />
                     {t("render.menu.save_project")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                     onClick={saveProjectAs}
                     data-testid="main.menu.item.save-project-as"
                 >
+                    <SaveAll className="mr-2 h-4 w-4" />
                     {t("render.menu.save_project_as")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -92,7 +100,7 @@ export function AppMenu(props: AppMenuProps) {
                     onClick={openImageSettings}
                     data-testid="main.menu.item.open-image-settings"
                 >
-                    <ImagePlus className="mr-2 h-4 w-4" />
+                    <Settings2 className="mr-2 h-4 w-4" />
                     {t("render.menu.load_image")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
