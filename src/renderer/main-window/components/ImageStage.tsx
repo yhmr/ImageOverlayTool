@@ -64,7 +64,7 @@ export const ImageStage = memo(function ImageStage() {
         onMouseUp: onMouseUpDimension,
     } = useDimensionLineMode(stageRef);
 
-    const { selectedImageId, setSelectedImageId, createSelectHandler } =
+    const { selectedImageId, setSelectedImageId, createImageSelectHandler } =
         useImageSelection();
 
     const { onInitImage, onUpdateAnchor } = useImageInitialization({
@@ -116,7 +116,7 @@ export const ImageStage = memo(function ImageStage() {
                                 key={index + imageSet.id}
                                 imageSet={imageSet}
                                 onInitImage={onInitImage(imageSet, index)}
-                                onSelect={createSelectHandler(imageSet.id)}
+                                onSelect={createImageSelectHandler(imageSet.id)}
                             />
                         );
                     })}

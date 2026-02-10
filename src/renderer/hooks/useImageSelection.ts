@@ -18,7 +18,7 @@ export const useImageSelection = () => {
     }, [imageSets, selectedImageId, setSelectedImageId]);
 
     // DrawImageコンポーネントのonSelectハンドラを生成するヘルパー
-    const createSelectHandler = useCallback(
+    const createImageSelectHandler = useCallback(
         (id: string) => {
             return () => {
                 if (interactionMode !== "dimension") {
@@ -31,7 +31,7 @@ export const useImageSelection = () => {
 
     return {
         selectedImageId,
-        setSelectedImageId: setSelectedImageId,
-        createSelectHandler,
+        setSelectedImageId,
+        createImageSelectHandler,
     };
 };
