@@ -9,7 +9,8 @@ import {
     DialogDescription,
 } from "@/renderer/components/ui/dialog";
 import { Button } from "@/renderer/components/ui/button";
-import { ScrollArea } from "@/renderer/components/ui/scroll-area";
+import { VisuallyHidden } from "@/renderer/components/ui/visually-hidden";
+import logo from "@assets/icon.png";
 
 import { useIpcService } from "../../providers/IpcServiceProvider";
 
@@ -60,29 +61,61 @@ export function AboutDialog(props: AboutDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-            <DialogContent className="sm:max-w-[500px] max-h-[80vh]">
+            <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
                 <DialogHeader>
-                    <DialogTitle>{t("render.about_dlg.title")}</DialogTitle>
+                    <VisuallyHidden>
+                        <DialogTitle>{t("render.about_dlg.title")}</DialogTitle>
+                    </VisuallyHidden>
                     <DialogDescription className="sr-only">
                         This dialog shows information about the application and
                         licenses of third-party libraries.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="flex-1 flex flex-col min-h-0 py-4 gap-4">
                     {/* バージョン情報 */}
-                    <div className="text-center">
-                        <h2 className="text-xl font-bold">ImageOverlayTool</h2>
-                        <p className="text-sm text-muted-foreground">
-                            {t("render.about_dlg.version")}: {appVersion}
-                        </p>
+                    <div className="flex-shrink-0 flex flex-col items-center gap-2 text-center">
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="w-16 h-16 drop-shadow-sm"
+                        />
+                        <div>
+                            <h2 className="text-xl font-bold">
+                                ImageOverlayTool
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                                {t("render.about_dlg.version")}: {appVersion}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Copyright &copy; 2026 yhmr
+                            </p>
+                        </div>
+                        <div className="flex gap-4">
+                            <a
+                                href="https://github.com/yhmr/ImageOverlayTool"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                GitHub Repository
+                            </a>
+                            <a
+                                href="https://github.com/yhmr/ImageOverlayTool/issues"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                Report Issue
+                            </a>
+                        </div>
                     </div>
 
                     {/* ライセンス一覧 */}
-                    <div>
-                        <h3 className="text-sm font-semibold mb-2">
+                    <div className="flex-1 flex flex-col min-h-0">
+                        <h3 className="text-sm font-semibold mb-2 flex-shrink-0">
                             {t("render.about_dlg.licenses")}
                         </h3>
-                        <ScrollArea className="h-[300px] rounded-md border p-2">
+                        <div className="flex-1 overflow-y-auto rounded-md border p-2">
                             {loading ? (
                                 <p className="text-sm text-muted-foreground">
                                     Loading...
@@ -145,7 +178,7 @@ export function AboutDialog(props: AboutDialogProps) {
                                     })}
                                 </div>
                             )}
-                        </ScrollArea>
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>

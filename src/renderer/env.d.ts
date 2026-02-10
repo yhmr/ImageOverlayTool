@@ -77,3 +77,8 @@ declare global {
         electronAPI: IElectronAPI;
     }
 }
+
+declare module "*.png" {
+    const value: string;
+    export default value;
+}

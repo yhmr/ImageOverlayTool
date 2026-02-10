@@ -1,5 +1,5 @@
 import path from "path";
-import { BrowserWindow } from "electron";
+import { BrowserWindow, shell } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
@@ -94,6 +94,18 @@ export class WindowManager {
                 sandbox: false,
                 webSecurity: true,
             },
+        });
+
+        // リンクを開いた際に、標準ブラウザを開くための設定
+        this.mainWindow.webContents.setWindowOpenHandler((details) => {
+            if (
+                details.url.startsWith("https:") ||
+                details.url.startsWith("http:")
+            ) {
+                shell.openExternal(details.url);
+                return { action: "deny" };
+            }
+            return { action: "allow" };
         });
 
         const flushPending = () => {

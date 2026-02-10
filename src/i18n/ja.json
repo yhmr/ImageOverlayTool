@@ -70,7 +70,6 @@
             }
         },
         "about_dlg": {
-            "title": "ImageOverlayToolについて",
             "version": "バージョン",
             "licenses": "オープンソースライセンス",
             "done": "閉じる"

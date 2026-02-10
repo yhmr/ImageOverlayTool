@@ -252,13 +252,6 @@
     "url": ""
   },
   {
-    "name": "@radix-ui/react-scroll-area@1.2.10",
-    "licenses": "MIT",
-    "repository": "https://github.com/radix-ui/primitives",
-    "publisher": "",
-    "url": ""
-  },
-  {
     "name": "@radix-ui/react-select@2.2.6",
     "licenses": "MIT",
     "repository": "https://github.com/radix-ui/primitives",
@@ -364,6 +357,13 @@
     "url": ""
   },
   {
+    "name": "@radix-ui/react-visually-hidden@1.2.4",
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "publisher": "",
+    "url": ""
+  },
+  {
     "name": "@radix-ui/rect@1.1.1",
     "licenses": "MIT",
     "repository": "https://github.com/radix-ui/primitives",
@@ -448,14 +448,14 @@
     "url": ""
   },
   {
-    "name": "@types/node@18.19.130",
+    "name": "@types/node@20.19.29",
     "licenses": "MIT",
     "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
     "publisher": "",
     "url": ""
   },
   {
-    "name": "@types/node@20.19.29",
+    "name": "@types/node@24.10.9",
     "licenses": "MIT",
     "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
     "publisher": "",
@@ -700,7 +700,7 @@
     "url": "https://sindresorhus.com"
   },
   {
-    "name": "electron@28.3.3",
+    "name": "electron@40.1.0",
     "licenses": "MIT",
     "repository": "https://github.com/electron/electron",
     "publisher": "Electron Community",
@@ -1428,14 +1428,14 @@
     "url": ""
   },
   {
-    "name": "undici-types@5.26.5",
+    "name": "undici-types@6.21.0",
     "licenses": "MIT",
     "repository": "https://github.com/nodejs/undici",
     "publisher": "",
     "url": ""
   },
   {
-    "name": "undici-types@6.21.0",
+    "name": "undici-types@7.16.0",
     "licenses": "MIT",
     "repository": "https://github.com/nodejs/undici",
     "publisher": "",
@@ -1516,6 +1516,13 @@
     "licenses": "MIT",
     "repository": "https://github.com/thejoshwolfe/yauzl",
     "publisher": "Josh Wolfe",
+    "url": ""
+  },
+  {
+    "name": "zundo@2.3.0",
+    "licenses": "MIT",
+    "repository": "https://github.com/charkour/zundo",
+    "publisher": "Charles Kornoelje",
     "url": ""
   },
   {

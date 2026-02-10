@@ -70,7 +70,6 @@
             }
         },
         "about_dlg": {
-            "title": "About ImageOverlayTool",
             "version": "Version",
             "licenses": "Open Source Licenses",
             "done": "Close"
