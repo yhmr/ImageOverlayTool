@@ -1,6 +1,7 @@
 import { RefObject } from "react";
 import Konva from "konva";
-import { getIPCService } from "../../services/ipcService";
+
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface UseStageExportParams {
     stageRef: RefObject<Konva.Stage | null>;
@@ -11,9 +12,9 @@ export const useStageExport = ({
     stageRef,
     setUIHidden,
 }: UseStageExportParams) => {
-    const handleExport = async (includeBackground: boolean) => {
-        const ipcService = getIPCService();
+    const ipcService = useIpcService();
 
+    const handleExport = async (includeBackground: boolean) => {
         if (includeBackground) {
             setUIHidden(true);
             await new Promise((resolve) => setTimeout(resolve, 500));

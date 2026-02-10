@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
+
+import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
-import { getIPCService } from "../services/ipcService";
 
 /**
  * ローカル変更時のみ、プロジェクトデータをIPC経由で他ウィンドウへ同期する。
@@ -8,7 +9,7 @@ import { getIPCService } from "../services/ipcService";
 export const useProjectDataSyncBridge = () => {
     const { imageSets, unitFactor, unit, projectDataChangeOrigin } =
         useAppStore();
-    const ipcService = getIPCService();
+    const ipcService = useIpcService();
 
     const isInitializedRef = useRef(false);
     const prevRef = useRef({ imageSets, unitFactor, unit });

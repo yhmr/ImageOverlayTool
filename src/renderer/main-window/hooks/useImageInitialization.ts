@@ -1,7 +1,8 @@
 import { useCallback } from "react";
-import type { ImageSet } from "../../../shared/types/ImageSet";
+
 import type { AnchorPos } from "../../../shared/types/AnchorPos";
-import { getIPCService } from "../../services/ipcService";
+import type { ImageSet } from "../../../shared/types/ImageSet";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface UseImageInitializationParams {
     imageSets: ImageSet[];
@@ -25,6 +26,8 @@ export const useImageInitialization = ({
     syncImageSets,
     updateImageSet,
 }: UseImageInitializationParams) => {
+    const ipcService = useIpcService();
+
     const onInitImage = useCallback(
         (imageSet: ImageSet, index: number) => {
             return (image: HTMLImageElement) => {
@@ -45,10 +48,10 @@ export const useImageInitialization = ({
 
                 // 画像ロード時の正規化更新は履歴に積まない
                 syncImageSets(nextImageSets);
-                void getIPCService().updateImageSets(nextImageSets);
+                void ipcService.updateImageSets(nextImageSets);
             };
         },
-        [imageSets, syncImageSets]
+        [imageSets, ipcService, syncImageSets]
     );
 
     const onUpdateAnchor = useCallback(

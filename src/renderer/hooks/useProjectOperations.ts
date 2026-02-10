@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
+import { useIpcService } from "../providers/IpcServiceProvider";
 import { createProjectCommandService } from "../services/projectCommandService";
-import { getIPCService } from "../services/ipcService";
 import { useAppStore } from "../store/useAppStore";
 
 export const useProjectOperations = () => {
@@ -14,7 +14,7 @@ export const useProjectOperations = () => {
         (state) => state.setCurrentProjectFilePath
     );
 
-    const ipcService = getIPCService();
+    const ipcService = useIpcService();
 
     const projectCommands = useMemo(
         () =>

@@ -1,13 +1,13 @@
 import { TITLE_BAR_HEIGHT } from "../constants";
 import { createImageSetFromLocalFile } from "../factories/imageSetFactory";
-import { getIPCService } from "../services/ipcService";
+import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
 
 export function useCapture() {
     const { imageSets, setImageSets, canvas } = useAppStore();
+    const ipcService = useIpcService();
 
     const handleCapture = async () => {
-        const ipcService = getIPCService();
         try {
             const result = await ipcService.captureScreen();
             if (result) {

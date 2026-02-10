@@ -1,16 +1,14 @@
+import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { useTranslation } from "react-i18next";
 
-import { useAppStore } from "../../store/useAppStore";
-import { ImageSet } from "../../../shared/types/ImageSet";
-import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
-
 import { Card, CardContent } from "@/renderer/components/ui/card";
-
-import { ImageItemHeader } from "./ImageItemHeader";
-import { TransparencyControl } from "./TransparencyControl";
-import { RotationControl } from "./RotationControl";
+import { ImageSet } from "../../../shared/types/ImageSet";
 import { toLocalFileUrl } from "../../factories/imageSetFactory";
-import { getIPCService } from "../../services/ipcService";
+import { useIpcService } from "../../providers/IpcServiceProvider";
+import { useAppStore } from "../../store/useAppStore";
+import { ImageItemHeader } from "./ImageItemHeader";
+import { RotationControl } from "./RotationControl";
+import { TransparencyControl } from "./TransparencyControl";
 
 interface ImageListItemProps {
     imageSet: ImageSet;
@@ -25,12 +23,12 @@ interface ImageListItemProps {
 export function ImageListItem(props: ImageListItemProps) {
     const { imageSet, index, dragHandleProps } = props;
     const { t } = useTranslation();
+    const ipcService = useIpcService();
 
     const { imageSets, updateImageSet, setImageSets } = useAppStore();
 
     // ファイルオープン
     const handleFileOpen = async () => {
-        const ipcService = getIPCService();
         ipcService.log.debug("Opening file dialog for image slot", { index });
         const res = await ipcService.loadImage();
         if (res) {

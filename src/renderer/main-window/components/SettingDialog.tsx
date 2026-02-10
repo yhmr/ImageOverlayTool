@@ -17,7 +17,7 @@ import {
 } from "@/renderer/components/ui/select";
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
-import { getIPCService } from "../../services/ipcService";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface SettingDialogProps {
     open: boolean;
@@ -27,7 +27,7 @@ interface SettingDialogProps {
 export function SettingDialog(props: SettingDialogProps) {
     const { open, handleClose } = props;
     const { t, i18n } = useTranslation();
-    const ipcService = getIPCService();
+    const ipcService = useIpcService();
 
     // 言語切り替え
     const handleLanguageChange = (value: string) => {
@@ -48,7 +48,7 @@ export function SettingDialog(props: SettingDialogProps) {
             const setting = await ipcService.loadSetting();
             i18n.changeLanguage(setting.language);
         };
-        loadSetting();
+        void loadSetting();
     }, [i18n, ipcService]);
 
     return (

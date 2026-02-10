@@ -1,15 +1,16 @@
 import { useTranslation } from "react-i18next";
 import { Settings2, Scaling, Camera, Save } from "lucide-react";
+
 import { Button } from "@/renderer/components/ui/button";
-import { useCapture } from "../../hooks/useCapture";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
-import { getIPCService } from "../../services/ipcService";
 import { cn } from "@/renderer/lib/utils";
+import { useCapture } from "../../hooks/useCapture";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
 
 interface ControlButtonProps {
@@ -24,10 +25,10 @@ export function ControlButton(props: ControlButtonProps) {
     const { t } = useTranslation();
     const { handleCapture } = useCapture();
     const { isUIHidden } = useAppStore();
+    const ipcService = useIpcService();
 
     // 画像設定ウィンドウを開く
     const handleOpenImageSettings = async () => {
-        const ipcService = getIPCService();
         await ipcService.toggleImageSettingsWindow();
     };
 

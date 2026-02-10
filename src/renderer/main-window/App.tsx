@@ -1,37 +1,27 @@
-import React, { useCallback, useLayoutEffect } from "react";
+import React, { useCallback, useEffect, useLayoutEffect } from "react";
 import ReactDOM from "react-dom/client";
 
-import { useAppStore } from "../store/useAppStore";
-import { useProjectSync } from "../hooks/useProjectSync";
-import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
-import { useFileHandler } from "../hooks/useFileHandler";
-import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import "../../i18n/configs"; //i18
-
 import "../shared/globals.css";
 import "./App.css";
-import { MenuBar } from "./components/MenuBar";
-import { ImageStage } from "./components/ImageStage";
+
+import { useFileHandler } from "../hooks/useFileHandler";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
+import { useProjectSync } from "../hooks/useProjectSync";
+import {
+    IpcServiceProvider,
+    useIpcService,
+} from "../providers/IpcServiceProvider";
+import { useAppStore } from "../store/useAppStore";
 import { ContextMenu } from "./components/ContextMenu";
-import { getIPCService } from "../services/ipcService";
-
-// グローバルエラーハンドリング
-
-window.addEventListener("error", (event) => {
-    getIPCService().log.error(
-        "Renderer Uncaught Error:",
-        event.error || event.message
-    );
-});
-
-window.addEventListener("unhandledrejection", (event) => {
-    getIPCService().log.error("Renderer Unhandled Rejection:", event.reason);
-});
+import { ImageStage } from "./components/ImageStage";
+import { MenuBar } from "./components/MenuBar";
 
 const App = () => {
     // 設定の読み込み
     const { windowColor, setWindowColor } = useAppStore();
-    const ipcService = getIPCService();
+    const ipcService = useIpcService();
 
     // ローカル編集を他ウィンドウへ同期
     useProjectDataSyncBridge();
@@ -42,6 +32,34 @@ const App = () => {
     // キーボードショートカット (Undo/Redo)
     useKeyboardShortcuts();
 
+    // グローバルエラーハンドリング
+    useEffect(() => {
+        const onError = (event: ErrorEvent) => {
+            void ipcService.log.error(
+                "Renderer Uncaught Error:",
+                event.error || event.message
+            );
+        };
+
+        const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+            void ipcService.log.error(
+                "Renderer Unhandled Rejection:",
+                event.reason
+            );
+        };
+
+        window.addEventListener("error", onError);
+        window.addEventListener("unhandledrejection", onUnhandledRejection);
+
+        return () => {
+            window.removeEventListener("error", onError);
+            window.removeEventListener(
+                "unhandledrejection",
+                onUnhandledRejection
+            );
+        };
+    }, [ipcService]);
+
     // 初めの一度のみ描画前にファイルから色を取得
     useLayoutEffect(() => {
         // 設定を読み込み
@@ -51,7 +69,7 @@ const App = () => {
             // 初期設定による変更なので履歴をクリアする
             useAppStore.temporal.getState().clear();
         };
-        loadColor();
+        void loadColor();
     }, [setWindowColor, ipcService]);
 
     // 色設定完了時にファイルに色を保存
@@ -99,6 +117,8 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-        <App />
+        <IpcServiceProvider>
+            <App />
+        </IpcServiceProvider>
     </React.StrictMode>
 );

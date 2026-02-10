@@ -1,14 +1,15 @@
-import { useTranslation } from "react-i18next";
 import { X, Camera } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/renderer/components/ui/button";
-import { useCapture } from "../../hooks/useCapture";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
-import { getIPCService } from "../../services/ipcService";
+import { useCapture } from "../../hooks/useCapture";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 /**
  * 画像設定ウィンドウ用のシンプルなタイトルバー
@@ -16,10 +17,11 @@ import { getIPCService } from "../../services/ipcService";
 export function SettingsMenuBar() {
     const { t } = useTranslation();
     const { handleCapture } = useCapture();
+    const ipcService = useIpcService();
 
     // ウィンドウを非表示にする（トグル動作）
     const handleClose = async () => {
-        await getIPCService().toggleImageSettingsWindow();
+        await ipcService.toggleImageSettingsWindow();
     };
 
     return (

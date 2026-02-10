@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 
-import { getIPCService } from "../services/ipcService";
 import { createImageSetFromLocalFile } from "../factories/imageSetFactory";
+import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
 import { useProjectOperations } from "./useProjectOperations";
 
 export const useFileHandler = () => {
     const { imageSets, setImageSets } = useAppStore();
     const { handleLoadProjectFromPath } = useProjectOperations();
+    const ipcService = useIpcService();
 
     useEffect(() => {
-        const ipcService = getIPCService();
         const unsubscribe = ipcService.onFileOpen((filePath, ext) => {
             ipcService.log.debug(`File received via IPC: ${filePath} (${ext})`);
 
@@ -45,5 +45,5 @@ export const useFileHandler = () => {
             }
         });
         return unsubscribe;
-    }, [imageSets, setImageSets, handleLoadProjectFromPath]);
+    }, [imageSets, ipcService, setImageSets, handleLoadProjectFromPath]);
 };

@@ -1,15 +1,16 @@
 import { useEffect } from "react";
+
+import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
-import { getIPCService } from "../services/ipcService";
 
 /**
  * アプリケーション状態の同期を行うフック
  * IPC経由で変更を受信し、Zustandストアを更新する
  */
 export const useProjectSync = () => {
-    useEffect(() => {
-        const ipcService = getIPCService();
+    const ipcService = useIpcService();
 
+    useEffect(() => {
         // unitFactorの更新監視
         const unsubscribeUnitFactor = ipcService.onUnitFactorUpdated(
             (unitFactor) => {
@@ -47,5 +48,5 @@ export const useProjectSync = () => {
             unsubscribeImageSets();
             unsubscribeRequestSync();
         };
-    }, []);
+    }, [ipcService]);
 };

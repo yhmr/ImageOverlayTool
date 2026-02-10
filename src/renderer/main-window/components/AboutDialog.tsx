@@ -11,7 +11,7 @@ import {
 import { Button } from "@/renderer/components/ui/button";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 
-import { getIPCService } from "../../services/ipcService";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface LicenseInfo {
     name: string;
@@ -29,6 +29,8 @@ interface AboutDialogProps {
 export function AboutDialog(props: AboutDialogProps) {
     const { open, handleClose } = props;
     const { t } = useTranslation();
+    const ipcService = useIpcService();
+
     const [licenses, setLicenses] = useState<LicenseInfo[]>([]);
     const [loading, setLoading] = useState(false);
     const [appVersion, setAppVersion] = useState("");
@@ -36,7 +38,6 @@ export function AboutDialog(props: AboutDialogProps) {
     useEffect(() => {
         if (open) {
             setLoading(true);
-            const ipcService = getIPCService();
             // ライセンス情報とバージョンを並列で取得
             Promise.all([
                 ipcService.getLicenseInfo() as Promise<LicenseInfo[]>,
@@ -55,7 +56,7 @@ export function AboutDialog(props: AboutDialogProps) {
                     setLoading(false);
                 });
         }
-    }, [open]);
+    }, [open, ipcService]);
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>

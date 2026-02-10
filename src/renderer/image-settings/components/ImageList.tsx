@@ -8,21 +8,9 @@ import type {
 import { arrayMoveImmutable } from "array-move";
 import { Plus } from "lucide-react";
 
-import { useAppStore } from "../../store/useAppStore";
-import { createEmptyImageSet } from "../../factories/imageSetFactory";
-import { getIPCService } from "../../services/ipcService";
-
-import { ImageListItem } from "./ImageListItem";
-
 import { Button } from "@/renderer/components/ui/button";
 import { Input } from "@/renderer/components/ui/input";
 import { Label } from "@/renderer/components/ui/label";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/renderer/components/ui/tooltip";
 import {
     Select,
     SelectContent,
@@ -30,6 +18,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/renderer/components/ui/select";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/renderer/components/ui/tooltip";
+import { createEmptyImageSet } from "../../factories/imageSetFactory";
+import { useIpcService } from "../../providers/IpcServiceProvider";
+import { useAppStore } from "../../store/useAppStore";
+
+import { ImageListItem } from "./ImageListItem";
 
 /**
  * 画像設定ウィンドウの画像リスト
@@ -46,10 +45,11 @@ export function ImageList() {
         unit,
         setUnit,
     } = useAppStore();
+    const ipcService = useIpcService();
 
     // 新しいImageSetを追加
     const handleAddImageSet = () => {
-        getIPCService().log.info("Adding new empty image slot");
+        ipcService.log.info("Adding new empty image slot");
         const newImageSets = [...imageSets];
         newImageSets.push(createEmptyImageSet());
         setImageSets(newImageSets);
