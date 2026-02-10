@@ -5,21 +5,28 @@ import { HexAlphaColorPicker } from "react-colorful";
 import type { Point } from "../../../shared/types/Point";
 
 interface ColorPickerProps {
-    open: boolean;
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
     color: string;
-    setColor: (color: string) => void;
-    onComplete: () => void;
+    onColorChange: (color: string) => void;
+    onColorChangeComplete: () => void;
     position: Point;
 }
 
 export function ColorPicker(props: ColorPickerProps) {
-    const { open, setOpen, color, setColor, onComplete, position } = props;
+    const {
+        isOpen,
+        onOpenChange,
+        color,
+        onColorChange,
+        onColorChangeComplete,
+        position,
+    } = props;
 
     // 背景クリックで表示をOFF、かつ終了処理
-    const handleOnClickBackground = () => {
-        setOpen(false);
-        onComplete();
+    const closePicker = () => {
+        onOpenChange(false);
+        onColorChangeComplete();
     };
 
     if (!position) {
@@ -28,7 +35,7 @@ export function ColorPicker(props: ColorPickerProps) {
 
     return (
         <>
-            {open && (
+            {isOpen && (
                 <div
                     style={{
                         position: "absolute",
@@ -47,12 +54,12 @@ export function ColorPicker(props: ColorPickerProps) {
                             left: "0",
                             zIndex: 1300,
                         }}
-                        onClick={handleOnClickBackground}
+                        onClick={closePicker}
                     ></div>
                     <div style={{ position: "relative", zIndex: 1301 }}>
                         <HexAlphaColorPicker
                             color={color}
-                            onChange={setColor}
+                            onChange={onColorChange}
                         />
                     </div>
                 </div>

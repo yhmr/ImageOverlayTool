@@ -73,12 +73,12 @@ const App = () => {
     }, [setWindowColor, ipcService]);
 
     // 色設定完了時にファイルに色を保存
-    const onCompleteColor = useCallback(async () => {
+    const saveWindowColor = useCallback(async () => {
         await ipcService.saveWindowColor(windowColor);
     }, [windowColor, ipcService]);
 
     // 色設定の変更
-    const handleSetColor = useCallback(
+    const changeWindowColor = useCallback(
         (color: string) => {
             setWindowColor(color);
         },
@@ -99,8 +99,8 @@ const App = () => {
                 <div className="image-area" data-testid="main.canvas.area">
                     <ContextMenu
                         color={windowColor}
-                        setColor={handleSetColor}
-                        onComplete={onCompleteColor}
+                        onColorChange={changeWindowColor}
+                        onColorChangeComplete={saveWindowColor}
                     >
                         <ImageStage />
                     </ContextMenu>
