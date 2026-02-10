@@ -23,7 +23,7 @@ export function ControlButton(props: ControlButtonProps) {
     const { isDimensionMode, onToggleDimensionMode, onOpenExportDialog } =
         props;
     const { t } = useTranslation();
-    const { handleCapture } = useCapture();
+    const { captureBackground } = useCapture();
     const { isUIHidden } = useAppStore();
     const ipcService = useIpcService();
 
@@ -64,7 +64,7 @@ export function ControlButton(props: ControlButtonProps) {
                     <TooltipTrigger asChild>
                         <Button
                             variant="secondary"
-                            onClick={handleCapture}
+                            onClick={captureBackground}
                             className="absolute bottom-9 right-36 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
                             data-testid="main.fab.capture"
                         >

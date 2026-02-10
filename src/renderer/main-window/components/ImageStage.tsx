@@ -36,7 +36,7 @@ export const ImageStage = memo(function ImageStage() {
     const { isExportDialogOpen, openExportDialog, closeExportDialog } =
         useMenuState();
 
-    const { handleExport } = useStageExport({ stageRef, setUIHidden });
+    const { exportImage } = useStageExport({ stageRef, setUIHidden });
 
     const onUpdateStage = useCallback(
         (newPos: { x: number; y: number; scale: number }) => {
@@ -45,10 +45,7 @@ export const ImageStage = memo(function ImageStage() {
         [setCanvasState]
     );
 
-    const { stageSize, handleWheel } = useStageControls(
-        stageRef,
-        onUpdateStage
-    );
+    const { stageSize, onWheel } = useStageControls(stageRef, onUpdateStage);
 
     const {
         isDimensionMode,
@@ -106,7 +103,7 @@ export const ImageStage = memo(function ImageStage() {
                 onMouseMove={onMouseMove}
                 onMouseUp={onMouseUp}
                 onDragEnd={onDragEnd}
-                onWheel={handleWheel}
+                onWheel={onWheel}
                 ref={stageRef}
             >
                 <Layer>
@@ -164,7 +161,7 @@ export const ImageStage = memo(function ImageStage() {
             <ExportDialog
                 open={isExportDialogOpen}
                 onClose={closeExportDialog}
-                onExport={handleExport}
+                onExport={exportImage}
             />
         </>
     );

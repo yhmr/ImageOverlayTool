@@ -7,7 +7,7 @@ export function useCapture() {
     const { imageSets, setImageSets, canvas } = useAppStore();
     const ipcService = useIpcService();
 
-    const handleCapture = async () => {
+    const captureBackground = async () => {
         try {
             const result = await ipcService.captureScreen();
             if (result) {
@@ -56,5 +56,5 @@ export function useCapture() {
         }
     };
 
-    return { handleCapture };
+    return { captureBackground };
 }

@@ -69,7 +69,7 @@ describe("useCapture", () => {
         mockCaptureScreen.mockResolvedValue(captureResult);
 
         await act(async () => {
-            await result.current.handleCapture();
+            await result.current.captureBackground();
         });
 
         // 1. IPCが呼ばれたか
@@ -97,7 +97,8 @@ describe("useCapture", () => {
             y: initialY - expectedOffset,
         });
 
-        const expectedWidth = (captureResult.width - mockCanvas.x) / mockCanvas.scale;
+        const expectedWidth =
+            (captureResult.width - mockCanvas.x) / mockCanvas.scale;
         expect(newImageSet.initAnchorPos.rt.x).toBe(expectedWidth);
     });
 
@@ -106,7 +107,7 @@ describe("useCapture", () => {
         mockCaptureScreen.mockResolvedValue(null);
 
         await act(async () => {
-            await result.current.handleCapture();
+            await result.current.captureBackground();
         });
 
         expect(mockCaptureScreen).toHaveBeenCalled();
@@ -130,7 +131,7 @@ describe("useCapture", () => {
         });
 
         await act(async () => {
-            await result.current.handleCapture();
+            await result.current.captureBackground();
         });
 
         const addedImageSets = mockSetImageSets.mock.calls[0][0];
@@ -138,4 +139,3 @@ describe("useCapture", () => {
         expect(addedImageSets[0].id).toBe("test-uuid");
     });
 });
-

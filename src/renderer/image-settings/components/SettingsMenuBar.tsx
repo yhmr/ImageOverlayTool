@@ -16,7 +16,7 @@ import { useIpcService } from "../../providers/IpcServiceProvider";
  */
 export function SettingsMenuBar() {
     const { t } = useTranslation();
-    const { handleCapture } = useCapture();
+    const { captureBackground } = useCapture();
     const ipcService = useIpcService();
 
     // ウィンドウを非表示にする（トグル動作）
@@ -41,7 +41,7 @@ export function SettingsMenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleCapture}
+                            onClick={captureBackground}
                             className="h-8 w-8 app-region-no-drag hover:bg-accent hover:text-accent-foreground mr-1"
                             data-testid="settings.menu.capture"
                         >

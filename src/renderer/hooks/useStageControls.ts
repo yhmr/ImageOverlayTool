@@ -19,7 +19,7 @@ export const useStageControls = (
         }
     }, []);
 
-    const handleWheel = useCallback(
+    const onWheel = useCallback(
         (e: Konva.KonvaEventObject<WheelEvent>) => {
             e.evt.preventDefault(); // 通常のイベントを防ぐ
             if (stageRef.current) {
@@ -59,5 +59,5 @@ export const useStageControls = (
         return () => window.removeEventListener("resize", handleResize);
     }, [handleResize]);
 
-    return { stageSize, handleWheel };
+    return { stageSize, onWheel };
 };

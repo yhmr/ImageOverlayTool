@@ -14,7 +14,7 @@ export const useStageExport = ({
 }: UseStageExportParams) => {
     const ipcService = useIpcService();
 
-    const handleExport = async (includeBackground: boolean) => {
+    const exportImage = async (includeBackground: boolean) => {
         if (includeBackground) {
             setUIHidden(true);
             await new Promise((resolve) => setTimeout(resolve, 500));
@@ -36,5 +36,5 @@ export const useStageExport = ({
         await ipcService.saveImage(dataUrl);
     };
 
-    return { handleExport };
+    return { exportImage };
 };

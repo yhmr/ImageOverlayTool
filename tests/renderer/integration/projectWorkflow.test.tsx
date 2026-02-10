@@ -70,7 +70,7 @@ describe("Renderer integration: image add -> settings change -> save", () => {
         const { result: projectOps } = renderHook(() => useProjectOperations());
 
         await act(async () => {
-            await capture.current.handleCapture();
+            await capture.current.captureBackground();
         });
 
         const capturedImage = useAppStore.getState().imageSets[0];
@@ -118,7 +118,7 @@ describe("Renderer integration: image add -> settings change -> save", () => {
         const before = useAppStore.getState().imageSets;
 
         await act(async () => {
-            await capture.current.handleCapture();
+            await capture.current.captureBackground();
         });
 
         const after = useAppStore.getState().imageSets;
