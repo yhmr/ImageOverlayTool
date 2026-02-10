@@ -36,8 +36,8 @@ export const useImageInitialization = ({
                 const anchors = createInitialAnchors(image.width, image.height);
                 const newImageSet = {
                     ...current,
-                    init_anchor_pos: anchors,
-                    current_anchor_pos: anchors,
+                    initAnchorPos: anchors,
+                    currentAnchorPos: anchors,
                 };
 
                 const nextImageSets = [...imageSets];
@@ -54,7 +54,7 @@ export const useImageInitialization = ({
     const onUpdateAnchor = useCallback(
         (imageSet: ImageSet, index: number) => {
             return (anchor: AnchorPos) => {
-                const newImageSet = { ...imageSet, current_anchor_pos: anchor };
+                const newImageSet = { ...imageSet, currentAnchorPos: anchor };
                 updateImageSet({ index, imageSet: newImageSet });
             };
         },

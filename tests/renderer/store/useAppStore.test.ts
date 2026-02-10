@@ -17,8 +17,8 @@ describe("useAppStore", () => {
             path: "path/to/img1.png",
             transparency: 0.8,
             rotation: 0,
-            init_anchor_pos: null,
-            current_anchor_pos: null,
+            initAnchorPos: null,
+            currentAnchorPos: null,
         };
 
         describe("Image Sets Actions", () => {
@@ -160,8 +160,8 @@ describe("useAppStore", () => {
                 path: "path/to/img1.png",
                 transparency: 0.8,
                 rotation: 0,
-                init_anchor_pos: null,
-                current_anchor_pos: null,
+                initAnchorPos: null,
+                currentAnchorPos: null,
             };
 
             const projectData = {
@@ -196,3 +196,4 @@ describe("useAppStore", () => {
         });
     });
 });
+

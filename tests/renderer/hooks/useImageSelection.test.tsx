@@ -36,8 +36,8 @@ describe("useImageSelection", () => {
                     path: "test.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ]);
             result.current.setSelectedImageId("test-id");
@@ -57,8 +57,8 @@ describe("useImageSelection", () => {
                     path: "",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ]);
             result.current.setSelectedImageId("test-id");
@@ -84,16 +84,16 @@ describe("useImageSelection", () => {
                     path: "test.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
                 {
                     id: "image-2",
                     path: "test2.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 }
             ]);
         });
@@ -122,3 +122,4 @@ describe("useImageSelection", () => {
         expect(useAppStore.getState().selectedImageId).toBeNull();
     });
 });
+

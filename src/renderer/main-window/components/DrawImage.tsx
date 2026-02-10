@@ -25,13 +25,10 @@ export const DrawImage = (props: DrawImageProps) => {
 
     // 画像読み込み後、未初期化のアンカーのみ初期化する
     useLayoutEffect(() => {
-        if (
-            image &&
-            (!imageSet.init_anchor_pos || !imageSet.current_anchor_pos)
-        ) {
+        if (image && (!imageSet.initAnchorPos || !imageSet.currentAnchorPos)) {
             onInitImageRef.current(image);
         }
-    }, [image, imageSet.init_anchor_pos, imageSet.current_anchor_pos]);
+    }, [image, imageSet.initAnchorPos, imageSet.currentAnchorPos]);
 
     return (
         <>

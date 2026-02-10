@@ -35,8 +35,8 @@ describe("useProjectDataSyncBridge", () => {
                     path: "local-file:///tmp/a.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                     locked: false,
                 },
             ]);
@@ -59,8 +59,8 @@ describe("useProjectDataSyncBridge", () => {
                     path: "local-file:///tmp/b.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                     locked: false,
                 },
             ]);
@@ -71,3 +71,4 @@ describe("useProjectDataSyncBridge", () => {
         expect(mockIPC.updateImageSets).not.toHaveBeenCalled();
     });
 });
+

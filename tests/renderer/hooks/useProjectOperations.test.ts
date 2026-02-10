@@ -46,8 +46,8 @@ describe("useProjectOperations", () => {
                     path: "test.png",
                     transparency: 1,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ]);
         });
@@ -74,8 +74,8 @@ describe("useProjectOperations", () => {
                     path: "loaded.png",
                     transparency: 0.5,
                     rotation: 90,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ],
             dimensionLines: [],
@@ -119,8 +119,8 @@ describe("useProjectOperations", () => {
                     path: "loaded.png",
                     transparency: 0.5,
                     rotation: 90,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ],
             dimensionLines: [],
@@ -138,8 +138,8 @@ describe("useProjectOperations", () => {
                     path: "a.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ]);
             useAppStore.getState().setImageSets([
@@ -148,8 +148,8 @@ describe("useProjectOperations", () => {
                     path: "b.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ]);
             useAppStore.temporal.getState().undo();
@@ -252,3 +252,4 @@ describe("useProjectOperations", () => {
         expect(result.current.currentFilePath).toBe("C:/saved/via/as.json");
     });
 });
+

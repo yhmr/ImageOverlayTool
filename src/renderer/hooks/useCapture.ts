@@ -41,8 +41,8 @@ export function useCapture() {
                     path: `local-file://${filePath.replace(/\\/g, "/")}`,
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: anchorPos,
-                    current_anchor_pos: anchorPos,
+                    initAnchorPos: anchorPos,
+                    currentAnchorPos: anchorPos,
                 };
 
                 // 一番後ろ（配列の先頭）に追加

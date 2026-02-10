@@ -8,7 +8,7 @@ import Konva from "konva";
 describe("useImageAnchor", () => {
     it("should handle drag start and end", () => {
         const imageSet = {
-            current_anchor_pos: {
+            currentAnchorPos: {
                 lt: { x: 0, y: 0 },
                 rt: { x: 100, y: 0 },
                 lb: { x: 0, y: 100 },
@@ -101,4 +101,5 @@ describe("useImageAnchor", () => {
         });
     });
 });
+
 

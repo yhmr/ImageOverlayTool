@@ -35,8 +35,8 @@ export const useFileHandler = () => {
                     path: `local-file://${filePath.replace(/\\/g, "/")}`,
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 };
 
                 // If the first item is empty (default state), replace it.

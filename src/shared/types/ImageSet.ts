@@ -14,9 +14,9 @@ export interface ImageSet {
     /** 回転角度 (度) */
     rotation: number;
     /** アンカー初期ポジション */
-    init_anchor_pos: AnchorPos | null;
+    initAnchorPos: AnchorPos | null;
     /** アンカー現在のポジション */
-    current_anchor_pos: AnchorPos | null;
+    currentAnchorPos: AnchorPos | null;
     /** ロック状態 */
     locked?: boolean;
 }

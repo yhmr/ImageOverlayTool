@@ -92,13 +92,13 @@ describe("useCapture", () => {
         const initialX = -mockCanvas.x / mockCanvas.scale; // -50
         const initialY = -mockCanvas.y / mockCanvas.scale; // -25
 
-        expect(newImageSet.init_anchor_pos.lt).toEqual({
+        expect(newImageSet.initAnchorPos.lt).toEqual({
             x: initialX,
             y: initialY - expectedOffset,
         });
 
         const expectedWidth = (captureResult.width - mockCanvas.x) / mockCanvas.scale;
-        expect(newImageSet.init_anchor_pos.rt.x).toBe(expectedWidth);
+        expect(newImageSet.initAnchorPos.rt.x).toBe(expectedWidth);
     });
 
     it("captureScreenがnullを返したとき（キャンセル）、何もしないこと", async () => {
@@ -138,3 +138,4 @@ describe("useCapture", () => {
         expect(addedImageSets[0].id).toBe("test-uuid");
     });
 });
+

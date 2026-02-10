@@ -22,7 +22,7 @@ export const useImageAnchor = ({
 
     const onDragEnd = useCallback(
         (e: Konva.KonvaEventObject<DragEvent>) => {
-            if (imageSet.current_anchor_pos) {
+            if (imageSet.currentAnchorPos) {
                 // 移動距離を計算
                 const diff = {
                     x: e.target.x() - dragStartPos.x,
@@ -31,10 +31,10 @@ export const useImageAnchor = ({
                 // 回転を考慮した現在のアンカー位置を取得 (Wrapperが回転された座標を期待しているため)
                 const currentAnchors = imageSet.rotation
                     ? rotateAnchorPos(
-                          imageSet.current_anchor_pos,
+                          imageSet.currentAnchorPos,
                           imageSet.rotation
                       )
-                    : imageSet.current_anchor_pos;
+                    : imageSet.currentAnchorPos;
 
                 // 新しいアンカー位置を計算
                 const newAnchor = calculateMovedAnchors(currentAnchors, diff);

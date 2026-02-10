@@ -23,8 +23,8 @@ const baseImageSet: ImageSet = {
     path: "test.png",
     transparency: 0,
     rotation: 0,
-    init_anchor_pos: null,
-    current_anchor_pos: null,
+    initAnchorPos: null,
+    currentAnchorPos: null,
     locked: false,
 };
 
@@ -72,13 +72,13 @@ describe("DrawImage", () => {
             <DrawImage
                 imageSet={{
                     ...baseImageSet,
-                    init_anchor_pos: {
+                    initAnchorPos: {
                         lt: { x: 0, y: 0 },
                         lb: { x: 0, y: 80 },
                         rt: { x: 120, y: 0 },
                         rb: { x: 120, y: 80 },
                     },
-                    current_anchor_pos: {
+                    currentAnchorPos: {
                         lt: { x: 0, y: 0 },
                         lb: { x: 0, y: 80 },
                         rt: { x: 120, y: 0 },
@@ -93,3 +93,4 @@ describe("DrawImage", () => {
         expect(onInitImage).not.toHaveBeenCalled();
     });
 });
+

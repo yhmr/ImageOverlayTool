@@ -75,14 +75,11 @@ export const OverlayControls = ({
 
     // アンカー位置の同期
     useLayoutEffect(() => {
-        if (imageSet.current_anchor_pos) {
+        if (imageSet.currentAnchorPos) {
             // 表示用に回転させたアンカーを計算
             const displayedAnchors = imageSet.rotation
-                ? rotateAnchorPos(
-                      imageSet.current_anchor_pos,
-                      imageSet.rotation
-                  )
-                : imageSet.current_anchor_pos;
+                ? rotateAnchorPos(imageSet.currentAnchorPos, imageSet.rotation)
+                : imageSet.currentAnchorPos;
 
             if (
                 ltRef.current &&

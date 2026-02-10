@@ -76,8 +76,8 @@ describe("useProjectSync", () => {
                 path: "local-file:///tmp/test.png",
                 transparency: 0,
                 rotation: 0,
-                init_anchor_pos: null,
-                current_anchor_pos: null,
+                initAnchorPos: null,
+                currentAnchorPos: null,
             },
         ];
 

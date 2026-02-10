@@ -33,12 +33,12 @@ export const PerspectiveImage = ({
     });
 
     useEffect(() => {
-        if (image && imageSet.current_anchor_pos) {
+        if (image && imageSet.currentAnchorPos) {
             // Homography処理
             const { left, top, right, bottom } = getBoundingBox(
-                imageSet.current_anchor_pos
+                imageSet.currentAnchorPos
             );
-            const center = getCenter(imageSet.current_anchor_pos);
+            const center = getCenter(imageSet.currentAnchorPos);
 
             // Canvasサイズなどを更新
             if (
@@ -69,14 +69,14 @@ export const PerspectiveImage = ({
                 // 変形後の図形を記述
                 const p = new Perspective(ctx, image);
                 p.draw({
-                    topLeftX: imageSet.current_anchor_pos.lt.x - left,
-                    topLeftY: imageSet.current_anchor_pos.lt.y - top,
-                    topRightX: imageSet.current_anchor_pos.rt.x - left,
-                    topRightY: imageSet.current_anchor_pos.rt.y - top,
-                    bottomRightX: imageSet.current_anchor_pos.rb.x - left,
-                    bottomRightY: imageSet.current_anchor_pos.rb.y - top,
-                    bottomLeftX: imageSet.current_anchor_pos.lb.x - left,
-                    bottomLeftY: imageSet.current_anchor_pos.lb.y - top,
+                    topLeftX: imageSet.currentAnchorPos.lt.x - left,
+                    topLeftY: imageSet.currentAnchorPos.lt.y - top,
+                    topRightX: imageSet.currentAnchorPos.rt.x - left,
+                    topRightY: imageSet.currentAnchorPos.rt.y - top,
+                    bottomRightX: imageSet.currentAnchorPos.rb.x - left,
+                    bottomRightY: imageSet.currentAnchorPos.rb.y - top,
+                    bottomLeftX: imageSet.currentAnchorPos.lb.x - left,
+                    bottomLeftY: imageSet.currentAnchorPos.lb.y - top,
                 });
 
                 // Konva.Imageに更新を通知
@@ -114,29 +114,29 @@ export const PerspectiveImage = ({
             listening={true} // Ensure it catches events
             // カスタムヒットファンクション：四角形の内側だけをヒットにする
             hitFunc={(ctx: Context, shape) => {
-                if (!imageSet.current_anchor_pos) {
+                if (!imageSet.currentAnchorPos) {
                     ctx.fillStrokeShape(shape);
                     return;
                 }
-                const { current_anchor_pos } = imageSet;
+                const { currentAnchorPos } = imageSet;
                 const { left, top } = pos;
 
                 ctx.beginPath();
                 ctx.moveTo(
-                    current_anchor_pos.lt.x - left,
-                    current_anchor_pos.lt.y - top
+                    currentAnchorPos.lt.x - left,
+                    currentAnchorPos.lt.y - top
                 );
                 ctx.lineTo(
-                    current_anchor_pos.rt.x - left,
-                    current_anchor_pos.rt.y - top
+                    currentAnchorPos.rt.x - left,
+                    currentAnchorPos.rt.y - top
                 );
                 ctx.lineTo(
-                    current_anchor_pos.rb.x - left,
-                    current_anchor_pos.rb.y - top
+                    currentAnchorPos.rb.x - left,
+                    currentAnchorPos.rb.y - top
                 );
                 ctx.lineTo(
-                    current_anchor_pos.lb.x - left,
-                    current_anchor_pos.lb.y - top
+                    currentAnchorPos.lb.x - left,
+                    currentAnchorPos.lb.y - top
                 );
                 ctx.closePath();
                 // Konvaのヒット検出用に形状を描画

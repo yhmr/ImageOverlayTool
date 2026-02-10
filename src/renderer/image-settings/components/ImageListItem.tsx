@@ -39,8 +39,8 @@ export function ImageListItem(props: ImageListItemProps) {
             // ファイル読み込み直しの場合は、すべてのパラメータを初期化
             newImageSet.transparency = 0.0;
             newImageSet.rotation = 0;
-            newImageSet.init_anchor_pos = null;
-            newImageSet.current_anchor_pos = null;
+            newImageSet.initAnchorPos = null;
+            newImageSet.currentAnchorPos = null;
             updateImageSet({ index: index, imageSet: newImageSet });
         } else {
             ipcService.log.debug("Image loading canceled by user");
@@ -63,7 +63,7 @@ export function ImageListItem(props: ImageListItemProps) {
 
     // 回転変更
     const handleRotationChange = (value: number[]) => {
-        if (!imageSet.current_anchor_pos) return;
+        if (!imageSet.currentAnchorPos) return;
 
         const newImageSet = { ...imageSet };
         newImageSet.rotation = value[0];
@@ -78,7 +78,7 @@ export function ImageListItem(props: ImageListItemProps) {
         const value = Number(event.target.value);
         if (isNaN(value)) return;
 
-        if (!imageSet.current_anchor_pos) return;
+        if (!imageSet.currentAnchorPos) return;
         const newImageSet = { ...imageSet };
         newImageSet.rotation = value;
         updateImageSet({ index: index, imageSet: newImageSet });
@@ -119,7 +119,7 @@ export function ImageListItem(props: ImageListItemProps) {
                 )}
 
                 {/* 回転スライダー */}
-                {imageSet.path && imageSet.current_anchor_pos && (
+                {imageSet.path && imageSet.currentAnchorPos && (
                     <RotationControl
                         rotation={imageSet.rotation || 0}
                         onRotationChange={handleRotationChange}
