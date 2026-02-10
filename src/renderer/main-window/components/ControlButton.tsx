@@ -28,7 +28,7 @@ export function ControlButton(props: ControlButtonProps) {
     const ipcService = useIpcService();
 
     // 画像設定ウィンドウを開く
-    const handleOpenImageSettings = async () => {
+    const openImageSettings = async () => {
         await ipcService.toggleImageSettingsWindow();
     };
 
@@ -42,7 +42,7 @@ export function ControlButton(props: ControlButtonProps) {
                     <TooltipTrigger asChild>
                         <Button
                             variant="secondary"
-                            onClick={handleOpenImageSettings}
+                            onClick={openImageSettings}
                             className="absolute bottom-9 right-20 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
                             data-testid="main.fab.open-image-settings"
                         >

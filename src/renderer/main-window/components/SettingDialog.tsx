@@ -30,7 +30,7 @@ export function SettingDialog(props: SettingDialogProps) {
     const ipcService = useIpcService();
 
     // 言語切り替え
-    const handleLanguageChange = (value: string) => {
+    const changeLanguage = (value: string) => {
         i18n.changeLanguage(value);
     };
 
@@ -71,7 +71,7 @@ export function SettingDialog(props: SettingDialogProps) {
                         </Label>
                         <Select
                             value={i18n.language}
-                            onValueChange={handleLanguageChange}
+                            onValueChange={changeLanguage}
                         >
                             <SelectTrigger
                                 className="col-span-3"

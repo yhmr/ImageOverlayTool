@@ -22,7 +22,7 @@ export function ExportDialog({ open, onClose, onExport }: ExportDialogProps) {
     const { t } = useTranslation();
     const [includeBackground, setIncludeBackground] = useState(false);
 
-    const handleExport = () => {
+    const exportAndClose = () => {
         onExport(includeBackground);
         onClose();
     };
@@ -71,7 +71,7 @@ export function ExportDialog({ open, onClose, onExport }: ExportDialogProps) {
                     <Button variant="outline" onClick={onClose}>
                         {t("common.cancel", "キャンセル")}
                     </Button>
-                    <Button onClick={handleExport}>
+                    <Button onClick={exportAndClose}>
                         {t("common.save", "保存")}
                     </Button>
                 </DialogFooter>

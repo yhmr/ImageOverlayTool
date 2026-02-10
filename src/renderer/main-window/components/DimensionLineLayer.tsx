@@ -50,7 +50,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
         };
     };
 
-    const handleDragEnd = useCallback(
+    const onAnchorDragEnd = useCallback(
         (id: string, type: "start" | "end") =>
             (e: KonvaEventObject<DragEvent>) => {
                 const line = dimensionLines.find((l) => l.id === id);
@@ -68,7 +68,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
         [dimensionLines, onUpdate]
     );
 
-    const handleDragMove = useCallback(
+    const onAnchorDragMove = useCallback(
         (id: string, type: "start" | "end") =>
             (e: KonvaEventObject<DragEvent>) => {
                 // Optional: Implement if real-time line update during drag is needed via local state or throttle
@@ -147,11 +147,14 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                                     radius={6}
                                     fill="red"
                                     draggable
-                                    onDragMove={handleDragMove(
+                                    onDragMove={onAnchorDragMove(
                                         line.id,
                                         "start"
                                     )}
-                                    onDragEnd={handleDragEnd(line.id, "start")}
+                                    onDragEnd={onAnchorDragEnd(
+                                        line.id,
+                                        "start"
+                                    )}
                                 />
                                 <Circle
                                     x={line.end.x}
@@ -159,8 +162,11 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                                     radius={6}
                                     fill="red"
                                     draggable
-                                    onDragMove={handleDragMove(line.id, "end")}
-                                    onDragEnd={handleDragEnd(line.id, "end")}
+                                    onDragMove={onAnchorDragMove(
+                                        line.id,
+                                        "end"
+                                    )}
+                                    onDragEnd={onAnchorDragEnd(line.id, "end")}
                                 />
                             </>
                         )}

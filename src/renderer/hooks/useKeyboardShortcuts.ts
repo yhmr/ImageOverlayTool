@@ -15,7 +15,7 @@ export const useKeyboardShortcuts = () => {
     );
 
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const onKeyDown = (e: KeyboardEvent) => {
             // 入力要素にフォーカスがある場合は無視（ネイティブのUndo/Redoを優先）
             const target = e.target as HTMLElement;
             if (
@@ -46,7 +46,7 @@ export const useKeyboardShortcuts = () => {
             }
         };
 
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
     }, [undo, redo]);
 };

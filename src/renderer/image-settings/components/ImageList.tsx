@@ -48,7 +48,7 @@ export function ImageList() {
     const ipcService = useIpcService();
 
     // 新しいImageSetを追加
-    const handleAddImageSet = () => {
+    const addImageSet = () => {
         ipcService.log.info("Adding new empty image slot");
         const newImageSets = [...imageSets];
         newImageSets.push(createEmptyImageSet());
@@ -122,7 +122,7 @@ export function ImageList() {
                         <Button
                             variant="outline"
                             size="icon"
-                            onClick={handleAddImageSet}
+                            onClick={addImageSet}
                             className="self-start"
                             data-testid="settings.image-list.add"
                         >

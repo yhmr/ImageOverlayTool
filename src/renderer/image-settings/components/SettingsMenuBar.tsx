@@ -20,7 +20,7 @@ export function SettingsMenuBar() {
     const ipcService = useIpcService();
 
     // ウィンドウを非表示にする（トグル動作）
-    const handleClose = async () => {
+    const closeSettingsWindow = async () => {
         await ipcService.toggleImageSettingsWindow();
     };
 
@@ -64,7 +64,7 @@ export function SettingsMenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleClose}
+                            onClick={closeSettingsWindow}
                             className="h-8 w-8 app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
                             data-testid="settings.menu.close"
                         >

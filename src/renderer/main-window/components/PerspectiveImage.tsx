@@ -86,14 +86,14 @@ export const PerspectiveImage = ({
     }, [image, imageSet, canvas]);
 
     // クリックハンドラ
-    const handleClick = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+    const onImageClick = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
         if (onSelect) {
             onSelect();
             e.cancelBubble = true; // Stop bubbling to stage
         }
     };
 
-    const handleMouseDown = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+    const onImageMouseDown = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
         // 左クリックの場合はバブリングを止める（ステージのドラッグなどと干渉しないように）
         if ("button" in e.evt && e.evt.button === 0) {
             e.cancelBubble = true;
@@ -108,9 +108,9 @@ export const PerspectiveImage = ({
             rotation={imageSet.rotation || 0}
             offsetX={pos.offsetX}
             offsetY={pos.offsetY}
-            onClick={handleClick}
-            onTap={handleClick}
-            onMouseDown={handleMouseDown}
+            onClick={onImageClick}
+            onTap={onImageClick}
+            onMouseDown={onImageMouseDown}
             listening={true} // Ensure it catches events
             // カスタムヒットファンクション：四角形の内側だけをヒットにする
             hitFunc={(ctx: Context, shape) => {

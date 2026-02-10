@@ -13,7 +13,7 @@ export const useDimensionKeyboard = () => {
     } = useAppStore();
 
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const onKeyDown = (e: KeyboardEvent) => {
             if (
                 (e.key === "Delete" || e.key === "Backspace") &&
                 selectedDimensionLineId
@@ -22,8 +22,8 @@ export const useDimensionKeyboard = () => {
                 setSelectedDimensionLineId(null);
             }
         };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
     }, [
         selectedDimensionLineId,
         removeDimensionLine,
