@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useStore } from "zustand";
 import type { TemporalState } from "zundo";
+import { useFitToScreen } from "./useFitToScreen";
 import { useAppStore, type AppState } from "../store/useAppStore";
 
 export const useKeyboardShortcuts = () => {
@@ -13,6 +14,7 @@ export const useKeyboardShortcuts = () => {
         useAppStore.temporal,
         (state: TemporalState<Partial<AppState>>) => state.redo
     );
+    const { fitToScreen } = useFitToScreen();
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
@@ -44,9 +46,19 @@ export const useKeyboardShortcuts = () => {
                 e.preventDefault();
                 redo();
             }
+            // Fit to Screen: Ctrl/Cmd + F
+            else if (
+                (e.ctrlKey || e.metaKey) &&
+                !e.shiftKey &&
+                !e.altKey &&
+                e.key.toLowerCase() === "f"
+            ) {
+                e.preventDefault();
+                fitToScreen();
+            }
         };
 
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [undo, redo]);
+    }, [fitToScreen, redo, undo]);
 };

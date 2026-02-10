@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect } from "react";
+import React, { useEffect, useLayoutEffect } from "react";
 import ReactDOM from "react-dom/client";
 
 import "../../i18n/configs"; //i18
@@ -72,19 +72,6 @@ const App = () => {
         void loadColor();
     }, [setWindowColor, ipcService]);
 
-    // 色設定完了時にファイルに色を保存
-    const saveWindowColor = useCallback(async () => {
-        await ipcService.saveWindowColor(windowColor);
-    }, [windowColor, ipcService]);
-
-    // 色設定の変更
-    const changeWindowColor = useCallback(
-        (color: string) => {
-            setWindowColor(color);
-        },
-        [setWindowColor]
-    );
-
     return (
         <div className="main-app-container" data-testid="main.app.root">
             <MenuBar />
@@ -97,11 +84,7 @@ const App = () => {
                 }}
             >
                 <div className="image-area" data-testid="main.canvas.area">
-                    <ContextMenu
-                        color={windowColor}
-                        onColorChange={changeWindowColor}
-                        onColorChangeComplete={saveWindowColor}
-                    >
+                    <ContextMenu>
                         <ImageStage />
                     </ContextMenu>
                 </div>

@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Settings2, Scaling, Camera, Save } from "lucide-react";
+import { Settings2, Scaling, Camera, Save, Droplets } from "lucide-react";
 
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import { cn } from "@/renderer/lib/utils";
 import { useCapture } from "../../hooks/useCapture";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
+import { ColorPicker } from "./ColorPicker";
 
 interface ControlButtonProps {
     isDimensionMode: boolean;
@@ -24,12 +26,25 @@ export function ControlButton(props: ControlButtonProps) {
         props;
     const { t } = useTranslation();
     const { captureBackground } = useCapture();
-    const { isUIHidden } = useAppStore();
+    const { isUIHidden, windowColor, setWindowColor } = useAppStore();
     const ipcService = useIpcService();
+    const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
 
     // 画像設定ウィンドウを開く
     const openImageSettings = async () => {
         await ipcService.toggleImageSettingsWindow();
+    };
+
+    const openWindowColorPicker = () => {
+        setIsColorPickerOpen(true);
+    };
+
+    const saveWindowColor = () => {
+        void ipcService.saveWindowColor(windowColor);
+    };
+
+    const changeWindowColor = (color: string) => {
+        setWindowColor(color);
     };
 
     if (isUIHidden) return null;
@@ -37,13 +52,35 @@ export function ControlButton(props: ControlButtonProps) {
     return (
         <TooltipProvider>
             <div className="contents">
+                {/* 背景色/透過度ボタン */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="secondary"
+                            onClick={openWindowColorPicker}
+                            className="absolute bottom-9 right-20 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                            data-testid="main.fab.background-style"
+                        >
+                            <Droplets className="h-6 w-6" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                        <p>
+                            {t(
+                                "render.control_button.tooltip.background_style",
+                                "背景色/透過度"
+                            )}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+
                 {/* 画像設定ウィンドウを開くボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
                             variant="secondary"
                             onClick={openImageSettings}
-                            className="absolute bottom-9 right-20 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                            className="absolute bottom-9 right-36 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
                             data-testid="main.fab.open-image-settings"
                         >
                             <Settings2 className="h-6 w-6" />
@@ -65,7 +102,7 @@ export function ControlButton(props: ControlButtonProps) {
                         <Button
                             variant="secondary"
                             onClick={captureBackground}
-                            className="absolute bottom-9 right-36 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                            className="absolute bottom-9 right-52 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
                             data-testid="main.fab.capture"
                         >
                             <Camera className="h-6 w-6" />
@@ -87,7 +124,7 @@ export function ControlButton(props: ControlButtonProps) {
                         <Button
                             variant="secondary"
                             onClick={onOpenExportDialog}
-                            className="absolute bottom-9 right-52 h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                            className="absolute bottom-9 right-[272px] h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm"
                             data-testid="main.fab.export"
                         >
                             <Save className="h-6 w-6" />
@@ -103,7 +140,7 @@ export function ControlButton(props: ControlButtonProps) {
                     </TooltipContent>
                 </Tooltip>
 
-                {/* 矢印記述ボタン */}
+                {/* 寸法線描画ボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
@@ -127,6 +164,15 @@ export function ControlButton(props: ControlButtonProps) {
                     </TooltipContent>
                 </Tooltip>
             </div>
+
+            <ColorPicker
+                isOpen={isColorPickerOpen}
+                onOpenChange={setIsColorPickerOpen}
+                color={windowColor}
+                onColorChange={changeWindowColor}
+                onColorChangeComplete={saveWindowColor}
+                centerOnScreen
+            />
         </TooltipProvider>
     );
 }

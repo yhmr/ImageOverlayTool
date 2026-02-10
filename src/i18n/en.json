@@ -25,11 +25,11 @@
             }
         },
         "context_menu": {
-            "color_picker": "background color"
+            "fit_screen": "Fit to Screen"
         },
         "control_button": {
             "tooltip": {
-                "image_transparency": "image transparency",
+                "background_style": "Background Color/Opacity",
                 "dimension_line": "draw dimension line",
                 "save": "Save Image",
                 "capture": "Capture Background",
