@@ -36,7 +36,7 @@ describe("useProjectOperations", () => {
         useAppStore.getState().resetAll();
     });
 
-    it("handleNewProject should reset store and file path", async () => {
+    it("newProject should reset store and file path", async () => {
         const { result } = renderHook(() => useProjectOperations());
 
         act(() => {
@@ -53,7 +53,7 @@ describe("useProjectOperations", () => {
         });
 
         await act(async () => {
-            await result.current.handleNewProject();
+            await result.current.newProject();
         });
 
         const state = useAppStore.getState();
@@ -62,7 +62,7 @@ describe("useProjectOperations", () => {
         expect(result.current.currentProjectFilePath).toBeNull();
     });
 
-    it("handleOpenProject should load project data", async () => {
+    it("openProject should load project data", async () => {
         const mockProjectData = {
             version: "1.0.0",
             window: { width: 800, height: 600, x: 0, y: 0, color: "#111111" },
@@ -89,7 +89,7 @@ describe("useProjectOperations", () => {
         const { result } = renderHook(() => useProjectOperations());
 
         await act(async () => {
-            await result.current.handleOpenProject();
+            await result.current.openProject();
         });
 
         const state = useAppStore.getState();
@@ -97,7 +97,9 @@ describe("useProjectOperations", () => {
         expect(state.windowColor).toBe("#111111");
         expect(state.canvas).toEqual({ x: 10, y: 10, scale: 1.5 });
         expect(state.imageSets[0].id).toBe("loaded-img");
-        expect(result.current.currentProjectFilePath).toBe("C:/path/to/project.json");
+        expect(result.current.currentProjectFilePath).toBe(
+            "C:/path/to/project.json"
+        );
 
         expect(mockIPC.setWindowRect).toHaveBeenCalledWith({
             x: 0,
@@ -107,7 +109,7 @@ describe("useProjectOperations", () => {
         });
     });
 
-    it("handleOpenProject should clear undo and redo history", async () => {
+    it("openProject should clear undo and redo history", async () => {
         const mockProjectData = {
             version: "1.0.0",
             window: { width: 800, height: 600, x: 0, y: 0, color: "#111111" },
@@ -155,25 +157,29 @@ describe("useProjectOperations", () => {
             useAppStore.temporal.getState().undo();
         });
 
-        expect(useAppStore.temporal.getState().pastStates.length).toBeGreaterThan(0);
-        expect(useAppStore.temporal.getState().futureStates.length).toBeGreaterThan(0);
+        expect(
+            useAppStore.temporal.getState().pastStates.length
+        ).toBeGreaterThan(0);
+        expect(
+            useAppStore.temporal.getState().futureStates.length
+        ).toBeGreaterThan(0);
 
         const { result } = renderHook(() => useProjectOperations());
 
         await act(async () => {
-            await result.current.handleOpenProject();
+            await result.current.openProject();
         });
 
         expect(useAppStore.temporal.getState().pastStates.length).toBe(0);
         expect(useAppStore.temporal.getState().futureStates.length).toBe(0);
     });
 
-    it("handleSaveProjectAs should save and update path", async () => {
+    it("saveProjectAs should save and update path", async () => {
         mockIPC.saveProjectAs.mockResolvedValue("C:/new/path/project.json");
         const { result } = renderHook(() => useProjectOperations());
 
         await act(async () => {
-            await result.current.handleSaveProjectAs();
+            await result.current.saveProjectAs();
         });
 
         expect(mockIPC.saveProjectAs).toHaveBeenCalledWith(
@@ -182,10 +188,12 @@ describe("useProjectOperations", () => {
                 settings: expect.objectContaining({ unitFactor: 1.0 }),
             })
         );
-        expect(result.current.currentProjectFilePath).toBe("C:/new/path/project.json");
+        expect(result.current.currentProjectFilePath).toBe(
+            "C:/new/path/project.json"
+        );
     });
 
-    it("handleLoadProjectFromPath should load project data from specific path", async () => {
+    it("openProjectFromPath should load project data from specific path", async () => {
         const mockProjectData = {
             version: "1.0.0",
             window: { width: 800, height: 600, x: 0, y: 0, color: "#000000" },
@@ -202,20 +210,28 @@ describe("useProjectOperations", () => {
         const { result } = renderHook(() => useProjectOperations());
 
         await act(async () => {
-            await result.current.handleLoadProjectFromPath("C:/direct/path.json");
+            await result.current.openProjectFromPath("C:/direct/path.json");
         });
 
         expect(mockIPC.loadProjectFromPath).toHaveBeenCalledWith(
             "C:/direct/path.json"
         );
-        expect(result.current.currentProjectFilePath).toBe("C:/direct/path.json");
+        expect(result.current.currentProjectFilePath).toBe(
+            "C:/direct/path.json"
+        );
     });
 
-    it("handleSaveProject should overwrite existing file", async () => {
+    it("saveProject should overwrite existing file", async () => {
         mockIPC.loadProject.mockResolvedValue({
             project: {
                 version: "1.0.0",
-                window: { width: 800, height: 600, x: 0, y: 0, color: "#000000" },
+                window: {
+                    width: 800,
+                    height: 600,
+                    x: 0,
+                    y: 0,
+                    color: "#000000",
+                },
                 settings: { unitFactor: 1.0, unit: "um" as const },
                 canvas: { x: 0, y: 0, scale: 1.0 },
                 images: [],
@@ -227,11 +243,11 @@ describe("useProjectOperations", () => {
         const { result } = renderHook(() => useProjectOperations());
 
         await act(async () => {
-            await result.current.handleOpenProject();
+            await result.current.openProject();
         });
 
         await act(async () => {
-            await result.current.handleSaveProject();
+            await result.current.saveProject();
         });
 
         expect(mockIPC.saveProject).toHaveBeenCalledWith(
@@ -240,17 +256,17 @@ describe("useProjectOperations", () => {
         );
     });
 
-    it("handleSaveProject should call SaveAs if no path exists", async () => {
+    it("saveProject should call SaveAs if no path exists", async () => {
         mockIPC.saveProjectAs.mockResolvedValue("C:/saved/via/as.json");
         const { result } = renderHook(() => useProjectOperations());
 
         await act(async () => {
-            await result.current.handleSaveProject();
+            await result.current.saveProject();
         });
 
         expect(mockIPC.saveProjectAs).toHaveBeenCalled();
-        expect(result.current.currentProjectFilePath).toBe("C:/saved/via/as.json");
+        expect(result.current.currentProjectFilePath).toBe(
+            "C:/saved/via/as.json"
+        );
     });
 });
-
-

@@ -7,21 +7,21 @@ export const useWindowOperations = () => {
     const [isMaximized, setIsMaximized] = useState(false);
     const ipcService = useIpcService();
 
-    const handleToggleMaximized = useCallback(async () => {
+    const toggleMaximized = useCallback(async () => {
         ipcService.log.debug("Toggling fullscreen mode");
         const res = await ipcService.switchWindowSize();
         setIsMaximized(res);
     }, [ipcService]);
 
     // Windowを閉じる
-    const handleCloseWindow = useCallback(() => {
+    const closeWindow = useCallback(() => {
         ipcService.log.info("Close button clicked");
         void ipcService.closeWindow();
     }, [ipcService]);
 
     return {
         isMaximized,
-        handleToggleMaximized,
-        handleCloseWindow,
+        toggleMaximized,
+        closeWindow,
     };
 };

@@ -50,15 +50,10 @@ export function MenuBar() {
         closeAboutDialog,
     } = useMenuState();
 
-    const { isMaximized, handleToggleMaximized, handleCloseWindow } =
-        useWindowOperations();
+    const { isMaximized, toggleMaximized, closeWindow } = useWindowOperations();
 
-    const {
-        handleNewProject,
-        handleOpenProject,
-        handleSaveProject,
-        handleSaveProjectAs,
-    } = useProjectOperations();
+    const { newProject, openProject, saveProject, saveProjectAs } =
+        useProjectOperations();
 
     return (
         <TooltipProvider>
@@ -78,11 +73,11 @@ export function MenuBar() {
                             <AppMenu
                                 openSettingDialog={openSettingDialog}
                                 openAboutDialog={openAboutDialog}
-                                handleCloseWindow={handleCloseWindow}
-                                handleNewProject={handleNewProject}
-                                handleOpenProject={handleOpenProject}
-                                handleSaveProject={handleSaveProject}
-                                handleSaveProjectAs={handleSaveProjectAs}
+                                closeWindow={closeWindow}
+                                newProject={newProject}
+                                openProject={openProject}
+                                saveProject={saveProject}
+                                saveProjectAs={saveProjectAs}
                             />
                         </div>
                     </TooltipTrigger>
@@ -140,7 +135,7 @@ export function MenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleToggleMaximized}
+                            onClick={toggleMaximized}
                             className="app-region-no-drag"
                             data-testid="main.action.window-toggle"
                         >
@@ -166,7 +161,7 @@ export function MenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleCloseWindow}
+                            onClick={closeWindow}
                             className="app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
                             data-testid="main.action.window-close"
                         >

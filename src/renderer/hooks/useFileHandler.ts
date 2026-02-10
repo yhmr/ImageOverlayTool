@@ -7,7 +7,7 @@ import { useProjectOperations } from "./useProjectOperations";
 
 export const useFileHandler = () => {
     const { imageSets, setImageSets } = useAppStore();
-    const { handleLoadProjectFromPath } = useProjectOperations();
+    const { openProjectFromPath } = useProjectOperations();
     const ipcService = useIpcService();
 
     useEffect(() => {
@@ -16,7 +16,7 @@ export const useFileHandler = () => {
 
             // Project File
             if (ext === ".iot") {
-                handleLoadProjectFromPath(filePath);
+                openProjectFromPath(filePath);
                 return;
             }
 
@@ -45,5 +45,5 @@ export const useFileHandler = () => {
             }
         });
         return unsubscribe;
-    }, [imageSets, ipcService, setImageSets, handleLoadProjectFromPath]);
+    }, [imageSets, ipcService, setImageSets, openProjectFromPath]);
 };

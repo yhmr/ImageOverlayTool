@@ -20,29 +20,29 @@ import { useIpcService } from "../../providers/IpcServiceProvider";
 interface AppMenuProps {
     openSettingDialog: () => void;
     openAboutDialog: () => void;
-    handleCloseWindow: () => void;
-    handleNewProject: () => void;
-    handleOpenProject: () => void;
-    handleSaveProject: () => void;
-    handleSaveProjectAs: () => void;
+    closeWindow: () => void;
+    newProject: () => void;
+    openProject: () => void;
+    saveProject: () => void;
+    saveProjectAs: () => void;
 }
 
 export function AppMenu(props: AppMenuProps) {
     const {
         openSettingDialog,
         openAboutDialog,
-        handleCloseWindow,
-        handleNewProject,
-        handleOpenProject,
-        handleSaveProject,
-        handleSaveProjectAs,
+        closeWindow,
+        newProject,
+        openProject,
+        saveProject,
+        saveProjectAs,
     } = props;
 
     const { t } = useTranslation();
     const ipcService = useIpcService();
 
     // 画像設定ウィンドウを開く
-    const handleOpenImageSettings = async () => {
+    const openImageSettings = async () => {
         await ipcService.toggleImageSettingsWindow();
     };
 
@@ -64,32 +64,32 @@ export function AppMenu(props: AppMenuProps) {
                 data-testid="main.menu.content"
             >
                 <DropdownMenuItem
-                    onClick={handleNewProject}
+                    onClick={newProject}
                     data-testid="main.menu.item.new-project"
                 >
                     {t("render.menu.new_project")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                    onClick={handleOpenProject}
+                    onClick={openProject}
                     data-testid="main.menu.item.open-project"
                 >
                     {t("render.menu.open_project")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                    onClick={handleSaveProject}
+                    onClick={saveProject}
                     data-testid="main.menu.item.save-project"
                 >
                     {t("render.menu.save_project")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                    onClick={handleSaveProjectAs}
+                    onClick={saveProjectAs}
                     data-testid="main.menu.item.save-project-as"
                 >
                     {t("render.menu.save_project_as")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                    onClick={handleOpenImageSettings}
+                    onClick={openImageSettings}
                     data-testid="main.menu.item.open-image-settings"
                 >
                     <ImagePlus className="mr-2 h-4 w-4" />
@@ -112,7 +112,7 @@ export function AppMenu(props: AppMenuProps) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                    onClick={handleCloseWindow}
+                    onClick={closeWindow}
                     data-testid="main.menu.item.exit"
                 >
                     <LogOut className="mr-2 h-4 w-4" />

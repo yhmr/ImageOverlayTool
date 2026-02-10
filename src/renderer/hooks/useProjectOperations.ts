@@ -52,10 +52,10 @@ export const useProjectOperations = () => {
 
     return {
         currentProjectFilePath,
-        handleNewProject: projectCommands.newProject,
-        handleOpenProject: projectCommands.openProject,
-        handleLoadProjectFromPath: projectCommands.openProjectFromPath,
-        handleSaveProject: projectCommands.saveProject,
-        handleSaveProjectAs: projectCommands.saveProjectAs,
+        newProject: projectCommands.newProject,
+        openProject: projectCommands.openProject,
+        openProjectFromPath: projectCommands.openProjectFromPath,
+        saveProject: projectCommands.saveProject,
+        saveProjectAs: projectCommands.saveProjectAs,
     };
 };

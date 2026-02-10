@@ -33,7 +33,7 @@ describe("useWindowOperations", () => {
         expect(result.current.isMaximized).toBe(false);
 
         await act(async () => {
-            await result.current.handleToggleMaximized();
+            await result.current.toggleMaximized();
         });
 
         expect(mockIPC.switchWindowSize).toHaveBeenCalled();
@@ -44,10 +44,9 @@ describe("useWindowOperations", () => {
         const { result } = renderHook(() => useWindowOperations());
 
         act(() => {
-            result.current.handleCloseWindow();
+            result.current.closeWindow();
         });
 
         expect(mockIPC.closeWindow).toHaveBeenCalled();
     });
 });
-

@@ -74,7 +74,9 @@ describe("Renderer integration: image add -> settings change -> save", () => {
         });
 
         const capturedImage = useAppStore.getState().imageSets[0];
-        expect(capturedImage.path).toContain("local-file://C:/captures/sample.png");
+        expect(capturedImage.path).toContain(
+            "local-file://C:/captures/sample.png"
+        );
         expect(mockIPC.updateImageSets).toHaveBeenCalledTimes(1);
 
         act(() => {
@@ -89,7 +91,7 @@ describe("Renderer integration: image add -> settings change -> save", () => {
         });
 
         await act(async () => {
-            await projectOps.current.handleSaveProjectAs();
+            await projectOps.current.saveProjectAs();
         });
 
         expect(mockIPC.saveProjectAs).toHaveBeenCalledTimes(1);
@@ -98,7 +100,9 @@ describe("Renderer integration: image add -> settings change -> save", () => {
         expect(savedProject.images).toHaveLength(1);
         expect(savedProject.images[0].transparency).toBe(35);
         expect(savedProject.images[0].rotation).toBe(12);
-        expect(savedProject.settings.unitFactor).toBe(useAppStore.getState().unitFactor);
+        expect(savedProject.settings.unitFactor).toBe(
+            useAppStore.getState().unitFactor
+        );
         expect(savedProject.settings.unit).toBe(useAppStore.getState().unit);
 
         // capture + updateImageSet の2回で同期送信される

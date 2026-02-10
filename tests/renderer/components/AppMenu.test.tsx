@@ -32,11 +32,11 @@ describe("AppMenu test ids", () => {
             <AppMenu
                 openSettingDialog={vi.fn()}
                 openAboutDialog={vi.fn()}
-                handleCloseWindow={vi.fn()}
-                handleNewProject={vi.fn()}
-                handleOpenProject={vi.fn()}
-                handleSaveProject={vi.fn()}
-                handleSaveProjectAs={vi.fn()}
+                closeWindow={vi.fn()}
+                newProject={vi.fn()}
+                openProject={vi.fn()}
+                saveProject={vi.fn()}
+                saveProjectAs={vi.fn()}
             />
         );
 
@@ -50,11 +50,14 @@ describe("AppMenu test ids", () => {
         expect(screen.getByTestId("main.menu.item.new-project")).toBeTruthy();
         expect(screen.getByTestId("main.menu.item.open-project")).toBeTruthy();
         expect(screen.getByTestId("main.menu.item.save-project")).toBeTruthy();
-        expect(screen.getByTestId("main.menu.item.save-project-as")).toBeTruthy();
+        expect(
+            screen.getByTestId("main.menu.item.save-project-as")
+        ).toBeTruthy();
 
-        fireEvent.click(screen.getByTestId("main.menu.item.open-image-settings"));
+        fireEvent.click(
+            screen.getByTestId("main.menu.item.open-image-settings")
+        );
 
         expect(toggleImageSettingsWindow).toHaveBeenCalledTimes(1);
     });
 });
-
