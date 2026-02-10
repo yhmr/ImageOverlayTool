@@ -59,3 +59,8 @@ patches/mtime-cache.json
 spec/fixtures/logo.png
 
 coverage/
+
+# Hugo
+pages/public/
+pages/resources/
+pages/.hugo_build.lock
