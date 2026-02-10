@@ -3,13 +3,13 @@ import { getIPCService } from "../services/ipcService";
 
 export const useWindowOperations = () => {
     // スクリーンサイズ
-    const [full, setFull] = useState(false);
+    const [isMaximized, setIsMaximized] = useState(false);
 
-    const handleSwitchFullScreen = useCallback(async () => {
+    const handleToggleMaximized = useCallback(async () => {
         const ipcService = getIPCService();
         ipcService.log.debug("Toggling fullscreen mode");
         const res = await ipcService.switchWindowSize();
-        setFull(res);
+        setIsMaximized(res);
     }, []);
 
     // Windowを閉じる
@@ -20,8 +20,9 @@ export const useWindowOperations = () => {
     }, []);
 
     return {
-        full,
-        handleSwitchFullScreen,
+        isMaximized,
+        handleToggleMaximized,
         handleCloseWindow,
     };
 };
+

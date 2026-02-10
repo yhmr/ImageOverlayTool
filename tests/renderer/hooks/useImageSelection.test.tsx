@@ -40,7 +40,7 @@ describe("useImageSelection", () => {
                     currentAnchorPos: null,
                 },
             ]);
-            result.current.setSelectedImageId("test-id");
+            result.current.setSelectedImage("test-id");
         });
         expect(result.current.selectedImageId).toBe("test-id");
         expect(useAppStore.getState().selectedImageId).toBe("test-id");
@@ -61,7 +61,7 @@ describe("useImageSelection", () => {
                     currentAnchorPos: null,
                 },
             ]);
-            result.current.setSelectedImageId("test-id");
+            result.current.setSelectedImage("test-id");
         });
 
         expect(result.current.selectedImageId).toBe("test-id");
@@ -74,7 +74,7 @@ describe("useImageSelection", () => {
         expect(result.current.selectedImageId).toBeNull();
     });
 
-    it("should handle onSelect via getOnSelectHandler", () => {
+    it("should handle onSelect via createSelectHandler", () => {
         const { result, rerender } = renderHook(() => useImageSelection());
 
         act(() => {
@@ -100,7 +100,7 @@ describe("useImageSelection", () => {
 
         // 1. Normal mode -> select
         act(() => {
-            result.current.getOnSelectHandler("image-1")();
+            result.current.createSelectHandler("image-1")();
         });
         expect(useAppStore.getState().selectedImageId).toBe("image-1");
 
@@ -114,12 +114,13 @@ describe("useImageSelection", () => {
         rerender();
 
         act(() => {
-            result.current.getOnSelectHandler("image-2")();
+            result.current.createSelectHandler("image-2")();
         });
 
         // Mode switch already set selectedImageId to null. 
-        // getOnSelectHandler(image-2) should NOT change it back.
+        // createSelectHandler(image-2) should NOT change it back.
         expect(useAppStore.getState().selectedImageId).toBeNull();
     });
 });
+
 

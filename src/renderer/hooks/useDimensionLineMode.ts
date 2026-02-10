@@ -116,14 +116,14 @@ export const useDimensionLineMode = (
         isDimensionMode,
         setIsDimensionMode,
         selectedDimensionLineId,
-        setSelectedDimensionLineId: selectDimensionLine,
+        selectDimensionLine,
         dimensionLines,
         unitFactor,
         unit,
-        onSelectDimensionLine: selectDimensionLine,
-        onUpdateDimensionLineHandler: updateDimensionLine,
+        updateDimensionLine,
         onMouseDown: onStageMouseDown,
         onMouseMove: onStageMouseMove,
         onMouseUp,
     };
 };
+

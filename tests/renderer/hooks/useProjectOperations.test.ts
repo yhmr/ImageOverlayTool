@@ -59,7 +59,7 @@ describe("useProjectOperations", () => {
         const state = useAppStore.getState();
         expect(state.imageSets).toHaveLength(1);
         expect(state.imageSets[0].path).toBe("");
-        expect(result.current.currentFilePath).toBeNull();
+        expect(result.current.currentProjectFilePath).toBeNull();
     });
 
     it("handleOpenProject should load project data", async () => {
@@ -97,7 +97,7 @@ describe("useProjectOperations", () => {
         expect(state.windowColor).toBe("#111111");
         expect(state.canvas).toEqual({ x: 10, y: 10, scale: 1.5 });
         expect(state.imageSets[0].id).toBe("loaded-img");
-        expect(result.current.currentFilePath).toBe("C:/path/to/project.json");
+        expect(result.current.currentProjectFilePath).toBe("C:/path/to/project.json");
 
         expect(mockIPC.setWindowRect).toHaveBeenCalledWith({
             x: 0,
@@ -182,7 +182,7 @@ describe("useProjectOperations", () => {
                 settings: expect.objectContaining({ unitFactor: 1.0 }),
             })
         );
-        expect(result.current.currentFilePath).toBe("C:/new/path/project.json");
+        expect(result.current.currentProjectFilePath).toBe("C:/new/path/project.json");
     });
 
     it("handleLoadProjectFromPath should load project data from specific path", async () => {
@@ -208,7 +208,7 @@ describe("useProjectOperations", () => {
         expect(mockIPC.loadProjectFromPath).toHaveBeenCalledWith(
             "C:/direct/path.json"
         );
-        expect(result.current.currentFilePath).toBe("C:/direct/path.json");
+        expect(result.current.currentProjectFilePath).toBe("C:/direct/path.json");
     });
 
     it("handleSaveProject should overwrite existing file", async () => {
@@ -249,7 +249,8 @@ describe("useProjectOperations", () => {
         });
 
         expect(mockIPC.saveProjectAs).toHaveBeenCalled();
-        expect(result.current.currentFilePath).toBe("C:/saved/via/as.json");
+        expect(result.current.currentProjectFilePath).toBe("C:/saved/via/as.json");
     });
 });
+
 

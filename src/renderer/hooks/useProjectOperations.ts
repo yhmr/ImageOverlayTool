@@ -103,7 +103,7 @@ export const useProjectOperations = () => {
     ]);
 
     return {
-        currentFilePath: currentProjectFilePath,
+        currentProjectFilePath,
         handleNewProject,
         handleOpenProject,
         handleLoadProjectFromPath,
@@ -111,3 +111,4 @@ export const useProjectOperations = () => {
         handleSaveProjectAs,
     };
 };
+

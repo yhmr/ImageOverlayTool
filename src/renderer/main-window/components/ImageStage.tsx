@@ -54,18 +54,17 @@ export const ImageStage = memo(function ImageStage() {
         isDimensionMode,
         setIsDimensionMode,
         selectedDimensionLineId,
-        setSelectedDimensionLineId,
+        selectDimensionLine,
         dimensionLines,
         unitFactor,
         unit,
-        onSelectDimensionLine,
-        onUpdateDimensionLineHandler,
+        updateDimensionLine,
         onMouseDown: onMouseDownDimension,
         onMouseMove: onMouseMoveDimension,
         onMouseUp: onMouseUpDimension,
     } = useDimensionLineMode(stageRef);
 
-    const { selectedImageId, setSelectedImageId, getOnSelectHandler } =
+    const { selectedImageId, setSelectedImage, createSelectHandler } =
         useImageSelection();
 
     const { onInitImage, onUpdateAnchor } = useImageInitialization({
@@ -78,7 +77,7 @@ export const ImageStage = memo(function ImageStage() {
         useStagePointerHandlers({
             stageRef,
             isDimensionMode,
-            setSelectedImageId,
+            setSelectedImage,
             onMouseDownDimension,
             onMouseMoveDimension,
             onMouseUpDimension,
@@ -117,7 +116,7 @@ export const ImageStage = memo(function ImageStage() {
                                 key={index + imageSet.id}
                                 imageSet={imageSet}
                                 onInitImage={onInitImage(imageSet, index)}
-                                onSelect={getOnSelectHandler(imageSet.id)}
+                                onSelect={createSelectHandler(imageSet.id)}
                             />
                         );
                     })}
@@ -144,8 +143,8 @@ export const ImageStage = memo(function ImageStage() {
                         unitFactor={unitFactor}
                         unit={unit}
                         isSelected={(id) => id === selectedDimensionLineId}
-                        onSelect={onSelectDimensionLine}
-                        onUpdate={onUpdateDimensionLineHandler}
+                        onSelect={selectDimensionLine}
+                        onUpdate={updateDimensionLine}
                         isDimensionMode={isDimensionMode}
                     />
                 </Layer>
@@ -155,9 +154,9 @@ export const ImageStage = memo(function ImageStage() {
                 onToggleDimensionMode={() => {
                     setIsDimensionMode(!isDimensionMode);
                     if (!isDimensionMode) {
-                        setSelectedImageId(null);
+                        setSelectedImage(null);
                     } else {
-                        setSelectedDimensionLineId(null);
+                        selectDimensionLine(null);
                     }
                 }}
                 onOpenExportDialog={handleExportDlgOpen}
@@ -170,3 +169,4 @@ export const ImageStage = memo(function ImageStage() {
         </>
     );
 });
+

@@ -27,17 +27,17 @@ describe("useWindowOperations", () => {
         mockIPC.switchWindowSize.mockResolvedValue(true);
     });
 
-    it("should switch full screen", async () => {
+    it("should toggle maximized state", async () => {
         const { result } = renderHook(() => useWindowOperations());
 
-        expect(result.current.full).toBe(false);
+        expect(result.current.isMaximized).toBe(false);
 
         await act(async () => {
-            await result.current.handleSwitchFullScreen();
+            await result.current.handleToggleMaximized();
         });
 
         expect(mockIPC.switchWindowSize).toHaveBeenCalled();
-        expect(result.current.full).toBe(true);
+        expect(result.current.isMaximized).toBe(true);
     });
 
     it("should close window", () => {
@@ -50,3 +50,4 @@ describe("useWindowOperations", () => {
         expect(mockIPC.closeWindow).toHaveBeenCalled();
     });
 });
+

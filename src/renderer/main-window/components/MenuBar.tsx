@@ -50,7 +50,7 @@ export function MenuBar() {
         handleAboutDlgClose,
     } = useMenuState();
 
-    const { full, handleSwitchFullScreen, handleCloseWindow } =
+    const { isMaximized, handleToggleMaximized, handleCloseWindow } =
         useWindowOperations();
 
     const {
@@ -140,11 +140,11 @@ export function MenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleSwitchFullScreen}
+                            onClick={handleToggleMaximized}
                             className="app-region-no-drag"
                             data-testid="main.action.window-toggle"
                         >
-                            {full ? (
+                            {isMaximized ? (
                                 <Minimize className="h-6 w-6" />
                             ) : (
                                 <Maximize className="h-6 w-6" />
@@ -153,7 +153,7 @@ export function MenuBar() {
                     </TooltipTrigger>
                     <TooltipContent>
                         <p>
-                            {full
+                            {isMaximized
                                 ? t("render.menu_button.tooltip.unmaximize")
                                 : t("render.menu_button.tooltip.maximize")}
                         </p>
@@ -190,3 +190,4 @@ export function MenuBar() {
         </TooltipProvider>
     );
 }
+
