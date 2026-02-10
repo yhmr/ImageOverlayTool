@@ -12,6 +12,7 @@ import {
 
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../../shared/types/ImageSet";
+import { clearTemporalHistory, runAsSystemMutation } from "./temporalHistory";
 
 type StoreActions = {
     currentProjectFilePath: string | null;
@@ -54,24 +55,18 @@ export const useAppStore = create<AppState>()(
     temporal(
         (...args) => {
             const [set, get] = args;
+            const getTemporal = () => temporalStoreRef.current;
+
             const clearHistory = () => {
-                temporalStoreRef.current?.getState().clear();
+                clearTemporalHistory(getTemporal);
             };
 
             const withHistoryPaused = (fn: () => void) => {
-                const temporalState = temporalStoreRef.current?.getState();
-                temporalState?.pause();
-                try {
-                    fn();
-                } finally {
-                    temporalState?.resume();
-                }
+                runAsSystemMutation(getTemporal, fn);
             };
 
             return {
-                ...createProjectDataSlice(() => temporalStoreRef.current)(
-                    ...args
-                ),
+                ...createProjectDataSlice(getTemporal)(...args),
                 ...createViewSlice(...args),
                 ...createInteractionSlice(...args),
 

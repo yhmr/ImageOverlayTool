@@ -153,6 +153,69 @@ describe("useAppStore", () => {
         });
     });
 
+    describe("Temporal History", () => {
+        const createHistorySample = (id: string, path: string): ImageSet => ({
+            id,
+            path,
+            transparency: 0,
+            rotation: 0,
+            initAnchorPos: null,
+            currentAnchorPos: null,
+            locked: false,
+        });
+
+        it("should not push undo history for sync actions", () => {
+            useAppStore.temporal.getState().clear();
+
+            const baseHistoryLength =
+                useAppStore.temporal.getState().pastStates.length;
+
+            useAppStore
+                .getState()
+                .syncImageSets([createHistorySample("remote-1", "remote.png")]);
+            useAppStore.getState().syncUnitFactor(2.5);
+            useAppStore.getState().syncUnit("nm");
+
+            expect(useAppStore.temporal.getState().pastStates.length).toBe(
+                baseHistoryLength
+            );
+        });
+
+        it("should clear undo and redo history after loadProject", () => {
+            useAppStore
+                .getState()
+                .setImageSets([createHistorySample("local-1", "local-a.png")]);
+            useAppStore
+                .getState()
+                .setImageSets([createHistorySample("local-2", "local-b.png")]);
+            useAppStore.temporal.getState().undo();
+
+            expect(useAppStore.temporal.getState().pastStates.length).toBeGreaterThan(
+                0
+            );
+            expect(
+                useAppStore.temporal.getState().futureStates.length
+            ).toBeGreaterThan(0);
+
+            useAppStore.getState().loadProject({
+                version: "1.0.0",
+                window: {
+                    width: 800,
+                    height: 600,
+                    x: 0,
+                    y: 0,
+                    color: "#123456",
+                },
+                settings: { unitFactor: 1.2, unit: "um" },
+                canvas: { x: 10, y: 20, scale: 1.5 },
+                images: [createHistorySample("loaded-1", "loaded.png")],
+                dimensionLines: [],
+            });
+
+            expect(useAppStore.temporal.getState().pastStates.length).toBe(0);
+            expect(useAppStore.temporal.getState().futureStates.length).toBe(0);
+        });
+    });
     describe("loadProjectData", () => {
         it("should load partial project data into store", () => {
             const sampleImageSet: ImageSet = {
@@ -196,4 +259,6 @@ describe("useAppStore", () => {
         });
     });
 });
+
+
 

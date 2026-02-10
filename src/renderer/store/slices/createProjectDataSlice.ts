@@ -1,9 +1,13 @@
-import { StateCreator, StoreApi } from "zustand";
-import { ImageSet } from "../../../shared/types/ImageSet";
+import { StateCreator } from "zustand";
+
 import { DimensionLine } from "../../../shared/types/DimensionLine";
+import { ImageSet } from "../../../shared/types/ImageSet";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
-import { TemporalState } from "zundo";
 import { createEmptyImageSet } from "../../factories/imageSetFactory";
+import {
+    runAsSystemMutation,
+    type TemporalStoreAccessor,
+} from "../temporalHistory";
 
 export interface ProjectDataSlice {
     // Data State
@@ -45,7 +49,7 @@ export interface ProjectDataSlice {
  * @param getTemporal zundoのtemporal stateを取得する関数
  */
 export const createProjectDataSlice = (
-    getTemporal: () => StoreApi<TemporalState<unknown>> | undefined
+    getTemporal: TemporalStoreAccessor
 ): StateCreator<ProjectDataSlice> => {
     return (set) => ({
         imageSets: [createEmptyImageSet()],
@@ -83,10 +87,9 @@ export const createProjectDataSlice = (
         },
 
         syncImageSets: (imageSets) => {
-            const temporal = getTemporal();
-            if (temporal) temporal.getState().pause();
-            set({ imageSets, projectDataChangeOrigin: "remote" });
-            if (temporal) temporal.getState().resume();
+            runAsSystemMutation(getTemporal, () => {
+                set({ imageSets, projectDataChangeOrigin: "remote" });
+            });
         },
 
         // --- Dimension Lines ---
@@ -127,10 +130,9 @@ export const createProjectDataSlice = (
         },
 
         syncUnitFactor: (factor) => {
-            const temporal = getTemporal();
-            if (temporal) temporal.getState().pause();
-            set({ unitFactor: factor, projectDataChangeOrigin: "remote" });
-            if (temporal) temporal.getState().resume();
+            runAsSystemMutation(getTemporal, () => {
+                set({ unitFactor: factor, projectDataChangeOrigin: "remote" });
+            });
         },
 
         setUnit: (unit) => {
@@ -138,10 +140,9 @@ export const createProjectDataSlice = (
         },
 
         syncUnit: (unit) => {
-            const temporal = getTemporal();
-            if (temporal) temporal.getState().pause();
-            set({ unit, projectDataChangeOrigin: "remote" });
-            if (temporal) temporal.getState().resume();
+            runAsSystemMutation(getTemporal, () => {
+                set({ unit, projectDataChangeOrigin: "remote" });
+            });
         },
 
         setWindowColor: (color) => {
