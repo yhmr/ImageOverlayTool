@@ -40,7 +40,7 @@ describe("useImageSelection", () => {
                     currentAnchorPos: null,
                 },
             ]);
-            result.current.setSelectedImage("test-id");
+            result.current.setSelectedImageId("test-id");
         });
         expect(result.current.selectedImageId).toBe("test-id");
         expect(useAppStore.getState().selectedImageId).toBe("test-id");
@@ -61,7 +61,7 @@ describe("useImageSelection", () => {
                     currentAnchorPos: null,
                 },
             ]);
-            result.current.setSelectedImage("test-id");
+            result.current.setSelectedImageId("test-id");
         });
 
         expect(result.current.selectedImageId).toBe("test-id");
@@ -122,5 +122,4 @@ describe("useImageSelection", () => {
         expect(useAppStore.getState().selectedImageId).toBeNull();
     });
 });
-
 

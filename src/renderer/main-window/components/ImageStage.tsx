@@ -33,7 +33,7 @@ export const ImageStage = memo(function ImageStage() {
 
     const stageRef = useRef<Konva.Stage>(null);
 
-    const { openExportDlg, handleExportDlgOpen, handleExportDlgClose } =
+    const { isExportDialogOpen, openExportDialog, closeExportDialog } =
         useMenuState();
 
     const { handleExport } = useStageExport({ stageRef, setUIHidden });
@@ -52,9 +52,9 @@ export const ImageStage = memo(function ImageStage() {
 
     const {
         isDimensionMode,
-        setIsDimensionMode,
+        setDimensionModeEnabled,
         selectedDimensionLineId,
-        selectDimensionLine,
+        setSelectedDimensionLineId,
         dimensionLines,
         unitFactor,
         unit,
@@ -64,7 +64,7 @@ export const ImageStage = memo(function ImageStage() {
         onMouseUp: onMouseUpDimension,
     } = useDimensionLineMode(stageRef);
 
-    const { selectedImageId, setSelectedImage, createSelectHandler } =
+    const { selectedImageId, setSelectedImageId, createSelectHandler } =
         useImageSelection();
 
     const { onInitImage, onUpdateAnchor } = useImageInitialization({
@@ -77,7 +77,7 @@ export const ImageStage = memo(function ImageStage() {
         useStagePointerHandlers({
             stageRef,
             isDimensionMode,
-            setSelectedImage,
+            setSelectedImageId,
             onMouseDownDimension,
             onMouseMoveDimension,
             onMouseUpDimension,
@@ -143,7 +143,7 @@ export const ImageStage = memo(function ImageStage() {
                         unitFactor={unitFactor}
                         unit={unit}
                         isSelected={(id) => id === selectedDimensionLineId}
-                        onSelect={selectDimensionLine}
+                        onSelect={setSelectedDimensionLineId}
                         onUpdate={updateDimensionLine}
                         isDimensionMode={isDimensionMode}
                     />
@@ -152,21 +152,20 @@ export const ImageStage = memo(function ImageStage() {
             <ControlButton
                 isDimensionMode={isDimensionMode}
                 onToggleDimensionMode={() => {
-                    setIsDimensionMode(!isDimensionMode);
+                    setDimensionModeEnabled(!isDimensionMode);
                     if (!isDimensionMode) {
-                        setSelectedImage(null);
+                        setSelectedImageId(null);
                     } else {
-                        selectDimensionLine(null);
+                        setSelectedDimensionLineId(null);
                     }
                 }}
-                onOpenExportDialog={handleExportDlgOpen}
+                onOpenExportDialog={openExportDialog}
             />
             <ExportDialog
-                open={openExportDlg}
-                onClose={handleExportDlgClose}
+                open={isExportDialogOpen}
+                onClose={closeExportDialog}
                 onExport={handleExport}
             />
         </>
     );
 });
-

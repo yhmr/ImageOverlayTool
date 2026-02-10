@@ -42,12 +42,12 @@ export function MenuBar() {
     );
 
     const {
-        openSettingDlg,
-        handleSettingDlgOpen,
-        handleSettingDlgClose,
-        openAboutDlg,
-        handleAboutDlgOpen,
-        handleAboutDlgClose,
+        isSettingDialogOpen,
+        openSettingDialog,
+        closeSettingDialog,
+        isAboutDialogOpen,
+        openAboutDialog,
+        closeAboutDialog,
     } = useMenuState();
 
     const { isMaximized, handleToggleMaximized, handleCloseWindow } =
@@ -76,8 +76,8 @@ export function MenuBar() {
                     <TooltipTrigger asChild>
                         <div className="mr-2">
                             <AppMenu
-                                handleSettingDlgOpen={handleSettingDlgOpen}
-                                handleAboutDlgOpen={handleAboutDlgOpen}
+                                openSettingDialog={openSettingDialog}
+                                openAboutDialog={openAboutDialog}
                                 handleCloseWindow={handleCloseWindow}
                                 handleNewProject={handleNewProject}
                                 handleOpenProject={handleOpenProject}
@@ -179,15 +179,14 @@ export function MenuBar() {
                 </Tooltip>
 
                 <SettingDialog
-                    open={openSettingDlg}
-                    handleClose={handleSettingDlgClose}
+                    open={isSettingDialogOpen}
+                    handleClose={closeSettingDialog}
                 />
                 <AboutDialog
-                    open={openAboutDlg}
-                    handleClose={handleAboutDlgClose}
+                    open={isAboutDialogOpen}
+                    handleClose={closeAboutDialog}
                 />
             </div>
         </TooltipProvider>
     );
 }
-

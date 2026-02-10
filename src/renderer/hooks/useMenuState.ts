@@ -2,41 +2,41 @@ import { useState, useCallback } from "react";
 
 export const useMenuState = () => {
     // SettingDialog関連
-    const [openSettingDlg, setOpenSettingDlg] = useState(false);
-    const handleSettingDlgOpen = useCallback(() => {
-        setOpenSettingDlg(true);
+    const [isSettingDialogOpen, setIsSettingDialogOpen] = useState(false);
+    const openSettingDialog = useCallback(() => {
+        setIsSettingDialogOpen(true);
     }, []);
-    const handleSettingDlgClose = useCallback(() => {
-        setOpenSettingDlg(false);
+    const closeSettingDialog = useCallback(() => {
+        setIsSettingDialogOpen(false);
     }, []);
 
     // AboutDialog関連
-    const [openAboutDlg, setOpenAboutDlg] = useState(false);
-    const handleAboutDlgOpen = useCallback(() => {
-        setOpenAboutDlg(true);
+    const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
+    const openAboutDialog = useCallback(() => {
+        setIsAboutDialogOpen(true);
     }, []);
-    const handleAboutDlgClose = useCallback(() => {
-        setOpenAboutDlg(false);
+    const closeAboutDialog = useCallback(() => {
+        setIsAboutDialogOpen(false);
     }, []);
 
     // ExportDialog関連
-    const [openExportDlg, setOpenExportDlg] = useState(false);
-    const handleExportDlgOpen = useCallback(() => {
-        setOpenExportDlg(true);
+    const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+    const openExportDialog = useCallback(() => {
+        setIsExportDialogOpen(true);
     }, []);
-    const handleExportDlgClose = useCallback(() => {
-        setOpenExportDlg(false);
+    const closeExportDialog = useCallback(() => {
+        setIsExportDialogOpen(false);
     }, []);
 
     return {
-        openSettingDlg,
-        handleSettingDlgOpen,
-        handleSettingDlgClose,
-        openAboutDlg,
-        handleAboutDlgOpen,
-        handleAboutDlgClose,
-        openExportDlg,
-        handleExportDlgOpen,
-        handleExportDlgClose,
+        isSettingDialogOpen,
+        openSettingDialog,
+        closeSettingDialog,
+        isAboutDialogOpen,
+        openAboutDialog,
+        closeAboutDialog,
+        isExportDialogOpen,
+        openExportDialog,
+        closeExportDialog,
     };
 };

@@ -30,8 +30,8 @@ describe("AppMenu test ids", () => {
     it("renders stable menu test ids and triggers image-settings action", async () => {
         render(
             <AppMenu
-                handleSettingDlgOpen={vi.fn()}
-                handleAboutDlgOpen={vi.fn()}
+                openSettingDialog={vi.fn()}
+                openAboutDialog={vi.fn()}
                 handleCloseWindow={vi.fn()}
                 handleNewProject={vi.fn()}
                 handleOpenProject={vi.fn()}
@@ -57,3 +57,4 @@ describe("AppMenu test ids", () => {
         expect(toggleImageSettingsWindow).toHaveBeenCalledTimes(1);
     });
 });
+

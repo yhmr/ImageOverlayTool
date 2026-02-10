@@ -6,7 +6,7 @@ import { setKonvaDragButtons } from "../utils/setKonvaDragButtons";
 interface UseStagePointerHandlersParams {
     stageRef: RefObject<Konva.Stage | null>;
     isDimensionMode: boolean;
-    setSelectedImage: (id: string | null) => void;
+    setSelectedImageId: (id: string | null) => void;
     onMouseDownDimension: (
         e: KonvaEventObject<MouseEvent | TouchEvent>
     ) => void;
@@ -18,7 +18,7 @@ interface UseStagePointerHandlersParams {
 export const useStagePointerHandlers = ({
     stageRef,
     isDimensionMode,
-    setSelectedImage,
+    setSelectedImageId,
     onMouseDownDimension,
     onMouseMoveDimension,
     onMouseUpDimension,
@@ -51,7 +51,7 @@ export const useStagePointerHandlers = ({
                     e.evt.button === 0 &&
                     e.target.getType() === "Stage"
                 ) {
-                    setSelectedImage(null);
+                    setSelectedImageId(null);
                 }
             } else if (
                 "button" in e.evt &&
@@ -65,7 +65,7 @@ export const useStagePointerHandlers = ({
 
             onMouseDownDimension(e);
         },
-        [isDimensionMode, onMouseDownDimension, setSelectedImage, stageRef]
+        [isDimensionMode, onMouseDownDimension, setSelectedImageId, stageRef]
     );
 
     const onMouseMove = useCallback(() => {
@@ -78,4 +78,3 @@ export const useStagePointerHandlers = ({
 
     return { onDragEnd, onMouseDown, onMouseMove, onMouseUp };
 };
-

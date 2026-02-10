@@ -52,13 +52,13 @@ describe("useDimensionLineMode", () => {
         const { result } = renderHook(() => useDimensionLineMode(stageRef));
 
         act(() => {
-            result.current.setIsDimensionMode(true);
+            result.current.setDimensionModeEnabled(true);
         });
         expect(result.current.isDimensionMode).toBe(true);
         expect(useAppStore.getState().interactionMode).toBe("dimension");
 
         act(() => {
-            result.current.setIsDimensionMode(false);
+            result.current.setDimensionModeEnabled(false);
         });
         expect(result.current.isDimensionMode).toBe(false);
         expect(useAppStore.getState().interactionMode).toBe("default");
@@ -68,7 +68,7 @@ describe("useDimensionLineMode", () => {
         const { result } = renderHook(() => useDimensionLineMode(stageRef));
 
         act(() => {
-            result.current.setIsDimensionMode(true);
+            result.current.setDimensionModeEnabled(true);
         });
 
         const mockEvent = {
@@ -90,7 +90,7 @@ describe("useDimensionLineMode", () => {
         const mockPoint = mockStage.getAbsoluteTransform().copy().point as any;
 
         act(() => {
-            result.current.setIsDimensionMode(true);
+            result.current.setDimensionModeEnabled(true);
         });
 
         // 1. Long line (should persist)
@@ -130,3 +130,4 @@ describe("useDimensionLineMode", () => {
         expect(useAppStore.getState().dimensionLines).toHaveLength(1);
     });
 });
+

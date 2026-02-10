@@ -18,8 +18,8 @@ import {
 import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface AppMenuProps {
-    handleSettingDlgOpen: () => void;
-    handleAboutDlgOpen: () => void;
+    openSettingDialog: () => void;
+    openAboutDialog: () => void;
     handleCloseWindow: () => void;
     handleNewProject: () => void;
     handleOpenProject: () => void;
@@ -29,8 +29,8 @@ interface AppMenuProps {
 
 export function AppMenu(props: AppMenuProps) {
     const {
-        handleSettingDlgOpen,
-        handleAboutDlgOpen,
+        openSettingDialog,
+        openAboutDialog,
         handleCloseWindow,
         handleNewProject,
         handleOpenProject,
@@ -97,14 +97,14 @@ export function AppMenu(props: AppMenuProps) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                    onClick={handleSettingDlgOpen}
+                    onClick={openSettingDialog}
                     data-testid="main.menu.item.settings"
                 >
                     <Settings className="mr-2 h-4 w-4" />
                     {t("render.menu.settings")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                    onClick={handleAboutDlgOpen}
+                    onClick={openAboutDialog}
                     data-testid="main.menu.item.about"
                 >
                     <Info className="mr-2 h-4 w-4" />

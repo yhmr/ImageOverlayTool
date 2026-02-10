@@ -85,7 +85,7 @@ export const useAppStore = create<AppState>()(
                             get().resetView();
                         }
                         // 選択状態などをリセット
-                        get().deselectAll();
+                        get().clearSelection();
                         get().setInteractionMode("default");
                     });
 
@@ -97,7 +97,7 @@ export const useAppStore = create<AppState>()(
                     withHistoryPaused(() => {
                         get().resetProjectData();
                         get().resetView();
-                        get().deselectAll();
+                        get().clearSelection();
                         get().setInteractionMode("default");
                         get().setCurrentProjectFilePath(null);
                     });

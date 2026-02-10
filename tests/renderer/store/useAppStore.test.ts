@@ -94,20 +94,20 @@ describe("useAppStore", () => {
         });
 
         it("should select image", () => {
-            useAppStore.getState().selectImage("img1");
+            useAppStore.getState().setSelectedImageId("img1");
             expect(useAppStore.getState().selectedImageId).toBe("img1");
             expect(useAppStore.getState().selectedDimensionLineId).toBeNull();
         });
 
         it("should select dimension line", () => {
-            useAppStore.getState().selectDimensionLine("line1");
+            useAppStore.getState().setSelectedDimensionLineId("line1");
             expect(useAppStore.getState().selectedDimensionLineId).toBe("line1");
             expect(useAppStore.getState().selectedImageId).toBeNull();
         });
 
         it("should deselect all", () => {
-            useAppStore.getState().selectImage("img1");
-            useAppStore.getState().deselectAll();
+            useAppStore.getState().setSelectedImageId("img1");
+            useAppStore.getState().clearSelection();
             expect(useAppStore.getState().selectedImageId).toBeNull();
             expect(useAppStore.getState().selectedDimensionLineId).toBeNull();
         });
@@ -259,6 +259,4 @@ describe("useAppStore", () => {
         });
     });
 });
-
-
 

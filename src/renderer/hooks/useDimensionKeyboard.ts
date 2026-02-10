@@ -9,7 +9,7 @@ export const useDimensionKeyboard = () => {
     const {
         selectedDimensionLineId,
         removeDimensionLine,
-        selectDimensionLine,
+        setSelectedDimensionLineId,
     } = useAppStore();
 
     useEffect(() => {
@@ -19,10 +19,14 @@ export const useDimensionKeyboard = () => {
                 selectedDimensionLineId
             ) {
                 removeDimensionLine(selectedDimensionLineId);
-                selectDimensionLine(null);
+                setSelectedDimensionLineId(null);
             }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [selectedDimensionLineId, removeDimensionLine, selectDimensionLine]);
+    }, [
+        selectedDimensionLineId,
+        removeDimensionLine,
+        setSelectedDimensionLineId,
+    ]);
 };
