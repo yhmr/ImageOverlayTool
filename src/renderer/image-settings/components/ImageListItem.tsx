@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/renderer/components/ui/card";
 import { ImageItemHeader } from "./ImageItemHeader";
 import { TransparencyControl } from "./TransparencyControl";
 import { RotationControl } from "./RotationControl";
+import { toLocalFileUrl } from "../../factories/imageSetFactory";
 import { getIPCService } from "../../services/ipcService";
 
 interface ImageListItemProps {
@@ -35,7 +36,7 @@ export function ImageListItem(props: ImageListItemProps) {
         if (res) {
             ipcService.log.info(`Image loaded for slot ${index}: ${res}`);
             const newImageSet = { ...imageSets[index] };
-            newImageSet.path = `local-file://${res.replace(/\\/g, "/")}`;
+            newImageSet.path = toLocalFileUrl(res);
             // ファイル読み込み直しの場合は、すべてのパラメータを初期化
             newImageSet.transparency = 0.0;
             newImageSet.rotation = 0;

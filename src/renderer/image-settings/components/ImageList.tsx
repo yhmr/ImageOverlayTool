@@ -1,4 +1,3 @@
-import UUID from "uuidjs";
 import { useTranslation } from "react-i18next";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import type {
@@ -10,6 +9,7 @@ import { arrayMoveImmutable } from "array-move";
 import { Plus } from "lucide-react";
 
 import { useAppStore } from "../../store/useAppStore";
+import { createEmptyImageSet } from "../../factories/imageSetFactory";
 import { getIPCService } from "../../services/ipcService";
 
 import { ImageListItem } from "./ImageListItem";
@@ -51,14 +51,7 @@ export function ImageList() {
     const handleAddImageSet = () => {
         getIPCService().log.info("Adding new empty image slot");
         const newImageSets = [...imageSets];
-        newImageSets.push({
-            id: UUID.generate(),
-            path: "",
-            transparency: 0,
-            rotation: 0,
-            initAnchorPos: null,
-            currentAnchorPos: null,
-        });
+        newImageSets.push(createEmptyImageSet());
         setImageSets(newImageSets);
     };
 

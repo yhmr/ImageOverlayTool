@@ -2,18 +2,8 @@ import { StateCreator, StoreApi } from "zustand";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
-import UUID from "uuidjs";
 import { TemporalState } from "zundo";
-
-const createDefaultImageSet = (): ImageSet => ({
-    id: UUID.generate(),
-    path: "",
-    transparency: 0,
-    rotation: 0,
-    initAnchorPos: null,
-    currentAnchorPos: null,
-    locked: false,
-});
+import { createEmptyImageSet } from "../../factories/imageSetFactory";
 
 export interface ProjectDataSlice {
     // Data State
@@ -58,7 +48,7 @@ export const createProjectDataSlice = (
     getTemporal: () => StoreApi<TemporalState<unknown>> | undefined
 ): StateCreator<ProjectDataSlice> => {
     return (set) => ({
-        imageSets: [createDefaultImageSet()],
+        imageSets: [createEmptyImageSet()],
         dimensionLines: [],
         unitFactor: 1.0,
         unit: "um",
@@ -177,7 +167,7 @@ export const createProjectDataSlice = (
         },
 
         resetProjectData: () => {
-            const defaultImageSets = [createDefaultImageSet()];
+            const defaultImageSets = [createEmptyImageSet()];
             // windowColorは意図的に保持する（ユーザーの背景色設定を維持）
             set({
                 imageSets: defaultImageSets,

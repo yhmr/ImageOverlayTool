@@ -1,9 +1,9 @@
 import { useEffect } from "react";
+
+import { getIPCService } from "../services/ipcService";
+import { createImageSetFromLocalFile } from "../factories/imageSetFactory";
 import { useAppStore } from "../store/useAppStore";
 import { useProjectOperations } from "./useProjectOperations";
-import UUID from "uuidjs";
-import { ImageSet } from "../../shared/types/ImageSet";
-import { getIPCService } from "../services/ipcService";
 
 export const useFileHandler = () => {
     const { imageSets, setImageSets } = useAppStore();
@@ -30,23 +30,16 @@ export const useFileHandler = () => {
                 ".svg",
             ];
             if (imageExts.includes(ext.toLowerCase())) {
-                const newSet: ImageSet = {
-                    id: UUID.generate(),
-                    path: `local-file://${filePath.replace(/\\/g, "/")}`,
-                    transparency: 0,
-                    rotation: 0,
-                    initAnchorPos: null,
-                    currentAnchorPos: null,
-                };
+                const newImageSet = createImageSetFromLocalFile(filePath);
 
                 // If the first item is empty (default state), replace it.
                 // Otherwise append.
                 // Note: We access imageSets from closure, so this effect runs when imageSets changes.
                 const newImageSets = [...imageSets];
                 if (newImageSets.length === 1 && !newImageSets[0].path) {
-                    newImageSets[0] = newSet;
+                    newImageSets[0] = newImageSet;
                 } else {
-                    newImageSets.push(newSet);
+                    newImageSets.push(newImageSet);
                 }
                 setImageSets(newImageSets);
             }

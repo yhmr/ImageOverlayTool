@@ -1,8 +1,7 @@
-import { useAppStore } from "../store/useAppStore";
-import UUID from "uuidjs";
-import { ImageSet } from "@/shared/types/ImageSet";
-import { getIPCService } from "../services/ipcService";
 import { TITLE_BAR_HEIGHT } from "../constants";
+import { createImageSetFromLocalFile } from "../factories/imageSetFactory";
+import { getIPCService } from "../services/ipcService";
+import { useAppStore } from "../store/useAppStore";
 
 export function useCapture() {
     const { imageSets, setImageSets, canvas } = useAppStore();
@@ -36,21 +35,17 @@ export function useCapture() {
 
                 const anchorPos = { lt, rt, lb, rb };
 
-                const newSet: ImageSet = {
-                    id: UUID.generate(),
-                    path: `local-file://${filePath.replace(/\\/g, "/")}`,
-                    transparency: 0,
-                    rotation: 0,
+                const newImageSet = createImageSetFromLocalFile(filePath, {
                     initAnchorPos: anchorPos,
                     currentAnchorPos: anchorPos,
-                };
+                });
 
                 // 一番後ろ（配列の先頭）に追加
                 const newImageSets = [...imageSets];
                 if (newImageSets.length === 1 && !newImageSets[0].path) {
-                    newImageSets[0] = newSet;
+                    newImageSets[0] = newImageSet;
                 } else {
-                    newImageSets.unshift(newSet);
+                    newImageSets.unshift(newImageSet);
                 }
                 setImageSets(newImageSets);
 
