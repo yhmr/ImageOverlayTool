@@ -28,6 +28,8 @@ test("save as -> new project -> open project roundtrip", async () => {
         await expect(undoButton).toBeDisabled();
         await expect(redoButton).toBeDisabled();
 
+        // FABメニューを展開してからキャプチャ
+        await page.getByTestId("main.fab.menu-toggle").click();
         await page.getByTestId("main.fab.capture").click();
 
         await expect.poll(() => fs.existsSync(E2E_CAPTURE_PATH)).toBe(true);

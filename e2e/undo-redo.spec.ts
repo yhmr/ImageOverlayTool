@@ -9,6 +9,8 @@ test("undo/redo keyboard updates history direction", async () => {
         const redoButton = page.getByTestId("main.action.redo");
         const modifier = process.platform === "darwin" ? "Meta" : "Control";
 
+        // FABメニューを展開してからキャプチャ
+        await page.getByTestId("main.fab.menu-toggle").click();
         await page.getByTestId("main.fab.capture").click();
         await expect(undoButton).toBeEnabled();
         await expect(redoButton).toBeDisabled();
