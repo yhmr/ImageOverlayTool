@@ -155,7 +155,7 @@ export function ControlButton(props: ControlButtonProps) {
                         <div
                             key={item.id}
                             className={cn(
-                                "absolute bottom-9 transition-all duration-300 ease-out flex items-center justify-center", // justify-centerを追加
+                                "absolute bottom-9 transition-all duration-300 ease-out flex items-center justify-center z-50", // justify-centerを追加
                                 isOpen
                                     ? "opacity-100 scale-100 translate-x-0"
                                     : "opacity-0 scale-75 translate-x-12 pointer-events-none"
