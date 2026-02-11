@@ -63,11 +63,6 @@ if (!gotTheLock) {
     app.whenReady().then(async () => {
         log.info("App ready, creating windows...");
 
-        // E2E時はスプラッシュ画面をスキップ（firstWindow()がメインウィンドウを返すようにするため）
-        if (!e2eConfig.enabled) {
-            await windowManager.showSplashScreen();
-        }
-
         // 1) protocol -> 2) ipc -> 3) window の順で組み立てる
         setupProtocolHandler();
 
@@ -79,7 +74,9 @@ if (!gotTheLock) {
             e2eConfig,
         });
 
-        const mainWindow = windowManager.createMainWindow();
+        const mainWindow = await windowManager.launchMainWindow({
+            skipSplash: e2eConfig.enabled,
+        });
         log.info("Main window created.");
 
         registerWindowIpcHandlers(mainWindow);

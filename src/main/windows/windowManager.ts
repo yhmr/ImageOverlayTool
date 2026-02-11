@@ -25,6 +25,8 @@ export interface IImageSettingsWindowController {
  * メインウィンドウと画像設定ウィンドウの作成・管理を行う
  */
 export class WindowManager {
+    private static readonly MINIMUM_SPLASH_DURATION = 1500; // ms
+
     private mainWindow: BrowserWindow | null = null;
     private splashWindow: BrowserWindow | null = null;
     private imageSettingsWindow: BrowserWindow | null = null;
@@ -32,7 +34,7 @@ export class WindowManager {
     private readonly shortcutManager: IWindowShortcutManager;
     private isQuitting = false;
     private pendingFilePath: string | null = null;
-    private splashDisplayTime: number | null = null; // スプラッシュ表示開始時刻
+    private splashDisplayTime: number | null = null;
 
     constructor(
         windowRepository: IWindowRepository,
@@ -50,9 +52,22 @@ export class WindowManager {
     }
 
     /**
+     * スプラッシュ付きでメインウィンドウを起動する
+     * skipSplash=true の場合（E2E等）はスプラッシュをスキップ
+     */
+    async launchMainWindow(
+        options: { skipSplash: boolean } = { skipSplash: false }
+    ): Promise<BrowserWindow> {
+        if (!options.skipSplash) {
+            await this.showSplashScreen();
+        }
+        return this.createMainWindow();
+    }
+
+    /**
      * スプラッシュ画面を表示（完了まで待機）
      */
-    async showSplashScreen(): Promise<BrowserWindow> {
+    private async showSplashScreen(): Promise<BrowserWindow> {
         log.debug("Creating splash window...");
         this.splashWindow = new BrowserWindow({
             width: 500,
@@ -182,12 +197,14 @@ export class WindowManager {
             }
 
             // スプラッシュ画面を最低でも一定時間は表示し続ける
-            const MINIMUM_SPLASH_DURATION = 1500; // 1.5秒
-            const elapsed = Date.now() - (this.splashDisplayTime || Date.now());
-            const delay = Math.max(0, MINIMUM_SPLASH_DURATION - elapsed);
+            const elapsed = Date.now() - this.splashDisplayTime!;
+            const delay = Math.max(
+                0,
+                WindowManager.MINIMUM_SPLASH_DURATION - elapsed
+            );
 
             log.debug(
-                `Splash duration: elapsed=${elapsed}ms, delay=${delay}ms`
+                `Splash elapsed=${elapsed}ms, remaining delay=${delay}ms`
             );
 
             setTimeout(() => {
