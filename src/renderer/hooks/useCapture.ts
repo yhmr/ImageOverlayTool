@@ -1,14 +1,13 @@
-import { useAppStore } from "../store/useAppStore";
-import UUID from "uuidjs";
-import { ImageSet } from "@/shared/types/ImageSet";
-import { getIPCService } from "../services/ipcService";
 import { TITLE_BAR_HEIGHT } from "../constants";
+import { createImageSetFromLocalFile } from "../factories/imageSetFactory";
+import { useIpcService } from "../providers/IpcServiceProvider";
+import { useAppStore } from "../store/useAppStore";
 
 export function useCapture() {
     const { imageSets, setImageSets, canvas } = useAppStore();
+    const ipcService = useIpcService();
 
-    const handleCapture = async () => {
-        const ipcService = getIPCService();
+    const captureBackground = async () => {
         try {
             const result = await ipcService.captureScreen();
             if (result) {
@@ -36,21 +35,17 @@ export function useCapture() {
 
                 const anchorPos = { lt, rt, lb, rb };
 
-                const newSet: ImageSet = {
-                    id: UUID.generate(),
-                    path: `local-file://${filePath.replace(/\\/g, "/")}`,
-                    transparency: 0,
-                    rotation: 0,
-                    init_anchor_pos: anchorPos,
-                    current_anchor_pos: anchorPos,
-                };
+                const newImageSet = createImageSetFromLocalFile(filePath, {
+                    initAnchorPos: anchorPos,
+                    currentAnchorPos: anchorPos,
+                });
 
                 // 一番後ろ（配列の先頭）に追加
                 const newImageSets = [...imageSets];
                 if (newImageSets.length === 1 && !newImageSets[0].path) {
-                    newImageSets[0] = newSet;
+                    newImageSets[0] = newImageSet;
                 } else {
-                    newImageSets.unshift(newSet);
+                    newImageSets.unshift(newImageSet);
                 }
                 setImageSets(newImageSets);
 
@@ -61,5 +56,5 @@ export function useCapture() {
         }
     };
 
-    return { handleCapture };
+    return { captureBackground };
 }

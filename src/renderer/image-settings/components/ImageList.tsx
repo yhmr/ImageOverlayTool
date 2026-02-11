@@ -1,4 +1,3 @@
-import UUID from "uuidjs";
 import { useTranslation } from "react-i18next";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import type {
@@ -9,20 +8,9 @@ import type {
 import { arrayMoveImmutable } from "array-move";
 import { Plus } from "lucide-react";
 
-import { useAppStore } from "../../store/useAppStore";
-import { getIPCService } from "../../services/ipcService";
-
-import { ImageListItem } from "./ImageListItem";
-
 import { Button } from "@/renderer/components/ui/button";
 import { Input } from "@/renderer/components/ui/input";
 import { Label } from "@/renderer/components/ui/label";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/renderer/components/ui/tooltip";
 import {
     Select,
     SelectContent,
@@ -30,6 +18,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/renderer/components/ui/select";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/renderer/components/ui/tooltip";
+import { createEmptyImageSet } from "../../factories/imageSetFactory";
+import { useIpcService } from "../../providers/IpcServiceProvider";
+import { useAppStore } from "../../store/useAppStore";
+
+import { ImageListItem } from "./ImageListItem";
 
 /**
  * 画像設定ウィンドウの画像リスト
@@ -46,19 +45,13 @@ export function ImageList() {
         unit,
         setUnit,
     } = useAppStore();
+    const ipcService = useIpcService();
 
     // 新しいImageSetを追加
-    const handleAddImageSet = () => {
-        getIPCService().log.info("Adding new empty image slot");
+    const addImageSet = () => {
+        ipcService.log.info("Adding new empty image slot");
         const newImageSets = [...imageSets];
-        newImageSets.push({
-            id: UUID.generate(),
-            path: "",
-            transparency: 0,
-            rotation: 0,
-            init_anchor_pos: null,
-            current_anchor_pos: null,
-        });
+        newImageSets.push(createEmptyImageSet());
         setImageSets(newImageSets);
     };
 
@@ -78,7 +71,10 @@ export function ImageList() {
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col gap-2 p-4">
+            <div
+                className="flex flex-col gap-2 p-4"
+                data-testid="settings.image-list.root"
+            >
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="image-list">
                         {(provided: DroppableProvided) => (
@@ -86,6 +82,7 @@ export function ImageList() {
                                 {...provided.droppableProps}
                                 ref={provided.innerRef}
                                 className="flex flex-col gap-2"
+                                data-testid="settings.image-list.items"
                             >
                                 {imageSets.map((imageSet, index) => (
                                     <Draggable
@@ -125,8 +122,9 @@ export function ImageList() {
                         <Button
                             variant="outline"
                             size="icon"
-                            onClick={handleAddImageSet}
+                            onClick={addImageSet}
                             className="self-start"
+                            data-testid="settings.image-list.add"
                         >
                             <Plus className="h-4 w-4" />
                         </Button>
@@ -157,6 +155,7 @@ export function ImageList() {
                                         e.currentTarget.blur();
                                     }}
                                     className="w-[100px]"
+                                    data-testid="settings.unit.factor-input"
                                 />
                                 <span className="text-sm text-muted-foreground">
                                     {unit}/pix
@@ -174,7 +173,11 @@ export function ImageList() {
                                     setUnit(value)
                                 }
                             >
-                                <SelectTrigger id="unit" className="w-[100px]">
+                                <SelectTrigger
+                                    id="unit"
+                                    className="w-[100px]"
+                                    data-testid="settings.unit.select"
+                                >
                                     <SelectValue placeholder="単位" />
                                 </SelectTrigger>
                                 <SelectContent>

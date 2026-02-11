@@ -1,30 +1,35 @@
-import { useTranslation } from "react-i18next";
 import { X, Camera } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/renderer/components/ui/button";
-import { useCapture } from "../../hooks/useCapture";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
-import { getIPCService } from "../../services/ipcService";
+import { useCapture } from "../../hooks/useCapture";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 /**
  * 画像設定ウィンドウ用のシンプルなタイトルバー
  */
 export function SettingsMenuBar() {
     const { t } = useTranslation();
-    const { handleCapture } = useCapture();
+    const { captureBackground } = useCapture();
+    const ipcService = useIpcService();
 
     // ウィンドウを非表示にする（トグル動作）
-    const handleClose = async () => {
-        await getIPCService().toggleImageSettingsWindow();
+    const closeSettingsWindow = async () => {
+        await ipcService.toggleImageSettingsWindow();
     };
 
     return (
         <TooltipProvider>
-            <div className="flex shrink-0 items-center justify-between min-h-[40px] px-2 bg-background border-b app-region-drag select-none text-foreground">
+            <div
+                className="flex shrink-0 items-center justify-between min-h-[40px] px-2 bg-background border-b app-region-drag select-none text-foreground"
+                data-testid="settings.menu.bar"
+            >
                 {/* タイトル */}
                 <div className="flex-grow text-sm font-medium">
                     {t("render.image_settings.title")}
@@ -36,8 +41,9 @@ export function SettingsMenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleCapture}
+                            onClick={captureBackground}
                             className="h-8 w-8 app-region-no-drag hover:bg-accent hover:text-accent-foreground mr-1"
+                            data-testid="settings.menu.capture"
                         >
                             <Camera className="h-4 w-4" />
                         </Button>
@@ -58,8 +64,9 @@ export function SettingsMenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleClose}
+                            onClick={closeSettingsWindow}
                             className="h-8 w-8 app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
+                            data-testid="settings.menu.close"
                         >
                             <X className="h-4 w-4" />
                         </Button>

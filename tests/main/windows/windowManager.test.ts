@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Define mocks using hoisted to ensure they are available in vi.mock factory
 const { mockWindow, mockWebContents } = vi.hoisted(() => {
-    const webContents = { send: vi.fn(), id: 1 };
+    const webContents = { send: vi.fn(), id: 1, setWindowOpenHandler: vi.fn() };
     // Create an event emitter like mock
     const listeners: Record<string, ((...args: any[]) => void)[]> = {};
 
@@ -81,6 +81,7 @@ vi.mock("@electron-toolkit/utils", () => ({
 
 import { WindowManager } from "@/main/windows/windowManager";
 import { IWindowRepository } from "@/main/repositories/WindowRepository";
+import type { IWindowShortcutManager } from "@/main/windows/windowShortcutManager";
 
 describe("WindowManager", () => {
     let windowManager: WindowManager;
@@ -167,5 +168,31 @@ describe("WindowManager", () => {
             filePath: "hidden.png",
             ext: ".png",
         });
+    });
+
+    it("delegates shortcut registration to injected manager", () => {
+        const shortcutManager: IWindowShortcutManager = {
+            registerToggleImageSettings: vi.fn(),
+            unregisterAll: vi.fn(),
+        };
+        windowManager = new WindowManager(mockWindowRepository, shortcutManager);
+
+        windowManager.registerShortcuts();
+
+        expect(shortcutManager.registerToggleImageSettings).toHaveBeenCalledTimes(
+            1
+        );
+    });
+
+    it("delegates shortcut unregistration to injected manager", () => {
+        const shortcutManager: IWindowShortcutManager = {
+            registerToggleImageSettings: vi.fn(),
+            unregisterAll: vi.fn(),
+        };
+        windowManager = new WindowManager(mockWindowRepository, shortcutManager);
+
+        windowManager.unregisterShortcuts();
+
+        expect(shortcutManager.unregisterAll).toHaveBeenCalledTimes(1);
     });
 });

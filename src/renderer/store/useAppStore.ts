@@ -1,4 +1,5 @@
-import { create } from "zustand";
+import { create, type StoreApi } from "zustand";
+import { temporal, type TemporalState } from "zundo";
 import {
     ProjectDataSlice,
     createProjectDataSlice,
@@ -11,43 +12,122 @@ import {
 
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../../shared/types/ImageSet";
-import { getIPCService } from "../services/ipcService";
+import { clearTemporalHistory, runAsSystemMutation } from "./temporalHistory";
 
 type StoreActions = {
+    currentProjectFilePath: string | null;
+    setCurrentProjectFilePath: (filePath: string | null) => void;
     resetAll: () => void;
     loadProject: (project: ProjectFile<ImageSet>) => void;
 };
 
-type AppState = ProjectDataSlice & ViewSlice & InteractionSlice & StoreActions;
+type UndoSnapshot = Pick<
+    AppState,
+    "imageSets" | "dimensionLines" | "unitFactor" | "unit" | "windowColor"
+>;
+
+export type AppState = ProjectDataSlice &
+    ViewSlice &
+    InteractionSlice &
+    StoreActions;
+
+const temporalStoreRef: {
+    current: StoreApi<TemporalState<unknown>> | undefined;
+} = {
+    current: undefined,
+};
+
+const isSameUndoSnapshot = (
+    pastState: Partial<UndoSnapshot>,
+    currentState: Partial<UndoSnapshot>
+): boolean => {
+    return (
+        pastState.imageSets === currentState.imageSets &&
+        pastState.dimensionLines === currentState.dimensionLines &&
+        pastState.unitFactor === currentState.unitFactor &&
+        pastState.unit === currentState.unit &&
+        pastState.windowColor === currentState.windowColor
+    );
+};
 
 // AppStore definition
-export const useAppStore = create<AppState>()((...args) => {
-    const [, get] = args;
-    const ipcService = getIPCService();
-    return {
-        ...createProjectDataSlice(ipcService)(...args),
-        ...createViewSlice(...args),
-        ...createInteractionSlice(...args),
+export const useAppStore = create<AppState>()(
+    temporal(
+        (...args) => {
+            const [set, get] = args;
+            const getTemporal = () => temporalStoreRef.current;
 
-        loadProject: (project: ProjectFile<ImageSet>) => {
-            // プロジェクトデータをロード (ProjectDataSlice)
-            get().loadProjectData(project);
-            // View情報をロード (ViewSlice)
-            if (project.canvas) {
-                get().setCanvasState(project.canvas);
-            } else {
-                get().resetView();
-            }
-            // 選択状態などをリセット
-            get().deselectAll();
-            get().setInteractionMode("default");
-        },
+            const clearHistory = () => {
+                clearTemporalHistory(getTemporal);
+            };
 
-        resetAll: () => {
-            get().resetProjectData();
-            get().resetView();
-            get().deselectAll();
-            get().setInteractionMode("default");
+            const withHistoryPaused = (fn: () => void) => {
+                runAsSystemMutation(getTemporal, fn);
+            };
+
+            return {
+                ...createProjectDataSlice(getTemporal)(...args),
+                ...createViewSlice(...args),
+                ...createInteractionSlice(...args),
+
+                currentProjectFilePath: null,
+                setCurrentProjectFilePath: (filePath: string | null) =>
+                    set({ currentProjectFilePath: filePath }),
+
+                loadProject: (project: ProjectFile<ImageSet>) => {
+                    withHistoryPaused(() => {
+                        // プロジェクトデータをロード (ProjectDataSlice)
+                        get().loadProjectData(project);
+                        // View情報をロード (ViewSlice)
+                        if (project.canvas) {
+                            get().setCanvasState(project.canvas);
+                        } else {
+                            get().resetView();
+                        }
+                        // 選択状態などをリセット
+                        get().clearSelection();
+                        get().setInteractionMode("default");
+                    });
+
+                    // 履歴をクリア
+                    clearHistory();
+                },
+
+                resetAll: () => {
+                    withHistoryPaused(() => {
+                        get().resetProjectData();
+                        get().resetView();
+                        get().clearSelection();
+                        get().setInteractionMode("default");
+                        get().setCurrentProjectFilePath(null);
+                    });
+
+                    // 履歴をクリア
+                    clearHistory();
+                },
+            };
         },
-    };
-});
+        {
+            partialize: (state) => {
+                const {
+                    imageSets,
+                    dimensionLines,
+                    unitFactor,
+                    unit,
+                    windowColor,
+                } = state;
+                return {
+                    imageSets,
+                    dimensionLines,
+                    unitFactor,
+                    unit,
+                    windowColor,
+                };
+            },
+            equality: isSameUndoSnapshot,
+            limit: 50,
+        }
+    )
+);
+
+temporalStoreRef.current = useAppStore.temporal;

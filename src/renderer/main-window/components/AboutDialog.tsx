@@ -9,9 +9,10 @@ import {
     DialogDescription,
 } from "@/renderer/components/ui/dialog";
 import { Button } from "@/renderer/components/ui/button";
-import { ScrollArea } from "@/renderer/components/ui/scroll-area";
+import { VisuallyHidden } from "@/renderer/components/ui/visually-hidden";
+import logo from "@assets/icon.png";
 
-import { getIPCService } from "../../services/ipcService";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface LicenseInfo {
     name: string;
@@ -23,12 +24,14 @@ interface LicenseInfo {
 
 interface AboutDialogProps {
     open: boolean;
-    handleClose: () => void;
+    onClose: () => void;
 }
 
 export function AboutDialog(props: AboutDialogProps) {
-    const { open, handleClose } = props;
+    const { open, onClose } = props;
     const { t } = useTranslation();
+    const ipcService = useIpcService();
+
     const [licenses, setLicenses] = useState<LicenseInfo[]>([]);
     const [loading, setLoading] = useState(false);
     const [appVersion, setAppVersion] = useState("");
@@ -36,7 +39,6 @@ export function AboutDialog(props: AboutDialogProps) {
     useEffect(() => {
         if (open) {
             setLoading(true);
-            const ipcService = getIPCService();
             // ライセンス情報とバージョンを並列で取得
             Promise.all([
                 ipcService.getLicenseInfo() as Promise<LicenseInfo[]>,
@@ -55,33 +57,81 @@ export function AboutDialog(props: AboutDialogProps) {
                     setLoading(false);
                 });
         }
-    }, [open]);
+    }, [open, ipcService]);
 
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-            <DialogContent className="sm:max-w-[500px] max-h-[80vh]">
+        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+            <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
                 <DialogHeader>
-                    <DialogTitle>{t("render.about_dlg.title")}</DialogTitle>
+                    <VisuallyHidden>
+                        <DialogTitle>{t("render.about_dlg.title")}</DialogTitle>
+                    </VisuallyHidden>
                     <DialogDescription className="sr-only">
                         This dialog shows information about the application and
                         licenses of third-party libraries.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="flex-1 flex flex-col min-h-0 py-4 gap-4">
                     {/* バージョン情報 */}
-                    <div className="text-center">
-                        <h2 className="text-xl font-bold">ImageOverlayTool</h2>
-                        <p className="text-sm text-muted-foreground">
-                            {t("render.about_dlg.version")}: {appVersion}
-                        </p>
+                    <div className="flex-shrink-0 flex flex-col items-center gap-2 text-center">
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="w-16 h-16 drop-shadow-sm"
+                        />
+                        <div>
+                            <h2 className="text-xl font-bold">
+                                ImageOverlayTool
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                                {t("render.about_dlg.version")}: {appVersion}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Copyright &copy; 2026 yhmr
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+                            <a
+                                href="https://yhmr.github.io/ImageOverlayTool/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                Official Site
+                            </a>
+                            <a
+                                href="https://github.com/yhmr/ImageOverlayTool"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                GitHub
+                            </a>
+                            <a
+                                href="https://github.com/yhmr/ImageOverlayTool/issues"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                Report Issue
+                            </a>
+                            <a
+                                href="https://yhmr.github.io/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                Developer
+                            </a>
+                        </div>
                     </div>
 
                     {/* ライセンス一覧 */}
-                    <div>
-                        <h3 className="text-sm font-semibold mb-2">
+                    <div className="flex-1 flex flex-col min-h-0">
+                        <h3 className="text-sm font-semibold mb-2 flex-shrink-0">
                             {t("render.about_dlg.licenses")}
                         </h3>
-                        <ScrollArea className="h-[300px] rounded-md border p-2">
+                        <div className="flex-1 overflow-y-auto rounded-md border p-2">
                             {loading ? (
                                 <p className="text-sm text-muted-foreground">
                                     Loading...
@@ -144,11 +194,11 @@ export function AboutDialog(props: AboutDialogProps) {
                                     })}
                                 </div>
                             )}
-                        </ScrollArea>
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleClose}>
+                    <Button onClick={onClose}>
                         {t("render.about_dlg.done")}
                     </Button>
                 </DialogFooter>

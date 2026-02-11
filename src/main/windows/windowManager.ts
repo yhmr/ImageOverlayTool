@@ -1,22 +1,47 @@
 import path from "path";
-import { BrowserWindow, globalShortcut } from "electron";
+import { BrowserWindow, shell, app } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
+import {
+    ElectronWindowShortcutManager,
+    type IWindowShortcutManager,
+} from "./windowShortcutManager";
+import { IPC_EVENTS } from "../../shared/ipc/channels";
 
+export interface IMainWindowProvider {
+    getMainWindow(): BrowserWindow | null;
+}
+
+export interface IWindowCollectionProvider {
+    getAllWindows(): BrowserWindow[];
+}
+
+export interface IImageSettingsWindowController {
+    toggleImageSettingsWindow(): boolean;
+}
 /**
  * ウィンドウ管理クラス
  * メインウィンドウと画像設定ウィンドウの作成・管理を行う
  */
 export class WindowManager {
+    private static readonly MINIMUM_SPLASH_DURATION = 1500; // ms
+
     private mainWindow: BrowserWindow | null = null;
+    private splashWindow: BrowserWindow | null = null;
     private imageSettingsWindow: BrowserWindow | null = null;
     private windowRepository: IWindowRepository;
+    private readonly shortcutManager: IWindowShortcutManager;
     private isQuitting = false;
     private pendingFilePath: string | null = null;
+    private splashDisplayTime: number | null = null;
 
-    constructor(windowRepository: IWindowRepository) {
+    constructor(
+        windowRepository: IWindowRepository,
+        shortcutManager: IWindowShortcutManager = new ElectronWindowShortcutManager()
+    ) {
         this.windowRepository = windowRepository;
+        this.shortcutManager = shortcutManager;
     }
 
     /**
@@ -24,6 +49,72 @@ export class WindowManager {
      */
     willQuit(): void {
         this.isQuitting = true;
+    }
+
+    /**
+     * スプラッシュ付きでメインウィンドウを起動する
+     * skipSplash=true の場合（E2E等）はスプラッシュをスキップ
+     */
+    async launchMainWindow(
+        options: { skipSplash: boolean } = { skipSplash: false }
+    ): Promise<BrowserWindow> {
+        if (!options.skipSplash) {
+            await this.showSplashScreen();
+        }
+        return this.createMainWindow();
+    }
+
+    /**
+     * スプラッシュ画面を表示（完了まで待機）
+     */
+    private async showSplashScreen(): Promise<BrowserWindow> {
+        log.debug("Creating splash window...");
+        this.splashWindow = new BrowserWindow({
+            width: 500,
+            height: 300,
+            transparent: true,
+            frame: false,
+            alwaysOnTop: true,
+            resizable: false,
+            movable: false,
+            center: true,
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true,
+            },
+        });
+
+        const showPromise = new Promise<BrowserWindow>((resolve) => {
+            this.splashWindow?.once("ready-to-show", () => {
+                this.splashWindow?.show();
+                this.splashDisplayTime = Date.now(); // 表示時刻を記録
+                log.info("Splash window shown");
+                resolve(this.splashWindow!);
+            });
+        });
+
+        if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+            this.splashWindow.loadURL(
+                process.env["ELECTRON_RENDERER_URL"] + "/splash/"
+            );
+        } else {
+            this.splashWindow.loadFile(
+                path.join(__dirname, "../renderer/splash/index.html")
+            );
+        }
+
+        return showPromise;
+    }
+
+    /**
+     * スプラッシュウィンドウを破棄
+     */
+    destroySplashWindow(): void {
+        if (this.splashWindow && !this.splashWindow.isDestroyed()) {
+            log.debug("Destroying splash window...");
+            this.splashWindow.destroy();
+            this.splashWindow = null;
+        }
     }
 
     /**
@@ -40,7 +131,10 @@ export class WindowManager {
             this.mainWindow.isVisible()
         ) {
             log.info(`Sending file to renderer: ${filePath}`);
-            this.mainWindow.webContents.send("file:open", { filePath, ext });
+            this.mainWindow.webContents.send(IPC_EVENTS.fileOpen, {
+                filePath,
+                ext,
+            });
         } else {
             log.debug(`Window not ready, pending file: ${filePath}`);
             this.pendingFilePath = filePath;
@@ -72,6 +166,18 @@ export class WindowManager {
             },
         });
 
+        // リンクを開いた際に、標準ブラウザを開くための設定
+        this.mainWindow.webContents.setWindowOpenHandler((details) => {
+            if (
+                details.url.startsWith("https:") ||
+                details.url.startsWith("http:")
+            ) {
+                shell.openExternal(details.url);
+                return { action: "deny" };
+            }
+            return { action: "allow" };
+        });
+
         const flushPending = () => {
             if (this.pendingFilePath) {
                 const filePath = this.pendingFilePath;
@@ -83,7 +189,29 @@ export class WindowManager {
         // 準備が出来た時点で表示
         this.mainWindow.on("ready-to-show", () => {
             log.debug("Main window ready-to-show");
-            this.mainWindow?.show();
+
+            // スプラッシュ画面がない場合（E2E等）は即座に表示
+            if (!this.splashWindow) {
+                this.mainWindow?.show();
+                return;
+            }
+
+            // スプラッシュ画面を最低でも一定時間は表示し続ける
+            const elapsed = Date.now() - this.splashDisplayTime!;
+            const delay = Math.max(
+                0,
+                WindowManager.MINIMUM_SPLASH_DURATION - elapsed
+            );
+
+            log.debug(
+                `Splash elapsed=${elapsed}ms, remaining delay=${delay}ms`
+            );
+
+            setTimeout(() => {
+                this.mainWindow?.show();
+                this.destroySplashWindow();
+            }, delay);
+
             // show() calls flushPending via 'show' event listener below
         });
 
@@ -104,6 +232,7 @@ export class WindowManager {
         this.mainWindow.on("closed", () => {
             // メインウィンドウが閉じられたらアプリ終了とみなす
             this.isQuitting = true;
+            this.destroySplashWindow();
 
             // 画像設定ウィンドウも閉じる
             if (
@@ -239,7 +368,7 @@ export class WindowManager {
      * グローバルショートカットを登録
      */
     registerShortcuts(): void {
-        globalShortcut.register("CommandOrControl+I", () => {
+        this.shortcutManager.registerToggleImageSettings(() => {
             this.toggleImageSettingsWindow();
         });
     }
@@ -248,7 +377,7 @@ export class WindowManager {
      * グローバルショートカットを解除
      */
     unregisterShortcuts(): void {
-        globalShortcut.unregisterAll();
+        this.shortcutManager.unregisterAll();
     }
 
     /**
@@ -279,6 +408,9 @@ export class WindowManager {
         ) {
             windows.push(this.imageSettingsWindow);
         }
+        if (this.splashWindow && !this.splashWindow.isDestroyed()) {
+            windows.push(this.splashWindow);
+        }
         return windows;
     }
 
@@ -295,6 +427,8 @@ export class WindowManager {
             this.imageSettingsWindow = null;
         }
 
+        this.destroySplashWindow();
+
         if (this.mainWindow && !this.mainWindow.isDestroyed()) {
             this.mainWindow.close();
         }
@@ -308,5 +442,20 @@ export class WindowManager {
         this.unregisterShortcuts();
         this.closeAllWindows();
         log.debug("WindowManager cleanup completed");
+    }
+
+    /**
+     * DevToolsを開く（開発環境かつプレビューでない場合のみ）
+     */
+    openDevTools(window: BrowserWindow, e2eEnabled: boolean): void {
+        const shouldOpen =
+            !app.isPackaged &&
+            is.dev &&
+            process.env["ELECTRON_RENDERER_URL"] &&
+            !e2eEnabled;
+
+        if (shouldOpen) {
+            window.webContents.openDevTools({ mode: "detach" });
+        }
     }
 }

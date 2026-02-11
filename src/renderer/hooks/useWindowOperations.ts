@@ -1,27 +1,27 @@
-import { useState, useCallback } from "react";
-import { getIPCService } from "../services/ipcService";
+import { useCallback, useState } from "react";
+
+import { useIpcService } from "../providers/IpcServiceProvider";
 
 export const useWindowOperations = () => {
     // スクリーンサイズ
-    const [full, setFull] = useState(false);
+    const [isMaximized, setIsMaximized] = useState(false);
+    const ipcService = useIpcService();
 
-    const handleSwitchFullScreen = useCallback(async () => {
-        const ipcService = getIPCService();
+    const toggleMaximized = useCallback(async () => {
         ipcService.log.debug("Toggling fullscreen mode");
         const res = await ipcService.switchWindowSize();
-        setFull(res);
-    }, []);
+        setIsMaximized(res);
+    }, [ipcService]);
 
     // Windowを閉じる
-    const handleCloseWindow = useCallback(() => {
-        const ipcService = getIPCService();
+    const closeWindow = useCallback(() => {
         ipcService.log.info("Close button clicked");
-        ipcService.closeWindow();
-    }, []);
+        void ipcService.closeWindow();
+    }, [ipcService]);
 
     return {
-        full,
-        handleSwitchFullScreen,
-        handleCloseWindow,
+        isMaximized,
+        toggleMaximized,
+        closeWindow,
     };
 };

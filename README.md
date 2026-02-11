@@ -60,6 +60,15 @@ npm run build:linux
 npm test
 ```
 
+### テストセレクタ（data-testid）規約
+
+E2E/統合テストで使用する `data-testid` は、以下の形式で命名します。
+
+- 形式: `<screen>.<area>.<action>`
+- 例: `main.menu.item.save-project`, `settings.image-list.add`
+
+原則として、文言や表示順に依存するセレクタは使わず、主要操作は `data-testid` で参照します。
+
 ## 📁 ディレクトリ構成
 
 electron-vite の標準的な構成に基づき、コードの分離を行っています。

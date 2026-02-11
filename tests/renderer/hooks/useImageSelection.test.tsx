@@ -36,8 +36,8 @@ describe("useImageSelection", () => {
                     path: "test.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ]);
             result.current.setSelectedImageId("test-id");
@@ -57,8 +57,8 @@ describe("useImageSelection", () => {
                     path: "",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
             ]);
             result.current.setSelectedImageId("test-id");
@@ -74,7 +74,7 @@ describe("useImageSelection", () => {
         expect(result.current.selectedImageId).toBeNull();
     });
 
-    it("should handle onSelect via getOnSelectHandler", () => {
+    it("should handle onSelect via createImageSelectHandler", () => {
         const { result, rerender } = renderHook(() => useImageSelection());
 
         act(() => {
@@ -84,23 +84,23 @@ describe("useImageSelection", () => {
                     path: "test.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
                 },
                 {
                     id: "image-2",
                     path: "test2.png",
                     transparency: 0,
                     rotation: 0,
-                    init_anchor_pos: null,
-                    current_anchor_pos: null,
-                }
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
+                },
             ]);
         });
 
         // 1. Normal mode -> select
         act(() => {
-            result.current.getOnSelectHandler("image-1")();
+            result.current.createImageSelectHandler("image-1")();
         });
         expect(useAppStore.getState().selectedImageId).toBe("image-1");
 
@@ -109,16 +109,16 @@ describe("useImageSelection", () => {
             useAppStore.getState().setInteractionMode("dimension");
         });
 
-        // Mode switch triggers re-render in actual app, here we might need rerender() 
+        // Mode switch triggers re-render in actual app, here we might need rerender()
         // to ensure the hook sees the latest interactionMode
         rerender();
 
         act(() => {
-            result.current.getOnSelectHandler("image-2")();
+            result.current.createImageSelectHandler("image-2")();
         });
 
-        // Mode switch already set selectedImageId to null. 
-        // getOnSelectHandler(image-2) should NOT change it back.
+        // Mode switch already set selectedImageId to null.
+        // createImageSelectHandler(image-2) should NOT change it back.
         expect(useAppStore.getState().selectedImageId).toBeNull();
     });
 });

@@ -7,33 +7,33 @@ describe("useMenuState", () => {
     it("should handle setting dialog", () => {
         const { result } = renderHook(() => useMenuState());
 
-        expect(result.current.openSettingDlg).toBe(false);
+        expect(result.current.isSettingDialogOpen).toBe(false);
 
         act(() => {
-            result.current.handleSettingDlgOpen();
+            result.current.openSettingDialog();
         });
-        expect(result.current.openSettingDlg).toBe(true);
+        expect(result.current.isSettingDialogOpen).toBe(true);
 
         act(() => {
-            result.current.handleSettingDlgClose();
+            result.current.closeSettingDialog();
         });
-        expect(result.current.openSettingDlg).toBe(false);
+        expect(result.current.isSettingDialogOpen).toBe(false);
     });
 
     it("should handle about dialog", () => {
         const { result } = renderHook(() => useMenuState());
 
-        expect(result.current.openAboutDlg).toBe(false);
+        expect(result.current.isAboutDialogOpen).toBe(false);
 
         act(() => {
-            result.current.handleAboutDlgOpen();
+            result.current.openAboutDialog();
         });
-        expect(result.current.openAboutDlg).toBe(true);
+        expect(result.current.isAboutDialogOpen).toBe(true);
 
         act(() => {
-            result.current.handleAboutDlgClose();
+            result.current.closeAboutDialog();
         });
-        expect(result.current.openAboutDlg).toBe(false);
+        expect(result.current.isAboutDialogOpen).toBe(false);
     });
 });
 

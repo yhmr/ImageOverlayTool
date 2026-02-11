@@ -17,29 +17,29 @@ import {
 } from "@/renderer/components/ui/select";
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
-import { getIPCService } from "../../services/ipcService";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface SettingDialogProps {
     open: boolean;
-    handleClose: () => void;
+    onClose: () => void;
 }
 
 export function SettingDialog(props: SettingDialogProps) {
-    const { open, handleClose } = props;
+    const { open, onClose } = props;
     const { t, i18n } = useTranslation();
-    const ipcService = getIPCService();
+    const ipcService = useIpcService();
 
     // 言語切り替え
-    const handleLanguageChange = (value: string) => {
+    const changeLanguage = (value: string) => {
         i18n.changeLanguage(value);
     };
 
     // 終了時に設定保存
-    const handleCloseAndSave = async () => {
+    const saveAndClose = async () => {
         await ipcService.saveSetting({
             language: i18n.language,
         });
-        handleClose();
+        onClose();
     };
 
     // 初期化
@@ -48,13 +48,13 @@ export function SettingDialog(props: SettingDialogProps) {
             const setting = await ipcService.loadSetting();
             i18n.changeLanguage(setting.language);
         };
-        loadSetting();
+        void loadSetting();
     }, [i18n, ipcService]);
 
     return (
         <Dialog
             open={open}
-            onOpenChange={(isOpen) => !isOpen && handleCloseAndSave()}
+            onOpenChange={(isOpen) => !isOpen && saveAndClose()}
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -71,7 +71,7 @@ export function SettingDialog(props: SettingDialogProps) {
                         </Label>
                         <Select
                             value={i18n.language}
-                            onValueChange={handleLanguageChange}
+                            onValueChange={changeLanguage}
                         >
                             <SelectTrigger
                                 className="col-span-3"
@@ -99,7 +99,7 @@ export function SettingDialog(props: SettingDialogProps) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleCloseAndSave}>
+                    <Button onClick={saveAndClose}>
                         {t("render.setting_dlg.done")}
                     </Button>
                 </DialogFooter>

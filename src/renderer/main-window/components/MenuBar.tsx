@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { Maximize, Minimize, X } from "lucide-react";
+import { Maximize, Minimize, X, Undo, Redo } from "lucide-react";
+import { useStore } from "zustand";
+import type { TemporalState } from "zundo";
 
 import { SettingDialog } from "./SettingDialog";
 import { AboutDialog } from "./AboutDialog";
@@ -15,30 +17,43 @@ import {
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
-import { useAppStore } from "../../store/useAppStore";
+import { useAppStore, type AppState } from "../../store/useAppStore";
 
 export function MenuBar() {
     const { t } = useTranslation();
     const { isUIHidden } = useAppStore();
 
+    // zundo temporal store
+    const undo = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => state.undo
+    );
+    const redo = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => state.redo
+    );
+    const pastStates = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => state.pastStates
+    );
+    const futureStates = useStore(
+        useAppStore.temporal,
+        (state: TemporalState<Partial<AppState>>) => state.futureStates
+    );
+
     const {
-        openSettingDlg,
-        handleSettingDlgOpen,
-        handleSettingDlgClose,
-        openAboutDlg,
-        handleAboutDlgOpen,
-        handleAboutDlgClose,
+        isSettingDialogOpen,
+        openSettingDialog,
+        closeSettingDialog,
+        isAboutDialogOpen,
+        openAboutDialog,
+        closeAboutDialog,
     } = useMenuState();
 
-    const { full, handleSwitchFullScreen, handleCloseWindow } =
-        useWindowOperations();
+    const { isMaximized, toggleMaximized, closeWindow } = useWindowOperations();
 
-    const {
-        handleNewProject,
-        handleOpenProject,
-        handleSaveProject,
-        handleSaveProjectAs,
-    } = useProjectOperations();
+    const { newProject, openProject, saveProject, saveProjectAs } =
+        useProjectOperations();
 
     return (
         <TooltipProvider>
@@ -49,21 +64,20 @@ export function MenuBar() {
                     opacity: isUIHidden ? 0 : 1,
                     transition: "opacity 0.2s",
                 }}
+                data-testid="main.menu.bar"
             >
                 {/* メニューボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <div>
-                            {" "}
-                            {/* Wrapper for TooltipTrigger asChild issue if any, or just direct AppMenu */}
+                        <div className="mr-2">
                             <AppMenu
-                                handleSettingDlgOpen={handleSettingDlgOpen}
-                                handleAboutDlgOpen={handleAboutDlgOpen}
-                                handleCloseWindow={handleCloseWindow}
-                                handleNewProject={handleNewProject}
-                                handleOpenProject={handleOpenProject}
-                                handleSaveProject={handleSaveProject}
-                                handleSaveProjectAs={handleSaveProjectAs}
+                                openSettingDialog={openSettingDialog}
+                                openAboutDialog={openAboutDialog}
+                                closeWindow={closeWindow}
+                                newProject={newProject}
+                                openProject={openProject}
+                                saveProject={saveProject}
+                                saveProjectAs={saveProjectAs}
                             />
                         </div>
                     </TooltipTrigger>
@@ -71,6 +85,44 @@ export function MenuBar() {
                         <p>{t("render.menu_button.tooltip.menu")}</p>
                     </TooltipContent>
                 </Tooltip>
+
+                {/* Undo / Redo */}
+                <div className="flex items-center gap-1 app-region-no-drag">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => undo()}
+                                disabled={pastStates.length === 0}
+                                className="h-8 w-8"
+                                data-testid="main.action.undo"
+                            >
+                                <Undo className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{t("common.undo", "Undo")}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => redo()}
+                                disabled={futureStates.length === 0}
+                                className="h-8 w-8"
+                                data-testid="main.action.redo"
+                            >
+                                <Redo className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{t("common.redo", "Redo")}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
 
                 {/* タイトル */}
                 <div className="flex-grow text-center text-lg font-medium app-region-drag pointer-events-none">
@@ -83,10 +135,11 @@ export function MenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleSwitchFullScreen}
+                            onClick={toggleMaximized}
                             className="app-region-no-drag"
+                            data-testid="main.action.window-toggle"
                         >
-                            {full ? (
+                            {isMaximized ? (
                                 <Minimize className="h-6 w-6" />
                             ) : (
                                 <Maximize className="h-6 w-6" />
@@ -95,7 +148,7 @@ export function MenuBar() {
                     </TooltipTrigger>
                     <TooltipContent>
                         <p>
-                            {full
+                            {isMaximized
                                 ? t("render.menu_button.tooltip.unmaximize")
                                 : t("render.menu_button.tooltip.maximize")}
                         </p>
@@ -108,8 +161,9 @@ export function MenuBar() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleCloseWindow}
+                            onClick={closeWindow}
                             className="app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
+                            data-testid="main.action.window-close"
                         >
                             <X className="h-6 w-6" />
                         </Button>
@@ -120,12 +174,12 @@ export function MenuBar() {
                 </Tooltip>
 
                 <SettingDialog
-                    open={openSettingDlg}
-                    handleClose={handleSettingDlgClose}
+                    open={isSettingDialogOpen}
+                    onClose={closeSettingDialog}
                 />
                 <AboutDialog
-                    open={openAboutDlg}
-                    handleClose={handleAboutDlgClose}
+                    open={isAboutDialogOpen}
+                    onClose={closeAboutDialog}
                 />
             </div>
         </TooltipProvider>

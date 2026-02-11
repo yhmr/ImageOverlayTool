@@ -1,19 +1,13 @@
 import { StateCreator } from "zustand";
-import { ImageSet } from "../../../shared/types/ImageSet";
-import { DimensionLine } from "../../../shared/types/DimensionLine";
-import { ProjectFile } from "../../../shared/types/ProjectFile";
-import UUID from "uuidjs";
-import { IIPCService } from "../../services/ipcService";
 
-const createDefaultImageSet = (): ImageSet => ({
-    id: UUID.generate(),
-    path: "",
-    transparency: 0,
-    rotation: 0,
-    init_anchor_pos: null,
-    current_anchor_pos: null,
-    locked: false,
-});
+import { DimensionLine } from "../../../shared/types/DimensionLine";
+import { ImageSet } from "../../../shared/types/ImageSet";
+import { ProjectFile } from "../../../shared/types/ProjectFile";
+import { createEmptyImageSet } from "../../factories/imageSetFactory";
+import {
+    runAsSystemMutation,
+    type TemporalStoreAccessor,
+} from "../temporalHistory";
 
 export interface ProjectDataSlice {
     // Data State
@@ -22,6 +16,7 @@ export interface ProjectDataSlice {
     unitFactor: number;
     unit: "nm" | "um" | "mm";
     windowColor: string;
+    projectDataChangeOrigin: "local" | "remote";
 
     // Actions
     setImageSets: (imageSets: ImageSet[]) => void;
@@ -51,22 +46,22 @@ export interface ProjectDataSlice {
 
 /**
  * ProjectDataSliceを作成するファクトリー関数
- * @param ipcService 依存性注入されるIPCサービス
+ * @param getTemporal zundoのtemporal stateを取得する関数
  */
 export const createProjectDataSlice = (
-    ipcService: IIPCService
+    getTemporal: TemporalStoreAccessor
 ): StateCreator<ProjectDataSlice> => {
     return (set) => ({
-        imageSets: [createDefaultImageSet()],
+        imageSets: [createEmptyImageSet()],
         dimensionLines: [],
         unitFactor: 1.0,
         unit: "um",
         windowColor: "#00000000",
+        projectDataChangeOrigin: "local",
 
         // --- Image Sets ---
         setImageSets: (imageSets) => {
-            set({ imageSets });
-            ipcService.updateImageSets(imageSets);
+            set({ imageSets, projectDataChangeOrigin: "local" });
         },
 
         updateImageSet: (payload) => {
@@ -84,21 +79,27 @@ export const createProjectDataSlice = (
                         newImageSets[targetIndex] = payload.imageSet;
                     }
                 }
-                ipcService.updateImageSets(newImageSets);
-                return { imageSets: newImageSets };
+                return {
+                    imageSets: newImageSets,
+                    projectDataChangeOrigin: "local",
+                };
             });
         },
 
         syncImageSets: (imageSets) => {
-            set({ imageSets });
+            runAsSystemMutation(getTemporal, () => {
+                set({ imageSets, projectDataChangeOrigin: "remote" });
+            });
         },
 
         // --- Dimension Lines ---
-        setDimensionLines: (lines) => set({ dimensionLines: lines }),
+        setDimensionLines: (lines) =>
+            set({ dimensionLines: lines, projectDataChangeOrigin: "local" }),
 
         addDimensionLine: (line) =>
             set((state) => ({
                 dimensionLines: [...state.dimensionLines, line],
+                projectDataChangeOrigin: "local",
             })),
 
         updateDimensionLine: (line) =>
@@ -109,7 +110,10 @@ export const createProjectDataSlice = (
                 if (index !== -1) {
                     const newLines = [...state.dimensionLines];
                     newLines[index] = line;
-                    return { dimensionLines: newLines };
+                    return {
+                        dimensionLines: newLines,
+                        projectDataChangeOrigin: "local",
+                    };
                 }
                 return state;
             }),
@@ -117,29 +121,32 @@ export const createProjectDataSlice = (
         removeDimensionLine: (id) =>
             set((state) => ({
                 dimensionLines: state.dimensionLines.filter((l) => l.id !== id),
+                projectDataChangeOrigin: "local",
             })),
 
         // --- Settings ---
         setUnitFactor: (factor) => {
-            set({ unitFactor: factor });
-            ipcService.updateUnitFactor(factor);
+            set({ unitFactor: factor, projectDataChangeOrigin: "local" });
         },
 
         syncUnitFactor: (factor) => {
-            set({ unitFactor: factor });
+            runAsSystemMutation(getTemporal, () => {
+                set({ unitFactor: factor, projectDataChangeOrigin: "remote" });
+            });
         },
 
         setUnit: (unit) => {
-            set({ unit });
-            ipcService.updateUnit(unit);
+            set({ unit, projectDataChangeOrigin: "local" });
         },
 
         syncUnit: (unit) => {
-            set({ unit });
+            runAsSystemMutation(getTemporal, () => {
+                set({ unit, projectDataChangeOrigin: "remote" });
+            });
         },
 
         setWindowColor: (color) => {
-            set({ windowColor: color });
+            set({ windowColor: color, projectDataChangeOrigin: "local" });
         },
 
         // --- Bulk Actions ---
@@ -156,25 +163,20 @@ export const createProjectDataSlice = (
                 unitFactor: newUnitFactor,
                 unit: newUnit,
                 windowColor: newWindowColor,
+                projectDataChangeOrigin: "local",
             });
-
-            ipcService.updateImageSets(newImageSets);
-            ipcService.updateUnitFactor(newUnitFactor);
-            ipcService.updateUnit(newUnit);
         },
 
         resetProjectData: () => {
-            const defaultImageSets = [createDefaultImageSet()];
+            const defaultImageSets = [createEmptyImageSet()];
             // windowColorは意図的に保持する（ユーザーの背景色設定を維持）
             set({
                 imageSets: defaultImageSets,
                 dimensionLines: [],
                 unitFactor: 1.0,
                 unit: "um",
+                projectDataChangeOrigin: "local",
             });
-            ipcService.updateImageSets(defaultImageSets);
-            ipcService.updateUnitFactor(1.0);
-            ipcService.updateUnit("um");
         },
     });
 };

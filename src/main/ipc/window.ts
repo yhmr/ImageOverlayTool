@@ -1,11 +1,9 @@
 import { ipcMain, BrowserWindow, app } from "electron";
 import log from "../logger";
+import { IPC_CHANNELS } from "../../shared/ipc/channels";
 
 export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
-    /**
-     * [IPC] Windowサイズを切り替え
-     */
-    ipcMain.handle("window:switchSize", async () => {
+    ipcMain.handle(IPC_CHANNELS.window.switchSize, async () => {
         if (!mainWindow.isMaximized()) {
             log.debug("[IPC] window:switchSize -> maximizing");
             mainWindow.maximize();
@@ -17,19 +15,13 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
         }
     });
 
-    /**
-     * [IPC] Windowを閉じる
-     */
-    ipcMain.handle("window:close", async () => {
+    ipcMain.handle(IPC_CHANNELS.window.close, async () => {
         log.info("[IPC] window:close called, quitting application");
         app.quit();
     });
 
-    /**
-     * [IPC] Windowの位置とサイズを設定
-     */
     ipcMain.handle(
-        "window:setRect",
+        IPC_CHANNELS.window.setRect,
         async (
             event,
             rect: { x: number; y: number; width: number; height: number }

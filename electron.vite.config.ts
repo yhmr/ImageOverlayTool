@@ -17,7 +17,8 @@ export default defineConfig({
   renderer: {
     resolve: {
       alias: {
-        '@': resolve('src')
+        '@': resolve('src'),
+        '@assets': resolve('assets')
       }
     },
     root: 'src/renderer',
@@ -36,7 +37,8 @@ export default defineConfig({
       rollupOptions: {
         input: {
           main: 'src/renderer/main-window/index.html',
-          imageSettings: 'src/renderer/image-settings/index.html'
+          imageSettings: 'src/renderer/image-settings/index.html',
+          splash: 'src/renderer/splash/index.html'
         }
       }
     }

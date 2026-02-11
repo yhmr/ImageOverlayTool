@@ -7,7 +7,7 @@ export const useStageControls = (
 ) => {
     const [stageSize, setStageSize] = useState({ height: 100, width: 100 });
 
-    const handleResize = useCallback(() => {
+    const resizeStageToContainer = useCallback(() => {
         const container = document.querySelector(
             ".image-area"
         ) as HTMLDivElement;
@@ -19,7 +19,7 @@ export const useStageControls = (
         }
     }, []);
 
-    const handleWheel = useCallback(
+    const onWheel = useCallback(
         (e: Konva.KonvaEventObject<WheelEvent>) => {
             e.evt.preventDefault(); // 通常のイベントを防ぐ
             if (stageRef.current) {
@@ -54,10 +54,11 @@ export const useStageControls = (
     );
 
     useEffect(() => {
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, [handleResize]);
+        resizeStageToContainer();
+        window.addEventListener("resize", resizeStageToContainer);
+        return () =>
+            window.removeEventListener("resize", resizeStageToContainer);
+    }, [resizeStageToContainer]);
 
-    return { stageSize, handleWheel };
+    return { stageSize, onWheel };
 };

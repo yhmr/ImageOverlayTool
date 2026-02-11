@@ -19,14 +19,14 @@ export const useDimensionLineMode = (
         interactionMode,
         setInteractionMode,
         selectedDimensionLineId,
-        selectDimensionLine,
+        setSelectedDimensionLineId,
     } = useAppStore();
 
     const [drawingLineId, setDrawingLineId] = useState<string | null>(null);
 
     const isDimensionMode = interactionMode === "dimension";
 
-    const setIsDimensionMode = useCallback(
+    const setDimensionModeEnabled = useCallback(
         (enabled: boolean) => {
             setInteractionMode(enabled ? "dimension" : "default");
         },
@@ -57,7 +57,7 @@ export const useDimensionLineMode = (
                     };
                     addDimensionLine(newLine);
                     setDrawingLineId(id);
-                    selectDimensionLine(id);
+                    setSelectedDimensionLineId(id);
                 }
             }
         },
@@ -65,7 +65,7 @@ export const useDimensionLineMode = (
             isDimensionMode,
             getStagePointerPos,
             addDimensionLine,
-            selectDimensionLine,
+            setSelectedDimensionLineId,
         ]
     );
 
@@ -96,7 +96,7 @@ export const useDimensionLineMode = (
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist < MIN_DIMENSION_LINE_DISTANCE) {
                         removeDimensionLine(drawingLineId);
-                        selectDimensionLine(null);
+                        setSelectedDimensionLineId(null);
                     }
                 }
             }
@@ -106,7 +106,7 @@ export const useDimensionLineMode = (
         drawingLineId,
         dimensionLines,
         removeDimensionLine,
-        selectDimensionLine,
+        setSelectedDimensionLineId,
     ]);
 
     // キーボードイベント処理は専用フックに委譲
@@ -114,14 +114,13 @@ export const useDimensionLineMode = (
 
     return {
         isDimensionMode,
-        setIsDimensionMode,
+        setDimensionModeEnabled,
         selectedDimensionLineId,
-        setSelectedDimensionLineId: selectDimensionLine,
+        setSelectedDimensionLineId,
         dimensionLines,
         unitFactor,
         unit,
-        onSelectDimensionLine: selectDimensionLine,
-        onUpdateDimensionLineHandler: updateDimensionLine,
+        updateDimensionLine,
         onMouseDown: onStageMouseDown,
         onMouseMove: onStageMouseMove,
         onMouseUp,

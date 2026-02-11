@@ -6,7 +6,7 @@
     "main": {},
     "render": {
         "menu": {
-            "load_image": "Load Image",
+            "load_image": "Image Settings",
             "new_project": "New Project",
             "open_project": "Open Project",
             "save_project": "Save Project",
@@ -25,11 +25,11 @@
             }
         },
         "context_menu": {
-            "color_picker": "background color"
+            "fit_screen": "Fit to Screen"
         },
         "control_button": {
             "tooltip": {
-                "image_transparency": "image transparency",
+                "background_style": "Background Color/Opacity",
                 "dimension_line": "draw dimension line",
                 "save": "Save Image",
                 "capture": "Capture Background",
@@ -70,7 +70,6 @@
             }
         },
         "about_dlg": {
-            "title": "About ImageOverlayTool",
             "version": "Version",
             "licenses": "Open Source Licenses",
             "done": "Close"

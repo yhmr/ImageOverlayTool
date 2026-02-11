@@ -42,10 +42,22 @@ describe("IPC Project Handlers", () => {
     });
 
     it("should register handlers for project IPC events", () => {
-        expect(ipcMain.handle).toHaveBeenCalledWith("project:saveAs", expect.any(Function));
-        expect(ipcMain.handle).toHaveBeenCalledWith("project:save", expect.any(Function));
-        expect(ipcMain.handle).toHaveBeenCalledWith("project:load", expect.any(Function));
-        expect(ipcMain.handle).toHaveBeenCalledWith("project:loadFromPath", expect.any(Function));
+        expect(ipcMain.handle).toHaveBeenCalledWith(
+            "project:saveAs",
+            expect.any(Function)
+        );
+        expect(ipcMain.handle).toHaveBeenCalledWith(
+            "project:save",
+            expect.any(Function)
+        );
+        expect(ipcMain.handle).toHaveBeenCalledWith(
+            "project:load",
+            expect.any(Function)
+        );
+        expect(ipcMain.handle).toHaveBeenCalledWith(
+            "project:loadFromPath",
+            expect.any(Function)
+        );
     });
 
     describe("project:save", () => {
@@ -59,7 +71,10 @@ describe("IPC Project Handlers", () => {
             const filePath = "/path/to/project.iot";
 
             // Execute the handler via helper
-            const result = await invokeIpcHandler("project:save", {}, { filePath, project: dummyProject });
+            const result = await invokeIpcHandler("project:save", {}, {
+                filePath,
+                project: dummyProject,
+            });
 
             // Verify result
             expect(result).toBe(true);
@@ -97,7 +112,11 @@ describe("IPC Project Handlers", () => {
 
             // Execute handler (mock event with sender needed for BrowserWindow.fromWebContents)
             const mockEvent = { sender: {} };
-            const result = await invokeIpcHandler("project:saveAs", mockEvent, dummyProject);
+            const result = await invokeIpcHandler(
+                "project:saveAs",
+                mockEvent,
+                dummyProject
+            );
 
             expect(result).toBe(savePath);
 
@@ -112,7 +131,11 @@ describe("IPC Project Handlers", () => {
                 filePath: undefined as any,
             });
 
-            const result = await invokeIpcHandler("project:saveAs", { sender: {} }, {} as any);
+            const result = await invokeIpcHandler(
+                "project:saveAs",
+                { sender: {} },
+                {} as any
+            );
             expect(result).toBeNull();
         });
 
@@ -171,8 +194,9 @@ describe("IPC Project Handlers", () => {
             const error = new Error("Load failed");
             vi.spyOn(mockRepo, "loadProject").mockRejectedValue(error);
 
-            await expect(invokeIpcHandler("project:load", { sender: {} }))
-                .rejects.toThrow("Load failed");
+            await expect(invokeIpcHandler("project:load", { sender: {} })).rejects.toThrow(
+                "Load failed"
+            );
         });
     });
 
@@ -189,7 +213,11 @@ describe("IPC Project Handlers", () => {
             await mockRepo.saveProject(filePath, existingProject);
 
             // Execute handler
-            const result = await invokeIpcHandler("project:loadFromPath", {}, filePath);
+            const result = await invokeIpcHandler(
+                "project:loadFromPath",
+                {},
+                filePath
+            );
 
             // Verify result
             expect(result).toEqual({ project: existingProject, filePath });
@@ -199,8 +227,66 @@ describe("IPC Project Handlers", () => {
             const error = new Error("LoadFromPath failed");
             vi.spyOn(mockRepo, "loadProject").mockRejectedValue(error);
 
-            const result = await invokeIpcHandler("project:loadFromPath", {}, "/failed/path.iot");
+            const result = await invokeIpcHandler(
+                "project:loadFromPath",
+                {},
+                "/failed/path.iot"
+            );
             expect(result).toBeNull();
+        });
+    });
+
+    describe("e2e test mode", () => {
+        const e2eProjectPath = "/tmp/e2e/project.iot";
+
+        beforeEach(() => {
+            vi.clearAllMocks();
+            mockRepo = new MockProjectRepository();
+            registerProjectHandlers(mockRepo, {
+                testMode: {
+                    enabled: true,
+                    projectFilePath: e2eProjectPath,
+                },
+            });
+        });
+
+        it("saveAs should bypass native save dialog and use fixed file path", async () => {
+            const dummyProject: ProjectFile = {
+                version: "1.0.0",
+                window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
+                settings: { unitFactor: 1, unit: "um" },
+                images: [],
+            };
+
+            const result = await invokeIpcHandler(
+                "project:saveAs",
+                { sender: {} },
+                dummyProject
+            );
+
+            expect(result).toBe(e2eProjectPath);
+            expect(dialog.showSaveDialog).not.toHaveBeenCalled();
+            await expect(mockRepo.loadProject(e2eProjectPath)).resolves.toEqual(
+                dummyProject
+            );
+        });
+
+        it("load should bypass native open dialog and use fixed file path", async () => {
+            const existingProject: ProjectFile = {
+                version: "1.0.0",
+                window: { width: 100, height: 100, x: 10, y: 10, color: "#FFF" },
+                settings: { unitFactor: 2, unit: "mm" },
+                images: [],
+            };
+            await mockRepo.saveProject(e2eProjectPath, existingProject);
+
+            const result = await invokeIpcHandler("project:load", { sender: {} });
+
+            expect(dialog.showOpenDialog).not.toHaveBeenCalled();
+            expect(result).toEqual({
+                project: existingProject,
+                filePath: e2eProjectPath,
+            });
         });
     });
 });

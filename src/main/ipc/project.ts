@@ -2,43 +2,62 @@ import { ipcMain, dialog, BrowserWindow } from "electron";
 import { IProjectRepository } from "../repositories/ProjectRepository";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import log from "../logger";
+import { IPC_CHANNELS } from "../../shared/ipc/channels";
 
-export const registerProjectHandlers = (repository: IProjectRepository) => {
-    /**
-     * [IPC] プロジェクトファイルの保存
-     */
-    ipcMain.handle("project:saveAs", async (event, project: ProjectFile) => {
-        log.debug("[IPC] project:saveAs called");
-        const window = BrowserWindow.fromWebContents(event.sender);
-        const options = {
-            title: "Save Project",
-            defaultPath: "project.iot",
-            filters: [{ name: "Overlay Project", extensions: ["iot"] }],
-        };
-        try {
-            const { canceled, filePath } = window
-                ? await dialog.showSaveDialog(window, options)
-                : await dialog.showSaveDialog(options);
+export interface ProjectHandlerOptions {
+    testMode?: {
+        enabled: boolean;
+        projectFilePath: string;
+    };
+}
 
-            if (canceled || !filePath) {
-                log.debug("[IPC] project:saveAs canceled by user");
-                return null;
+export const registerProjectHandlers = (
+    repository: IProjectRepository,
+    options?: ProjectHandlerOptions
+) => {
+    const testMode = options?.testMode;
+
+    ipcMain.handle(
+        IPC_CHANNELS.project.saveAs,
+        async (event, project: ProjectFile) => {
+            log.debug("[IPC] project:saveAs called");
+
+            if (testMode?.enabled) {
+                await repository.saveProject(testMode.projectFilePath, project);
+                log.info(
+                    `[IPC] project:saveAs saved in e2e mode: ${testMode.projectFilePath}`
+                );
+                return testMode.projectFilePath;
             }
 
-            await repository.saveProject(filePath, project);
-            log.info(`[IPC] project:saveAs saved to: ${filePath}`);
-            return filePath;
-        } catch (error) {
-            log.error("[IPC] project:saveAs failed:", error);
-            throw error;
-        }
-    });
+            const window = BrowserWindow.fromWebContents(event.sender);
+            const options = {
+                title: "Save Project",
+                defaultPath: "project.iot",
+                filters: [{ name: "Overlay Project", extensions: ["iot"] }],
+            };
+            try {
+                const { canceled, filePath } = window
+                    ? await dialog.showSaveDialog(window, options)
+                    : await dialog.showSaveDialog(options);
 
-    /**
-     * [IPC] プロジェクトファイルの上書き保存
-     */
+                if (canceled || !filePath) {
+                    log.debug("[IPC] project:saveAs canceled by user");
+                    return null;
+                }
+
+                await repository.saveProject(filePath, project);
+                log.info(`[IPC] project:saveAs saved to: ${filePath}`);
+                return filePath;
+            } catch (error) {
+                log.error("[IPC] project:saveAs failed:", error);
+                throw error;
+            }
+        }
+    );
+
     ipcMain.handle(
-        "project:save",
+        IPC_CHANNELS.project.save,
         async (
             event,
             { filePath, project }: { filePath: string; project: ProjectFile }
@@ -55,11 +74,26 @@ export const registerProjectHandlers = (repository: IProjectRepository) => {
         }
     );
 
-    /**
-     * [IPC] プロジェクトファイルの読み込み
-     */
-    ipcMain.handle("project:load", async (event) => {
+    ipcMain.handle(IPC_CHANNELS.project.load, async (event) => {
         log.debug("[IPC] project:load called");
+
+        if (testMode?.enabled) {
+            try {
+                const project = await repository.loadProject(
+                    testMode.projectFilePath
+                );
+                log.info(
+                    `[IPC] project:load completed in e2e mode: ${testMode.projectFilePath}`
+                );
+                return { project, filePath: testMode.projectFilePath };
+            } catch {
+                log.debug(
+                    `[IPC] project:load e2e source unavailable: ${testMode.projectFilePath}`
+                );
+                return null;
+            }
+        }
+
         const window = BrowserWindow.fromWebContents(event.sender);
         const options: Electron.OpenDialogOptions = {
             title: "Open Project",
@@ -86,21 +120,21 @@ export const registerProjectHandlers = (repository: IProjectRepository) => {
         }
     });
 
-    /**
-     * [IPC] パスを指定してプロジェクトファイルを読み込み
-     */
-    ipcMain.handle("project:loadFromPath", async (event, filePath: string) => {
-        log.debug(`[IPC] project:loadFromPath called for: ${filePath}`);
-        try {
-            const project = await repository.loadProject(filePath);
-            log.info(`[IPC] project:loadFromPath completed: ${filePath}`);
-            return { project, filePath };
-        } catch (error) {
-            log.error(
-                `[IPC] project:loadFromPath failed for ${filePath}:`,
-                error
-            );
-            return null;
+    ipcMain.handle(
+        IPC_CHANNELS.project.loadFromPath,
+        async (event, filePath: string) => {
+            log.debug(`[IPC] project:loadFromPath called for: ${filePath}`);
+            try {
+                const project = await repository.loadProject(filePath);
+                log.info(`[IPC] project:loadFromPath completed: ${filePath}`);
+                return { project, filePath };
+            } catch (error) {
+                log.error(
+                    `[IPC] project:loadFromPath failed for ${filePath}:`,
+                    error
+                );
+                return null;
+            }
         }
-    });
+    );
 };

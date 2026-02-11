@@ -41,7 +41,7 @@ describe("useStageControls", () => {
         const event = { evt: { preventDefault, deltaY: -100 } } as any; // Zoom In
 
         act(() => {
-            result.current.handleWheel(event);
+            result.current.onWheel(event);
         });
 
         expect(preventDefault).toHaveBeenCalled();
@@ -50,4 +50,3 @@ describe("useStageControls", () => {
         expect(onUpdate.mock.calls[0][0].scale).toBeGreaterThan(1);
     });
 });
-

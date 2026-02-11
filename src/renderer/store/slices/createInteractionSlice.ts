@@ -6,9 +6,9 @@ export interface InteractionSlice {
     selectedDimensionLineId: string | null;
 
     setInteractionMode: (mode: "default" | "dimension") => void;
-    selectImage: (id: string | null) => void;
-    selectDimensionLine: (id: string | null) => void;
-    deselectAll: () => void;
+    setSelectedImageId: (id: string | null) => void;
+    setSelectedDimensionLineId: (id: string | null) => void;
+    clearSelection: () => void;
 }
 
 export const createInteractionSlice: StateCreator<InteractionSlice> = (
@@ -26,7 +26,7 @@ export const createInteractionSlice: StateCreator<InteractionSlice> = (
             selectedDimensionLineId: null,
         }),
 
-    selectImage: (id) => {
+    setSelectedImageId: (id) => {
         set({
             selectedImageId: id,
             // 画像選択時は寸法線選択を解除
@@ -34,14 +34,14 @@ export const createInteractionSlice: StateCreator<InteractionSlice> = (
         });
     },
 
-    selectDimensionLine: (id) =>
+    setSelectedDimensionLineId: (id) =>
         set({
             selectedDimensionLineId: id,
             // 寸法線選択時は画像選択を解除
             selectedImageId: null,
         }),
 
-    deselectAll: () => {
+    clearSelection: () => {
         set({
             selectedImageId: null,
             selectedDimensionLineId: null,

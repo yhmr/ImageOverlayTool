@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ContextMenu as ShadcnContextMenu,
@@ -7,56 +6,31 @@ import {
     ContextMenuTrigger,
 } from "@/renderer/components/ui/context-menu";
 
-import type { Point } from "../../../shared/types/Point";
-import { ColorPicker } from "./ColorPicker";
+import { useFitToScreen } from "../../hooks/useFitToScreen";
 
 interface ContextMenuProps {
-    color: string;
-    setColor: (color: string) => void;
-    onComplete: () => void;
     children: React.ReactNode;
 }
 
 export function ContextMenu(props: ContextMenuProps) {
-    const { color, setColor, onComplete, children } = props;
+    const { children } = props;
 
     const { t } = useTranslation();
-
-    // カラーピッカー
-    const [openColorPicker, setOpenColorPicker] = useState<boolean>(false);
-    const [colorPickerPosition, setColorPickerPosition] = useState<Point>({
-        x: 0,
-        y: 0,
-    });
-
-    // カラーピッカーを開く処理
-    const handleColorPicker = () => {
-        setOpenColorPicker(true);
-    };
-
-    const handleContextMenuOpen = (event: React.MouseEvent) => {
-        setColorPickerPosition({ x: event.clientX, y: event.clientY });
-    };
+    const { fitToScreen } = useFitToScreen();
 
     return (
         <ShadcnContextMenu>
-            <ContextMenuTrigger onContextMenu={handleContextMenuOpen}>
+            <ContextMenuTrigger>
                 <div style={{ cursor: "context-menu" }}>{children}</div>
             </ContextMenuTrigger>
             <ContextMenuContent>
-                <ContextMenuItem onSelect={handleColorPicker}>
-                    {t("render.context_menu.color_picker")}
+                <ContextMenuItem onSelect={fitToScreen}>
+                    {t(
+                        "render.context_menu.fit_screen",
+                        "画面をフィッティング"
+                    )}
                 </ContextMenuItem>
             </ContextMenuContent>
-
-            <ColorPicker
-                open={openColorPicker}
-                setOpen={setOpenColorPicker}
-                color={color}
-                setColor={setColor}
-                onComplete={onComplete}
-                position={colorPickerPosition}
-            />
         </ShadcnContextMenu>
     );
 }

@@ -1,15 +1,14 @@
+import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { useTranslation } from "react-i18next";
 
-import { useAppStore } from "../../store/useAppStore";
-import { ImageSet } from "../../../shared/types/ImageSet";
-import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
-
 import { Card, CardContent } from "@/renderer/components/ui/card";
-
+import { ImageSet } from "../../../shared/types/ImageSet";
+import { toLocalFileUrl } from "../../factories/imageSetFactory";
+import { useIpcService } from "../../providers/IpcServiceProvider";
+import { useAppStore } from "../../store/useAppStore";
 import { ImageItemHeader } from "./ImageItemHeader";
-import { TransparencyControl } from "./TransparencyControl";
 import { RotationControl } from "./RotationControl";
-import { getIPCService } from "../../services/ipcService";
+import { TransparencyControl } from "./TransparencyControl";
 
 interface ImageListItemProps {
     imageSet: ImageSet;
@@ -24,23 +23,23 @@ interface ImageListItemProps {
 export function ImageListItem(props: ImageListItemProps) {
     const { imageSet, index, dragHandleProps } = props;
     const { t } = useTranslation();
+    const ipcService = useIpcService();
 
     const { imageSets, updateImageSet, setImageSets } = useAppStore();
 
     // ファイルオープン
-    const handleFileOpen = async () => {
-        const ipcService = getIPCService();
+    const openFile = async () => {
         ipcService.log.debug("Opening file dialog for image slot", { index });
         const res = await ipcService.loadImage();
         if (res) {
             ipcService.log.info(`Image loaded for slot ${index}: ${res}`);
             const newImageSet = { ...imageSets[index] };
-            newImageSet.path = `local-file://${res.replace(/\\/g, "/")}`;
+            newImageSet.path = toLocalFileUrl(res);
             // ファイル読み込み直しの場合は、すべてのパラメータを初期化
             newImageSet.transparency = 0.0;
             newImageSet.rotation = 0;
-            newImageSet.init_anchor_pos = null;
-            newImageSet.current_anchor_pos = null;
+            newImageSet.initAnchorPos = null;
+            newImageSet.currentAnchorPos = null;
             updateImageSet({ index: index, imageSet: newImageSet });
         } else {
             ipcService.log.debug("Image loading canceled by user");
@@ -48,22 +47,22 @@ export function ImageListItem(props: ImageListItemProps) {
     };
 
     // 削除
-    const handleDelete = () => {
+    const deleteImageSet = () => {
         const newImageSets = [...imageSets];
         newImageSets.splice(index, 1);
         setImageSets(newImageSets);
     };
 
     // 透過度変更 (shadcn Slider returns number[])
-    const handleTransparencyChange = (value: number[]) => {
+    const changeTransparency = (value: number[]) => {
         const newImageSet = { ...imageSet };
         newImageSet.transparency = value[0];
         updateImageSet({ index: index, imageSet: newImageSet });
     };
 
     // 回転変更
-    const handleRotationChange = (value: number[]) => {
-        if (!imageSet.current_anchor_pos) return;
+    const changeRotation = (value: number[]) => {
+        if (!imageSet.currentAnchorPos) return;
 
         const newImageSet = { ...imageSet };
         newImageSet.rotation = value[0];
@@ -72,20 +71,20 @@ export function ImageListItem(props: ImageListItemProps) {
     };
 
     // 回転入力変更 (Input)
-    const handleRotationInputChange = (
+    const changeRotationInput = (
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         const value = Number(event.target.value);
         if (isNaN(value)) return;
 
-        if (!imageSet.current_anchor_pos) return;
+        if (!imageSet.currentAnchorPos) return;
         const newImageSet = { ...imageSet };
         newImageSet.rotation = value;
         updateImageSet({ index: index, imageSet: newImageSet });
     };
 
     // ロック切り替え
-    const handleToggleLock = () => {
+    const toggleLock = () => {
         const newImageSet = { ...imageSet };
         // undefinedの場合はfalseとして扱う
         newImageSet.locked = !newImageSet.locked;
@@ -104,9 +103,9 @@ export function ImageListItem(props: ImageListItemProps) {
                     path={imageSet.path}
                     fileName={fileName}
                     isLocked={imageSet.locked}
-                    onFileOpen={handleFileOpen}
-                    onToggleLock={handleToggleLock}
-                    onDelete={handleDelete}
+                    onFileOpen={openFile}
+                    onToggleLock={toggleLock}
+                    onDelete={deleteImageSet}
                     dragHandleProps={dragHandleProps}
                 />
 
@@ -114,16 +113,16 @@ export function ImageListItem(props: ImageListItemProps) {
                 {imageSet.path && (
                     <TransparencyControl
                         transparency={imageSet.transparency}
-                        onChange={handleTransparencyChange}
+                        onChange={changeTransparency}
                     />
                 )}
 
                 {/* 回転スライダー */}
-                {imageSet.path && imageSet.current_anchor_pos && (
+                {imageSet.path && imageSet.currentAnchorPos && (
                     <RotationControl
                         rotation={imageSet.rotation || 0}
-                        onRotationChange={handleRotationChange}
-                        onInputChange={handleRotationInputChange}
+                        onRotationChange={changeRotation}
+                        onInputChange={changeRotationInput}
                     />
                 )}
             </CardContent>

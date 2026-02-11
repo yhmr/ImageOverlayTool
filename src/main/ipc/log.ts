@@ -4,6 +4,7 @@
  */
 import { ipcMain } from "electron";
 import log from "../logger";
+import { IPC_CHANNELS } from "../../shared/ipc/channels";
 
 // ログレベルの型定義
 type LogLevel = "debug" | "info" | "warn" | "error";
@@ -13,7 +14,7 @@ type LogLevel = "debug" | "info" | "warn" | "error";
  */
 export function registerLogHandlers(): void {
     ipcMain.handle(
-        "log:write",
+        IPC_CHANNELS.log.write,
         (_event, level: LogLevel, message: string, params: unknown[]): void => {
             if (["debug", "info", "warn", "error"].includes(level)) {
                 const rendererLog = log.scope("renderer");

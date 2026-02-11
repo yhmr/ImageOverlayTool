@@ -16,12 +16,16 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@assets/*": [
+        "assets/*"
       ]
     }
   },
   "include": [
     "src/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    "assets/**/*"
   ],
   "ts-node": {
     "compilerOptions": {

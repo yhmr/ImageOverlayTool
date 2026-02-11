@@ -1,0 +1,83 @@
+baseURL = 'https://yhmr.github.io/ImageOverlayTool/'
+defaultContentLanguage = 'ja'
+defaultContentLanguageInSubdir = false
+title = 'ImageOverlayTool'
+theme = 'PaperMod'
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[params]
+  defaultTheme = "auto"
+  ShowShareButtons = true
+  ShowBreadCrumbs = true
+  ShowReadingTime = false
+  ShowPostNavLinks = true
+  ShowCodeCopyButtons = true
+
+[languages]
+  [languages.ja]
+    languageCode = 'ja'
+    title = 'ImageOverlayTool'
+    contentDir = 'content'
+    weight = 1
+    
+    [languages.ja.params.profileMode]
+      enabled = true
+      title = "ImageOverlayTool"
+      subtitle = "画像の重ね合わせ・比較調整ツール"
+      imageUrl = "img/icon.png"
+      imageWidth = 200
+      imageHeight = 200
+      
+      [[languages.ja.params.profileMode.buttons]]
+        name = "使い方ガイド"
+        url = "guide"
+      [[languages.ja.params.profileMode.buttons]]
+        name = "ダウンロード"
+        url = "https://github.com/yhmr/ImageOverlayTool/releases"
+
+    [languages.ja.menu]
+      [[languages.ja.menu.main]]
+        identifier = "guide"
+        name = "使い方ガイド"
+        url = "/guide/"
+        weight = 10
+      [[languages.ja.menu.main]]
+        identifier = "github"
+        name = "GitHub"
+        url = "https://github.com/yhmr/ImageOverlayTool"
+        weight = 20
+
+  [languages.en]
+    languageCode = 'en'
+    title = 'ImageOverlayTool'
+    contentDir = 'content'
+    weight = 2
+
+    [languages.en.params.profileMode]
+      enabled = true
+      title = "ImageOverlayTool"
+      subtitle = "Image overlay and comparison tool"
+      imageUrl = "img/icon.png"
+      imageWidth = 200
+      imageHeight = 200
+
+      [[languages.en.params.profileMode.buttons]]
+        name = "User Guide"
+        url = "guide"
+      [[languages.en.params.profileMode.buttons]]
+        name = "Download"
+        url = "https://github.com/yhmr/ImageOverlayTool/releases"
+
+    [languages.en.menu]
+      [[languages.en.menu.main]]
+        identifier = "guide"
+        name = "User Guide"
+        url = "/en/guide/"
+        weight = 10
+      [[languages.en.menu.main]]
+        identifier = "github"
+        name = "GitHub"
+        url = "https://github.com/yhmr/ImageOverlayTool"
+        weight = 20

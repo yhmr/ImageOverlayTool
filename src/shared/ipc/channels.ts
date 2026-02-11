@@ -1,0 +1,49 @@
+export const IPC_CHANNELS = {
+    log: {
+        write: "log:write",
+    },
+    window: {
+        switchSize: "window:switchSize",
+        close: "window:close",
+        setRect: "window:setRect",
+    },
+    setting: {
+        load: "setting:load",
+        save: "setting:save",
+        windowColorLoad: "window_color:load",
+        windowColorSave: "window_color:save",
+    },
+    project: {
+        saveAs: "project:saveAs",
+        save: "project:save",
+        load: "project:load",
+        loadFromPath: "project:loadFromPath",
+    },
+    imageSettingsWindow: {
+        toggle: "imageSettingsWindow:toggle",
+        loadImage: "image:load",
+    },
+    sync: {
+        updateImageSets: "imageSets:update",
+        updateUnitFactor: "unitFactor:update",
+        updateUnit: "unit:update",
+        requestInitialState: "state:requestInitial",
+    },
+    license: {
+        get: "license:get",
+        appVersion: "app:getVersion",
+    },
+    capture: {
+        screen: "capture-screen",
+        window: "capture-window",
+        saveImageData: "save-image-data",
+    },
+} as const;
+
+export const IPC_EVENTS = {
+    imageSetsUpdated: "imageSets:updated",
+    unitFactorUpdated: "unitFactor:updated",
+    unitUpdated: "unit:updated",
+    requestStateSync: "state:requestSync",
+    fileOpen: "file:open",
+} as const;

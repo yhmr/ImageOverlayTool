@@ -7,20 +7,22 @@ import type { ImageSet } from "../../shared/types/ImageSet";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
-
+import type { LicenseInfo } from "../../shared/types/LicenseInfo";
 /**
- * IPCサービスのインターフェース
+ * IPCサービスのドメイン別インターフェース
  */
-export interface IIPCService {
-    // Logger
+export type Unit = "nm" | "um" | "mm";
+
+export interface ILogIPCService {
     log: {
         debug: (message: string, ...params: unknown[]) => Promise<void>;
         info: (message: string, ...params: unknown[]) => Promise<void>;
         warn: (message: string, ...params: unknown[]) => Promise<void>;
         error: (message: string, ...params: unknown[]) => Promise<void>;
     };
+}
 
-    // Window
+export interface IWindowIPCService {
     switchWindowSize: () => Promise<boolean>;
     setWindowRect: (rect: {
         x: number;
@@ -29,18 +31,21 @@ export interface IIPCService {
         height: number;
     }) => Promise<void>;
     closeWindow: () => Promise<void>;
+}
 
-    // Setting
+export interface ISettingsIPCService {
     loadSetting: () => Promise<{ language: string }>;
     saveSetting: (setting: SettingType) => Promise<void>;
-
-    // Window Color
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;
+}
 
-    // Project
-    saveProjectAs: (project: ProjectFile) => Promise<string | null>;
-    saveProject: (filePath: string, project: ProjectFile) => Promise<boolean>;
+export interface IProjectIPCService {
+    saveProjectAs: (project: ProjectFile<ImageSet>) => Promise<string | null>;
+    saveProject: (
+        filePath: string,
+        project: ProjectFile<ImageSet>
+    ) => Promise<boolean>;
     loadProject: () => Promise<{
         project: ProjectFile<ImageSet>;
         filePath: string;
@@ -48,50 +53,67 @@ export interface IIPCService {
     loadProjectFromPath: (
         filePath: string
     ) => Promise<{ project: ProjectFile<ImageSet>; filePath: string } | null>;
+}
 
-    // Image Settings Window
+export interface IImageSettingsWindowIPCService {
     loadImage: () => Promise<string | null>;
-    toggleImageSettingsWindow: () => Promise<void>;
+    toggleImageSettingsWindow: () => Promise<boolean>;
+}
 
-    // ImageSets Sync
+export interface IImageSyncIPCService {
     updateImageSets(imageSets: ImageSet[]): Promise<void>;
     onImageSetsUpdated: (
         callback: (imageSets: ImageSet[]) => void
     ) => () => void;
+}
 
-    // Unit Factor Sync
+export interface IUnitSyncIPCService {
     updateUnitFactor(factor: number): Promise<void>;
     onUnitFactorUpdated: (callback: (factor: number) => void) => () => void;
 
-    // Unit sync
-    updateUnit(unit: "nm" | "um" | "mm"): Promise<void>;
-    onUnitUpdated: (callback: (unit: "nm" | "um" | "mm") => void) => () => void;
+    updateUnit(unit: Unit): Promise<void>;
+    onUnitUpdated: (callback: (unit: Unit) => void) => () => void;
+}
 
-    // Initial State Sync
-    requestInitialState: () => Promise<{
-        imageSets: ImageSet[];
-        unitFactor: number;
-        unit: "nm" | "um" | "mm";
-    }>;
+export interface IStateSyncIPCService {
+    requestInitialState: () => Promise<void>;
     onRequestStateSync: (callback: () => void) => () => void;
-
-    // File Open
     onFileOpen: (
         callback: (filePath: string, ext: string) => void
     ) => () => void;
+}
 
-    // License
-    getLicenseInfo: () => Promise<unknown>;
-
-    // App Version
+export interface ILicenseIPCService {
+    getLicenseInfo: () => Promise<LicenseInfo[]>;
     getAppVersion: () => Promise<string>;
+}
 
-    // Capture
+export interface ICaptureIPCService {
     captureScreen: () => Promise<CaptureResult>;
     captureWindow: () => Promise<CaptureResult>;
     saveImage: (dataUrl: string) => Promise<string | null>;
 }
 
+export interface IProjectDataSyncIPCService {
+    updateImageSets(imageSets: ImageSet[]): Promise<void>;
+    updateUnitFactor(factor: number): Promise<void>;
+    updateUnit(unit: Unit): Promise<void>;
+}
+
+/**
+ * IPCサービスの統合インターフェース
+ */
+export interface IIPCService
+    extends ILogIPCService,
+        IWindowIPCService,
+        ISettingsIPCService,
+        IProjectIPCService,
+        IImageSettingsWindowIPCService,
+        IImageSyncIPCService,
+        IUnitSyncIPCService,
+        IStateSyncIPCService,
+        ILicenseIPCService,
+        ICaptureIPCService {}
 /**
  * 実際のElectron IPC通信を行う service
  */
@@ -125,7 +147,7 @@ class IPCService implements IIPCService {
     }
 
     async loadSetting(): Promise<{ language: string }> {
-        return (await window.electronAPI.loadSetting()) as { language: string };
+        return await window.electronAPI.loadSetting();
     }
 
     async saveSetting(setting: SettingType): Promise<void> {
@@ -133,58 +155,45 @@ class IPCService implements IIPCService {
     }
 
     async loadWindowColor(): Promise<string> {
-        return (await window.electronAPI.loadWindowColor()) as string;
+        return await window.electronAPI.loadWindowColor();
     }
 
     async saveWindowColor(color: string): Promise<void> {
         await window.electronAPI.saveWindowColor(color);
     }
 
-    async saveProjectAs(project: ProjectFile): Promise<string | null> {
-        return (await window.electronAPI.saveProjectAs(project)) as
-            | string
-            | null;
+    async saveProjectAs(
+        project: ProjectFile<ImageSet>
+    ): Promise<string | null> {
+        return await window.electronAPI.saveProjectAs(project);
     }
 
     async saveProject(
         filePath: string,
-        project: ProjectFile
+        project: ProjectFile<ImageSet>
     ): Promise<boolean> {
-        return (await window.electronAPI.saveProject(
-            filePath,
-            project
-        )) as unknown as boolean;
+        return await window.electronAPI.saveProject(filePath, project);
     }
 
     async loadProject(): Promise<{
         project: ProjectFile<ImageSet>;
         filePath: string;
     } | null> {
-        const res = (await window.electronAPI.loadProject()) as unknown as {
-            project: ProjectFile<ImageSet>;
-            filePath: string;
-        } | null;
-        return res;
+        return await window.electronAPI.loadProject();
     }
 
     async loadProjectFromPath(
         filePath: string
     ): Promise<{ project: ProjectFile<ImageSet>; filePath: string } | null> {
-        const res = (await window.electronAPI.loadProjectFromPath(
-            filePath
-        )) as unknown as {
-            project: ProjectFile<ImageSet>;
-            filePath: string;
-        } | null;
-        return res;
+        return await window.electronAPI.loadProjectFromPath(filePath);
     }
 
     async loadImage(): Promise<string | null> {
-        return (await window.electronAPI.loadImage()) as string | null;
+        return await window.electronAPI.loadImage();
     }
 
-    async toggleImageSettingsWindow(): Promise<void> {
-        await window.electronAPI.toggleImageSettingsWindow();
+    async toggleImageSettingsWindow(): Promise<boolean> {
+        return await window.electronAPI.toggleImageSettingsWindow();
     }
 
     async updateImageSets(imageSets: ImageSet[]): Promise<void> {
@@ -203,21 +212,16 @@ class IPCService implements IIPCService {
         return window.electronAPI.onUnitFactorUpdated(callback);
     }
 
-    async updateUnit(unit: "nm" | "um" | "mm"): Promise<void> {
+    async updateUnit(unit: Unit): Promise<void> {
         await window.electronAPI.updateUnit(unit);
     }
 
-    onUnitUpdated(callback: (unit: "nm" | "um" | "mm") => void): () => void {
+    onUnitUpdated(callback: (unit: Unit) => void): () => void {
         return window.electronAPI.onUnitUpdated(callback);
     }
 
-    async requestInitialState(): Promise<{
-        imageSets: ImageSet[];
-        unitFactor: number;
-        unit: "nm" | "um" | "mm";
-    }> {
-        const res = await window.electronAPI.requestInitialState();
-        return res;
+    async requestInitialState(): Promise<void> {
+        await window.electronAPI.requestInitialState();
     }
 
     onRequestStateSync(callback: () => void): () => void {
@@ -228,24 +232,24 @@ class IPCService implements IIPCService {
         return window.electronAPI.onFileOpen(callback);
     }
 
-    async getLicenseInfo(): Promise<unknown> {
-        return (await window.electronAPI.getLicenseInfo()) as unknown;
+    async getLicenseInfo(): Promise<LicenseInfo[]> {
+        return await window.electronAPI.getLicenseInfo();
     }
 
     async getAppVersion(): Promise<string> {
-        return (await window.electronAPI.getAppVersion()) as string;
+        return await window.electronAPI.getAppVersion();
     }
 
     async captureScreen(): Promise<CaptureResult> {
-        return (await window.electronAPI.captureScreen()) as CaptureResult;
+        return await window.electronAPI.captureScreen();
     }
 
     async captureWindow(): Promise<CaptureResult> {
-        return (await window.electronAPI.captureWindow()) as CaptureResult;
+        return await window.electronAPI.captureWindow();
     }
 
     async saveImage(dataUrl: string): Promise<string | null> {
-        return (await window.electronAPI.saveImage(dataUrl)) as string | null;
+        return await window.electronAPI.saveImage(dataUrl);
     }
 }
 

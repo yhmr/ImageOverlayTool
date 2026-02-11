@@ -40,13 +40,45 @@ describe("ProjectRepository", () => {
         );
     });
 
+    test("saveProject should keep camelCase anchor keys", async () => {
+        const filePath = "/test/path/project.json";
+        await repository.saveProject(filePath, {
+            ...mockProjectFile,
+            images: [
+                {
+                    id: "img-1",
+                    path: "a.png",
+                    transparency: 0,
+                    rotation: 0,
+                    initAnchorPos: {
+                        lt: { x: 0, y: 0 },
+                        lb: { x: 0, y: 10 },
+                        rt: { x: 10, y: 0 },
+                        rb: { x: 10, y: 10 },
+                    },
+                    currentAnchorPos: {
+                        lt: { x: 1, y: 1 },
+                        lb: { x: 1, y: 11 },
+                        rt: { x: 11, y: 1 },
+                        rb: { x: 11, y: 11 },
+                    },
+                },
+            ],
+        });
+
+        const written = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+        const parsed = JSON.parse(written);
+
+        expect(parsed.images[0].initAnchorPos).toBeTruthy();
+        expect(parsed.images[0].currentAnchorPos).toBeTruthy();
+        expect(parsed.images[0].init_anchor_pos).toBeUndefined();
+        expect(parsed.images[0].current_anchor_pos).toBeUndefined();
+    });
+
     test("loadProject should read file and parse json", async () => {
         const filePath = "/test/path/project.json";
 
-        // Setup mock return value
-        vi.mocked(fs.readFile).mockResolvedValue(
-            JSON.stringify(mockProjectFile)
-        );
+        vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(mockProjectFile));
 
         const result = await repository.loadProject(filePath);
 

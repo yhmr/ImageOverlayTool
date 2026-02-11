@@ -6,7 +6,7 @@
     "main": {},
     "render": {
         "menu": {
-            "load_image": "画像読み込み",
+            "load_image": "画像設定",
             "new_project": "新規作成",
             "open_project": "プロジェクトを開く",
             "save_project": "プロジェクトを保存",
@@ -25,11 +25,11 @@
             }
         },
         "context_menu": {
-            "color_picker": "ウィンドウ背景のカラー設定"
+            "fit_screen": "画面をフィッティング"
         },
         "control_button": {
             "tooltip": {
-                "image_transparency": "画像の透過度",
+                "background_style": "背景色/透過度",
                 "dimension_line": "寸法線の描画",
                 "save": "画像を保存",
                 "capture": "背景をキャプチャ",
@@ -70,7 +70,6 @@
             }
         },
         "about_dlg": {
-            "title": "ImageOverlayToolについて",
             "version": "バージョン",
             "licenses": "オープンソースライセンス",
             "done": "閉じる"
