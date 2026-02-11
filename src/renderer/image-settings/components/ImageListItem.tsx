@@ -1,7 +1,9 @@
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { useTranslation } from "react-i18next";
+import { RefreshCcw } from "lucide-react";
 
 import { Card, CardContent } from "@/renderer/components/ui/card";
+import { Button } from "@/renderer/components/ui/button";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import { toLocalFileUrl } from "../../factories/imageSetFactory";
 import { useIpcService } from "../../providers/IpcServiceProvider";
@@ -9,6 +11,7 @@ import { useAppStore } from "../../store/useAppStore";
 import { ImageItemHeader } from "./ImageItemHeader";
 import { RotationControl } from "./RotationControl";
 import { TransparencyControl } from "./TransparencyControl";
+import { FilterControl } from "./FilterControl";
 
 interface ImageListItemProps {
     imageSet: ImageSet;
@@ -25,7 +28,8 @@ export function ImageListItem(props: ImageListItemProps) {
     const { t } = useTranslation();
     const ipcService = useIpcService();
 
-    const { imageSets, updateImageSet, setImageSets } = useAppStore();
+    const { imageSets, updateImageSet, setImageSets, selectedImageId } =
+        useAppStore();
 
     // ファイルオープン
     const openFile = async () => {
@@ -40,6 +44,13 @@ export function ImageListItem(props: ImageListItemProps) {
             newImageSet.rotation = 0;
             newImageSet.initAnchorPos = null;
             newImageSet.currentAnchorPos = null;
+            // フィルタ系もリセット
+            newImageSet.visible = true;
+            newImageSet.filters = {
+                binarization: { enabled: false, threshold: 128 },
+                hsv: { enabled: false, h: 0, s: 0, v: 0 },
+            };
+
             updateImageSet({ index: index, imageSet: newImageSet });
         } else {
             ipcService.log.debug("Image loading canceled by user");
@@ -91,20 +102,47 @@ export function ImageListItem(props: ImageListItemProps) {
         updateImageSet({ index: index, imageSet: newImageSet });
     };
 
+    // 表示切り替え
+    const toggleVisible = () => {
+        const newImageSet = { ...imageSet };
+        newImageSet.visible = !(newImageSet.visible ?? true);
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
+
+    // 変形解除
+    const resetTransformation = () => {
+        // TODO: ロジック実装は後で行う (anchorUtils.resetTransformation を利用)
+        console.log("Reset transformation clicked", imageSet.id);
+    };
+
+    // フィルタ変更
+    const changeFilters = (filters: ImageSet["filters"]) => {
+        const newImageSet = { ...imageSet, filters };
+        updateImageSet({ index: index, imageSet: newImageSet });
+    };
+
     // ファイル名を抽出（パスから）
     const fileName = imageSet.path
         ? imageSet.path.split("/").pop() || imageSet.path
         : t("render.image_settings.no_image");
 
+    const isSelected = selectedImageId === imageSet.id;
+
     return (
-        <Card className="mb-2">
-            <CardContent className="p-3">
+        <Card
+            className={`mb-2 transition-colors ${
+                isSelected ? "border-primary border-2" : ""
+            }`}
+        >
+            <CardContent className="p-3 space-y-3">
                 <ImageItemHeader
                     path={imageSet.path}
                     fileName={fileName}
                     isLocked={imageSet.locked}
+                    isVisible={imageSet.visible}
                     onFileOpen={openFile}
                     onToggleLock={toggleLock}
+                    onToggleVisible={toggleVisible}
                     onDelete={deleteImageSet}
                     dragHandleProps={dragHandleProps}
                 />
@@ -124,6 +162,33 @@ export function ImageListItem(props: ImageListItemProps) {
                         onRotationChange={changeRotation}
                         onInputChange={changeRotationInput}
                     />
+                )}
+
+                {/* アクションボタン群 */}
+                {imageSet.path && (
+                    <div className="flex gap-2">
+                        {/* 変形解除ボタン */}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={resetTransformation}
+                            title={t(
+                                "render.image_settings.tooltip.reset_transformation"
+                            )}
+                        >
+                            <RefreshCcw className="mr-2 h-4 w-4" />
+                            {t("render.image_settings.reset_transformation")}
+                        </Button>
+
+                        {/* フィルタ設定ボタン (Popover) */}
+                        <div className="flex-1">
+                            <FilterControl
+                                filters={imageSet.filters}
+                                onFilterChange={changeFilters}
+                            />
+                        </div>
+                    </div>
                 )}
             </CardContent>
         </Card>

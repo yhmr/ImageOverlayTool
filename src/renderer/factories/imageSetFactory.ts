@@ -11,6 +11,8 @@ type ImageSetFactoryOptions = {
     initAnchorPos?: AnchorPos | null;
     currentAnchorPos?: AnchorPos | null;
     locked?: boolean;
+    visible?: boolean;
+    filters?: ImageSet["filters"];
 };
 
 export const toLocalFileUrl = (filePath: string): string =>
@@ -26,6 +28,11 @@ export const createImageSet = (
     initAnchorPos: options.initAnchorPos ?? null,
     currentAnchorPos: options.currentAnchorPos ?? null,
     locked: options.locked ?? false,
+    visible: options.visible ?? true,
+    filters: options.filters ?? {
+        binarization: { enabled: false, threshold: 128 },
+        hsv: { enabled: false, h: 0, s: 0, v: 0 },
+    },
 });
 
 export const createEmptyImageSet = (): ImageSet => createImageSet();

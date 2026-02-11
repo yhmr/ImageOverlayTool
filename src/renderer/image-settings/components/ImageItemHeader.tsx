@@ -1,5 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { FolderOpen, Trash2, GripVertical, Lock, Unlock } from "lucide-react";
+import {
+    FolderOpen,
+    Trash2,
+    GripVertical,
+    Lock,
+    Unlock,
+    Eye,
+    EyeOff,
+} from "lucide-react";
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 import { Button } from "@/renderer/components/ui/button";
@@ -14,8 +22,10 @@ interface ImageItemHeaderProps {
     path: string;
     fileName: string;
     isLocked?: boolean;
+    isVisible?: boolean;
     onFileOpen: () => void;
     onToggleLock: () => void;
+    onToggleVisible: () => void;
     onDelete: () => void;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
@@ -25,8 +35,10 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
         path,
         fileName,
         isLocked,
+        isVisible = true,
         onFileOpen,
         onToggleLock,
+        onToggleVisible,
         onDelete,
         dragHandleProps,
     } = props;
@@ -51,6 +63,27 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
             </div>
 
             <TooltipProvider>
+                {/* 表示切り替えボタン */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={onToggleVisible}
+                        >
+                            {isVisible ? (
+                                <Eye className="h-4 w-4" />
+                            ) : (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            )}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{t("render.image_settings.tooltip.visible")}</p>
+                    </TooltipContent>
+                </Tooltip>
+
                 {/* ファイルオープンボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>
