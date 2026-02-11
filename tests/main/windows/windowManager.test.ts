@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Define mocks using hoisted to ensure they are available in vi.mock factory
 const { mockWindow, mockWebContents } = vi.hoisted(() => {
-    const webContents = { send: vi.fn(), id: 1 };
+    const webContents = { send: vi.fn(), id: 1, setWindowOpenHandler: vi.fn() };
     // Create an event emitter like mock
     const listeners: Record<string, ((...args: any[]) => void)[]> = {};
 

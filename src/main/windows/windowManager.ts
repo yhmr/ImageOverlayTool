@@ -175,6 +175,12 @@ export class WindowManager {
         this.mainWindow.on("ready-to-show", () => {
             log.debug("Main window ready-to-show");
 
+            // スプラッシュ画面がない場合（E2E等）は即座に表示
+            if (!this.splashWindow) {
+                this.mainWindow?.show();
+                return;
+            }
+
             // スプラッシュ画面を最低でも一定時間は表示し続ける
             const MINIMUM_SPLASH_DURATION = 1500; // 1.5秒
             const elapsed = Date.now() - (this.splashDisplayTime || Date.now());
