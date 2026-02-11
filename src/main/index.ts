@@ -60,8 +60,9 @@ if (!gotTheLock) {
 } else {
     registerSingleInstanceHandlers(windowManager);
 
-    app.whenReady().then(() => {
-        log.info("App ready, creating main window...");
+    app.whenReady().then(async () => {
+        log.info("App ready, creating windows...");
+        await windowManager.showSplashScreen();
 
         // 1) protocol -> 2) ipc -> 3) window の順で組み立てる
         setupProtocolHandler();
@@ -100,9 +101,7 @@ if (!gotTheLock) {
                 });
         }
 
-        if (!app.isPackaged && !e2eConfig.enabled) {
-            mainWindow.webContents.openDevTools({ mode: "detach" });
-        }
+        windowManager.openDevTools(mainWindow, e2eConfig.enabled);
     });
 
     registerShutdownHandlers(windowManager);

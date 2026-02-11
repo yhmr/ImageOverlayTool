@@ -1,5 +1,5 @@
 import path from "path";
-import { BrowserWindow, shell } from "electron";
+import { BrowserWindow, shell, app } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
@@ -26,11 +26,13 @@ export interface IImageSettingsWindowController {
  */
 export class WindowManager {
     private mainWindow: BrowserWindow | null = null;
+    private splashWindow: BrowserWindow | null = null;
     private imageSettingsWindow: BrowserWindow | null = null;
     private windowRepository: IWindowRepository;
     private readonly shortcutManager: IWindowShortcutManager;
     private isQuitting = false;
     private pendingFilePath: string | null = null;
+    private splashDisplayTime: number | null = null; // スプラッシュ表示開始時刻
 
     constructor(
         windowRepository: IWindowRepository,
@@ -45,6 +47,59 @@ export class WindowManager {
      */
     willQuit(): void {
         this.isQuitting = true;
+    }
+
+    /**
+     * スプラッシュ画面を表示（完了まで待機）
+     */
+    async showSplashScreen(): Promise<BrowserWindow> {
+        log.debug("Creating splash window...");
+        this.splashWindow = new BrowserWindow({
+            width: 500,
+            height: 300,
+            transparent: true,
+            frame: false,
+            alwaysOnTop: true,
+            resizable: false,
+            movable: false,
+            center: true,
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true,
+            },
+        });
+
+        const showPromise = new Promise<BrowserWindow>((resolve) => {
+            this.splashWindow?.once("ready-to-show", () => {
+                this.splashWindow?.show();
+                this.splashDisplayTime = Date.now(); // 表示時刻を記録
+                log.info("Splash window shown");
+                resolve(this.splashWindow!);
+            });
+        });
+
+        if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+            this.splashWindow.loadURL(
+                process.env["ELECTRON_RENDERER_URL"] + "/splash/"
+            );
+        } else {
+            this.splashWindow.loadFile(
+                path.join(__dirname, "../renderer/splash/index.html")
+            );
+        }
+
+        return showPromise;
+    }
+
+    /**
+     * スプラッシュウィンドウを破棄
+     */
+    destroySplashWindow(): void {
+        if (this.splashWindow && !this.splashWindow.isDestroyed()) {
+            log.debug("Destroying splash window...");
+            this.splashWindow.destroy();
+            this.splashWindow = null;
+        }
     }
 
     /**
@@ -119,7 +174,21 @@ export class WindowManager {
         // 準備が出来た時点で表示
         this.mainWindow.on("ready-to-show", () => {
             log.debug("Main window ready-to-show");
-            this.mainWindow?.show();
+
+            // スプラッシュ画面を最低でも一定時間は表示し続ける
+            const MINIMUM_SPLASH_DURATION = 1500; // 1.5秒
+            const elapsed = Date.now() - (this.splashDisplayTime || Date.now());
+            const delay = Math.max(0, MINIMUM_SPLASH_DURATION - elapsed);
+
+            log.debug(
+                `Splash duration: elapsed=${elapsed}ms, delay=${delay}ms`
+            );
+
+            setTimeout(() => {
+                this.mainWindow?.show();
+                this.destroySplashWindow();
+            }, delay);
+
             // show() calls flushPending via 'show' event listener below
         });
 
@@ -140,6 +209,7 @@ export class WindowManager {
         this.mainWindow.on("closed", () => {
             // メインウィンドウが閉じられたらアプリ終了とみなす
             this.isQuitting = true;
+            this.destroySplashWindow();
 
             // 画像設定ウィンドウも閉じる
             if (
@@ -315,6 +385,9 @@ export class WindowManager {
         ) {
             windows.push(this.imageSettingsWindow);
         }
+        if (this.splashWindow && !this.splashWindow.isDestroyed()) {
+            windows.push(this.splashWindow);
+        }
         return windows;
     }
 
@@ -331,6 +404,8 @@ export class WindowManager {
             this.imageSettingsWindow = null;
         }
 
+        this.destroySplashWindow();
+
         if (this.mainWindow && !this.mainWindow.isDestroyed()) {
             this.mainWindow.close();
         }
@@ -344,5 +419,20 @@ export class WindowManager {
         this.unregisterShortcuts();
         this.closeAllWindows();
         log.debug("WindowManager cleanup completed");
+    }
+
+    /**
+     * DevToolsを開く（開発環境かつプレビューでない場合のみ）
+     */
+    openDevTools(window: BrowserWindow, e2eEnabled: boolean): void {
+        const shouldOpen =
+            !app.isPackaged &&
+            is.dev &&
+            process.env["ELECTRON_RENDERER_URL"] &&
+            !e2eEnabled;
+
+        if (shouldOpen) {
+            window.webContents.openDevTools({ mode: "detach" });
+        }
     }
 }
