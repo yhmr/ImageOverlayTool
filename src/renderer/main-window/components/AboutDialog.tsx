@@ -90,14 +90,22 @@ export function AboutDialog(props: AboutDialogProps) {
                                 Copyright &copy; 2026 yhmr
                             </p>
                         </div>
-                        <div className="flex gap-4">
+                        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+                            <a
+                                href="https://yhmr.github.io/ImageOverlayTool/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                Official Site
+                            </a>
                             <a
                                 href="https://github.com/yhmr/ImageOverlayTool"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-xs text-primary hover:underline"
                             >
-                                GitHub Repository
+                                GitHub
                             </a>
                             <a
                                 href="https://github.com/yhmr/ImageOverlayTool/issues"
@@ -106,6 +114,14 @@ export function AboutDialog(props: AboutDialogProps) {
                                 className="text-xs text-primary hover:underline"
                             >
                                 Report Issue
+                            </a>
+                            <a
+                                href="https://yhmr.github.io/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                Developer
                             </a>
                         </div>
                     </div>
