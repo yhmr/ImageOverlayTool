@@ -24,7 +24,8 @@
   },
   "include": [
     "src/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    "assets/**/*"
   ],
   "ts-node": {
     "compilerOptions": {
