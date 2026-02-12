@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
                 message,
                 params
             ),
+        export: () => ipcRenderer.invoke(IPC_CHANNELS.log.export),
     },
     // Window
     switchWindowSize: (): Promise<boolean> =>
@@ -41,6 +42,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     loadSetting: () => ipcRenderer.invoke(IPC_CHANNELS.setting.load),
     saveSetting: (setting: SettingType) =>
         ipcRenderer.invoke(IPC_CHANNELS.setting.save, setting),
+    exportSettings: () => ipcRenderer.invoke(IPC_CHANNELS.setting.export),
+    importSettings: () => ipcRenderer.invoke(IPC_CHANNELS.setting.import),
     // Window Color
     loadWindowColor: () =>
         ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorLoad),

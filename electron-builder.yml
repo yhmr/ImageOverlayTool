@@ -1,6 +1,11 @@
 # electron-builder.yml
+appId: "com.yhmr.imageoverlaytool"
 productName: "ImageOverlayTool"
 artifactName: "${productName}-${version}-${platform}-${arch}.${ext}"
+publish:
+  provider: "github"
+  owner: "yhmr"
+  repo: "ImageOverlayTool"
 fileAssociations:
   - ext: "iot"
     name: "ImageOverlayTool Project"
@@ -22,9 +27,12 @@ nsis:
   artifactName: "${productName}-${version}-installer.${ext}"
   oneClick: false
   allowToChangeInstallationDirectory: true
+  createDesktopShortcut: "always"
+  createStartMenuShortcut: true
+  runAfterFinish: true
 linux:
   target:
     - "AppImage"
     - "deb"
   icon: "assets/icon.png"
-  category: "Craphics"
+  category: "Graphics"

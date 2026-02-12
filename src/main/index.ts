@@ -29,6 +29,7 @@ import {
 import log from "./logger";
 import { ProjectRepositoryFactory } from "./repositories/ProjectRepositoryFactory";
 import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFactory";
+import { registerAutoUpdater } from "./updater";
 import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory";
 import { WindowManager } from "./windows/windowManager";
 
@@ -81,6 +82,7 @@ if (!gotTheLock) {
 
         registerWindowIpcHandlers(mainWindow);
         windowManager.registerShortcuts();
+        registerAutoUpdater();
 
         // 起動引数で指定されたファイルを開く
         const launchFilePath = extractLaunchFilePath(

@@ -42,6 +42,17 @@ export function SettingDialog(props: SettingDialogProps) {
         onClose();
     };
 
+    const exportSettings = async () => {
+        await ipcService.exportSettings();
+    };
+
+    const importSettings = async () => {
+        const imported = await ipcService.importSettings();
+        if (imported?.language) {
+            i18n.changeLanguage(imported.language);
+        }
+    };
+
     // 初期化
     useLayoutEffect(() => {
         const loadSetting = async () => {
@@ -96,6 +107,22 @@ export function SettingDialog(props: SettingDialogProps) {
                     </div>
                     <div className="text-sm text-muted-foreground ml-auto">
                         {t("render.setting_dlg.helper.language")}
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                        <Button
+                            variant="outline"
+                            onClick={exportSettings}
+                            type="button"
+                        >
+                            {t("render.setting_dlg.export")}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={importSettings}
+                            type="button"
+                        >
+                            {t("render.setting_dlg.import")}
+                        </Button>
                     </div>
                 </div>
                 <DialogFooter>

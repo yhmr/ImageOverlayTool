@@ -12,6 +12,7 @@ export interface IElectronAPI {
         info: (message: string, ...params: unknown[]) => Promise<void>;
         warn: (message: string, ...params: unknown[]) => Promise<void>;
         error: (message: string, ...params: unknown[]) => Promise<void>;
+        export: () => Promise<string | null>;
     };
     loadImage: () => Promise<string | null>;
     // Window
@@ -26,6 +27,8 @@ export interface IElectronAPI {
     // Setting
     loadSetting: () => Promise<SettingType>;
     saveSetting: (setting: SettingType) => Promise<void>;
+    exportSettings: () => Promise<string | null>;
+    importSettings: () => Promise<SettingType | null>;
     // Window Color
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;

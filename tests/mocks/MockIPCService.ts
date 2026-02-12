@@ -14,6 +14,7 @@ export class MockIPCService implements IIPCService {
         info: async () => { },
         warn: async () => { },
         error: async () => { },
+        export: async () => null,
     };
 
     async switchWindowSize(): Promise<boolean> {
@@ -34,6 +35,14 @@ export class MockIPCService implements IIPCService {
     }
 
     async saveSetting(_setting: SettingType): Promise<void> { }
+
+    async exportSettings(): Promise<string | null> {
+        return "path/to/settings.json";
+    }
+
+    async importSettings(): Promise<SettingType | null> {
+        return { language: "en" };
+    }
 
     async loadWindowColor(): Promise<string> {
         return "#ffffff";

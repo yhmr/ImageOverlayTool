@@ -75,6 +75,9 @@ jobs:
             release/*.exe
             release/*.AppImage
             release/*.deb
+            release/*.yml
+            release/*.yaml
+            release/*.blockmap
           if-no-files-found: error
           retention-days: 1
 
