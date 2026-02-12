@@ -27,6 +27,7 @@ export const IPC_CHANNELS = {
         updateImageSets: "imageSets:update",
         updateUnitFactor: "unitFactor:update",
         updateUnit: "unit:update",
+        updateSelectedImageId: "selectedImageId:update",
         requestInitialState: "state:requestInitial",
     },
     license: {
@@ -44,6 +45,7 @@ export const IPC_EVENTS = {
     imageSetsUpdated: "imageSets:updated",
     unitFactorUpdated: "unitFactor:updated",
     unitUpdated: "unit:updated",
+    selectedImageIdUpdated: "selectedImageId:updated",
     requestStateSync: "state:requestSync",
     fileOpen: "file:open",
 } as const;

@@ -93,7 +93,12 @@ export function MenuBar() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => undo()}
+                                onClick={() => {
+                                    undo();
+                                    useAppStore.setState({
+                                        projectDataChangeOrigin: "local",
+                                    });
+                                }}
                                 disabled={pastStates.length === 0}
                                 className="h-8 w-8"
                                 data-testid="main.action.undo"
@@ -110,7 +115,12 @@ export function MenuBar() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => redo()}
+                                onClick={() => {
+                                    redo();
+                                    useAppStore.setState({
+                                        projectDataChangeOrigin: "local",
+                                    });
+                                }}
                                 disabled={futureStates.length === 0}
                                 className="h-8 w-8"
                                 data-testid="main.action.redo"

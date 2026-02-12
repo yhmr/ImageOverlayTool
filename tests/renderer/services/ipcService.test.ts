@@ -1,13 +1,15 @@
 /**
  * @vitest-environment node
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
     getIPCService,
     setIPCService,
     resetIPCService,
 } from "@/renderer/services/ipcService";
 import { MockIPCService } from "../../mocks/MockIPCService";
+import type { ImageSet } from "@/shared/types/ImageSet";
+import type { ProjectFile } from "@/shared/types/ProjectFile";
 
 describe("ipcService", () => {
     beforeEach(() => {
@@ -75,6 +77,207 @@ describe("ipcService", () => {
             await service.updateUnitFactor(3.0);
 
             expect(mock.updateUnitFactorCalls).toContain(3.0);
+        });
+    });
+
+    describe("IPCService implementation delegation", () => {
+        const createProject = (): ProjectFile<ImageSet> => ({
+            version: "1.0.0",
+            window: {
+                width: 100,
+                height: 100,
+                x: 0,
+                y: 0,
+                color: "#00000000",
+            },
+            settings: {
+                unitFactor: 1,
+                unit: "um",
+            },
+            images: [],
+        });
+
+        const createElectronApiMock = () => {
+            const unsubImageSets = vi.fn();
+            const unsubUnitFactor = vi.fn();
+            const unsubUnit = vi.fn();
+            const unsubRequestState = vi.fn();
+            const unsubFileOpen = vi.fn();
+            const unsubSelectedImageId = vi.fn();
+
+            const api = {
+                log: {
+                    debug: vi.fn().mockResolvedValue(undefined),
+                    info: vi.fn().mockResolvedValue(undefined),
+                    warn: vi.fn().mockResolvedValue(undefined),
+                    error: vi.fn().mockResolvedValue(undefined),
+                },
+                switchWindowSize: vi.fn().mockResolvedValue(true),
+                setWindowRect: vi.fn().mockResolvedValue(undefined),
+                closeWindow: vi.fn().mockResolvedValue(undefined),
+                loadSetting: vi.fn().mockResolvedValue({ language: "ja" }),
+                saveSetting: vi.fn().mockResolvedValue(undefined),
+                loadWindowColor: vi.fn().mockResolvedValue("#ffffff"),
+                saveWindowColor: vi.fn().mockResolvedValue(undefined),
+                saveProjectAs: vi.fn().mockResolvedValue("project.iot"),
+                saveProject: vi.fn().mockResolvedValue(true),
+                loadProject: vi
+                    .fn()
+                    .mockResolvedValue({ project: createProject(), filePath: "a.iot" }),
+                loadProjectFromPath: vi
+                    .fn()
+                    .mockResolvedValue({ project: createProject(), filePath: "b.iot" }),
+                loadImage: vi.fn().mockResolvedValue("C:/tmp/image.png"),
+                toggleImageSettingsWindow: vi.fn().mockResolvedValue(false),
+                updateImageSets: vi.fn().mockResolvedValue(undefined),
+                onImageSetsUpdated: vi.fn().mockReturnValue(unsubImageSets),
+                updateUnitFactor: vi.fn().mockResolvedValue(undefined),
+                onUnitFactorUpdated: vi.fn().mockReturnValue(unsubUnitFactor),
+                updateUnit: vi.fn().mockResolvedValue(undefined),
+                onUnitUpdated: vi.fn().mockReturnValue(unsubUnit),
+                requestInitialState: vi.fn().mockResolvedValue(undefined),
+                onRequestStateSync: vi.fn().mockReturnValue(unsubRequestState),
+                onFileOpen: vi.fn().mockReturnValue(unsubFileOpen),
+                getLicenseInfo: vi.fn().mockResolvedValue([
+                    {
+                        name: "dep",
+                        licenses: "MIT",
+                        repository: "repo",
+                        publisher: "publisher",
+                        url: "url",
+                    },
+                ]),
+                getAppVersion: vi.fn().mockResolvedValue("0.5.0"),
+                captureScreen: vi
+                    .fn()
+                    .mockResolvedValue({ filePath: "capture.png", width: 10, height: 20 }),
+                captureWindow: vi
+                    .fn()
+                    .mockResolvedValue({ filePath: "window.png", width: 30, height: 40 }),
+                saveImage: vi.fn().mockResolvedValue("saved.png"),
+                updateSelectedImageId: vi.fn().mockResolvedValue(undefined),
+                onSelectedImageIdUpdated: vi
+                    .fn()
+                    .mockReturnValue(unsubSelectedImageId),
+            };
+
+            return {
+                api,
+                unsubscribers: {
+                    unsubImageSets,
+                    unsubUnitFactor,
+                    unsubUnit,
+                    unsubRequestState,
+                    unsubFileOpen,
+                    unsubSelectedImageId,
+                },
+            };
+        };
+
+        it("delegates invoke-type IPC methods to window.electronAPI", async () => {
+            const { api } = createElectronApiMock();
+            (globalThis as any).window = { electronAPI: api };
+            resetIPCService();
+            const service = getIPCService();
+            const project = createProject();
+
+            await service.log.debug("d", 1);
+            await service.log.info("i", 2);
+            await service.log.warn("w", 3);
+            await service.log.error("e", 4);
+            expect(api.log.debug).toHaveBeenCalledWith("d", 1);
+            expect(api.log.info).toHaveBeenCalledWith("i", 2);
+            expect(api.log.warn).toHaveBeenCalledWith("w", 3);
+            expect(api.log.error).toHaveBeenCalledWith("e", 4);
+
+            await expect(service.switchWindowSize()).resolves.toBe(true);
+            await service.setWindowRect({ x: 1, y: 2, width: 3, height: 4 });
+            await service.closeWindow();
+            await expect(service.loadSetting()).resolves.toEqual({ language: "ja" });
+            await service.saveSetting({ language: "en" });
+            await expect(service.loadWindowColor()).resolves.toBe("#ffffff");
+            await service.saveWindowColor("#222222");
+            await expect(service.saveProjectAs(project)).resolves.toBe("project.iot");
+            await expect(service.saveProject("save.iot", project)).resolves.toBe(true);
+            await expect(service.loadProject()).resolves.toEqual({
+                project,
+                filePath: "a.iot",
+            });
+            await expect(service.loadProjectFromPath("b.iot")).resolves.toEqual({
+                project,
+                filePath: "b.iot",
+            });
+            await expect(service.loadImage()).resolves.toBe("C:/tmp/image.png");
+            await expect(service.toggleImageSettingsWindow()).resolves.toBe(false);
+            await service.updateImageSets([]);
+            await service.updateUnitFactor(2.5);
+            await service.updateUnit("nm");
+            await service.requestInitialState();
+            await expect(service.getLicenseInfo()).resolves.toHaveLength(1);
+            await expect(service.getAppVersion()).resolves.toBe("0.5.0");
+            await expect(service.captureScreen()).resolves.toEqual({
+                filePath: "capture.png",
+                width: 10,
+                height: 20,
+            });
+            await expect(service.captureWindow()).resolves.toEqual({
+                filePath: "window.png",
+                width: 30,
+                height: 40,
+            });
+            await expect(service.saveImage("data:image/png")).resolves.toBe("saved.png");
+            await service.updateSelectedImageId("abc");
+
+            expect(api.setWindowRect).toHaveBeenCalledWith({
+                x: 1,
+                y: 2,
+                width: 3,
+                height: 4,
+            });
+            expect(api.saveProject).toHaveBeenCalledWith("save.iot", project);
+            expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
+            expect(api.updateUnit).toHaveBeenCalledWith("nm");
+            expect(api.updateSelectedImageId).toHaveBeenCalledWith("abc");
+        });
+
+        it("delegates subscription IPC methods and returns unsubscriber", () => {
+            const { api, unsubscribers } = createElectronApiMock();
+            (globalThis as any).window = { electronAPI: api };
+            resetIPCService();
+            const service = getIPCService();
+
+            const onImageSetsUpdated = vi.fn();
+            const onUnitFactorUpdated = vi.fn();
+            const onUnitUpdated = vi.fn();
+            const onRequestStateSync = vi.fn();
+            const onFileOpen = vi.fn();
+            const onSelectedImageIdUpdated = vi.fn();
+
+            expect(service.onImageSetsUpdated(onImageSetsUpdated)).toBe(
+                unsubscribers.unsubImageSets
+            );
+            expect(service.onUnitFactorUpdated(onUnitFactorUpdated)).toBe(
+                unsubscribers.unsubUnitFactor
+            );
+            expect(service.onUnitUpdated(onUnitUpdated)).toBe(
+                unsubscribers.unsubUnit
+            );
+            expect(service.onRequestStateSync(onRequestStateSync)).toBe(
+                unsubscribers.unsubRequestState
+            );
+            expect(service.onFileOpen(onFileOpen)).toBe(unsubscribers.unsubFileOpen);
+            expect(service.onSelectedImageIdUpdated(onSelectedImageIdUpdated)).toBe(
+                unsubscribers.unsubSelectedImageId
+            );
+
+            expect(api.onImageSetsUpdated).toHaveBeenCalledWith(onImageSetsUpdated);
+            expect(api.onUnitFactorUpdated).toHaveBeenCalledWith(onUnitFactorUpdated);
+            expect(api.onUnitUpdated).toHaveBeenCalledWith(onUnitUpdated);
+            expect(api.onRequestStateSync).toHaveBeenCalledWith(onRequestStateSync);
+            expect(api.onFileOpen).toHaveBeenCalledWith(onFileOpen);
+            expect(api.onSelectedImageIdUpdated).toHaveBeenCalledWith(
+                onSelectedImageIdUpdated
+            );
         });
     });
 });

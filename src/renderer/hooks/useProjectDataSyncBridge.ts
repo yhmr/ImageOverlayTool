@@ -7,8 +7,13 @@ import { useAppStore } from "../store/useAppStore";
  * ローカル変更時のみ、プロジェクトデータをIPC経由で他ウィンドウへ同期する。
  */
 export const useProjectDataSyncBridge = () => {
-    const { imageSets, unitFactor, unit, projectDataChangeOrigin } =
-        useAppStore();
+    const {
+        imageSets,
+        unitFactor,
+        unit,
+        projectDataChangeOrigin,
+        selectedImageId,
+    } = useAppStore();
     const ipcService = useIpcService();
 
     const isInitializedRef = useRef(false);
@@ -37,4 +42,13 @@ export const useProjectDataSyncBridge = () => {
 
         prevRef.current = { imageSets, unitFactor, unit };
     }, [imageSets, unitFactor, unit, projectDataChangeOrigin, ipcService]);
+
+    // selectedImageIdの同期（undo対象外なので別のeffectで管理）
+    const prevSelectedImageIdRef = useRef(selectedImageId);
+    useEffect(() => {
+        if (prevSelectedImageIdRef.current !== selectedImageId) {
+            void ipcService.updateSelectedImageId(selectedImageId);
+            prevSelectedImageIdRef.current = selectedImageId;
+        }
+    }, [selectedImageId, ipcService]);
 };

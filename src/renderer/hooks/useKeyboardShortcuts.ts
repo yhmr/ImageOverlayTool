@@ -36,6 +36,8 @@ export const useKeyboardShortcuts = () => {
             ) {
                 e.preventDefault();
                 undo();
+                // undo後のstateをsync bridgeが検出できるようにoriginをlocalに設定
+                useAppStore.setState({ projectDataChangeOrigin: "local" });
             }
             // Redo: Ctrl + Shift + Z or Ctrl + Y
             else if (
@@ -45,6 +47,7 @@ export const useKeyboardShortcuts = () => {
             ) {
                 e.preventDefault();
                 redo();
+                useAppStore.setState({ projectDataChangeOrigin: "local" });
             }
             // Fit to Screen: Ctrl/Cmd + F
             else if (

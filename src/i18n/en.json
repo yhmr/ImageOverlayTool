@@ -51,9 +51,21 @@
             "transparency": "transparency",
             "rotation": "rotation",
             "no_image": "No Image Selected",
+            "reset_transformation": "Reset transformation",
+            "filters": "Image filters",
+            "binarization": "Binarization",
+            "hsv": "HSV adjustment",
+            "threshold": "Threshold",
+            "hue": "Hue",
+            "saturation": "Saturation",
+            "value": "Value",
             "tooltip": {
                 "load_image": "Load Image",
                 "delete_image": "Delete Image",
+                "visible": "Toggle visibility",
+                "reset_transformation": "Reset transformation",
+                "lock": "Lock",
+                "unlock": "Unlock",
                 "add": "Add",
                 "close": "Close"
             }

@@ -29,6 +29,14 @@ vi.mock("@/renderer/services/ipcService", () => ({
 
 describe("ImageList test ids", () => {
     beforeEach(() => {
+        if (!document.doctype) {
+            const doctype = document.implementation.createDocumentType(
+                "html",
+                "",
+                ""
+            );
+            document.insertBefore(doctype, document.documentElement);
+        }
         useAppStore.getState().resetAll();
         vi.clearAllMocks();
     });

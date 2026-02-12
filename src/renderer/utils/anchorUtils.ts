@@ -80,3 +80,30 @@ export const rotateAnchorPos = (
         lb: rotatePoint(currentAnchors.lb, center, angleDiff),
     };
 };
+
+/**
+ * 変形をリセットする
+ * initAnchorPos から元の画像サイズ（幅・高さ）を算出し、
+ * currentAnchorPos の重心を維持したまま、回転・歪みなしの矩形に戻す
+ */
+export const resetTransformation = (
+    initAnchorPos: AnchorPos,
+    currentAnchorPos: AnchorPos
+): AnchorPos => {
+    // 元画像のサイズを initAnchorPos から算出（初期状態は軸平行の矩形）
+    const width = initAnchorPos.rt.x - initAnchorPos.lt.x;
+    const height = initAnchorPos.lb.y - initAnchorPos.lt.y;
+
+    // 現在の重心を維持
+    const center = getCenter(currentAnchorPos);
+
+    const halfW = width / 2;
+    const halfH = height / 2;
+
+    return {
+        lt: { x: center.x - halfW, y: center.y - halfH },
+        rt: { x: center.x + halfW, y: center.y - halfH },
+        rb: { x: center.x + halfW, y: center.y + halfH },
+        lb: { x: center.x - halfW, y: center.y + halfH },
+    };
+};

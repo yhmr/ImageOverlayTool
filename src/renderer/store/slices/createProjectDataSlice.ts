@@ -26,6 +26,7 @@ export interface ProjectDataSlice {
         imageSet: ImageSet;
     }) => void;
     syncImageSets: (imageSets: ImageSet[]) => void;
+    receiveImageSets: (imageSets: ImageSet[]) => void;
 
     setDimensionLines: (lines: DimensionLine[]) => void;
     addDimensionLine: (line: DimensionLine) => void;
@@ -90,6 +91,10 @@ export const createProjectDataSlice = (
             runAsSystemMutation(getTemporal, () => {
                 set({ imageSets, projectDataChangeOrigin: "remote" });
             });
+        },
+
+        receiveImageSets: (imageSets) => {
+            set({ imageSets, projectDataChangeOrigin: "remote" });
         },
 
         // --- Dimension Lines ---

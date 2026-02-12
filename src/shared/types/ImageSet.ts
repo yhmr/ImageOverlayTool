@@ -19,4 +19,19 @@ export interface ImageSet {
     currentAnchorPos: AnchorPos | null;
     /** ロック状態 */
     locked?: boolean;
+    /** 表示状態 */
+    visible?: boolean;
+    /** フィルタ設定 */
+    filters?: {
+        binarization?: {
+            enabled: boolean;
+            threshold: number;
+        };
+        hsv?: {
+            enabled: boolean;
+            h: number;
+            s: number;
+            v: number;
+        };
+    };
 }

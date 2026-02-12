@@ -55,6 +55,11 @@ export interface IElectronAPI {
     // Unit Factor Sync
     updateUnitFactor: (unitFactor: number) => Promise<void>;
     onUnitFactorUpdated: (callback: (unitFactor: number) => void) => () => void;
+    // Selected Image Sync
+    updateSelectedImageId: (id: string | null) => Promise<void>;
+    onSelectedImageIdUpdated: (
+        callback: (id: string | null) => void
+    ) => () => void;
     // Initial State Sync
     requestInitialState: () => Promise<void>;
     onRequestStateSync: (callback: () => void) => () => void;

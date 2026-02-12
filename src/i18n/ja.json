@@ -51,9 +51,21 @@
             "transparency": "透過度",
             "rotation": "回転",
             "no_image": "画像未選択",
+            "reset_transformation": "変形解除",
+            "filters": "画像処理",
+            "binarization": "2値化",
+            "hsv": "HSV調整",
+            "threshold": "閾値",
+            "hue": "色相",
+            "saturation": "彩度",
+            "value": "明度",
             "tooltip": {
                 "load_image": "画像の読み込み",
-                "delete_image": "画像削除",
+                "delete_image": "削除",
+                "visible": "表示/非表示",
+                "reset_transformation": "変形解除",
+                "lock": "ロック",
+                "unlock": "ロック解除",
                 "add": "新規追加",
                 "close": "閉じる"
             }

@@ -31,6 +31,11 @@ describe("imageSetFactory", () => {
             initAnchorPos: null,
             currentAnchorPos: null,
             locked: false,
+            visible: true,
+            filters: {
+                binarization: { enabled: false, threshold: 128 },
+                hsv: { enabled: false, h: 0, s: 0, v: 0 },
+            },
         });
     });
 

@@ -69,6 +69,19 @@ export const registerImageSettingsWindowHandlers = (
         }
     );
 
+    ipcMain.handle(
+        IPC_CHANNELS.sync.updateSelectedImageId,
+        (event, id: string | null) => {
+            log.debug(`[IPC] selectedImageId:update called with value: ${id}`);
+            const windows = windowManager.getAllWindows();
+            windows.forEach((win) => {
+                if (win.webContents.id !== event.sender.id) {
+                    win.webContents.send(IPC_EVENTS.selectedImageIdUpdated, id);
+                }
+            });
+        }
+    );
+
     ipcMain.handle(IPC_CHANNELS.sync.requestInitialState, (event) => {
         log.debug("[IPC] state:requestInitial called");
         const windows = windowManager.getAllWindows();
