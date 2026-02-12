@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/renderer/components/ui/card";
 import { Button } from "@/renderer/components/ui/button";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import { toLocalFileUrl } from "../../factories/imageSetFactory";
+import { resetTransformation as resetAnchors } from "../../utils/anchorUtils";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
 import { ImageItemHeader } from "./ImageItemHeader";
@@ -111,8 +112,17 @@ export function ImageListItem(props: ImageListItemProps) {
 
     // 変形解除
     const resetTransformation = () => {
-        // TODO: ロジック実装は後で行う (anchorUtils.resetTransformation を利用)
-        console.log("Reset transformation clicked", imageSet.id);
+        if (!imageSet.initAnchorPos || !imageSet.currentAnchorPos) return;
+        const newAnchorPos = resetAnchors(
+            imageSet.initAnchorPos,
+            imageSet.currentAnchorPos
+        );
+        const newImageSet = {
+            ...imageSet,
+            currentAnchorPos: newAnchorPos,
+            rotation: 0,
+        };
+        updateImageSet({ index, imageSet: newImageSet });
     };
 
     // フィルタ変更

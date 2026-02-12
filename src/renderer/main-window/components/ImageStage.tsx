@@ -108,6 +108,8 @@ export const ImageStage = memo(function ImageStage() {
             >
                 <Layer>
                     {imageSets.map((imageSet, index) => {
+                        // visible が false の場合は描画しない
+                        if (imageSet.visible === false) return null;
                         return (
                             <DrawImage
                                 key={index + imageSet.id}
@@ -120,7 +122,10 @@ export const ImageStage = memo(function ImageStage() {
 
                     {selectedImageId &&
                         imageSets.map((imageSet, index) => {
-                            if (imageSet.id === selectedImageId) {
+                            if (
+                                imageSet.id === selectedImageId &&
+                                imageSet.visible !== false
+                            ) {
                                 return (
                                     <OverlayControls
                                         key={"overlay-" + imageSet.id}

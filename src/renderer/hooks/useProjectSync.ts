@@ -23,10 +23,10 @@ export const useProjectSync = () => {
             useAppStore.getState().syncUnit(unit);
         });
 
-        // imageSetsの更新監視
+        // imageSetsの更新監視（undo対象とするためreceiveImageSetsを使用）
         const unsubscribeImageSets = ipcService.onImageSetsUpdated(
             (imageSets) => {
-                useAppStore.getState().syncImageSets(imageSets);
+                useAppStore.getState().receiveImageSets(imageSets);
             }
         );
 
