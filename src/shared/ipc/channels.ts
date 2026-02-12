@@ -1,6 +1,7 @@
 export const IPC_CHANNELS = {
     log: {
         write: "log:write",
+        export: "log:export",
     },
     window: {
         switchSize: "window:switchSize",
@@ -10,6 +11,8 @@ export const IPC_CHANNELS = {
     setting: {
         load: "setting:load",
         save: "setting:save",
+        export: "setting:export",
+        import: "setting:import",
         windowColorLoad: "window_color:load",
         windowColorSave: "window_color:save",
     },

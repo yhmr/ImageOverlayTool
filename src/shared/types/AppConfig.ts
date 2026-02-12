@@ -22,6 +22,16 @@ export interface SettingType {
     language: string;
 }
 
+// 設定のインポート/エクスポートで扱うスナップショット
+export interface SettingsSnapshot {
+    version: 1;
+    exportedAt: string;
+    setting: SettingType;
+    window: {
+        color: string;
+    };
+}
+
 // メインウィンドウのデフォルトサイズ
 export const DEFAULT_MAIN_WINDOW_SIZE: Size = {
     width: 800,

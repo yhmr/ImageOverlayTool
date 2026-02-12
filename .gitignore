@@ -32,6 +32,7 @@ compile_commands.json
 /npm/checksums.json
 
 .npmrc
+.npm-cache/
 
 # Generated API definitions
 electron-api.json

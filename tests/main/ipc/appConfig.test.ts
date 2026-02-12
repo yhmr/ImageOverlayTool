@@ -1,19 +1,42 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ipcMain } from "electron";
+import fs from "fs/promises";
 import { registerAppConfigHandlers } from "@/main/ipc/appConfig";
 import { MockSettingsRepository } from "../repositories/mocks/MockSettingsRepository";
 import { MockWindowRepository } from "../repositories/mocks/MockWindowRepository";
 import { SettingType } from "@/shared/types/AppConfig";
 import { invokeIpcHandler } from "../utils/ipcTestHelper";
 
+const { showSaveDialog, showOpenDialog, writeFile, readFile } = vi.hoisted(
+    () => ({
+        showSaveDialog: vi.fn(),
+        showOpenDialog: vi.fn(),
+        writeFile: vi.fn(),
+        readFile: vi.fn(),
+    })
+);
+
 // Mock electron
 vi.mock("electron", () => ({
     ipcMain: {
         handle: vi.fn(),
     },
+    dialog: {
+        showSaveDialog,
+        showOpenDialog,
+    },
     app: {
         isPackaged: false,
     },
+}));
+
+vi.mock("fs/promises", () => ({
+    default: {
+        writeFile,
+        readFile,
+    },
+    writeFile,
+    readFile,
 }));
 
 describe("IPC AppConfig Handlers", () => {
@@ -22,6 +45,22 @@ describe("IPC AppConfig Handlers", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        showSaveDialog.mockResolvedValue({
+            canceled: false,
+            filePath: "settings.json",
+        });
+        showOpenDialog.mockResolvedValue({
+            canceled: false,
+            filePaths: ["settings.json"],
+        });
+        readFile.mockResolvedValue(
+            JSON.stringify({
+                version: 1,
+                exportedAt: "2026-02-12T00:00:00.000Z",
+                setting: { language: "en" },
+                window: { color: "#ffffff" },
+            })
+        );
         mockSettingsRepo = new MockSettingsRepository();
         mockWindowRepo = new MockWindowRepository();
         // Register handlers
@@ -31,6 +70,8 @@ describe("IPC AppConfig Handlers", () => {
     it("should register handlers for app config events", () => {
         expect(ipcMain.handle).toHaveBeenCalledWith("setting:load", expect.any(Function));
         expect(ipcMain.handle).toHaveBeenCalledWith("setting:save", expect.any(Function));
+        expect(ipcMain.handle).toHaveBeenCalledWith("setting:export", expect.any(Function));
+        expect(ipcMain.handle).toHaveBeenCalledWith("setting:import", expect.any(Function));
         expect(ipcMain.handle).toHaveBeenCalledWith("window_color:load", expect.any(Function));
         expect(ipcMain.handle).toHaveBeenCalledWith("window_color:save", expect.any(Function));
     });
@@ -106,6 +147,28 @@ describe("IPC AppConfig Handlers", () => {
                 await expect(invokeIpcHandler("window_color:save", { sender: {} }, "#000"))
                     .rejects.toThrow("Save color failed");
             });
+        });
+    });
+
+    describe("setting:export & setting:import", () => {
+        it("should export settings snapshot to selected file", async () => {
+            await invokeIpcHandler("setting:export", { sender: {} });
+
+            expect(showSaveDialog).toHaveBeenCalledTimes(1);
+            expect(fs.writeFile).toHaveBeenCalledTimes(1);
+            const payload = JSON.parse(
+                vi.mocked(fs.writeFile).mock.calls[0][1] as string
+            );
+            expect(payload.setting.language).toBe("en");
+        });
+
+        it("should import settings snapshot from selected file", async () => {
+            const loaded = await invokeIpcHandler("setting:import", {
+                sender: {},
+            });
+            expect(showOpenDialog).toHaveBeenCalledTimes(1);
+            expect(fs.readFile).toHaveBeenCalledWith("settings.json", "utf8");
+            expect(loaded).toEqual({ language: "en" });
         });
     });
 });

@@ -111,12 +111,15 @@ describe("ipcService", () => {
                     info: vi.fn().mockResolvedValue(undefined),
                     warn: vi.fn().mockResolvedValue(undefined),
                     error: vi.fn().mockResolvedValue(undefined),
+                    export: vi.fn().mockResolvedValue("logs.txt"),
                 },
                 switchWindowSize: vi.fn().mockResolvedValue(true),
                 setWindowRect: vi.fn().mockResolvedValue(undefined),
                 closeWindow: vi.fn().mockResolvedValue(undefined),
                 loadSetting: vi.fn().mockResolvedValue({ language: "ja" }),
                 saveSetting: vi.fn().mockResolvedValue(undefined),
+                exportSettings: vi.fn().mockResolvedValue("settings.json"),
+                importSettings: vi.fn().mockResolvedValue({ language: "en" }),
                 loadWindowColor: vi.fn().mockResolvedValue("#ffffff"),
                 saveWindowColor: vi.fn().mockResolvedValue(undefined),
                 saveProjectAs: vi.fn().mockResolvedValue("project.iot"),
@@ -185,6 +188,7 @@ describe("ipcService", () => {
             await service.log.info("i", 2);
             await service.log.warn("w", 3);
             await service.log.error("e", 4);
+            await expect(service.log.export()).resolves.toBe("logs.txt");
             expect(api.log.debug).toHaveBeenCalledWith("d", 1);
             expect(api.log.info).toHaveBeenCalledWith("i", 2);
             expect(api.log.warn).toHaveBeenCalledWith("w", 3);
@@ -195,6 +199,10 @@ describe("ipcService", () => {
             await service.closeWindow();
             await expect(service.loadSetting()).resolves.toEqual({ language: "ja" });
             await service.saveSetting({ language: "en" });
+            await expect(service.exportSettings()).resolves.toBe("settings.json");
+            await expect(service.importSettings()).resolves.toEqual({
+                language: "en",
+            });
             await expect(service.loadWindowColor()).resolves.toBe("#ffffff");
             await service.saveWindowColor("#222222");
             await expect(service.saveProjectAs(project)).resolves.toBe("project.iot");

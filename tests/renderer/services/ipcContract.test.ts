@@ -26,6 +26,12 @@ describe("ipc contract", () => {
         expectTypeOf<IIPCService["saveSetting"]>().toEqualTypeOf<
             IElectronAPI["saveSetting"]
         >();
+        expectTypeOf<IIPCService["exportSettings"]>().toEqualTypeOf<
+            IElectronAPI["exportSettings"]
+        >();
+        expectTypeOf<IIPCService["importSettings"]>().toEqualTypeOf<
+            IElectronAPI["importSettings"]
+        >();
 
         expectTypeOf<IIPCService["saveProject"]>().toEqualTypeOf<
             IElectronAPI["saveProject"]
@@ -48,6 +54,9 @@ describe("ipc contract", () => {
         >();
         expectTypeOf<IIPCService["getLicenseInfo"]>().toEqualTypeOf<
             IElectronAPI["getLicenseInfo"]
+        >();
+        expectTypeOf<IIPCService["log"]["export"]>().toEqualTypeOf<
+            IElectronAPI["log"]["export"]
         >();
 
         expect(true).toBe(true);

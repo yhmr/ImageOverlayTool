@@ -13,6 +13,8 @@ import {
     LogOut,
     Settings2,
     Info,
+    BookOpen,
+    FileDown,
     FilePlus,
     FolderOpen,
     Save,
@@ -48,6 +50,14 @@ export function AppMenu(props: AppMenuProps) {
     // 画像設定ウィンドウを開く
     const openImageSettings = async () => {
         await ipcService.toggleImageSettingsWindow();
+    };
+
+    const exportLogs = async () => {
+        await ipcService.log.export();
+    };
+
+    const openManual = () => {
+        window.open("https://yhmr.github.io/ImageOverlayTool/guide/", "_blank");
     };
 
     return (
@@ -117,6 +127,20 @@ export function AppMenu(props: AppMenuProps) {
                 >
                     <Info className="mr-2 h-4 w-4" />
                     {t("render.menu.about")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={openManual}
+                    data-testid="main.menu.item.help-manual"
+                >
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {t("render.menu.help_manual")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={exportLogs}
+                    data-testid="main.menu.item.export-logs"
+                >
+                    <FileDown className="mr-2 h-4 w-4" />
+                    {t("render.menu.export_logs")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

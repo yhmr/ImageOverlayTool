@@ -6,8 +6,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AppMenu } from "@/renderer/main-window/components/AppMenu";
 
-const { toggleImageSettingsWindow } = vi.hoisted(() => ({
+const { toggleImageSettingsWindow, exportLogs } = vi.hoisted(() => ({
     toggleImageSettingsWindow: vi.fn().mockResolvedValue(true),
+    exportLogs: vi.fn().mockResolvedValue("logs.txt"),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -19,6 +20,9 @@ vi.mock("react-i18next", () => ({
 vi.mock("@/renderer/services/ipcService", () => ({
     getIPCService: () => ({
         toggleImageSettingsWindow,
+        log: {
+            export: exportLogs,
+        },
     }),
 }));
 
@@ -27,7 +31,9 @@ describe("AppMenu test ids", () => {
         vi.clearAllMocks();
     });
 
-    it("renders stable menu test ids and triggers image-settings action", async () => {
+    it("renders stable menu test ids and triggers menu actions", async () => {
+        const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+
         render(
             <AppMenu
                 openSettingDialog={vi.fn()}
@@ -41,11 +47,14 @@ describe("AppMenu test ids", () => {
         );
 
         const trigger = screen.getByTestId("main.menu.trigger");
-        fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
+        const openMenu = async () => {
+            fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
+            await waitFor(() => {
+                expect(screen.getByTestId("main.menu.content")).toBeTruthy();
+            });
+        };
 
-        await waitFor(() => {
-            expect(screen.getByTestId("main.menu.content")).toBeTruthy();
-        });
+        await openMenu();
 
         expect(screen.getByTestId("main.menu.item.new-project")).toBeTruthy();
         expect(screen.getByTestId("main.menu.item.open-project")).toBeTruthy();
@@ -58,6 +67,18 @@ describe("AppMenu test ids", () => {
             screen.getByTestId("main.menu.item.open-image-settings")
         );
 
+        await openMenu();
+        fireEvent.click(screen.getByTestId("main.menu.item.help-manual"));
+
+        await openMenu();
+        fireEvent.click(screen.getByTestId("main.menu.item.export-logs"));
+
         expect(toggleImageSettingsWindow).toHaveBeenCalledTimes(1);
+        expect(exportLogs).toHaveBeenCalledTimes(1);
+        expect(openSpy).toHaveBeenCalledWith(
+            "https://yhmr.github.io/ImageOverlayTool/guide/",
+            "_blank"
+        );
+        openSpy.mockRestore();
     });
 });

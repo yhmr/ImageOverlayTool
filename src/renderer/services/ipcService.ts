@@ -19,6 +19,7 @@ export interface ILogIPCService {
         info: (message: string, ...params: unknown[]) => Promise<void>;
         warn: (message: string, ...params: unknown[]) => Promise<void>;
         error: (message: string, ...params: unknown[]) => Promise<void>;
+        export: () => Promise<string | null>;
     };
 }
 
@@ -36,6 +37,8 @@ export interface IWindowIPCService {
 export interface ISettingsIPCService {
     loadSetting: () => Promise<{ language: string }>;
     saveSetting: (setting: SettingType) => Promise<void>;
+    exportSettings: () => Promise<string | null>;
+    importSettings: () => Promise<{ language: string } | null>;
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;
 }
@@ -135,6 +138,7 @@ class IPCService implements IIPCService {
             window.electronAPI.log.warn(message, ...params),
         error: (message: string, ...params: unknown[]) =>
             window.electronAPI.log.error(message, ...params),
+        export: () => window.electronAPI.log.export(),
     };
 
     async switchWindowSize(): Promise<boolean> {
@@ -160,6 +164,14 @@ class IPCService implements IIPCService {
 
     async saveSetting(setting: SettingType): Promise<void> {
         await window.electronAPI.saveSetting(setting);
+    }
+
+    async exportSettings(): Promise<string | null> {
+        return await window.electronAPI.exportSettings();
+    }
+
+    async importSettings(): Promise<{ language: string } | null> {
+        return await window.electronAPI.importSettings();
     }
 
     async loadWindowColor(): Promise<string> {
