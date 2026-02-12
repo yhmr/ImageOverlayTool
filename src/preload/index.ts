@@ -95,6 +95,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
                 subscription
             );
     },
+    // Selected Image Sync
+    updateSelectedImageId: (id: string | null) =>
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateSelectedImageId, id),
+    onSelectedImageIdUpdated: (callback: (id: string | null) => void) => {
+        const subscription = (_event: unknown, id: string | null) =>
+            callback(id);
+        ipcRenderer.on(IPC_EVENTS.selectedImageIdUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.selectedImageIdUpdated,
+                subscription
+            );
+    },
     // Initial State Sync
     requestInitialState: () =>
         ipcRenderer.invoke(IPC_CHANNELS.sync.requestInitialState),

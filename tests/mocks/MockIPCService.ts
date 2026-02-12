@@ -10,10 +10,10 @@ import { LicenseInfo } from "@/shared/types/LicenseInfo";
  */
 export class MockIPCService implements IIPCService {
     log = {
-        debug: async () => {},
-        info: async () => {},
-        warn: async () => {},
-        error: async () => {},
+        debug: async () => { },
+        info: async () => { },
+        warn: async () => { },
+        error: async () => { },
     };
 
     async switchWindowSize(): Promise<boolean> {
@@ -25,21 +25,21 @@ export class MockIPCService implements IIPCService {
         y: number;
         width: number;
         height: number;
-    }): Promise<void> {}
+    }): Promise<void> { }
 
-    async closeWindow(): Promise<void> {}
+    async closeWindow(): Promise<void> { }
 
     async loadSetting(): Promise<{ language: string }> {
         return { language: "en" };
     }
 
-    async saveSetting(_setting: SettingType): Promise<void> {}
+    async saveSetting(_setting: SettingType): Promise<void> { }
 
     async loadWindowColor(): Promise<string> {
         return "#ffffff";
     }
 
-    async saveWindowColor(_color: string): Promise<void> {}
+    async saveWindowColor(_color: string): Promise<void> { }
 
     async saveProjectAs(_project: ProjectFile<ImageSet>): Promise<string | null> {
         return "path/to/project.iot";
@@ -83,7 +83,7 @@ export class MockIPCService implements IIPCService {
     }
 
     onImageSetsUpdated(_callback: (imageSets: ImageSet[]) => void): () => void {
-        return () => {};
+        return () => { };
     }
 
     async updateUnitFactor(factor: number): Promise<void> {
@@ -91,7 +91,7 @@ export class MockIPCService implements IIPCService {
     }
 
     onUnitFactorUpdated(_callback: (factor: number) => void): () => void {
-        return () => {};
+        return () => { };
     }
 
     async updateUnit(unit: "nm" | "um" | "mm"): Promise<void> {
@@ -99,17 +99,17 @@ export class MockIPCService implements IIPCService {
     }
 
     onUnitUpdated(_callback: (unit: "nm" | "um" | "mm") => void): () => void {
-        return () => {};
+        return () => { };
     }
 
-    async requestInitialState(): Promise<void> {}
+    async requestInitialState(): Promise<void> { }
 
     onRequestStateSync(_callback: () => void): () => void {
-        return () => {};
+        return () => { };
     }
 
     onFileOpen(_callback: (filePath: string, ext: string) => void): () => void {
-        return () => {};
+        return () => { };
     }
 
     async getLicenseInfo(): Promise<LicenseInfo[]> {
@@ -138,6 +138,14 @@ export class MockIPCService implements IIPCService {
 
     async saveImage(_dataUrl: string): Promise<string | null> {
         return "path/to/image.png";
+    }
+
+    async updateSelectedImageId(_id: string | null): Promise<void> { }
+
+    onSelectedImageIdUpdated(
+        _callback: (id: string | null) => void
+    ): () => void {
+        return () => { };
     }
 
     reset(): void {

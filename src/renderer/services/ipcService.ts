@@ -94,6 +94,13 @@ export interface ICaptureIPCService {
     saveImage: (dataUrl: string) => Promise<string | null>;
 }
 
+export interface ISelectedImageSyncIPCService {
+    updateSelectedImageId(id: string | null): Promise<void>;
+    onSelectedImageIdUpdated: (
+        callback: (id: string | null) => void
+    ) => () => void;
+}
+
 export interface IProjectDataSyncIPCService {
     updateImageSets(imageSets: ImageSet[]): Promise<void>;
     updateUnitFactor(factor: number): Promise<void>;
@@ -113,7 +120,8 @@ export interface IIPCService
         IUnitSyncIPCService,
         IStateSyncIPCService,
         ILicenseIPCService,
-        ICaptureIPCService {}
+        ICaptureIPCService,
+        ISelectedImageSyncIPCService {}
 /**
  * 実際のElectron IPC通信を行う service
  */
@@ -250,6 +258,16 @@ class IPCService implements IIPCService {
 
     async saveImage(dataUrl: string): Promise<string | null> {
         return await window.electronAPI.saveImage(dataUrl);
+    }
+
+    async updateSelectedImageId(id: string | null): Promise<void> {
+        await window.electronAPI.updateSelectedImageId(id);
+    }
+
+    onSelectedImageIdUpdated(
+        callback: (id: string | null) => void
+    ): () => void {
+        return window.electronAPI.onSelectedImageIdUpdated(callback);
     }
 }
 

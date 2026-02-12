@@ -29,8 +29,13 @@ export function ImageListItem(props: ImageListItemProps) {
     const { t } = useTranslation();
     const ipcService = useIpcService();
 
-    const { imageSets, updateImageSet, setImageSets, selectedImageId } =
-        useAppStore();
+    const {
+        imageSets,
+        updateImageSet,
+        setImageSets,
+        selectedImageId,
+        setSelectedImageId,
+    } = useAppStore();
 
     // ファイルオープン
     const openFile = async () => {
@@ -140,9 +145,12 @@ export function ImageListItem(props: ImageListItemProps) {
 
     return (
         <Card
-            className={`mb-2 transition-colors ${
-                isSelected ? "border-primary border-2" : ""
+            className={`mb-2 transition-colors cursor-pointer ${
+                isSelected
+                    ? "border-primary border-2"
+                    : "hover:border-muted-foreground/30"
             }`}
+            onClick={() => setSelectedImageId(imageSet.id)}
         >
             <CardContent className="p-3 space-y-3">
                 <ImageItemHeader
