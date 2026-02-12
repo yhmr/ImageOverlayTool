@@ -34,15 +34,21 @@ export function SettingDialog(props: SettingDialogProps) {
         i18n.changeLanguage(value);
     };
 
-    // 終了時に設定保存
-    const saveAndClose = async () => {
+    const persistSettings = async () => {
         await ipcService.saveSetting({
             language: i18n.language,
         });
+    };
+
+    // 終了時に設定保存
+    const saveAndClose = async () => {
+        await persistSettings();
         onClose();
     };
 
     const exportSettings = async () => {
+        // Export must include currently edited values in this dialog.
+        await persistSettings();
         await ipcService.exportSettings();
     };
 
