@@ -31,9 +31,14 @@ export const useProjectSync = () => {
         );
 
         // selectedImageIdの更新監視
+        // dimensionモード中はリモートからの選択変更を無視する
+        // （setSelectedImageIdがselectedDimensionLineIdをクリアするため）
         const unsubscribeSelectedImageId = ipcService.onSelectedImageIdUpdated(
             (id) => {
-                useAppStore.getState().setSelectedImageId(id);
+                const { interactionMode } = useAppStore.getState();
+                if (interactionMode !== "dimension") {
+                    useAppStore.getState().setSelectedImageId(id);
+                }
             }
         );
 
