@@ -16,16 +16,8 @@ jobs:
         include:
           - os: ubuntu-22.04
             platform: linux
-            arch: x64
-          - os: ubuntu-22.04
-            platform: linux
-            arch: arm64
           - os: windows-latest
             platform: win
-            arch: x64
-          - os: windows-latest
-            platform: win
-            arch: arm64
 
     runs-on: ${{ matrix.os }}
 
@@ -44,7 +36,7 @@ jobs:
 
       # Linux ARM64 クロスコンパイル用の依存関係
       - name: Install Linux ARM64 cross-compile dependencies
-        if: matrix.platform == 'linux' && matrix.arch == 'arm64'
+        if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
@@ -55,28 +47,28 @@ jobs:
       # Windows ビルド
       - name: Build for Windows
         if: matrix.platform == 'win'
-        run: npx electron-builder --win --${{ matrix.arch }}
+        run: npx electron-builder --win --x64 --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Linux ビルド
       - name: Build for Linux
         if: matrix.platform == 'linux'
-        run: npx electron-builder --linux --${{ matrix.arch }}
+        run: npx electron-builder --linux --x64 --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.platform }}-${{ matrix.arch }}
+          name: release-${{ matrix.platform }}
           path: |
             release/*.zip
             release/*.exe
             release/*.AppImage
             release/*.deb
-            release/*.yml
-            release/*.yaml
+            release/latest*.yml
+            release/latest*.yaml
             release/*.blockmap
           if-no-files-found: error
           retention-days: 1
@@ -90,15 +82,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          merge-multiple: true
 
       - name: List downloaded files
-        run: ls -la artifacts/
+        run: find artifacts -type f | sort
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*
+          files: artifacts/**/*
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
