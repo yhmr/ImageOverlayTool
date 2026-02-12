@@ -11,6 +11,7 @@ const callbacks = vi.hoisted(() => ({
     unitFactor: null as ((factor: number) => void) | null,
     unit: null as ((unit: "nm" | "um" | "mm") => void) | null,
     imageSets: null as ((imageSets: ImageSet[]) => void) | null,
+    selectedImageId: null as ((id: string | null) => void) | null,
     requestSync: null as (() => void) | null,
 }));
 
@@ -18,6 +19,7 @@ const unsubscribers = vi.hoisted(() => ({
     unitFactor: vi.fn(),
     unit: vi.fn(),
     imageSets: vi.fn(),
+    selectedImageId: vi.fn(),
     requestSync: vi.fn(),
 }));
 
@@ -33,6 +35,10 @@ const mockIPC = vi.hoisted(() => ({
     onImageSetsUpdated: vi.fn((cb: (imageSets: ImageSet[]) => void) => {
         callbacks.imageSets = cb;
         return unsubscribers.imageSets;
+    }),
+    onSelectedImageIdUpdated: vi.fn((cb: (id: string | null) => void) => {
+        callbacks.selectedImageId = cb;
+        return unsubscribers.selectedImageId;
     }),
     onRequestStateSync: vi.fn((cb: () => void) => {
         callbacks.requestSync = cb;
@@ -53,6 +59,7 @@ describe("useProjectSync", () => {
         callbacks.unitFactor = null;
         callbacks.unit = null;
         callbacks.imageSets = null;
+        callbacks.selectedImageId = null;
         callbacks.requestSync = null;
         useAppStore.getState().resetAll();
     });
@@ -108,6 +115,7 @@ describe("useProjectSync", () => {
         expect(unsubscribers.unitFactor).toHaveBeenCalledTimes(1);
         expect(unsubscribers.unit).toHaveBeenCalledTimes(1);
         expect(unsubscribers.imageSets).toHaveBeenCalledTimes(1);
+        expect(unsubscribers.selectedImageId).toHaveBeenCalledTimes(1);
         expect(unsubscribers.requestSync).toHaveBeenCalledTimes(1);
     });
 });
