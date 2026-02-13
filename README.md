@@ -1,6 +1,6 @@
 # ImageOverlayTool
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![Version](https://img.shields.io/github/package-json/v/yhmr/ImageOverlayTool?color=blue&label=version)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)
 
 **ImageOverlayTool** は、Electron と React で構築された、画像の重ね合わせ調整用デスクトップアプリケーションです。
