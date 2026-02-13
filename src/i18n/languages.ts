@@ -34,8 +34,3 @@ export const I18N_RESOURCES = {
         translation: translationJa,
     },
 } satisfies Record<SupportedLanguage, { translation: AppTranslation }>;
-
-export const APP_TRANSLATIONS = {
-    en: translationEn,
-    ja: translationJa,
-} satisfies Record<SupportedLanguage, AppTranslation>;

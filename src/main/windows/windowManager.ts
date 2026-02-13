@@ -1,13 +1,6 @@
 import path from "path";
 import { BrowserWindow, shell, app, dialog } from "electron";
 import { is, platform } from "@electron-toolkit/utils";
-import {
-    APP_TRANSLATIONS,
-    DEFAULT_LANGUAGE,
-    normalizeLanguage,
-    type AppTranslation,
-    type SupportedLanguage,
-} from "../../i18n/languages";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
 import {
@@ -15,6 +8,7 @@ import {
     type IWindowShortcutManager,
 } from "./windowShortcutManager";
 import { IPC_EVENTS } from "../../shared/ipc/channels";
+import { tUnsavedChanges } from "../../i18n/mainI18n";
 
 export interface IMainWindowProvider {
     getMainWindow(): BrowserWindow | null;
@@ -46,7 +40,6 @@ export class WindowManager {
     private readonly shortcutManager: IWindowShortcutManager;
     private isQuitting = false;
     private isProjectDirty = false;
-    private language: SupportedLanguage = DEFAULT_LANGUAGE;
     private pendingFilePath: string | null = null;
     private splashDisplayTime: number | null = null;
 
@@ -65,20 +58,8 @@ export class WindowManager {
         this.isQuitting = true;
     }
 
-    setLanguage(language: string): void {
-        this.language = normalizeLanguage(language);
-    }
-
     setProjectDirty(isDirty: boolean): void {
         this.isProjectDirty = isDirty;
-    }
-
-    private t(key: keyof AppTranslation["render"]["unsaved_changes"]): string {
-        const translation = APP_TRANSLATIONS[this.language];
-        return (
-            translation.render.unsaved_changes?.[key] ??
-            APP_TRANSLATIONS.en.render.unsaved_changes[key]
-        );
     }
 
     /**
@@ -268,13 +249,13 @@ export class WindowManager {
                         {
                             type: "warning",
                             buttons: [
-                                this.t("button_cancel"),
-                                this.t("button_discard_exit"),
+                                tUnsavedChanges("button_cancel"),
+                                tUnsavedChanges("button_discard_exit"),
                             ],
                             defaultId: 0,
                             cancelId: 0,
-                            title: this.t("title"),
-                            message: this.t("confirm_exit"),
+                            title: tUnsavedChanges("title"),
+                            message: tUnsavedChanges("confirm_exit"),
                         }
                     );
 

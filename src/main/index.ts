@@ -26,6 +26,7 @@ import {
     registerLocalResourceProtocol,
     setupProtocolHandler,
 } from "./ipc/protocol";
+import { initializeMainI18n } from "../i18n/mainI18n";
 import log, { setLogLevel, LevelOption } from "./logger";
 import { ProjectRepositoryFactory } from "./repositories/ProjectRepositoryFactory";
 import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFactory";
@@ -66,7 +67,7 @@ if (!gotTheLock) {
         if (settings.logLevel) {
             setLogLevel(settings.logLevel as LevelOption);
         }
-        windowManager.setLanguage(settings.language);
+        await initializeMainI18n(settings.language);
 
         log.info("App ready, creating windows...");
 
