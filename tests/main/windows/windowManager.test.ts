@@ -216,12 +216,18 @@ describe("WindowManager", () => {
         expect(mainOptions.transparent).toBe(true);
         expect(mainOptions.resizable).toBe(true);
         expect(mainOptions.thickFrame).toBe(true);
+        expect(
+            (mainOptions.webPreferences as Record<string, unknown>).sandbox
+        ).toBe(true);
         expect(mainOptions).not.toHaveProperty("titleBarStyle");
 
         expect(settingsOptions.frame).toBe(false);
         expect(settingsOptions.transparent).toBe(true);
         expect(settingsOptions.resizable).toBe(true);
         expect(settingsOptions.thickFrame).toBe(true);
+        expect(
+            (settingsOptions.webPreferences as Record<string, unknown>).sandbox
+        ).toBe(true);
         expect(settingsOptions).not.toHaveProperty("titleBarStyle");
     });
 
