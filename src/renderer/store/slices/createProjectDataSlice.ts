@@ -3,6 +3,10 @@ import { StateCreator } from "zustand";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
+import {
+    sanitizeUnitFactor,
+    UNIT_FACTOR_DEFAULT,
+} from "../../../shared/constants/unitFactor";
 import { createEmptyImageSet } from "../../factories/imageSetFactory";
 import {
     runAsSystemMutation,
@@ -17,8 +21,11 @@ export interface ProjectDataSlice {
     unit: "nm" | "um" | "mm";
     windowColor: string;
     projectDataChangeOrigin: "local" | "remote";
+    hasUnsavedChanges: boolean;
 
     // Actions
+    markProjectSaved: () => void;
+
     setImageSets: (imageSets: ImageSet[]) => void;
     updateImageSet: (payload: {
         index?: number;
@@ -55,14 +62,25 @@ export const createProjectDataSlice = (
     return (set) => ({
         imageSets: [createEmptyImageSet()],
         dimensionLines: [],
-        unitFactor: 1.0,
+        unitFactor: UNIT_FACTOR_DEFAULT,
         unit: "um",
         windowColor: "#00000000",
         projectDataChangeOrigin: "local",
+        hasUnsavedChanges: false,
+
+        markProjectSaved: () => {
+            runAsSystemMutation(getTemporal, () => {
+                set({ hasUnsavedChanges: false });
+            });
+        },
 
         // --- Image Sets ---
         setImageSets: (imageSets) => {
-            set({ imageSets, projectDataChangeOrigin: "local" });
+            set({
+                imageSets,
+                projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
+            });
         },
 
         updateImageSet: (payload) => {
@@ -83,28 +101,42 @@ export const createProjectDataSlice = (
                 return {
                     imageSets: newImageSets,
                     projectDataChangeOrigin: "local",
+                    hasUnsavedChanges: true,
                 };
             });
         },
 
         syncImageSets: (imageSets) => {
             runAsSystemMutation(getTemporal, () => {
-                set({ imageSets, projectDataChangeOrigin: "remote" });
+                set({
+                    imageSets,
+                    projectDataChangeOrigin: "remote",
+                    hasUnsavedChanges: true,
+                });
             });
         },
 
         receiveImageSets: (imageSets) => {
-            set({ imageSets, projectDataChangeOrigin: "remote" });
+            set({
+                imageSets,
+                projectDataChangeOrigin: "remote",
+                hasUnsavedChanges: true,
+            });
         },
 
         // --- Dimension Lines ---
         setDimensionLines: (lines) =>
-            set({ dimensionLines: lines, projectDataChangeOrigin: "local" }),
+            set({
+                dimensionLines: lines,
+                projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
+            }),
 
         addDimensionLine: (line) =>
             set((state) => ({
                 dimensionLines: [...state.dimensionLines, line],
                 projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
             })),
 
         updateDimensionLine: (line) =>
@@ -118,6 +150,7 @@ export const createProjectDataSlice = (
                     return {
                         dimensionLines: newLines,
                         projectDataChangeOrigin: "local",
+                        hasUnsavedChanges: true,
                     };
                 }
                 return state;
@@ -127,38 +160,61 @@ export const createProjectDataSlice = (
             set((state) => ({
                 dimensionLines: state.dimensionLines.filter((l) => l.id !== id),
                 projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
             })),
 
         // --- Settings ---
         setUnitFactor: (factor) => {
-            set({ unitFactor: factor, projectDataChangeOrigin: "local" });
+            set({
+                unitFactor: sanitizeUnitFactor(factor),
+                projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
+            });
         },
 
         syncUnitFactor: (factor) => {
             runAsSystemMutation(getTemporal, () => {
-                set({ unitFactor: factor, projectDataChangeOrigin: "remote" });
+                set({
+                    unitFactor: sanitizeUnitFactor(factor),
+                    projectDataChangeOrigin: "remote",
+                    hasUnsavedChanges: true,
+                });
             });
         },
 
         setUnit: (unit) => {
-            set({ unit, projectDataChangeOrigin: "local" });
+            set({
+                unit,
+                projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
+            });
         },
 
         syncUnit: (unit) => {
             runAsSystemMutation(getTemporal, () => {
-                set({ unit, projectDataChangeOrigin: "remote" });
+                set({
+                    unit,
+                    projectDataChangeOrigin: "remote",
+                    hasUnsavedChanges: true,
+                });
             });
         },
 
         setWindowColor: (color) => {
-            set({ windowColor: color, projectDataChangeOrigin: "local" });
+            set({
+                windowColor: color,
+                projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
+            });
         },
 
         // --- Bulk Actions ---
         loadProjectData: (project) => {
             const newImageSets = project.images;
             const newDimensionLines = project.dimensionLines || [];
-            const newUnitFactor = project.settings.unitFactor;
+            const newUnitFactor = sanitizeUnitFactor(
+                project.settings.unitFactor
+            );
             const newUnit = project.settings.unit || "um";
             const newWindowColor = project.window.color;
 
@@ -169,6 +225,7 @@ export const createProjectDataSlice = (
                 unit: newUnit,
                 windowColor: newWindowColor,
                 projectDataChangeOrigin: "local",
+                hasUnsavedChanges: false,
             });
         },
 
@@ -178,9 +235,10 @@ export const createProjectDataSlice = (
             set({
                 imageSets: defaultImageSets,
                 dimensionLines: [],
-                unitFactor: 1.0,
+                unitFactor: UNIT_FACTOR_DEFAULT,
                 unit: "um",
                 projectDataChangeOrigin: "local",
+                hasUnsavedChanges: false,
             });
         },
     });

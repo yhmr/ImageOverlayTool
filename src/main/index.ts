@@ -26,10 +26,10 @@ import {
     registerLocalResourceProtocol,
     setupProtocolHandler,
 } from "./ipc/protocol";
-import log from "./logger";
+import { initializeMainI18n } from "../i18n/mainI18n";
+import log, { setLogLevel, LevelOption } from "./logger";
 import { ProjectRepositoryFactory } from "./repositories/ProjectRepositoryFactory";
 import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFactory";
-import { registerAutoUpdater } from "./updater";
 import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory";
 import { WindowManager } from "./windows/windowManager";
 
@@ -62,6 +62,13 @@ if (!gotTheLock) {
     registerSingleInstanceHandlers(windowManager);
 
     app.whenReady().then(async () => {
+        // 設定を読み込んでログレベルを適用
+        const settings = await settingsRepository.loadSettings();
+        if (settings.logLevel) {
+            setLogLevel(settings.logLevel as LevelOption);
+        }
+        await initializeMainI18n(settings.language);
+
         log.info("App ready, creating windows...");
 
         // 1) protocol -> 2) ipc -> 3) window の順で組み立てる
@@ -82,7 +89,6 @@ if (!gotTheLock) {
 
         registerWindowIpcHandlers(mainWindow);
         windowManager.registerShortcuts();
-        registerAutoUpdater();
 
         // 起動引数で指定されたファイルを開く
         const launchFilePath = extractLaunchFilePath(

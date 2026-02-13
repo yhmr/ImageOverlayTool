@@ -36,4 +36,23 @@ log.transports.file.format =
 log.transports.console.format =
     "[{h}:{i}:{s}.{ms}] [{processType}] [{level}] {text}";
 
+export type LevelOption =
+    | "error"
+    | "warn"
+    | "info"
+    | "verbose"
+    | "debug"
+    | "silly"
+    | false;
+
+/**
+ * ログレベルを動的に変更する
+ * @param level "error" | "warn" | "info" | "verbose" | "debug" | "silly" | false
+ */
+export const setLogLevel = (level: LevelOption): void => {
+    log.transports.file.level = level;
+    log.transports.console.level = level;
+    log.info(`Log level changed to: ${level}`);
+};
+
 export default log;

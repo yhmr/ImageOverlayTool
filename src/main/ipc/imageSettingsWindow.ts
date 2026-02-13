@@ -1,6 +1,7 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
 import type {
     IImageSettingsWindowController,
+    IProjectDirtyStateController,
     IWindowCollectionProvider,
 } from "../windows/windowManager";
 import { ImageSet } from "../../shared/types/ImageSet";
@@ -11,7 +12,9 @@ import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
  * 画像設定ウィンドウ用のIPCハンドラを登録
  */
 export const registerImageSettingsWindowHandlers = (
-    windowManager: IImageSettingsWindowController & IWindowCollectionProvider
+    windowManager: IImageSettingsWindowController &
+        IWindowCollectionProvider &
+        IProjectDirtyStateController
 ) => {
     ipcMain.handle(IPC_CHANNELS.imageSettingsWindow.toggle, async () => {
         log.debug("[IPC] imageSettingsWindow:toggle called");
@@ -81,6 +84,10 @@ export const registerImageSettingsWindowHandlers = (
             });
         }
     );
+
+    ipcMain.handle(IPC_CHANNELS.sync.updateProjectDirty, (_event, isDirty) => {
+        windowManager.setProjectDirty(Boolean(isDirty));
+    });
 
     ipcMain.handle(IPC_CHANNELS.sync.requestInitialState, (event) => {
         log.debug("[IPC] state:requestInitial called");

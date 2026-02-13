@@ -23,7 +23,12 @@ type StoreActions = {
 
 type UndoSnapshot = Pick<
     AppState,
-    "imageSets" | "dimensionLines" | "unitFactor" | "unit" | "windowColor"
+    | "imageSets"
+    | "dimensionLines"
+    | "unitFactor"
+    | "unit"
+    | "windowColor"
+    | "hasUnsavedChanges"
 >;
 
 export type AppState = ProjectDataSlice &
@@ -46,7 +51,8 @@ const isSameUndoSnapshot = (
         pastState.dimensionLines === currentState.dimensionLines &&
         pastState.unitFactor === currentState.unitFactor &&
         pastState.unit === currentState.unit &&
-        pastState.windowColor === currentState.windowColor
+        pastState.windowColor === currentState.windowColor &&
+        pastState.hasUnsavedChanges === currentState.hasUnsavedChanges
     );
 };
 
@@ -115,6 +121,7 @@ export const useAppStore = create<AppState>()(
                     unitFactor,
                     unit,
                     windowColor,
+                    hasUnsavedChanges,
                 } = state;
                 return {
                     imageSets,
@@ -122,6 +129,7 @@ export const useAppStore = create<AppState>()(
                     unitFactor,
                     unit,
                     windowColor,
+                    hasUnsavedChanges,
                 };
             },
             equality: isSameUndoSnapshot,

@@ -27,6 +27,10 @@ import {
 import { createEmptyImageSet } from "../../factories/imageSetFactory";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
+import {
+    UNIT_FACTOR_MAX,
+    UNIT_FACTOR_MIN,
+} from "../../../shared/constants/unitFactor";
 
 import { ImageListItem } from "./ImageListItem";
 
@@ -146,9 +150,17 @@ export function ImageList() {
                                     type="number"
                                     id="unitFactor"
                                     value={unitFactor}
-                                    onChange={(e) =>
-                                        setUnitFactor(Number(e.target.value))
-                                    }
+                                    min={UNIT_FACTOR_MIN}
+                                    max={UNIT_FACTOR_MAX}
+                                    step="any"
+                                    onChange={(e) => {
+                                        const value =
+                                            e.currentTarget.valueAsNumber;
+                                        if (Number.isNaN(value)) {
+                                            return;
+                                        }
+                                        setUnitFactor(value);
+                                    }}
                                     onWheel={(
                                         e: React.WheelEvent<HTMLInputElement>
                                     ) => {
@@ -178,7 +190,11 @@ export function ImageList() {
                                     className="w-[100px]"
                                     data-testid="settings.unit.select"
                                 >
-                                    <SelectValue placeholder="単位" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            "render.setting_dlg.unit"
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="nm">nm</SelectItem>

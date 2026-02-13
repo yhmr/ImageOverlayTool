@@ -66,3 +66,6 @@ test-results/
 pages/public/
 pages/resources/
 pages/.hugo_build.lock
+
+# Generated store submission text
+STORE_LICENSE_TERMS.txt

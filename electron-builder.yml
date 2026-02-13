@@ -2,10 +2,6 @@
 appId: "com.yhmr.imageoverlaytool"
 productName: "ImageOverlayTool"
 artifactName: "${productName}-${version}-${platform}-${arch}.${ext}"
-publish:
-  provider: "github"
-  owner: "yhmr"
-  repo: "ImageOverlayTool"
 fileAssociations:
   - ext: "iot"
     name: "ImageOverlayTool Project"
@@ -18,10 +14,15 @@ files:
 extraFiles:
   - from: "licenses.json"
     to: "licenses.json"
+  - from: "LICENSE"
+    to: "LICENSE"
+  - from: "SOURCE_CODE_URL.txt"
+    to: "SOURCE_CODE_URL.txt"
 win:
   target:
     - "zip"
     - "nsis"
+    - "appx"
   icon: "assets/icon.ico"
 nsis:
   artifactName: "${productName}-${version}-installer-${arch}.${ext}"
@@ -30,6 +31,12 @@ nsis:
   createDesktopShortcut: "always"
   createStartMenuShortcut: true
   runAfterFinish: true
+appx:
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+  identityName: "yhmr.ImageOverlayTool"
+  publisher: "CN=371576BB-DE03-41A4-B137-1F16D17E3A56"
+  publisherDisplayName: "yhmr"
+  applicationId: "ImageOverlayTool"
 linux:
   target:
     - "AppImage"

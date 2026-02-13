@@ -20,6 +20,7 @@ type ProjectMutations = {
     loadProject: (project: ProjectFile<ImageSet>) => void;
     resetAll: () => void;
     setCurrentProjectFilePath: (filePath: string | null) => void;
+    markProjectSaved: () => void;
 };
 
 interface ProjectCommandServiceDeps {
@@ -125,6 +126,7 @@ export const createProjectCommandService = ({
         const savedPath = await ipcService.saveProjectAs(createProjectFile());
         if (savedPath) {
             mutations.setCurrentProjectFilePath(savedPath);
+            mutations.markProjectSaved();
         }
     };
 
@@ -140,6 +142,7 @@ export const createProjectCommandService = ({
             currentProjectFilePath,
             createProjectFile()
         );
+        mutations.markProjectSaved();
     };
 
     return {

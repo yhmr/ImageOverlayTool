@@ -1,0 +1,12 @@
+ImageOverlayTool - Corresponding Source Code
+
+Project repository:
+https://github.com/yhmr/ImageOverlayTool
+
+Release source code:
+Use the tag/commit that matches this distributed binary.
+Example:
+https://github.com/yhmr/ImageOverlayTool/tree/<release-tag-or-commit>
+
+License:
+GNU Affero General Public License v3.0 only (AGPL-3.0-only)

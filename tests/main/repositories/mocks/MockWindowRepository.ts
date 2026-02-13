@@ -13,6 +13,7 @@ export class MockWindowRepository implements IWindowRepository {
         width: DEFAULT_MAIN_WINDOW_SIZE.width,
         height: DEFAULT_MAIN_WINDOW_SIZE.height,
     };
+    private isMaximized = false;
     private imageSettingsWindowPos: Point = { x: 0, y: 0 };
     private imageSettingsWindowSize: Size = {
         width: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width,
@@ -27,16 +28,18 @@ export class MockWindowRepository implements IWindowRepository {
         this.windowColor = color;
     }
 
-    getWindowPositionAndSize(): { pos: Point; size: Size } {
+    getWindowPositionAndSize(): { pos: Point; size: Size; isMaximized: boolean } {
         return {
             pos: { ...this.windowPos },
             size: { ...this.windowSize },
+            isMaximized: this.isMaximized,
         };
     }
 
-    saveWindowPositionAndSize(pos: number[], size: number[]): void {
+    saveWindowPositionAndSize(pos: number[], size: number[], isMaximized: boolean): void {
         this.windowPos = { x: pos[0], y: pos[1] };
         this.windowSize = { width: size[0], height: size[1] };
+        this.isMaximized = isMaximized;
     }
 
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } {

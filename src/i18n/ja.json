@@ -6,6 +6,9 @@
     "main": {},
     "render": {
         "menu": {
+            "group_project": "プロジェクト",
+            "group_image": "画像",
+            "group_app": "アプリケーション",
             "load_image": "画像設定",
             "new_project": "新規作成",
             "open_project": "プロジェクトを開く",
@@ -15,7 +18,8 @@
             "about": "このアプリについて",
             "help_manual": "ヘルプ/マニュアル",
             "export_logs": "ログをエクスポート",
-            "exit": "終了"
+            "exit": "終了",
+            "fit_screen": "画面をフィッティング"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -25,9 +29,6 @@
                 "unmaximize": "ウィンドウを戻す（縮小）",
                 "close": "閉じる"
             }
-        },
-        "context_menu": {
-            "fit_screen": "画面をフィッティング"
         },
         "control_button": {
             "tooltip": {
@@ -69,11 +70,13 @@
                 "lock": "ロック",
                 "unlock": "ロック解除",
                 "add": "新規追加",
+                "capture": "背景をキャプチャ",
                 "close": "閉じる"
             }
         },
         "setting_dlg": {
             "title": "設定",
+            "description": "言語などのアプリケーション設定を変更できます。",
             "done": "完了",
             "export": "設定をエクスポート",
             "import": "設定をインポート",
@@ -83,12 +86,33 @@
             "helper": {
                 "language": "UIで使用する言語を変更します",
                 "unitFactor": "寸法線の描画で利用します"
+            },
+            "log_level": "ログレベル",
+            "log_levels": {
+                "error": "エラーのみ",
+                "warn": "警告以上",
+                "info": "情報 (標準)",
+                "debug": "デバッグ",
+                "silly": "全て"
             }
         },
         "about_dlg": {
             "version": "バージョン",
             "licenses": "オープンソースライセンス",
             "done": "閉じる"
+        },
+        "error_boundary": {
+            "title": "予期せぬエラーが発生しました",
+            "description": "予期せぬエラーが発生しました。<br />再読み込みを行っても解決しない場合は、<br />開発者へご連絡ください。",
+            "reload": "アプリを再読み込み",
+            "copy_details": "エラー詳細をコピー"
+        },
+        "unsaved_changes": {
+            "title": "未保存の変更があります",
+            "confirm_discard": "未保存の変更があります。保存せずに続行しますか？",
+            "confirm_exit": "未保存の変更があります。保存せずに終了しますか？",
+            "button_cancel": "キャンセル",
+            "button_discard_exit": "保存せず終了"
         }
     }
 }

@@ -14,13 +14,15 @@ import {
     useIpcService,
 } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
-import { ContextMenu } from "./components/ContextMenu";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { WindowResizeHandles } from "./components/WindowResizeHandles";
 
 const App = () => {
     // 設定の読み込み
     const { windowColor, setWindowColor } = useAppStore();
+    const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
     const ipcService = useIpcService();
 
     // ローカル編集を他ウィンドウへ同期
@@ -68,9 +70,14 @@ const App = () => {
             setWindowColor(color);
             // 初期設定による変更なので履歴をクリアする
             useAppStore.temporal.getState().clear();
+            useAppStore.getState().markProjectSaved();
         };
         void loadColor();
     }, [setWindowColor, ipcService]);
+
+    useEffect(() => {
+        void ipcService.updateProjectDirty(hasUnsavedChanges);
+    }, [hasUnsavedChanges, ipcService]);
 
     return (
         <div className="main-app-container" data-testid="main.app.root">
@@ -84,11 +91,10 @@ const App = () => {
                 }}
             >
                 <div className="image-area" data-testid="main.canvas.area">
-                    <ContextMenu>
-                        <ImageStage />
-                    </ContextMenu>
+                    <ImageStage />
                 </div>
             </div>
+            <WindowResizeHandles />
         </div>
     );
 };
@@ -100,8 +106,10 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-        <IpcServiceProvider>
-            <App />
-        </IpcServiceProvider>
+        <ErrorBoundary>
+            <IpcServiceProvider>
+                <App />
+            </IpcServiceProvider>
+        </ErrorBoundary>
     </React.StrictMode>
 );

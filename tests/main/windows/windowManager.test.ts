@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockIs, appMock, shellMock, browserWindowState } = vi.hoisted(() => {
-    const mockIs = {
-        dev: false,
-        mac: false,
-        windows: true,
-        linux: false,
-    };
+const { mockIs, mockPlatform, appMock, shellMock, browserWindowState } =
+    vi.hoisted(() => {
+        const mockIs = {
+            dev: false,
+        };
+        const mockPlatform = {
+            isMacOS: false,
+            isWindows: true,
+            isLinux: false,
+        };
 
     const appMock = {
         quit: vi.fn(),
@@ -25,8 +28,9 @@ const { mockIs, appMock, shellMock, browserWindowState } = vi.hoisted(() => {
 
     type Listener = (...args: unknown[]) => void;
     const windows: any[] = [];
+    const windowOptionsHistory: unknown[] = [];
 
-    const createMockWindow = () => {
+    const createMockWindow = (options?: unknown) => {
         const listeners: Record<string, Listener[]> = {};
         let isVisible = true;
         let isDestroyed = false;
@@ -64,6 +68,10 @@ const { mockIs, appMock, shellMock, browserWindowState } = vi.hoisted(() => {
             loadFile: vi.fn(),
             getPosition: vi.fn(() => [100, 200]),
             getSize: vi.fn(() => [800, 600]),
+            isMaximized: vi.fn(() => false),
+            maximize: vi.fn(),
+            setResizable: vi.fn(),
+            getNormalBounds: vi.fn(() => ({ x: 100, y: 200, width: 800, height: 600 })),
             show: vi.fn(() => {
                 isVisible = true;
                 emit("show");
@@ -84,6 +92,7 @@ const { mockIs, appMock, shellMock, browserWindowState } = vi.hoisted(() => {
                 isDestroyed = true;
             }),
             __emit: emit,
+            __constructorOptions: options,
             __setVisible: (value: boolean) => {
                 isVisible = value;
             },
@@ -102,25 +111,29 @@ const { mockIs, appMock, shellMock, browserWindowState } = vi.hoisted(() => {
 
     const resetWindows = () => {
         windows.splice(0, windows.length);
+        windowOptionsHistory.splice(0, windowOptionsHistory.length);
     };
 
-    return {
-        mockIs,
-        appMock,
-        shellMock,
-        browserWindowState: {
-            windows,
-            createMockWindow,
-            resetWindows,
-        },
-    };
-});
+        return {
+            mockIs,
+            mockPlatform,
+            appMock,
+            shellMock,
+            browserWindowState: {
+                windows,
+                createMockWindow,
+                resetWindows,
+                windowOptionsHistory,
+            },
+        };
+    });
 
 vi.mock("electron", () => {
     class MockBrowserWindow {
-        constructor() {
-            const win = browserWindowState.createMockWindow();
+        constructor(options?: unknown) {
+            const win = browserWindowState.createMockWindow(options);
             browserWindowState.windows.push(win);
+            browserWindowState.windowOptionsHistory.push(options);
             return win;
         }
         static fromWebContents() {
@@ -150,6 +163,7 @@ vi.mock("electron", () => {
 
 vi.mock("@electron-toolkit/utils", () => ({
     is: mockIs,
+    platform: mockPlatform,
 }));
 
 import { WindowManager } from "@/main/windows/windowManager";
@@ -173,6 +187,7 @@ describe("WindowManager", () => {
             getWindowPositionAndSize: vi.fn().mockReturnValue({
                 pos: { x: 0, y: 0 },
                 size: { width: 800, height: 600 },
+                isMaximized: false,
             }),
             saveWindowPositionAndSize: vi.fn(),
             getImageSettingsWindowPositionAndSize: vi.fn().mockReturnValue({
@@ -182,6 +197,38 @@ describe("WindowManager", () => {
             saveImageSettingsWindowPositionAndSize: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository);
+    });
+
+    it("creates windows with resize-friendly options on Windows", () => {
+        windowManager.createMainWindow();
+        windowManager.createImageSettingsWindow();
+
+        const mainOptions = browserWindowState.windowOptionsHistory[0] as Record<
+            string,
+            unknown
+        >;
+        const settingsOptions = browserWindowState.windowOptionsHistory[1] as Record<
+            string,
+            unknown
+        >;
+
+        expect(mainOptions.frame).toBe(false);
+        expect(mainOptions.transparent).toBe(true);
+        expect(mainOptions.resizable).toBe(true);
+        expect(mainOptions.thickFrame).toBe(true);
+        expect(
+            (mainOptions.webPreferences as Record<string, unknown>).sandbox
+        ).toBe(true);
+        expect(mainOptions).not.toHaveProperty("titleBarStyle");
+
+        expect(settingsOptions.frame).toBe(false);
+        expect(settingsOptions.transparent).toBe(true);
+        expect(settingsOptions.resizable).toBe(true);
+        expect(settingsOptions.thickFrame).toBe(true);
+        expect(
+            (settingsOptions.webPreferences as Record<string, unknown>).sandbox
+        ).toBe(true);
+        expect(settingsOptions).not.toHaveProperty("titleBarStyle");
     });
 
     it("openFile sends IPC message if window exists and visible", () => {
@@ -361,5 +408,43 @@ describe("WindowManager", () => {
         expect(splashWindow.show).toHaveBeenCalledTimes(1);
         expect(mainWindow).toBe(windowManager.getMainWindow());
         expect(browserWindowState.windows).toHaveLength(2);
+    });
+
+    it("persists normal bounds and isMaximized=true when closing maximized window", () => {
+        const mainWindow = windowManager.createMainWindow() as any;
+
+        // Simulate maximized state
+        mainWindow.isMaximized.mockReturnValue(true);
+        mainWindow.getNormalBounds.mockReturnValue({
+            x: 50,
+            y: 50,
+            width: 900,
+            height: 700,
+        });
+
+        // Trigger close event properly
+        const event = { preventDefault: vi.fn() };
+        mainWindow.__emit("close", event);
+
+        expect(
+            mockWindowRepository.saveWindowPositionAndSize
+        ).toHaveBeenCalledWith([50, 50], [900, 700], true);
+    });
+
+    it("restores maximized state on creation", () => {
+        // Mock repository to return isMaximized=true
+        vi.mocked(mockWindowRepository.getWindowPositionAndSize).mockReturnValue({
+            pos: { x: 0, y: 0 },
+            size: { width: 800, height: 600 },
+            isMaximized: true,
+        });
+
+        const mainWindow = windowManager.createMainWindow() as any;
+        // Trigger ready-to-show to execute restore logic
+        mainWindow.__emit("ready-to-show");
+
+        expect(mainWindow.maximize).toHaveBeenCalled();
+        expect(mainWindow.setResizable).toHaveBeenCalledWith(true);
+        expect(mainWindow.show).toHaveBeenCalled();
     });
 });

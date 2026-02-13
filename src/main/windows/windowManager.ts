@@ -1,6 +1,6 @@
 import path from "path";
-import { BrowserWindow, shell, app } from "electron";
-import { is } from "@electron-toolkit/utils";
+import { BrowserWindow, shell, app, dialog } from "electron";
+import { is, platform } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
 import {
@@ -8,6 +8,7 @@ import {
     type IWindowShortcutManager,
 } from "./windowShortcutManager";
 import { IPC_EVENTS } from "../../shared/ipc/channels";
+import { tUnsavedChanges } from "../../i18n/mainI18n";
 
 export interface IMainWindowProvider {
     getMainWindow(): BrowserWindow | null;
@@ -20,6 +21,11 @@ export interface IWindowCollectionProvider {
 export interface IImageSettingsWindowController {
     toggleImageSettingsWindow(): boolean;
 }
+
+export interface IProjectDirtyStateController {
+    setProjectDirty(isDirty: boolean): void;
+}
+
 /**
  * ウィンドウ管理クラス
  * メインウィンドウと画像設定ウィンドウの作成・管理を行う
@@ -33,6 +39,7 @@ export class WindowManager {
     private windowRepository: IWindowRepository;
     private readonly shortcutManager: IWindowShortcutManager;
     private isQuitting = false;
+    private isProjectDirty = false;
     private pendingFilePath: string | null = null;
     private splashDisplayTime: number | null = null;
 
@@ -49,6 +56,10 @@ export class WindowManager {
      */
     willQuit(): void {
         this.isQuitting = true;
+    }
+
+    setProjectDirty(isDirty: boolean): void {
+        this.isProjectDirty = isDirty;
     }
 
     /**
@@ -146,7 +157,8 @@ export class WindowManager {
      */
     createMainWindow(): BrowserWindow {
         log.debug("Creating main window...");
-        const { pos, size } = this.windowRepository.getWindowPositionAndSize();
+        const { pos, size, isMaximized } =
+            this.windowRepository.getWindowPositionAndSize();
 
         this.mainWindow = new BrowserWindow({
             show: false,
@@ -154,14 +166,16 @@ export class WindowManager {
             height: size.height,
             x: pos.x,
             y: pos.y,
-            titleBarStyle: "hidden",
             transparent: true,
             frame: false,
+            resizable: true,
+            ...(platform.isMacOS ? { titleBarStyle: "hidden" as const } : {}),
+            ...(platform.isWindows ? { thickFrame: true } : {}),
             webPreferences: {
                 preload: path.join(__dirname, "../preload/index.js"),
                 contextIsolation: true,
                 nodeIntegration: false,
-                sandbox: false,
+                sandbox: true,
                 webSecurity: true,
             },
         });
@@ -192,6 +206,10 @@ export class WindowManager {
 
             // スプラッシュ画面がない場合（E2E等）は即座に表示
             if (!this.splashWindow) {
+                if (isMaximized) {
+                    this.mainWindow?.maximize();
+                    this.mainWindow?.setResizable(true);
+                }
                 this.mainWindow?.show();
                 return;
             }
@@ -208,6 +226,10 @@ export class WindowManager {
             );
 
             setTimeout(() => {
+                if (isMaximized) {
+                    this.mainWindow?.maximize();
+                    this.mainWindow?.setResizable(true);
+                }
                 this.mainWindow?.show();
                 this.destroySplashWindow();
             }, delay);
@@ -219,12 +241,45 @@ export class WindowManager {
         this.mainWindow.on("focus", flushPending);
 
         // ウィンドウが閉じられる際にウィンドウ設定を保存
-        this.mainWindow.on("close", () => {
+        this.mainWindow.on("close", (event) => {
             if (this.mainWindow) {
-                this.windowRepository.saveWindowPositionAndSize(
-                    this.mainWindow.getPosition(),
-                    this.mainWindow.getSize()
-                );
+                if (!this.isQuitting && this.isProjectDirty) {
+                    const selected = dialog.showMessageBoxSync(
+                        this.mainWindow,
+                        {
+                            type: "warning",
+                            buttons: [
+                                tUnsavedChanges("button_cancel"),
+                                tUnsavedChanges("button_discard_exit"),
+                            ],
+                            defaultId: 0,
+                            cancelId: 0,
+                            title: tUnsavedChanges("title"),
+                            message: tUnsavedChanges("confirm_exit"),
+                        }
+                    );
+
+                    if (selected === 0) {
+                        event.preventDefault();
+                        return;
+                    }
+                }
+
+                const isMaximized = this.mainWindow.isMaximized();
+                if (isMaximized) {
+                    const bounds = this.mainWindow.getNormalBounds();
+                    this.windowRepository.saveWindowPositionAndSize(
+                        [bounds.x, bounds.y],
+                        [bounds.width, bounds.height],
+                        true
+                    );
+                } else {
+                    this.windowRepository.saveWindowPositionAndSize(
+                        this.mainWindow.getPosition(),
+                        this.mainWindow.getSize(),
+                        false
+                    );
+                }
             }
         });
 
@@ -283,14 +338,16 @@ export class WindowManager {
             x: pos.x,
             y: pos.y,
             parent: this.mainWindow ?? undefined,
-            titleBarStyle: "hidden",
             transparent: true,
             frame: false,
+            resizable: true,
+            ...(platform.isMacOS ? { titleBarStyle: "hidden" as const } : {}),
+            ...(platform.isWindows ? { thickFrame: true } : {}),
             webPreferences: {
                 preload: path.join(__dirname, "../preload/index.js"),
                 contextIsolation: true,
                 nodeIntegration: false,
-                sandbox: false,
+                sandbox: true,
                 webSecurity: true,
             },
         });

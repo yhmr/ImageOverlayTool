@@ -1,7 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { useTranslation } from "react-i18next";
 
 import "../../i18n/configs";
+import { normalizeLanguage } from "../../i18n/languages";
 import "../shared/globals.css";
 import "./ImageSettingsApp.css";
 
@@ -16,11 +18,40 @@ import { SettingsMenuBar } from "./components/SettingsMenuBar";
 
 const ImageSettingsApp = () => {
     const ipcService = useIpcService();
+    const { i18n } = useTranslation();
 
     // ローカル編集を他ウィンドウへ同期
     useProjectDataSyncBridge();
     // 同期フックを使用
     useProjectSync();
+
+    React.useEffect(() => {
+        let isMounted = true;
+        const applyLanguage = async () => {
+            try {
+                const setting = await ipcService.loadSetting();
+                if (!isMounted) {
+                    return;
+                }
+                await i18n.changeLanguage(normalizeLanguage(setting.language));
+            } catch (error) {
+                void ipcService.log.error(
+                    "ImageSettings language initialization failed:",
+                    error
+                );
+            }
+        };
+
+        void applyLanguage();
+        const unsubscribe = ipcService.onLanguageUpdated((language) => {
+            void i18n.changeLanguage(normalizeLanguage(language));
+        });
+
+        return () => {
+            isMounted = false;
+            unsubscribe();
+        };
+    }, [i18n, ipcService]);
 
     // グローバルエラーハンドリング
     React.useEffect(() => {

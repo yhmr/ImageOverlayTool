@@ -6,13 +6,25 @@ import { MockSettingsRepository } from "../repositories/mocks/MockSettingsReposi
 import { MockWindowRepository } from "../repositories/mocks/MockWindowRepository";
 import { SettingType } from "@/shared/types/AppConfig";
 import { invokeIpcHandler } from "../utils/ipcTestHelper";
+import { setLogLevel } from "@/main/logger";
+import { initializeMainI18n } from "@/i18n/mainI18n";
+import { IPC_EVENTS } from "@/shared/ipc/channels";
 
-const { showSaveDialog, showOpenDialog, writeFile, readFile } = vi.hoisted(
+const {
+    showSaveDialog,
+    showOpenDialog,
+    writeFile,
+    readFile,
+    getAllWindows,
+    webContentsSend,
+} = vi.hoisted(
     () => ({
         showSaveDialog: vi.fn(),
         showOpenDialog: vi.fn(),
         writeFile: vi.fn(),
         readFile: vi.fn(),
+        getAllWindows: vi.fn(),
+        webContentsSend: vi.fn(),
     })
 );
 
@@ -28,6 +40,9 @@ vi.mock("electron", () => ({
     app: {
         isPackaged: false,
     },
+    BrowserWindow: {
+        getAllWindows,
+    },
 }));
 
 vi.mock("fs/promises", () => ({
@@ -37,6 +52,20 @@ vi.mock("fs/promises", () => ({
     },
     writeFile,
     readFile,
+}));
+
+// Mock logger
+vi.mock("@/main/logger", () => ({
+    default: {
+        info: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+    },
+    setLogLevel: vi.fn(),
+}));
+
+vi.mock("@/i18n/mainI18n", () => ({
+    initializeMainI18n: vi.fn(),
 }));
 
 describe("IPC AppConfig Handlers", () => {
@@ -57,10 +86,17 @@ describe("IPC AppConfig Handlers", () => {
             JSON.stringify({
                 version: 1,
                 exportedAt: "2026-02-12T00:00:00.000Z",
-                setting: { language: "en" },
+                setting: { language: "en", logLevel: "info" },
                 window: { color: "#ffffff" },
             })
         );
+        getAllWindows.mockReturnValue([
+            {
+                webContents: {
+                    send: webContentsSend,
+                },
+            },
+        ]);
         mockSettingsRepo = new MockSettingsRepository();
         mockWindowRepo = new MockWindowRepository();
         // Register handlers
@@ -78,7 +114,7 @@ describe("IPC AppConfig Handlers", () => {
 
     describe("setting:save & setting:load", () => {
         it("should save and load settings via repository", async () => {
-            const newSettings: SettingType = { language: "ja" };
+            const newSettings: SettingType = { language: "ja", logLevel: "debug" };
 
             // mocking event object
             const event = { sender: {} };
@@ -88,7 +124,15 @@ describe("IPC AppConfig Handlers", () => {
 
             // Verify save (MockSettingsRepository updates internal state)
             const saved = await mockSettingsRepo.loadSettings();
-            expect(saved).toEqual(newSettings);
+            expect(saved).toEqual({ ...newSettings });
+
+            // Verify setLogLevel called
+            expect(setLogLevel).toHaveBeenCalledWith("debug");
+            expect(initializeMainI18n).toHaveBeenCalledWith("ja");
+            expect(webContentsSend).toHaveBeenCalledWith(
+                IPC_EVENTS.languageUpdated,
+                "ja"
+            );
 
             // Test setting:load
             const loaded = await invokeIpcHandler("setting:load", event);
@@ -128,7 +172,7 @@ describe("IPC AppConfig Handlers", () => {
                 const error = new Error("Save settings failed");
                 vi.spyOn(mockSettingsRepo, "saveSettings").mockRejectedValue(error);
 
-                await expect(invokeIpcHandler("setting:save", { sender: {} }, { language: "en" }))
+                await expect(invokeIpcHandler("setting:save", { sender: {} }, { language: "en", logLevel: "info" }))
                     .rejects.toThrow("Save settings failed");
             });
 
@@ -160,6 +204,7 @@ describe("IPC AppConfig Handlers", () => {
                 vi.mocked(fs.writeFile).mock.calls[0][1] as string
             );
             expect(payload.setting.language).toBe("en");
+            expect(payload.setting.logLevel).toBe("info");
         });
 
         it("should import settings snapshot from selected file", async () => {
@@ -168,7 +213,13 @@ describe("IPC AppConfig Handlers", () => {
             });
             expect(showOpenDialog).toHaveBeenCalledTimes(1);
             expect(fs.readFile).toHaveBeenCalledWith("settings.json", "utf8");
-            expect(loaded).toEqual({ language: "en" });
+            expect(loaded).toEqual({ language: "en", logLevel: "info" });
+            expect(setLogLevel).toHaveBeenCalledWith("info");
+            expect(initializeMainI18n).toHaveBeenCalledWith("en");
+            expect(webContentsSend).toHaveBeenCalledWith(
+                IPC_EVENTS.languageUpdated,
+                "en"
+            );
         });
     });
 });

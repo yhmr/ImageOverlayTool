@@ -1,4 +1,4 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Dialog,
@@ -18,25 +18,33 @@ import {
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import {
+    normalizeLanguage,
+    SUPPORTED_LANGUAGES,
+} from "../../../i18n/languages";
 
 interface SettingDialogProps {
     open: boolean;
     onClose: () => void;
 }
 
+const LOG_LEVELS = ["error", "warn", "info", "debug", "silly"];
+
 export function SettingDialog(props: SettingDialogProps) {
     const { open, onClose } = props;
     const { t, i18n } = useTranslation();
     const ipcService = useIpcService();
+    const [logLevel, setLogLevel] = useState("info");
 
     // 言語切り替え
     const changeLanguage = (value: string) => {
-        i18n.changeLanguage(value);
+        i18n.changeLanguage(normalizeLanguage(value));
     };
 
     const persistSettings = async () => {
         await ipcService.saveSetting({
-            language: i18n.language,
+            language: normalizeLanguage(i18n.language),
+            logLevel,
         });
     };
 
@@ -54,8 +62,13 @@ export function SettingDialog(props: SettingDialogProps) {
 
     const importSettings = async () => {
         const imported = await ipcService.importSettings();
-        if (imported?.language) {
-            i18n.changeLanguage(imported.language);
+        if (imported) {
+            if (imported.language) {
+                i18n.changeLanguage(normalizeLanguage(imported.language));
+            }
+            if (imported.logLevel) {
+                setLogLevel(imported.logLevel);
+            }
         }
     };
 
@@ -63,7 +76,10 @@ export function SettingDialog(props: SettingDialogProps) {
     useLayoutEffect(() => {
         const loadSetting = async () => {
             const setting = await ipcService.loadSetting();
-            i18n.changeLanguage(setting.language);
+            i18n.changeLanguage(normalizeLanguage(setting.language));
+            if (setting.logLevel) {
+                setLogLevel(setting.logLevel);
+            }
         };
         void loadSetting();
     }, [i18n, ipcService]);
@@ -77,8 +93,7 @@ export function SettingDialog(props: SettingDialogProps) {
                 <DialogHeader>
                     <DialogTitle>{t("render.setting_dlg.title")}</DialogTitle>
                     <DialogDescription className="sr-only">
-                        This dialog allows you to change application settings
-                        such as language.
+                        {t("render.setting_dlg.description")}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -87,7 +102,7 @@ export function SettingDialog(props: SettingDialogProps) {
                             {t("render.setting_dlg.language")}
                         </Label>
                         <Select
-                            value={i18n.language}
+                            value={normalizeLanguage(i18n.language)}
                             onValueChange={changeLanguage}
                         >
                             <SelectTrigger
@@ -101,9 +116,7 @@ export function SettingDialog(props: SettingDialogProps) {
                                 />
                             </SelectTrigger>
                             <SelectContent>
-                                {Object.keys(
-                                    i18n.services.resourceStore.data
-                                ).map((lng) => (
+                                {SUPPORTED_LANGUAGES.map((lng) => (
                                     <SelectItem key={lng} value={lng}>
                                         {lng}
                                     </SelectItem>
@@ -114,6 +127,34 @@ export function SettingDialog(props: SettingDialogProps) {
                     <div className="text-sm text-muted-foreground ml-auto">
                         {t("render.setting_dlg.helper.language")}
                     </div>
+
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="loglevel-select" className="text-right">
+                            {t("render.setting_dlg.log_level")}
+                        </Label>
+                        <Select value={logLevel} onValueChange={setLogLevel}>
+                            <SelectTrigger
+                                className="col-span-3"
+                                id="loglevel-select"
+                            >
+                                <SelectValue
+                                    placeholder={t(
+                                        "render.setting_dlg.log_level"
+                                    )}
+                                />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {LOG_LEVELS.map((level) => (
+                                    <SelectItem key={level} value={level}>
+                                        {t(
+                                            `render.setting_dlg.log_levels.${level}`
+                                        )}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     <div className="flex gap-2 justify-end">
                         <Button
                             variant="outline"

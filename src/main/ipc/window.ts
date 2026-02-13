@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow, app } from "electron";
+import { ipcMain, BrowserWindow } from "electron";
 import log from "../logger";
 import { IPC_CHANNELS } from "../../shared/ipc/channels";
 
@@ -11,13 +11,14 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
         } else {
             log.debug("[IPC] window:switchSize -> unmaximizing");
             mainWindow.unmaximize();
+            mainWindow.setResizable(true);
             return false;
         }
     });
 
     ipcMain.handle(IPC_CHANNELS.window.close, async () => {
-        log.info("[IPC] window:close called, quitting application");
-        app.quit();
+        log.info("[IPC] window:close called");
+        mainWindow.close();
     });
 
     ipcMain.handle(

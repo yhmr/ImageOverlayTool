@@ -532,13 +532,6 @@
     "url": ""
   },
   {
-    "name": "argparse@2.0.1",
-    "licenses": "Python-2.0",
-    "repository": "https://github.com/nodeca/argparse",
-    "publisher": "",
-    "url": ""
-  },
-  {
     "name": "aria-hidden@1.2.6",
     "licenses": "MIT",
     "repository": "https://github.com/theKashey/aria-hidden",
@@ -571,13 +564,6 @@
     "licenses": "MIT",
     "repository": "https://github.com/brianloveswords/buffer-crc32",
     "publisher": "Brian J. Brennan",
-    "url": ""
-  },
-  {
-    "name": "builder-util-runtime@9.2.10",
-    "licenses": "MIT",
-    "repository": "https://github.com/electron-userland/electron-builder",
-    "publisher": "Vladimir Krivosheev",
     "url": ""
   },
   {
@@ -721,13 +707,6 @@
     "url": "https://sindresorhus.com"
   },
   {
-    "name": "electron-updater@6.3.9",
-    "licenses": "MIT",
-    "repository": "https://github.com/electron-userland/electron-builder",
-    "publisher": "Vladimir Krivosheev",
-    "url": ""
-  },
-  {
     "name": "electron@40.1.0",
     "licenses": "MIT",
     "repository": "https://github.com/electron/electron",
@@ -831,13 +810,6 @@
     "repository": "https://github.com/sindresorhus/find-up",
     "publisher": "Sindre Sorhus",
     "url": "sindresorhus.com"
-  },
-  {
-    "name": "fs-extra@10.1.0",
-    "licenses": "MIT",
-    "repository": "https://github.com/jprichardson/node-fs-extra",
-    "publisher": "JP Richardson",
-    "url": ""
   },
   {
     "name": "fs-extra@8.1.0",
@@ -952,13 +924,6 @@
     "url": ""
   },
   {
-    "name": "js-yaml@4.1.1",
-    "licenses": "MIT",
-    "repository": "https://github.com/nodeca/js-yaml",
-    "publisher": "Vladimir Zapparov",
-    "url": ""
-  },
-  {
     "name": "json-buffer@3.0.1",
     "licenses": "MIT",
     "repository": "https://github.com/dominictarr/json-buffer",
@@ -994,13 +959,6 @@
     "url": ""
   },
   {
-    "name": "jsonfile@6.2.0",
-    "licenses": "MIT",
-    "repository": "https://github.com/jprichardson/node-jsonfile",
-    "publisher": "JP Richardson",
-    "url": ""
-  },
-  {
     "name": "keyv@4.5.4",
     "licenses": "MIT",
     "repository": "https://github.com/jaredwray/keyv",
@@ -1012,13 +970,6 @@
     "licenses": "MIT",
     "repository": "https://github.com/konvajs/konva",
     "publisher": "Anton Lavrenov",
-    "url": ""
-  },
-  {
-    "name": "lazy-val@1.0.5",
-    "licenses": "MIT",
-    "repository": "https://github.com/develar/lazy-val",
-    "publisher": "Vladimir Krivosheev",
     "url": ""
   },
   {
@@ -1041,20 +992,6 @@
     "repository": "https://github.com/sindresorhus/locate-path",
     "publisher": "Sindre Sorhus",
     "url": "sindresorhus.com"
-  },
-  {
-    "name": "lodash.escaperegexp@4.1.2",
-    "licenses": "MIT",
-    "repository": "https://github.com/lodash/lodash",
-    "publisher": "John-David Dalton",
-    "url": "http://allyoucanleet.com/"
-  },
-  {
-    "name": "lodash.isequal@4.5.0",
-    "licenses": "MIT",
-    "repository": "https://github.com/lodash/lodash",
-    "publisher": "John-David Dalton",
-    "url": "http://allyoucanleet.com/"
   },
   {
     "name": "lowercase-keys@2.0.0",
@@ -1372,13 +1309,6 @@
     "url": ""
   },
   {
-    "name": "sax@1.4.4",
-    "licenses": "BlueOak-1.0.0",
-    "repository": "https://github.com/isaacs/sax-js",
-    "publisher": "Isaac Z. Schlueter",
-    "url": "http://blog.izs.me/"
-  },
-  {
     "name": "scheduler@0.27.0",
     "licenses": "MIT",
     "repository": "https://github.com/facebook/react",
@@ -1470,13 +1400,6 @@
     "url": ""
   },
   {
-    "name": "tiny-typed-emitter@2.1.0",
-    "licenses": "MIT",
-    "repository": "https://github.com/binier/tiny-typed-emitter",
-    "publisher": "Zurab Benashvili",
-    "url": ""
-  },
-  {
     "name": "tinyglobby@0.2.15",
     "licenses": "MIT",
     "repository": "https://github.com/SuperchupuDev/tinyglobby",
@@ -1527,13 +1450,6 @@
   },
   {
     "name": "universalify@0.1.2",
-    "licenses": "MIT",
-    "repository": "https://github.com/RyanZim/universalify",
-    "publisher": "Ryan Zimmerman",
-    "url": ""
-  },
-  {
-    "name": "universalify@2.0.1",
     "licenses": "MIT",
     "repository": "https://github.com/RyanZim/universalify",
     "publisher": "Ryan Zimmerman",

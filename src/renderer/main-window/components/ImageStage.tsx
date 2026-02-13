@@ -112,7 +112,7 @@ export const ImageStage = memo(function ImageStage() {
                         if (imageSet.visible === false) return null;
                         return (
                             <DrawImage
-                                key={index + imageSet.id}
+                                key={imageSet.id}
                                 imageSet={imageSet}
                                 onInitImage={onInitImage(imageSet, index)}
                                 onSelect={createImageSelectHandler(imageSet.id)}
@@ -128,7 +128,7 @@ export const ImageStage = memo(function ImageStage() {
                             ) {
                                 return (
                                     <OverlayControls
-                                        key={"overlay-" + imageSet.id}
+                                        key={imageSet.id}
                                         imageSet={imageSet}
                                         onUpdateAnchor={onUpdateAnchor(
                                             imageSet,

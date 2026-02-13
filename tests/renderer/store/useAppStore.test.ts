@@ -5,6 +5,10 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
+import {
+    UNIT_FACTOR_DEFAULT,
+    UNIT_FACTOR_MIN,
+} from "@/shared/constants/unitFactor";
 
 describe("useAppStore", () => {
     beforeEach(() => {
@@ -64,6 +68,14 @@ describe("useAppStore", () => {
                 useAppStore.getState().syncUnitFactor(3.0);
                 expect(useAppStore.getState().unitFactor).toBe(3.0);
                 expect(useAppStore.getState().projectDataChangeOrigin).toBe("remote");
+            });
+
+            it("should sanitize NaN and negative unit factor values", () => {
+                useAppStore.getState().setUnitFactor(Number.NaN);
+                expect(useAppStore.getState().unitFactor).toBe(UNIT_FACTOR_DEFAULT);
+
+                useAppStore.getState().setUnitFactor(-5);
+                expect(useAppStore.getState().unitFactor).toBe(UNIT_FACTOR_MIN);
             });
         });
 
@@ -214,6 +226,27 @@ describe("useAppStore", () => {
 
             expect(useAppStore.temporal.getState().pastStates.length).toBe(0);
             expect(useAppStore.temporal.getState().futureStates.length).toBe(0);
+        });
+
+        it("should set dirty true when undoing after save", () => {
+            useAppStore.temporal.getState().clear();
+            useAppStore
+                .getState()
+                .setImageSets([createHistorySample("local-1", "local-a.png")]);
+            useAppStore
+                .getState()
+                .setImageSets([createHistorySample("local-2", "local-b.png")]);
+
+            useAppStore.getState().markProjectSaved();
+            expect(useAppStore.getState().hasUnsavedChanges).toBe(false);
+
+            useAppStore.temporal.getState().undo();
+            expect(useAppStore.getState().hasUnsavedChanges).toBe(true);
+            expect(useAppStore.getState().imageSets[0].id).toBe("local-1");
+
+            useAppStore.temporal.getState().redo();
+            expect(useAppStore.getState().hasUnsavedChanges).toBe(false);
+            expect(useAppStore.getState().imageSets[0].id).toBe("local-2");
         });
     });
     describe("loadProjectData", () => {

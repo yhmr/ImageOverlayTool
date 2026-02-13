@@ -104,6 +104,7 @@ describe("ipcService", () => {
             const unsubRequestState = vi.fn();
             const unsubFileOpen = vi.fn();
             const unsubSelectedImageId = vi.fn();
+            const unsubLanguage = vi.fn();
 
             const api = {
                 log: {
@@ -116,10 +117,15 @@ describe("ipcService", () => {
                 switchWindowSize: vi.fn().mockResolvedValue(true),
                 setWindowRect: vi.fn().mockResolvedValue(undefined),
                 closeWindow: vi.fn().mockResolvedValue(undefined),
-                loadSetting: vi.fn().mockResolvedValue({ language: "ja" }),
+                loadSetting: vi
+                    .fn()
+                    .mockResolvedValue({ language: "ja", logLevel: "info" }),
                 saveSetting: vi.fn().mockResolvedValue(undefined),
                 exportSettings: vi.fn().mockResolvedValue("settings.json"),
-                importSettings: vi.fn().mockResolvedValue({ language: "en" }),
+                importSettings: vi
+                    .fn()
+                    .mockResolvedValue({ language: "en", logLevel: "debug" }),
+                onLanguageUpdated: vi.fn().mockReturnValue(unsubLanguage),
                 loadWindowColor: vi.fn().mockResolvedValue("#ffffff"),
                 saveWindowColor: vi.fn().mockResolvedValue(undefined),
                 saveProjectAs: vi.fn().mockResolvedValue("project.iot"),
@@ -162,6 +168,7 @@ describe("ipcService", () => {
                 onSelectedImageIdUpdated: vi
                     .fn()
                     .mockReturnValue(unsubSelectedImageId),
+                updateProjectDirty: vi.fn().mockResolvedValue(undefined),
             };
 
             return {
@@ -173,6 +180,7 @@ describe("ipcService", () => {
                     unsubRequestState,
                     unsubFileOpen,
                     unsubSelectedImageId,
+                    unsubLanguage,
                 },
             };
         };
@@ -197,11 +205,15 @@ describe("ipcService", () => {
             await expect(service.switchWindowSize()).resolves.toBe(true);
             await service.setWindowRect({ x: 1, y: 2, width: 3, height: 4 });
             await service.closeWindow();
-            await expect(service.loadSetting()).resolves.toEqual({ language: "ja" });
-            await service.saveSetting({ language: "en" });
+            await expect(service.loadSetting()).resolves.toEqual({
+                language: "ja",
+                logLevel: "info",
+            });
+            await service.saveSetting({ language: "en", logLevel: "warn" });
             await expect(service.exportSettings()).resolves.toBe("settings.json");
             await expect(service.importSettings()).resolves.toEqual({
                 language: "en",
+                logLevel: "debug",
             });
             await expect(service.loadWindowColor()).resolves.toBe("#ffffff");
             await service.saveWindowColor("#222222");
@@ -235,6 +247,7 @@ describe("ipcService", () => {
             });
             await expect(service.saveImage("data:image/png")).resolves.toBe("saved.png");
             await service.updateSelectedImageId("abc");
+            await service.updateProjectDirty(true);
 
             expect(api.setWindowRect).toHaveBeenCalledWith({
                 x: 1,
@@ -246,6 +259,7 @@ describe("ipcService", () => {
             expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
             expect(api.updateUnit).toHaveBeenCalledWith("nm");
             expect(api.updateSelectedImageId).toHaveBeenCalledWith("abc");
+            expect(api.updateProjectDirty).toHaveBeenCalledWith(true);
         });
 
         it("delegates subscription IPC methods and returns unsubscriber", () => {
@@ -260,6 +274,7 @@ describe("ipcService", () => {
             const onRequestStateSync = vi.fn();
             const onFileOpen = vi.fn();
             const onSelectedImageIdUpdated = vi.fn();
+            const onLanguageUpdated = vi.fn();
 
             expect(service.onImageSetsUpdated(onImageSetsUpdated)).toBe(
                 unsubscribers.unsubImageSets
@@ -277,6 +292,9 @@ describe("ipcService", () => {
             expect(service.onSelectedImageIdUpdated(onSelectedImageIdUpdated)).toBe(
                 unsubscribers.unsubSelectedImageId
             );
+            expect(service.onLanguageUpdated(onLanguageUpdated)).toBe(
+                unsubscribers.unsubLanguage
+            );
 
             expect(api.onImageSetsUpdated).toHaveBeenCalledWith(onImageSetsUpdated);
             expect(api.onUnitFactorUpdated).toHaveBeenCalledWith(onUnitFactorUpdated);
@@ -286,6 +304,7 @@ describe("ipcService", () => {
             expect(api.onSelectedImageIdUpdated).toHaveBeenCalledWith(
                 onSelectedImageIdUpdated
             );
+            expect(api.onLanguageUpdated).toHaveBeenCalledWith(onLanguageUpdated);
         });
     });
 });

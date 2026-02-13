@@ -49,12 +49,7 @@ export function SettingsMenuBar() {
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>
-                            {t(
-                                "render.image_settings.tooltip.capture",
-                                "背景をキャプチャ"
-                            )}
-                        </p>
+                        <p>{t("render.image_settings.tooltip.capture")}</p>
                     </TooltipContent>
                 </Tooltip>
 

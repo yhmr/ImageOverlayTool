@@ -42,6 +42,7 @@ describe("projectCommandService", () => {
         loadProject: vi.fn(),
         resetAll: vi.fn(),
         setCurrentProjectFilePath: vi.fn(),
+        markProjectSaved: vi.fn(),
     };
 
     const snapshot = {
@@ -101,6 +102,7 @@ describe("projectCommandService", () => {
         expect(mutations.setCurrentProjectFilePath).toHaveBeenCalledWith(
             "C:/tmp/new.iot"
         );
+        expect(mutations.markProjectSaved).toHaveBeenCalledTimes(1);
         expect(mockIpc.saveProject).not.toHaveBeenCalled();
     });
 
@@ -122,6 +124,7 @@ describe("projectCommandService", () => {
                 canvas: { x: 0, y: 0, scale: 1 },
             })
         );
+        expect(mutations.markProjectSaved).toHaveBeenCalledTimes(1);
     });
 
     it("newProject should reset store and clear current path", async () => {
