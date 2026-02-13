@@ -16,6 +16,7 @@ import {
 import { useAppStore } from "../store/useAppStore";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const App = () => {
     // 設定の読み込み
@@ -97,8 +98,10 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-        <IpcServiceProvider>
-            <App />
-        </IpcServiceProvider>
+        <ErrorBoundary>
+            <IpcServiceProvider>
+                <App />
+            </IpcServiceProvider>
+        </ErrorBoundary>
     </React.StrictMode>
 );

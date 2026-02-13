@@ -1,9 +1,6 @@
 import fs from "fs/promises";
 import { dialog, ipcMain } from "electron";
-import {
-    SettingType,
-    SettingsSnapshot,
-} from "../../shared/types/AppConfig";
+import { SettingType, SettingsSnapshot } from "../../shared/types/AppConfig";
 import { ISettingsRepository } from "../repositories/SettingsRepository";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";

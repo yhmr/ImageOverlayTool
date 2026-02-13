@@ -91,6 +91,12 @@
             "version": "Version",
             "licenses": "Open Source Licenses",
             "done": "Close"
+        },
+        "error_boundary": {
+            "title": "Unexpected Error Occurred",
+            "description": "An unexpected error has occurred.<br />If reloading does not solve the problem,<br />please contact the developer.",
+            "reload": "Reload App",
+            "copy_details": "Copy Error Details"
         }
     }
 }
