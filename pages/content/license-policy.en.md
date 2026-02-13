@@ -35,7 +35,13 @@ Except where required by applicable licenses, no additional patent or trademark 
 
 ## Microsoft Store - Applicable license terms (template)
 
-Use the following text in Partner Center (`Applicable license terms`) and replace `<release-tag-or-commit>` with the actual release revision.
+Generate the final text with:
+
+```bash
+npm run generate-store-license-terms
+```
+
+Then copy `STORE_LICENSE_TERMS.txt` into Partner Center (`Applicable license terms`).
 
 ```text
 ImageOverlayTool is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).

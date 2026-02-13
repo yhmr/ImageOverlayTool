@@ -219,12 +219,30 @@ const normalizeDimensionLines = (
     });
 };
 
+const assertSupportedVersion = (value: unknown): void => {
+    if (value === undefined || value === null) {
+        return;
+    }
+
+    if (typeof value !== "string" || value.length === 0) {
+        throw new Error("Invalid project file: version must be a string.");
+    }
+
+    if (value !== CURRENT_PROJECT_VERSION) {
+        throw new Error(
+            `Unsupported project file version: ${value}. This app supports ${CURRENT_PROJECT_VERSION} and legacy files without a version field.`
+        );
+    }
+};
+
 export const parseAndMigrateProjectFile = (
     value: unknown
 ): ProjectFile<ImageSet> => {
     if (!isRecord(value)) {
         throw new Error("Invalid project file: root must be an object.");
     }
+
+    assertSupportedVersion(value.version);
 
     const imagesRaw = value.images;
     if (!Array.isArray(imagesRaw)) {

@@ -36,7 +36,13 @@ AGPL でも商用配布自体は可能です。
 
 ## Microsoft Store 用ライセンス文（貼り付けテンプレート）
 
-Partner Center の `Applicable license terms` に貼る文面です。`<release-tag-or-commit>` は実際のリリースに置き換えてください。
+以下を実行して最終文面を生成してください。
+
+```bash
+npm run generate-store-license-terms
+```
+
+生成された `STORE_LICENSE_TERMS.txt` を Partner Center の `Applicable license terms` に貼り付けます。
 
 ```text
 ImageOverlayTool is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).

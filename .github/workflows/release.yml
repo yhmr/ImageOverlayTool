@@ -9,7 +9,70 @@ permissions:
   contents: write
 
 jobs:
+  quality-gate:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate release metadata
+        run: npm run prepare-release-assets
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Build application (for smoke e2e)
+        run: npm run build
+
+      - name: Run smoke e2e
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e:smoke
+
+  store-license-terms:
+    needs: quality-gate
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate release metadata
+        run: npm run prepare-release-assets
+
+      - name: Upload store license terms artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-license-terms
+          path: STORE_LICENSE_TERMS.txt
+          if-no-files-found: error
+          retention-days: 1
+
   build:
+    needs: quality-gate
     strategy:
       fail-fast: false
       matrix:
@@ -33,6 +96,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Generate release metadata
+        run: npm run prepare-release-assets
 
       # Linux ARM64 クロスコンパイル用の依存関係
       - name: Install Linux ARM64 cross-compile dependencies
@@ -80,7 +146,7 @@ jobs:
           retention-days: 1
 
   release:
-    needs: build
+    needs: [build, store-license-terms]
     runs-on: ubuntu-latest
 
     steps:

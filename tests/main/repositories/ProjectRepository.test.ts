@@ -182,4 +182,18 @@ describe("ProjectRepository", () => {
 
         expect(result.settings.unitFactor).toBe(UNIT_FACTOR_MIN);
     });
+
+    test("loadProject should reject unsupported project version", async () => {
+        const filePath = "/test/path/unsupported-version.iot";
+        const payload = {
+            ...mockProjectFile,
+            version: "2.0.0",
+        };
+
+        vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(payload));
+
+        await expect(repository.loadProject(filePath)).rejects.toThrow(
+            "Unsupported project file version: 2.0.0"
+        );
+    });
 });
