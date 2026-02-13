@@ -35,10 +35,10 @@ export interface IWindowIPCService {
 }
 
 export interface ISettingsIPCService {
-    loadSetting: () => Promise<{ language: string }>;
+    loadSetting: () => Promise<SettingType>;
     saveSetting: (setting: SettingType) => Promise<void>;
     exportSettings: () => Promise<string | null>;
-    importSettings: () => Promise<{ language: string } | null>;
+    importSettings: () => Promise<SettingType | null>;
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;
 }
@@ -158,7 +158,7 @@ class IPCService implements IIPCService {
         await window.electronAPI.closeWindow();
     }
 
-    async loadSetting(): Promise<{ language: string }> {
+    async loadSetting(): Promise<SettingType> {
         return await window.electronAPI.loadSetting();
     }
 
@@ -170,7 +170,7 @@ class IPCService implements IIPCService {
         return await window.electronAPI.exportSettings();
     }
 
-    async importSettings(): Promise<{ language: string } | null> {
+    async importSettings(): Promise<SettingType | null> {
         return await window.electronAPI.importSettings();
     }
 

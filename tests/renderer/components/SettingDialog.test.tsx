@@ -22,10 +22,10 @@ const i18nMock = {
 };
 
 const ipcMock = {
-    loadSetting: vi.fn().mockResolvedValue({ language: "en" }),
+    loadSetting: vi.fn().mockResolvedValue({ language: "en", logLevel: "info" }),
     saveSetting: vi.fn().mockResolvedValue(undefined),
     exportSettings: vi.fn().mockResolvedValue("settings.json"),
-    importSettings: vi.fn().mockResolvedValue({ language: "en" }),
+    importSettings: vi.fn().mockResolvedValue({ language: "en", logLevel: "info" }),
 };
 
 vi.mock("react-i18next", () => ({
@@ -39,34 +39,43 @@ vi.mock("@/renderer/providers/IpcServiceProvider", () => ({
     useIpcService: () => ipcMock,
 }));
 
-describe("SettingDialog export", () => {
+describe("SettingDialog", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         i18nMock.language = "en";
     });
 
-    it("persists current dialog settings before exporting", async () => {
+    it("loads settings on mount", async () => {
+        render(<SettingDialog open={true} onClose={vi.fn()} />);
+        await waitFor(() => {
+            expect(ipcMock.loadSetting).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    it("persists current dialog settings including log level before exporting", async () => {
         render(<SettingDialog open={true} onClose={vi.fn()} />);
 
         await waitFor(() => {
             expect(ipcMock.loadSetting).toHaveBeenCalledTimes(1);
         });
 
-        // Simulate user changing language in the open dialog.
-        i18nMock.language = "ja";
-
+        // Simulate user exporting (trigger persist)
         fireEvent.click(screen.getByText("render.setting_dlg.export"));
 
         await waitFor(() => {
             expect(ipcMock.saveSetting).toHaveBeenCalledWith({
-                language: "ja",
+                language: "en",
+                logLevel: "info",
             });
             expect(ipcMock.exportSettings).toHaveBeenCalledTimes(1);
         });
     });
 
-    it("imports settings and reflects imported language", async () => {
-        (ipcMock.importSettings as Mock).mockResolvedValueOnce({ language: "ja" });
+    it("imports settings and reflects imported values", async () => {
+        (ipcMock.importSettings as Mock).mockResolvedValueOnce({
+            language: "ja",
+            logLevel: "debug",
+        });
 
         render(<SettingDialog open={true} onClose={vi.fn()} />);
 
@@ -75,6 +84,16 @@ describe("SettingDialog export", () => {
         await waitFor(() => {
             expect(ipcMock.importSettings).toHaveBeenCalledTimes(1);
             expect(i18nMock.changeLanguage).toHaveBeenCalledWith("ja");
+        });
+
+        // Verify that internal state was updated by triggering a save
+        fireEvent.click(screen.getByText("render.setting_dlg.done"));
+
+        await waitFor(() => {
+            expect(ipcMock.saveSetting).toHaveBeenCalledWith({
+                language: "ja",
+                logLevel: "debug",
+            });
         });
     });
 });

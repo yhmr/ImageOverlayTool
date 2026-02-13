@@ -20,6 +20,7 @@ export interface AppConfig {
 // Note: settingはUI上で操作可能な値を示す
 export interface SettingType {
     language: string;
+    logLevel: string;
 }
 
 // 設定のインポート/エクスポートで扱うスナップショット

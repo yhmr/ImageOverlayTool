@@ -6,7 +6,7 @@ import {
 } from "../../shared/types/AppConfig";
 
 export interface ISettingsRepository {
-    loadSettings(): Promise<{ language: string }>;
+    loadSettings(): Promise<SettingType>;
     saveSettings(settings: SettingType): Promise<void>;
     exportSettingsSnapshot(): Promise<SettingsSnapshot>;
     importSettingsSnapshot(snapshot: SettingsSnapshot): Promise<void>;
@@ -19,15 +19,19 @@ export class SettingsRepository implements ISettingsRepository {
         this.store = store;
     }
 
-    async loadSettings(): Promise<{ language: string }> {
+    async loadSettings(): Promise<SettingType> {
         return {
             language: this.store.get("setting.language", "en"),
+            logLevel: this.store.get("setting.logLevel", "info"),
         };
     }
 
     async saveSettings(settings: SettingType): Promise<void> {
         if (settings.language !== undefined) {
             this.store.set("setting.language", settings.language);
+        }
+        if (settings.logLevel !== undefined) {
+            this.store.set("setting.logLevel", settings.logLevel);
         }
     }
 
@@ -37,6 +41,7 @@ export class SettingsRepository implements ISettingsRepository {
             exportedAt: new Date().toISOString(),
             setting: {
                 language: this.store.get("setting.language", "en"),
+                logLevel: this.store.get("setting.logLevel", "info"),
             },
             window: {
                 color: this.store.get("window.color", "#FFFFFF55"),
@@ -45,8 +50,13 @@ export class SettingsRepository implements ISettingsRepository {
     }
 
     async importSettingsSnapshot(snapshot: SettingsSnapshot): Promise<void> {
-        if (typeof snapshot.setting?.language === "string") {
-            this.store.set("setting.language", snapshot.setting.language);
+        if (snapshot.setting) {
+            if (typeof snapshot.setting.language === "string") {
+                this.store.set("setting.language", snapshot.setting.language);
+            }
+            if (typeof snapshot.setting.logLevel === "string") {
+                this.store.set("setting.logLevel", snapshot.setting.logLevel);
+            }
         }
         if (typeof snapshot.window?.color === "string") {
             this.store.set("window.color", snapshot.window.color);

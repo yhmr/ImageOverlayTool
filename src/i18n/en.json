@@ -72,31 +72,39 @@
                 "add": "Add",
                 "close": "Close"
             }
-        },
-        "setting_dlg": {
-            "title": "Settings",
-            "description": "Change application settings such as language.",
-            "done": "Done",
-            "export": "Export Settings",
-            "import": "Import Settings",
-            "language": "Language",
-            "unitFactor": "Resolution Factor",
-            "unit": "Unit",
-            "helper": {
-                "language": "Change the language used in the UI",
-                "unitFactor": "Used for drawing dimension lines"
-            }
-        },
-        "about_dlg": {
-            "version": "Version",
-            "licenses": "Open Source Licenses",
-            "done": "Close"
-        },
-        "error_boundary": {
-            "title": "Unexpected Error Occurred",
-            "description": "An unexpected error has occurred.<br />If reloading does not solve the problem,<br />please contact the developer.",
-            "reload": "Reload App",
-            "copy_details": "Copy Error Details"
         }
+    },
+    "setting_dlg": {
+        "title": "Settings",
+        "description": "Change application settings such as language.",
+        "done": "Done",
+        "export": "Export Settings",
+        "import": "Import Settings",
+        "language": "Language",
+        "unitFactor": "Resolution Factor",
+        "unit": "Unit",
+        "helper": {
+            "language": "Change the language used in the UI",
+            "unitFactor": "Used for drawing dimension lines"
+        },
+        "log_level": "Log Level",
+        "log_levels": {
+            "error": "Error only",
+            "warn": "Warning & above",
+            "info": "Info (Default)",
+            "debug": "Debug",
+            "silly": "All"
+        }
+    },
+    "about_dlg": {
+        "version": "Version",
+        "licenses": "Open Source Licenses",
+        "done": "Close"
+    },
+    "error_boundary": {
+        "title": "Unexpected Error Occurred",
+        "description": "An unexpected error has occurred.<br />If reloading does not solve the problem,<br />please contact the developer.",
+        "reload": "Reload App",
+        "copy_details": "Copy Error Details"
     }
 }

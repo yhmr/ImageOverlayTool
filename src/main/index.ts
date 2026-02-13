@@ -26,7 +26,7 @@ import {
     registerLocalResourceProtocol,
     setupProtocolHandler,
 } from "./ipc/protocol";
-import log from "./logger";
+import log, { setLogLevel, LevelOption } from "./logger";
 import { ProjectRepositoryFactory } from "./repositories/ProjectRepositoryFactory";
 import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFactory";
 import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory";
@@ -61,6 +61,12 @@ if (!gotTheLock) {
     registerSingleInstanceHandlers(windowManager);
 
     app.whenReady().then(async () => {
+        // 設定を読み込んでログレベルを適用
+        const settings = await settingsRepository.loadSettings();
+        if (settings.logLevel) {
+            setLogLevel(settings.logLevel as LevelOption);
+        }
+
         log.info("App ready, creating windows...");
 
         // 1) protocol -> 2) ipc -> 3) window の順で組み立てる

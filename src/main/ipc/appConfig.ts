@@ -3,7 +3,7 @@ import { dialog, ipcMain } from "electron";
 import { SettingType, SettingsSnapshot } from "../../shared/types/AppConfig";
 import { ISettingsRepository } from "../repositories/SettingsRepository";
 import { IWindowRepository } from "../repositories/WindowRepository";
-import log from "../logger";
+import log, { setLogLevel, LevelOption } from "../logger";
 import { IPC_CHANNELS } from "../../shared/ipc/channels";
 
 export const registerAppConfigHandlers = (
@@ -28,6 +28,9 @@ export const registerAppConfigHandlers = (
             log.debug("[IPC] setting:save called");
             try {
                 await settingsRepository.saveSettings(arg);
+                if (arg.logLevel) {
+                    setLogLevel(arg.logLevel as LevelOption);
+                }
                 log.info("[IPC] setting:save completed");
             } catch (error) {
                 log.error("[IPC] setting:save failed:", error);
