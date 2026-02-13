@@ -65,6 +65,12 @@ jobs:
           path: |
             release/*.zip
             release/*.exe
+            release/*.appx
+            release/*.appxbundle
+            release/*.appxupload
+            release/*.msix
+            release/*.msixbundle
+            release/*.msixupload
             release/*.AppImage
             release/*.deb
             release/latest*.yml

@@ -18,6 +18,7 @@ win:
   target:
     - "zip"
     - "nsis"
+    - "appx"
   icon: "assets/icon.ico"
 nsis:
   artifactName: "${productName}-${version}-installer-${arch}.${ext}"
@@ -26,6 +27,12 @@ nsis:
   createDesktopShortcut: "always"
   createStartMenuShortcut: true
   runAfterFinish: true
+appx:
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+  identityName: "yhmr.ImageOverlayTool"
+  publisher: "CN=371576BB-DE03-41A4-B137-1F16D17E3A56"
+  publisherDisplayName: "yhmr"
+  applicationId: "ImageOverlayTool"
 linux:
   target:
     - "AppImage"
