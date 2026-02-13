@@ -6,6 +6,9 @@
     "main": {},
     "render": {
         "menu": {
+            "group_project": "Project",
+            "group_image": "Image",
+            "group_app": "Application",
             "load_image": "Image Settings",
             "new_project": "New Project",
             "open_project": "Open Project",
@@ -20,10 +23,10 @@
         "menu_button": {
             "app_title": "ImageOverlayTool",
             "tooltip": {
-                "menu": "menu",
-                "maximize": "window maximization",
-                "unmaximize": "window unmaximization",
-                "close": "close"
+                "menu": "Menu",
+                "maximize": "Maximize Window",
+                "unmaximize": "Restore Window",
+                "close": "Close"
             }
         },
         "context_menu": {
@@ -32,7 +35,7 @@
         "control_button": {
             "tooltip": {
                 "background_style": "Background Color/Opacity",
-                "dimension_line": "draw dimension line",
+                "dimension_line": "Draw Dimension Line",
                 "save": "Save Image",
                 "capture": "Capture Background",
                 "image_settings": "Image Settings"
@@ -48,15 +51,15 @@
             }
         },
         "image_settings": {
-            "title": "Image Setting",
-            "done": "DONE",
-            "transparency": "transparency",
-            "rotation": "rotation",
+            "title": "Image Settings",
+            "done": "Done",
+            "transparency": "Transparency",
+            "rotation": "Rotation",
             "no_image": "No Image Selected",
-            "reset_transformation": "Reset transformation",
-            "filters": "Image filters",
+            "reset_transformation": "Reset Transformation",
+            "filters": "Image Filters",
             "binarization": "Binarization",
-            "hsv": "HSV adjustment",
+            "hsv": "HSV Adjustment",
             "threshold": "Threshold",
             "hue": "Hue",
             "saturation": "Saturation",
@@ -64,8 +67,8 @@
             "tooltip": {
                 "load_image": "Load Image",
                 "delete_image": "Delete Image",
-                "visible": "Toggle visibility",
-                "reset_transformation": "Reset transformation",
+                "visible": "Toggle Visibility",
+                "reset_transformation": "Reset Transformation",
                 "lock": "Lock",
                 "unlock": "Unlock",
                 "add": "Add",
@@ -73,13 +76,14 @@
             }
         },
         "setting_dlg": {
-            "title": "Setting",
-            "done": "DONE",
+            "title": "Settings",
+            "description": "Change application settings such as language.",
+            "done": "Done",
             "export": "Export Settings",
             "import": "Import Settings",
-            "language": "language",
-            "unitFactor": "resolution factor",
-            "unit": "unit",
+            "language": "Language",
+            "unitFactor": "Resolution Factor",
+            "unit": "Unit",
             "helper": {
                 "language": "Change the language used in the UI",
                 "unitFactor": "Used for drawing dimension lines"

@@ -77,8 +77,7 @@ export function SettingDialog(props: SettingDialogProps) {
                 <DialogHeader>
                     <DialogTitle>{t("render.setting_dlg.title")}</DialogTitle>
                     <DialogDescription className="sr-only">
-                        This dialog allows you to change application settings
-                        such as language.
+                        {t("render.setting_dlg.description")}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">

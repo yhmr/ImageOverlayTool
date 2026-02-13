@@ -6,6 +6,9 @@
     "main": {},
     "render": {
         "menu": {
+            "group_project": "プロジェクト",
+            "group_image": "画像",
+            "group_app": "アプリケーション",
             "load_image": "画像設定",
             "new_project": "新規作成",
             "open_project": "プロジェクトを開く",
@@ -74,6 +77,7 @@
         },
         "setting_dlg": {
             "title": "設定",
+            "description": "言語などのアプリケーション設定を変更できます。",
             "done": "完了",
             "export": "設定をエクスポート",
             "import": "設定をインポート",
