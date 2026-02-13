@@ -32,3 +32,19 @@ Their license notices are generated into `licenses.json` during build/package st
 ## No Additional Patent or Trademark Grants
 
 Except where required by applicable licenses, no additional patent or trademark rights are granted by this project.
+
+## Microsoft Store - Applicable license terms (template)
+
+Use the following text in Partner Center (`Applicable license terms`) and replace `<release-tag-or-commit>` with the actual release revision.
+
+```text
+ImageOverlayTool is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).
+
+Copyright (c) yhmr.
+
+Corresponding Source Code:
+https://github.com/yhmr/ImageOverlayTool
+https://github.com/yhmr/ImageOverlayTool/tree/<release-tag-or-commit>
+
+A copy of the AGPL-3.0 license text is included with this app package.
+```

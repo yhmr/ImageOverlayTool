@@ -33,3 +33,19 @@ AGPL でも商用配布自体は可能です。
 ## 追加の特許・商標許諾について
 
 適用法令や各ライセンスで要求される範囲を除き、追加の特許権・商標権の許諾は行いません。
+
+## Microsoft Store 用ライセンス文（貼り付けテンプレート）
+
+Partner Center の `Applicable license terms` に貼る文面です。`<release-tag-or-commit>` は実際のリリースに置き換えてください。
+
+```text
+ImageOverlayTool is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).
+
+Copyright (c) yhmr.
+
+Corresponding Source Code:
+https://github.com/yhmr/ImageOverlayTool
+https://github.com/yhmr/ImageOverlayTool/tree/<release-tag-or-commit>
+
+A copy of the AGPL-3.0 license text is included with this app package.
+```
