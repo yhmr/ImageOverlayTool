@@ -116,10 +116,14 @@ describe("ipcService", () => {
                 switchWindowSize: vi.fn().mockResolvedValue(true),
                 setWindowRect: vi.fn().mockResolvedValue(undefined),
                 closeWindow: vi.fn().mockResolvedValue(undefined),
-                loadSetting: vi.fn().mockResolvedValue({ language: "ja" }),
+                loadSetting: vi
+                    .fn()
+                    .mockResolvedValue({ language: "ja", logLevel: "info" }),
                 saveSetting: vi.fn().mockResolvedValue(undefined),
                 exportSettings: vi.fn().mockResolvedValue("settings.json"),
-                importSettings: vi.fn().mockResolvedValue({ language: "en" }),
+                importSettings: vi
+                    .fn()
+                    .mockResolvedValue({ language: "en", logLevel: "debug" }),
                 loadWindowColor: vi.fn().mockResolvedValue("#ffffff"),
                 saveWindowColor: vi.fn().mockResolvedValue(undefined),
                 saveProjectAs: vi.fn().mockResolvedValue("project.iot"),
@@ -197,11 +201,15 @@ describe("ipcService", () => {
             await expect(service.switchWindowSize()).resolves.toBe(true);
             await service.setWindowRect({ x: 1, y: 2, width: 3, height: 4 });
             await service.closeWindow();
-            await expect(service.loadSetting()).resolves.toEqual({ language: "ja" });
-            await service.saveSetting({ language: "en" });
+            await expect(service.loadSetting()).resolves.toEqual({
+                language: "ja",
+                logLevel: "info",
+            });
+            await service.saveSetting({ language: "en", logLevel: "warn" });
             await expect(service.exportSettings()).resolves.toBe("settings.json");
             await expect(service.importSettings()).resolves.toEqual({
                 language: "en",
+                logLevel: "debug",
             });
             await expect(service.loadWindowColor()).resolves.toBe("#ffffff");
             await service.saveWindowColor("#222222");

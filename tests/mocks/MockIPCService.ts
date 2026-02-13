@@ -30,8 +30,8 @@ export class MockIPCService implements IIPCService {
 
     async closeWindow(): Promise<void> { }
 
-    async loadSetting(): Promise<{ language: string }> {
-        return { language: "en" };
+    async loadSetting(): Promise<SettingType> {
+        return { language: "en", logLevel: "info" };
     }
 
     async saveSetting(_setting: SettingType): Promise<void> { }
@@ -41,7 +41,7 @@ export class MockIPCService implements IIPCService {
     }
 
     async importSettings(): Promise<SettingType | null> {
-        return { language: "en" };
+        return { language: "en", logLevel: "info" };
     }
 
     async loadWindowColor(): Promise<string> {
