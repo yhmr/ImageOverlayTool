@@ -21,20 +21,32 @@ const ALLOWED_LOCAL_FILE_EXTENSIONS = new Set([
 const resolveLocalFilePathFromUrl = (requestUrl: string): string | null => {
     try {
         const url = new URL(requestUrl);
+
+        if (url.protocol !== "local-file:") {
+            return null;
+        }
+
+        if (process.platform !== "win32") {
+            // POSIXでは host を許可しない（local-file:///abs/path のみ許可）
+            if (url.host.length > 0) {
+                return null;
+            }
+
+            const resolvedPath = decodeURIComponent(url.pathname);
+            const normalizedPath = path.normalize(resolvedPath);
+            return path.isAbsolute(normalizedPath) ? normalizedPath : null;
+        }
+
         let resolvedPath = decodeURIComponent(`${url.host}${url.pathname}`);
 
-        if (process.platform === "win32") {
-            // URL pathname starts with "/" on Windows absolute paths
-            if (/^\/[a-zA-Z]:\//.test(resolvedPath)) {
-                resolvedPath = resolvedPath.slice(1);
-            } else if (/^[a-zA-Z]\//.test(resolvedPath)) {
-                resolvedPath =
-                    resolvedPath.charAt(0).toUpperCase() +
-                    ":" +
-                    resolvedPath.slice(1);
-            }
-        } else if (!resolvedPath.startsWith("/")) {
-            resolvedPath = `/${resolvedPath}`;
+        // URL pathname starts with "/" on Windows absolute paths
+        if (/^\/[a-zA-Z]:\//.test(resolvedPath)) {
+            resolvedPath = resolvedPath.slice(1);
+        } else if (/^[a-zA-Z]\//.test(resolvedPath)) {
+            resolvedPath =
+                resolvedPath.charAt(0).toUpperCase() +
+                ":" +
+                resolvedPath.slice(1);
         }
 
         const normalizedPath = path.normalize(resolvedPath);
