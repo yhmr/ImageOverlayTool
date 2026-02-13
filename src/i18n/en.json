@@ -105,6 +105,13 @@
             "description": "An unexpected error has occurred.<br />If reloading does not solve the problem,<br />please contact the developer.",
             "reload": "Reload App",
             "copy_details": "Copy Error Details"
+        },
+        "unsaved_changes": {
+            "title": "Unsaved Changes",
+            "confirm_discard": "You have unsaved changes. Continue without saving?",
+            "confirm_exit": "You have unsaved changes. Exit without saving?",
+            "button_cancel": "Cancel",
+            "button_discard_exit": "Discard and Exit"
         }
     }
 }

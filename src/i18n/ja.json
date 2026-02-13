@@ -105,6 +105,13 @@
             "description": "予期せぬエラーが発生しました。<br />再読み込みを行っても解決しない場合は、<br />開発者へご連絡ください。",
             "reload": "アプリを再読み込み",
             "copy_details": "エラー詳細をコピー"
+        },
+        "unsaved_changes": {
+            "title": "未保存の変更があります",
+            "confirm_discard": "未保存の変更があります。保存せずに続行しますか？",
+            "confirm_exit": "未保存の変更があります。保存せずに終了しますか？",
+            "button_cancel": "キャンセル",
+            "button_discard_exit": "保存せず終了"
         }
     }
 }

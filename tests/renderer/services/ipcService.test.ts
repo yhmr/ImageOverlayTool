@@ -166,6 +166,7 @@ describe("ipcService", () => {
                 onSelectedImageIdUpdated: vi
                     .fn()
                     .mockReturnValue(unsubSelectedImageId),
+                updateProjectDirty: vi.fn().mockResolvedValue(undefined),
             };
 
             return {
@@ -243,6 +244,7 @@ describe("ipcService", () => {
             });
             await expect(service.saveImage("data:image/png")).resolves.toBe("saved.png");
             await service.updateSelectedImageId("abc");
+            await service.updateProjectDirty(true);
 
             expect(api.setWindowRect).toHaveBeenCalledWith({
                 x: 1,
@@ -254,6 +256,7 @@ describe("ipcService", () => {
             expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
             expect(api.updateUnit).toHaveBeenCalledWith("nm");
             expect(api.updateSelectedImageId).toHaveBeenCalledWith("abc");
+            expect(api.updateProjectDirty).toHaveBeenCalledWith(true);
         });
 
         it("delegates subscription IPC methods and returns unsubscriber", () => {

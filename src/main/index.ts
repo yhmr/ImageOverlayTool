@@ -66,6 +66,7 @@ if (!gotTheLock) {
         if (settings.logLevel) {
             setLogLevel(settings.logLevel as LevelOption);
         }
+        windowManager.setLanguage(settings.language);
 
         log.info("App ready, creating windows...");
 

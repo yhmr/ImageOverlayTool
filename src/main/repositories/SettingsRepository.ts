@@ -4,6 +4,7 @@ import {
     SettingType,
     SettingsSnapshot,
 } from "../../shared/types/AppConfig";
+import { DEFAULT_LANGUAGE, normalizeLanguage } from "../../i18n/languages";
 
 export interface ISettingsRepository {
     loadSettings(): Promise<SettingType>;
@@ -21,14 +22,19 @@ export class SettingsRepository implements ISettingsRepository {
 
     async loadSettings(): Promise<SettingType> {
         return {
-            language: this.store.get("setting.language", "en"),
+            language: normalizeLanguage(
+                this.store.get("setting.language", DEFAULT_LANGUAGE)
+            ),
             logLevel: this.store.get("setting.logLevel", "info"),
         };
     }
 
     async saveSettings(settings: SettingType): Promise<void> {
         if (settings.language !== undefined) {
-            this.store.set("setting.language", settings.language);
+            this.store.set(
+                "setting.language",
+                normalizeLanguage(settings.language)
+            );
         }
         if (settings.logLevel !== undefined) {
             this.store.set("setting.logLevel", settings.logLevel);
@@ -40,7 +46,9 @@ export class SettingsRepository implements ISettingsRepository {
             version: 1,
             exportedAt: new Date().toISOString(),
             setting: {
-                language: this.store.get("setting.language", "en"),
+                language: normalizeLanguage(
+                    this.store.get("setting.language", DEFAULT_LANGUAGE)
+                ),
                 logLevel: this.store.get("setting.logLevel", "info"),
             },
             window: {
@@ -52,7 +60,10 @@ export class SettingsRepository implements ISettingsRepository {
     async importSettingsSnapshot(snapshot: SettingsSnapshot): Promise<void> {
         if (snapshot.setting) {
             if (typeof snapshot.setting.language === "string") {
-                this.store.set("setting.language", snapshot.setting.language);
+                this.store.set(
+                    "setting.language",
+                    normalizeLanguage(snapshot.setting.language)
+                );
             }
             if (typeof snapshot.setting.logLevel === "string") {
                 this.store.set("setting.logLevel", snapshot.setting.logLevel);

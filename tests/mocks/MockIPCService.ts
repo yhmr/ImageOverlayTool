@@ -157,6 +157,8 @@ export class MockIPCService implements IIPCService {
         return () => { };
     }
 
+    async updateProjectDirty(_isDirty: boolean): Promise<void> { }
+
     reset(): void {
         this.updateImageSetsCalls = [];
         this.updateUnitFactorCalls = [];

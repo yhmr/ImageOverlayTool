@@ -31,6 +31,7 @@ export const IPC_CHANNELS = {
         updateUnitFactor: "unitFactor:update",
         updateUnit: "unit:update",
         updateSelectedImageId: "selectedImageId:update",
+        updateProjectDirty: "project:dirty:update",
         requestInitialState: "state:requestInitial",
     },
     license: {

@@ -63,6 +63,8 @@ export interface IElectronAPI {
     onSelectedImageIdUpdated: (
         callback: (id: string | null) => void
     ) => () => void;
+    // Project Dirty Sync
+    updateProjectDirty: (isDirty: boolean) => Promise<void>;
     // Initial State Sync
     requestInitialState: () => Promise<void>;
     onRequestStateSync: (callback: () => void) => () => void;

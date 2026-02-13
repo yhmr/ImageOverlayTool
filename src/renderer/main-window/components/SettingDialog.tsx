@@ -18,6 +18,10 @@ import {
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import {
+    normalizeLanguage,
+    SUPPORTED_LANGUAGES,
+} from "../../../i18n/languages";
 
 interface SettingDialogProps {
     open: boolean;
@@ -34,12 +38,12 @@ export function SettingDialog(props: SettingDialogProps) {
 
     // 言語切り替え
     const changeLanguage = (value: string) => {
-        i18n.changeLanguage(value);
+        i18n.changeLanguage(normalizeLanguage(value));
     };
 
     const persistSettings = async () => {
         await ipcService.saveSetting({
-            language: i18n.language,
+            language: normalizeLanguage(i18n.language),
             logLevel,
         });
     };
@@ -60,7 +64,7 @@ export function SettingDialog(props: SettingDialogProps) {
         const imported = await ipcService.importSettings();
         if (imported) {
             if (imported.language) {
-                i18n.changeLanguage(imported.language);
+                i18n.changeLanguage(normalizeLanguage(imported.language));
             }
             if (imported.logLevel) {
                 setLogLevel(imported.logLevel);
@@ -72,7 +76,7 @@ export function SettingDialog(props: SettingDialogProps) {
     useLayoutEffect(() => {
         const loadSetting = async () => {
             const setting = await ipcService.loadSetting();
-            i18n.changeLanguage(setting.language);
+            i18n.changeLanguage(normalizeLanguage(setting.language));
             if (setting.logLevel) {
                 setLogLevel(setting.logLevel);
             }
@@ -98,7 +102,7 @@ export function SettingDialog(props: SettingDialogProps) {
                             {t("render.setting_dlg.language")}
                         </Label>
                         <Select
-                            value={i18n.language}
+                            value={normalizeLanguage(i18n.language)}
                             onValueChange={changeLanguage}
                         >
                             <SelectTrigger
@@ -112,9 +116,7 @@ export function SettingDialog(props: SettingDialogProps) {
                                 />
                             </SelectTrigger>
                             <SelectContent>
-                                {Object.keys(
-                                    i18n.services.resourceStore.data
-                                ).map((lng) => (
+                                {SUPPORTED_LANGUAGES.map((lng) => (
                                     <SelectItem key={lng} value={lng}>
                                         {lng}
                                     </SelectItem>

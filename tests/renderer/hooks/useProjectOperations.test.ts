@@ -34,6 +34,7 @@ describe("useProjectOperations", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         useAppStore.getState().resetAll();
+        vi.stubGlobal("confirm", vi.fn().mockReturnValue(true));
     });
 
     it("newProject should reset store and file path", async () => {

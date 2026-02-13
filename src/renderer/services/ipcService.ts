@@ -104,6 +104,10 @@ export interface ISelectedImageSyncIPCService {
     ) => () => void;
 }
 
+export interface IProjectDirtySyncIPCService {
+    updateProjectDirty(isDirty: boolean): Promise<void>;
+}
+
 export interface IProjectDataSyncIPCService {
     updateImageSets(imageSets: ImageSet[]): Promise<void>;
     updateUnitFactor(factor: number): Promise<void>;
@@ -124,7 +128,8 @@ export interface IIPCService
         IStateSyncIPCService,
         ILicenseIPCService,
         ICaptureIPCService,
-        ISelectedImageSyncIPCService {}
+        ISelectedImageSyncIPCService,
+        IProjectDirtySyncIPCService {}
 /**
  * 実際のElectron IPC通信を行う service
  */
@@ -280,6 +285,10 @@ class IPCService implements IIPCService {
         callback: (id: string | null) => void
     ): () => void {
         return window.electronAPI.onSelectedImageIdUpdated(callback);
+    }
+
+    async updateProjectDirty(isDirty: boolean): Promise<void> {
+        await window.electronAPI.updateProjectDirty(isDirty);
     }
 }
 

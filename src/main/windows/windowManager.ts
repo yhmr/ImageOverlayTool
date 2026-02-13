@@ -1,6 +1,13 @@
 import path from "path";
-import { BrowserWindow, shell, app } from "electron";
+import { BrowserWindow, shell, app, dialog } from "electron";
 import { is, platform } from "@electron-toolkit/utils";
+import {
+    APP_TRANSLATIONS,
+    DEFAULT_LANGUAGE,
+    normalizeLanguage,
+    type AppTranslation,
+    type SupportedLanguage,
+} from "../../i18n/languages";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
 import {
@@ -20,6 +27,11 @@ export interface IWindowCollectionProvider {
 export interface IImageSettingsWindowController {
     toggleImageSettingsWindow(): boolean;
 }
+
+export interface IProjectDirtyStateController {
+    setProjectDirty(isDirty: boolean): void;
+}
+
 /**
  * ウィンドウ管理クラス
  * メインウィンドウと画像設定ウィンドウの作成・管理を行う
@@ -33,6 +45,8 @@ export class WindowManager {
     private windowRepository: IWindowRepository;
     private readonly shortcutManager: IWindowShortcutManager;
     private isQuitting = false;
+    private isProjectDirty = false;
+    private language: SupportedLanguage = DEFAULT_LANGUAGE;
     private pendingFilePath: string | null = null;
     private splashDisplayTime: number | null = null;
 
@@ -49,6 +63,22 @@ export class WindowManager {
      */
     willQuit(): void {
         this.isQuitting = true;
+    }
+
+    setLanguage(language: string): void {
+        this.language = normalizeLanguage(language);
+    }
+
+    setProjectDirty(isDirty: boolean): void {
+        this.isProjectDirty = isDirty;
+    }
+
+    private t(key: keyof AppTranslation["render"]["unsaved_changes"]): string {
+        const translation = APP_TRANSLATIONS[this.language];
+        return (
+            translation.render.unsaved_changes?.[key] ??
+            APP_TRANSLATIONS.en.render.unsaved_changes[key]
+        );
     }
 
     /**
@@ -230,8 +260,30 @@ export class WindowManager {
         this.mainWindow.on("focus", flushPending);
 
         // ウィンドウが閉じられる際にウィンドウ設定を保存
-        this.mainWindow.on("close", () => {
+        this.mainWindow.on("close", (event) => {
             if (this.mainWindow) {
+                if (!this.isQuitting && this.isProjectDirty) {
+                    const selected = dialog.showMessageBoxSync(
+                        this.mainWindow,
+                        {
+                            type: "warning",
+                            buttons: [
+                                this.t("button_cancel"),
+                                this.t("button_discard_exit"),
+                            ],
+                            defaultId: 0,
+                            cancelId: 0,
+                            title: this.t("title"),
+                            message: this.t("confirm_exit"),
+                        }
+                    );
+
+                    if (selected === 0) {
+                        event.preventDefault();
+                        return;
+                    }
+                }
+
                 const isMaximized = this.mainWindow.isMaximized();
                 if (isMaximized) {
                     const bounds = this.mainWindow.getNormalBounds();

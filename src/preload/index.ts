@@ -111,6 +111,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
                 subscription
             );
     },
+    // Project Dirty Sync
+    updateProjectDirty: (isDirty: boolean) =>
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateProjectDirty, isDirty),
     // Initial State Sync
     requestInitialState: () =>
         ipcRenderer.invoke(IPC_CHANNELS.sync.requestInitialState),
