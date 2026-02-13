@@ -12,8 +12,16 @@ import { Size } from "../../shared/types/Size";
 export interface IWindowRepository {
     loadWindowColor(): Promise<string>;
     saveWindowColor(color: string): Promise<void>;
-    getWindowPositionAndSize(): { pos: Point; size: Size };
-    saveWindowPositionAndSize(pos: number[], size: number[]): void;
+    getWindowPositionAndSize(): {
+        pos: Point;
+        size: Size;
+        isMaximized: boolean;
+    };
+    saveWindowPositionAndSize(
+        pos: number[],
+        size: number[],
+        isMaximized: boolean
+    ): void;
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size };
     saveImageSettingsWindowPositionAndSize(pos: number[], size: number[]): void;
 }
@@ -33,19 +41,30 @@ export class WindowRepository implements IWindowRepository {
         this.store.set("window.color", color);
     }
 
-    getWindowPositionAndSize(): { pos: Point; size: Size } {
+    getWindowPositionAndSize(): {
+        pos: Point;
+        size: Size;
+        isMaximized: boolean;
+    } {
         const defaultPos = this.getDefaultCenterPosition();
-        return this.getPositionAndSize(
+        const { pos, size } = this.getPositionAndSize(
             "window.pos",
             "window.size",
             DEFAULT_MAIN_WINDOW_SIZE,
             { x: defaultPos[0], y: defaultPos[1] }
         );
+        const isMaximized = this.store.get("window.isMaximized", false);
+        return { pos, size, isMaximized };
     }
 
-    saveWindowPositionAndSize(pos: number[], size: number[]): void {
+    saveWindowPositionAndSize(
+        pos: number[],
+        size: number[],
+        isMaximized: boolean
+    ): void {
         this.store.set("window.pos", pos);
         this.store.set("window.size", size);
+        this.store.set("window.isMaximized", isMaximized);
     }
 
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } {

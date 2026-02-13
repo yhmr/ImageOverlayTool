@@ -11,6 +11,7 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
         } else {
             log.debug("[IPC] window:switchSize -> unmaximizing");
             mainWindow.unmaximize();
+            mainWindow.setResizable(true);
             return false;
         }
     });

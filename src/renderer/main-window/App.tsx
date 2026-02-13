@@ -17,6 +17,7 @@ import { useAppStore } from "../store/useAppStore";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { WindowResizeHandles } from "./components/WindowResizeHandles";
 
 const App = () => {
     // 設定の読み込み
@@ -87,6 +88,7 @@ const App = () => {
                     <ImageStage />
                 </div>
             </div>
+            <WindowResizeHandles />
         </div>
     );
 };

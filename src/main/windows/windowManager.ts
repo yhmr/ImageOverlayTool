@@ -1,6 +1,6 @@
 import path from "path";
 import { BrowserWindow, shell, app } from "electron";
-import { is } from "@electron-toolkit/utils";
+import { is, platform } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
 import {
@@ -146,7 +146,8 @@ export class WindowManager {
      */
     createMainWindow(): BrowserWindow {
         log.debug("Creating main window...");
-        const { pos, size } = this.windowRepository.getWindowPositionAndSize();
+        const { pos, size, isMaximized } =
+            this.windowRepository.getWindowPositionAndSize();
 
         this.mainWindow = new BrowserWindow({
             show: false,
@@ -154,9 +155,11 @@ export class WindowManager {
             height: size.height,
             x: pos.x,
             y: pos.y,
-            titleBarStyle: "hidden",
             transparent: true,
             frame: false,
+            resizable: true,
+            ...(platform.isMacOS ? { titleBarStyle: "hidden" as const } : {}),
+            ...(platform.isWindows ? { thickFrame: true } : {}),
             webPreferences: {
                 preload: path.join(__dirname, "../preload/index.js"),
                 contextIsolation: true,
@@ -192,6 +195,10 @@ export class WindowManager {
 
             // スプラッシュ画面がない場合（E2E等）は即座に表示
             if (!this.splashWindow) {
+                if (isMaximized) {
+                    this.mainWindow?.maximize();
+                    this.mainWindow?.setResizable(true);
+                }
                 this.mainWindow?.show();
                 return;
             }
@@ -208,6 +215,10 @@ export class WindowManager {
             );
 
             setTimeout(() => {
+                if (isMaximized) {
+                    this.mainWindow?.maximize();
+                    this.mainWindow?.setResizable(true);
+                }
                 this.mainWindow?.show();
                 this.destroySplashWindow();
             }, delay);
@@ -221,10 +232,21 @@ export class WindowManager {
         // ウィンドウが閉じられる際にウィンドウ設定を保存
         this.mainWindow.on("close", () => {
             if (this.mainWindow) {
-                this.windowRepository.saveWindowPositionAndSize(
-                    this.mainWindow.getPosition(),
-                    this.mainWindow.getSize()
-                );
+                const isMaximized = this.mainWindow.isMaximized();
+                if (isMaximized) {
+                    const bounds = this.mainWindow.getNormalBounds();
+                    this.windowRepository.saveWindowPositionAndSize(
+                        [bounds.x, bounds.y],
+                        [bounds.width, bounds.height],
+                        true
+                    );
+                } else {
+                    this.windowRepository.saveWindowPositionAndSize(
+                        this.mainWindow.getPosition(),
+                        this.mainWindow.getSize(),
+                        false
+                    );
+                }
             }
         });
 
@@ -283,9 +305,11 @@ export class WindowManager {
             x: pos.x,
             y: pos.y,
             parent: this.mainWindow ?? undefined,
-            titleBarStyle: "hidden",
             transparent: true,
             frame: false,
+            resizable: true,
+            ...(platform.isMacOS ? { titleBarStyle: "hidden" as const } : {}),
+            ...(platform.isWindows ? { thickFrame: true } : {}),
             webPreferences: {
                 preload: path.join(__dirname, "../preload/index.js"),
                 contextIsolation: true,
