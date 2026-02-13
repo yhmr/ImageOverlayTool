@@ -24,7 +24,7 @@ win:
     - "nsis"
   icon: "assets/icon.ico"
 nsis:
-  artifactName: "${productName}-${version}-installer.${ext}"
+  artifactName: "${productName}-${version}-installer-${arch}.${ext}"
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: "always"
