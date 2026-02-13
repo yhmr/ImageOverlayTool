@@ -72,39 +72,39 @@
                 "add": "新規追加",
                 "close": "閉じる"
             }
-        }
-    },
-    "setting_dlg": {
-        "title": "設定",
-        "description": "言語などのアプリケーション設定を変更できます。",
-        "done": "完了",
-        "export": "設定をエクスポート",
-        "import": "設定をインポート",
-        "language": "言語",
-        "unitFactor": "解像度係数",
-        "unit": "単位",
-        "helper": {
-            "language": "UIで使用する言語を変更します",
-            "unitFactor": "寸法線の描画で利用します"
         },
-        "log_level": "ログレベル",
-        "log_levels": {
-            "error": "エラーのみ",
-            "warn": "警告以上",
-            "info": "情報 (標準)",
-            "debug": "デバッグ",
-            "silly": "全て"
+        "setting_dlg": {
+            "title": "設定",
+            "description": "言語などのアプリケーション設定を変更できます。",
+            "done": "完了",
+            "export": "設定をエクスポート",
+            "import": "設定をインポート",
+            "language": "言語",
+            "unitFactor": "解像度係数",
+            "unit": "単位",
+            "helper": {
+                "language": "UIで使用する言語を変更します",
+                "unitFactor": "寸法線の描画で利用します"
+            },
+            "log_level": "ログレベル",
+            "log_levels": {
+                "error": "エラーのみ",
+                "warn": "警告以上",
+                "info": "情報 (標準)",
+                "debug": "デバッグ",
+                "silly": "全て"
+            }
+        },
+        "about_dlg": {
+            "version": "バージョン",
+            "licenses": "オープンソースライセンス",
+            "done": "閉じる"
+        },
+        "error_boundary": {
+            "title": "予期せぬエラーが発生しました",
+            "description": "予期せぬエラーが発生しました。<br />再読み込みを行っても解決しない場合は、<br />開発者へご連絡ください。",
+            "reload": "アプリを再読み込み",
+            "copy_details": "エラー詳細をコピー"
         }
-    },
-    "about_dlg": {
-        "version": "バージョン",
-        "licenses": "オープンソースライセンス",
-        "done": "閉じる"
-    },
-    "error_boundary": {
-        "title": "予期せぬエラーが発生しました",
-        "description": "予期せぬエラーが発生しました。<br />再読み込みを行っても解決しない場合は、<br />開発者へご連絡ください。",
-        "reload": "アプリを再読み込み",
-        "copy_details": "エラー詳細をコピー"
     }
 }
