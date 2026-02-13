@@ -22,9 +22,11 @@ import {
     FolderOpen,
     Save,
     SaveAll,
+    Maximize2,
 } from "lucide-react";
 
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import { useFitToScreen } from "../../hooks/useFitToScreen";
 
 interface AppMenuProps {
     openSettingDialog: () => void;
@@ -49,6 +51,7 @@ export function AppMenu(props: AppMenuProps) {
 
     const { t } = useTranslation();
     const ipcService = useIpcService();
+    const { fitToScreen } = useFitToScreen();
 
     // 画像設定ウィンドウを開く
     const openImageSettings = async () => {
@@ -129,6 +132,14 @@ export function AppMenu(props: AppMenuProps) {
                         <Settings2 className="mr-2 h-4 w-4" />
                         {t("render.menu.load_image")}
                         <DropdownMenuShortcut>Ctrl+I</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={fitToScreen}
+                        data-testid="main.menu.item.fit-screen"
+                    >
+                        <Maximize2 className="mr-2 h-4 w-4" />
+                        {t("render.menu.fit_screen")}
+                        <DropdownMenuShortcut>Ctrl+F</DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
 

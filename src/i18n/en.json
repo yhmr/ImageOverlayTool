@@ -18,7 +18,8 @@
             "about": "About",
             "help_manual": "Help / Manual",
             "export_logs": "Export Logs",
-            "exit": "Exit"
+            "exit": "Exit",
+            "fit_screen": "Fit to Screen"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -28,9 +29,6 @@
                 "unmaximize": "Restore Window",
                 "close": "Close"
             }
-        },
-        "context_menu": {
-            "fit_screen": "Fit to Screen"
         },
         "control_button": {
             "tooltip": {

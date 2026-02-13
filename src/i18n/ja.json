@@ -18,7 +18,8 @@
             "about": "このアプリについて",
             "help_manual": "ヘルプ/マニュアル",
             "export_logs": "ログをエクスポート",
-            "exit": "終了"
+            "exit": "終了",
+            "fit_screen": "画面をフィッティング"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -28,9 +29,6 @@
                 "unmaximize": "ウィンドウを戻す（縮小）",
                 "close": "閉じる"
             }
-        },
-        "context_menu": {
-            "fit_screen": "画面をフィッティング"
         },
         "control_button": {
             "tooltip": {

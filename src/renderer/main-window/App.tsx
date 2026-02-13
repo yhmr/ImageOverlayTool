@@ -14,7 +14,6 @@ import {
     useIpcService,
 } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
-import { ContextMenu } from "./components/ContextMenu";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
 
@@ -84,9 +83,7 @@ const App = () => {
                 }}
             >
                 <div className="image-area" data-testid="main.canvas.area">
-                    <ContextMenu>
-                        <ImageStage />
-                    </ContextMenu>
+                    <ImageStage />
                 </div>
             </div>
         </div>
