@@ -29,6 +29,7 @@ export interface IElectronAPI {
     saveSetting: (setting: SettingType) => Promise<void>;
     exportSettings: () => Promise<string | null>;
     importSettings: () => Promise<SettingType | null>;
+    onLanguageUpdated: (callback: (language: string) => void) => () => void;
     // Window Color
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;

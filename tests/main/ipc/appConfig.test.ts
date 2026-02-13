@@ -7,13 +7,24 @@ import { MockWindowRepository } from "../repositories/mocks/MockWindowRepository
 import { SettingType } from "@/shared/types/AppConfig";
 import { invokeIpcHandler } from "../utils/ipcTestHelper";
 import { setLogLevel } from "@/main/logger";
+import { initializeMainI18n } from "@/i18n/mainI18n";
+import { IPC_EVENTS } from "@/shared/ipc/channels";
 
-const { showSaveDialog, showOpenDialog, writeFile, readFile } = vi.hoisted(
+const {
+    showSaveDialog,
+    showOpenDialog,
+    writeFile,
+    readFile,
+    getAllWindows,
+    webContentsSend,
+} = vi.hoisted(
     () => ({
         showSaveDialog: vi.fn(),
         showOpenDialog: vi.fn(),
         writeFile: vi.fn(),
         readFile: vi.fn(),
+        getAllWindows: vi.fn(),
+        webContentsSend: vi.fn(),
     })
 );
 
@@ -28,6 +39,9 @@ vi.mock("electron", () => ({
     },
     app: {
         isPackaged: false,
+    },
+    BrowserWindow: {
+        getAllWindows,
     },
 }));
 
@@ -48,6 +62,10 @@ vi.mock("@/main/logger", () => ({
         debug: vi.fn(),
     },
     setLogLevel: vi.fn(),
+}));
+
+vi.mock("@/i18n/mainI18n", () => ({
+    initializeMainI18n: vi.fn(),
 }));
 
 describe("IPC AppConfig Handlers", () => {
@@ -72,6 +90,13 @@ describe("IPC AppConfig Handlers", () => {
                 window: { color: "#ffffff" },
             })
         );
+        getAllWindows.mockReturnValue([
+            {
+                webContents: {
+                    send: webContentsSend,
+                },
+            },
+        ]);
         mockSettingsRepo = new MockSettingsRepository();
         mockWindowRepo = new MockWindowRepository();
         // Register handlers
@@ -103,6 +128,11 @@ describe("IPC AppConfig Handlers", () => {
 
             // Verify setLogLevel called
             expect(setLogLevel).toHaveBeenCalledWith("debug");
+            expect(initializeMainI18n).toHaveBeenCalledWith("ja");
+            expect(webContentsSend).toHaveBeenCalledWith(
+                IPC_EVENTS.languageUpdated,
+                "ja"
+            );
 
             // Test setting:load
             const loaded = await invokeIpcHandler("setting:load", event);
@@ -184,6 +214,11 @@ describe("IPC AppConfig Handlers", () => {
             expect(showOpenDialog).toHaveBeenCalledTimes(1);
             expect(fs.readFile).toHaveBeenCalledWith("settings.json", "utf8");
             expect(loaded).toEqual({ language: "en", logLevel: "info" });
+            expect(initializeMainI18n).toHaveBeenCalledWith("en");
+            expect(webContentsSend).toHaveBeenCalledWith(
+                IPC_EVENTS.languageUpdated,
+                "en"
+            );
         });
     });
 });

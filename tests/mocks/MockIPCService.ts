@@ -44,6 +44,10 @@ export class MockIPCService implements IIPCService {
         return { language: "en", logLevel: "info" };
     }
 
+    onLanguageUpdated(_callback: (language: string) => void): () => void {
+        return () => { };
+    }
+
     async loadWindowColor(): Promise<string> {
         return "#ffffff";
     }

@@ -50,6 +50,7 @@ export const IPC_EVENTS = {
     unitFactorUpdated: "unitFactor:updated",
     unitUpdated: "unit:updated",
     selectedImageIdUpdated: "selectedImageId:updated",
+    languageUpdated: "language:updated",
     requestStateSync: "state:requestSync",
     fileOpen: "file:open",
 } as const;

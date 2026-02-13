@@ -190,7 +190,11 @@ export function ImageList() {
                                     className="w-[100px]"
                                     data-testid="settings.unit.select"
                                 >
-                                    <SelectValue placeholder="単位" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            "render.setting_dlg.unit"
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="nm">nm</SelectItem>

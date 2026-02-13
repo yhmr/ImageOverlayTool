@@ -44,6 +44,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.invoke(IPC_CHANNELS.setting.save, setting),
     exportSettings: () => ipcRenderer.invoke(IPC_CHANNELS.setting.export),
     importSettings: () => ipcRenderer.invoke(IPC_CHANNELS.setting.import),
+    onLanguageUpdated: (callback: (language: string) => void) => {
+        const subscription = (_event: unknown, language: string) =>
+            callback(language);
+        ipcRenderer.on(IPC_EVENTS.languageUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.languageUpdated,
+                subscription
+            );
+    },
     // Window Color
     loadWindowColor: () =>
         ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorLoad),

@@ -104,6 +104,7 @@ describe("ipcService", () => {
             const unsubRequestState = vi.fn();
             const unsubFileOpen = vi.fn();
             const unsubSelectedImageId = vi.fn();
+            const unsubLanguage = vi.fn();
 
             const api = {
                 log: {
@@ -124,6 +125,7 @@ describe("ipcService", () => {
                 importSettings: vi
                     .fn()
                     .mockResolvedValue({ language: "en", logLevel: "debug" }),
+                onLanguageUpdated: vi.fn().mockReturnValue(unsubLanguage),
                 loadWindowColor: vi.fn().mockResolvedValue("#ffffff"),
                 saveWindowColor: vi.fn().mockResolvedValue(undefined),
                 saveProjectAs: vi.fn().mockResolvedValue("project.iot"),
@@ -178,6 +180,7 @@ describe("ipcService", () => {
                     unsubRequestState,
                     unsubFileOpen,
                     unsubSelectedImageId,
+                    unsubLanguage,
                 },
             };
         };
@@ -271,6 +274,7 @@ describe("ipcService", () => {
             const onRequestStateSync = vi.fn();
             const onFileOpen = vi.fn();
             const onSelectedImageIdUpdated = vi.fn();
+            const onLanguageUpdated = vi.fn();
 
             expect(service.onImageSetsUpdated(onImageSetsUpdated)).toBe(
                 unsubscribers.unsubImageSets
@@ -288,6 +292,9 @@ describe("ipcService", () => {
             expect(service.onSelectedImageIdUpdated(onSelectedImageIdUpdated)).toBe(
                 unsubscribers.unsubSelectedImageId
             );
+            expect(service.onLanguageUpdated(onLanguageUpdated)).toBe(
+                unsubscribers.unsubLanguage
+            );
 
             expect(api.onImageSetsUpdated).toHaveBeenCalledWith(onImageSetsUpdated);
             expect(api.onUnitFactorUpdated).toHaveBeenCalledWith(onUnitFactorUpdated);
@@ -297,6 +304,7 @@ describe("ipcService", () => {
             expect(api.onSelectedImageIdUpdated).toHaveBeenCalledWith(
                 onSelectedImageIdUpdated
             );
+            expect(api.onLanguageUpdated).toHaveBeenCalledWith(onLanguageUpdated);
         });
     });
 });

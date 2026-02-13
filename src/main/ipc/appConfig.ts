@@ -1,15 +1,22 @@
 import fs from "fs/promises";
-import { dialog, ipcMain } from "electron";
+import { BrowserWindow, dialog, ipcMain } from "electron";
 import { SettingType, SettingsSnapshot } from "../../shared/types/AppConfig";
 import { ISettingsRepository } from "../repositories/SettingsRepository";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log, { setLogLevel, LevelOption } from "../logger";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
+import { initializeMainI18n } from "../../i18n/mainI18n";
 
 export const registerAppConfigHandlers = (
     settingsRepository: ISettingsRepository,
     windowRepository: IWindowRepository
 ) => {
+    const broadcastLanguageUpdated = (language: string) => {
+        BrowserWindow.getAllWindows().forEach((win) => {
+            win.webContents.send(IPC_EVENTS.languageUpdated, language);
+        });
+    };
+
     ipcMain.handle(IPC_CHANNELS.setting.load, async () => {
         log.debug("[IPC] setting:load called");
         try {
@@ -31,6 +38,9 @@ export const registerAppConfigHandlers = (
                 if (arg.logLevel) {
                     setLogLevel(arg.logLevel as LevelOption);
                 }
+                const loaded = await settingsRepository.loadSettings();
+                await initializeMainI18n(loaded.language);
+                broadcastLanguageUpdated(loaded.language);
                 log.info("[IPC] setting:save completed");
             } catch (error) {
                 log.error("[IPC] setting:save failed:", error);
@@ -115,6 +125,8 @@ export const registerAppConfigHandlers = (
 
             await settingsRepository.importSettingsSnapshot(parsed);
             const loaded = await settingsRepository.loadSettings();
+            await initializeMainI18n(loaded.language);
+            broadcastLanguageUpdated(loaded.language);
             log.info(`[IPC] setting:import completed: ${filePath}`);
             return loaded;
         } catch (error) {
