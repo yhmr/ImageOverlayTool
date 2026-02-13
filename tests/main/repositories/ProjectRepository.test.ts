@@ -2,6 +2,7 @@ import { expect, test, describe, vi, beforeEach } from "vitest";
 import { ProjectRepository } from "@/main/repositories/ProjectRepository";
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import fs from "fs/promises";
+import { UNIT_FACTOR_MIN } from "@/shared/constants/unitFactor";
 
 // Mock fs/promises
 vi.mock("fs/promises");
@@ -162,5 +163,23 @@ describe("ProjectRepository", () => {
         await expect(repository.loadProject(filePath)).rejects.toThrow(
             "images must be an array"
         );
+    });
+
+    test("loadProject should sanitize invalid unitFactor values", async () => {
+        const filePath = "/test/path/invalid-unit-factor.iot";
+        const payload = {
+            ...mockProjectFile,
+            settings: {
+                unitFactor: -999,
+                unit: "um",
+            },
+            images: [],
+        };
+
+        vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(payload));
+
+        const result = await repository.loadProject(filePath);
+
+        expect(result.settings.unitFactor).toBe(UNIT_FACTOR_MIN);
     });
 });

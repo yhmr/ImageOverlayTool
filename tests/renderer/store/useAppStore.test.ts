@@ -5,6 +5,10 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
+import {
+    UNIT_FACTOR_DEFAULT,
+    UNIT_FACTOR_MIN,
+} from "@/shared/constants/unitFactor";
 
 describe("useAppStore", () => {
     beforeEach(() => {
@@ -64,6 +68,14 @@ describe("useAppStore", () => {
                 useAppStore.getState().syncUnitFactor(3.0);
                 expect(useAppStore.getState().unitFactor).toBe(3.0);
                 expect(useAppStore.getState().projectDataChangeOrigin).toBe("remote");
+            });
+
+            it("should sanitize NaN and negative unit factor values", () => {
+                useAppStore.getState().setUnitFactor(Number.NaN);
+                expect(useAppStore.getState().unitFactor).toBe(UNIT_FACTOR_DEFAULT);
+
+                useAppStore.getState().setUnitFactor(-5);
+                expect(useAppStore.getState().unitFactor).toBe(UNIT_FACTOR_MIN);
             });
         });
 

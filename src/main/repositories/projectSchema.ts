@@ -1,5 +1,6 @@
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { ImageSet } from "../../shared/types/ImageSet";
+import { sanitizeUnitFactor } from "../../shared/constants/unitFactor";
 
 const CURRENT_PROJECT_VERSION = "1.0.0";
 const DEFAULT_WINDOW = {
@@ -156,7 +157,7 @@ const normalizeWindow = (value: unknown): ProjectFile["window"] => {
 
 const normalizeSettings = (value: unknown): ProjectFile["settings"] => {
     if (!isRecord(value)) {
-        return { unitFactor: 1, unit: "um" };
+        return { unitFactor: sanitizeUnitFactor(undefined), unit: "um" };
     }
 
     const unitRaw = value.unit;
@@ -166,7 +167,7 @@ const normalizeSettings = (value: unknown): ProjectFile["settings"] => {
             : "um";
 
     return {
-        unitFactor: toFiniteNumber(value.unitFactor, 1),
+        unitFactor: sanitizeUnitFactor(value.unitFactor),
         unit,
     };
 };

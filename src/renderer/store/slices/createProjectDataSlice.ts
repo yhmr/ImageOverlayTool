@@ -3,6 +3,10 @@ import { StateCreator } from "zustand";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import { ProjectFile } from "../../../shared/types/ProjectFile";
+import {
+    sanitizeUnitFactor,
+    UNIT_FACTOR_DEFAULT,
+} from "../../../shared/constants/unitFactor";
 import { createEmptyImageSet } from "../../factories/imageSetFactory";
 import {
     runAsSystemMutation,
@@ -58,7 +62,7 @@ export const createProjectDataSlice = (
     return (set) => ({
         imageSets: [createEmptyImageSet()],
         dimensionLines: [],
-        unitFactor: 1.0,
+        unitFactor: UNIT_FACTOR_DEFAULT,
         unit: "um",
         windowColor: "#00000000",
         projectDataChangeOrigin: "local",
@@ -160,7 +164,7 @@ export const createProjectDataSlice = (
         // --- Settings ---
         setUnitFactor: (factor) => {
             set({
-                unitFactor: factor,
+                unitFactor: sanitizeUnitFactor(factor),
                 projectDataChangeOrigin: "local",
                 hasUnsavedChanges: true,
             });
@@ -169,7 +173,7 @@ export const createProjectDataSlice = (
         syncUnitFactor: (factor) => {
             runAsSystemMutation(getTemporal, () => {
                 set({
-                    unitFactor: factor,
+                    unitFactor: sanitizeUnitFactor(factor),
                     projectDataChangeOrigin: "remote",
                     hasUnsavedChanges: true,
                 });
@@ -206,7 +210,9 @@ export const createProjectDataSlice = (
         loadProjectData: (project) => {
             const newImageSets = project.images;
             const newDimensionLines = project.dimensionLines || [];
-            const newUnitFactor = project.settings.unitFactor;
+            const newUnitFactor = sanitizeUnitFactor(
+                project.settings.unitFactor
+            );
             const newUnit = project.settings.unit || "um";
             const newWindowColor = project.window.color;
 
@@ -227,7 +233,7 @@ export const createProjectDataSlice = (
             set({
                 imageSets: defaultImageSets,
                 dimensionLines: [],
-                unitFactor: 1.0,
+                unitFactor: UNIT_FACTOR_DEFAULT,
                 unit: "um",
                 projectDataChangeOrigin: "local",
                 hasUnsavedChanges: false,
