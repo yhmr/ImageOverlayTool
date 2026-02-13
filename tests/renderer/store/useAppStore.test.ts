@@ -227,6 +227,27 @@ describe("useAppStore", () => {
             expect(useAppStore.temporal.getState().pastStates.length).toBe(0);
             expect(useAppStore.temporal.getState().futureStates.length).toBe(0);
         });
+
+        it("should set dirty true when undoing after save", () => {
+            useAppStore.temporal.getState().clear();
+            useAppStore
+                .getState()
+                .setImageSets([createHistorySample("local-1", "local-a.png")]);
+            useAppStore
+                .getState()
+                .setImageSets([createHistorySample("local-2", "local-b.png")]);
+
+            useAppStore.getState().markProjectSaved();
+            expect(useAppStore.getState().hasUnsavedChanges).toBe(false);
+
+            useAppStore.temporal.getState().undo();
+            expect(useAppStore.getState().hasUnsavedChanges).toBe(true);
+            expect(useAppStore.getState().imageSets[0].id).toBe("local-1");
+
+            useAppStore.temporal.getState().redo();
+            expect(useAppStore.getState().hasUnsavedChanges).toBe(false);
+            expect(useAppStore.getState().imageSets[0].id).toBe("local-2");
+        });
     });
     describe("loadProjectData", () => {
         it("should load partial project data into store", () => {

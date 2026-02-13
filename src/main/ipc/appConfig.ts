@@ -125,6 +125,9 @@ export const registerAppConfigHandlers = (
 
             await settingsRepository.importSettingsSnapshot(parsed);
             const loaded = await settingsRepository.loadSettings();
+            if (loaded.logLevel) {
+                setLogLevel(loaded.logLevel as LevelOption);
+            }
             await initializeMainI18n(loaded.language);
             broadcastLanguageUpdated(loaded.language);
             log.info(`[IPC] setting:import completed: ${filePath}`);

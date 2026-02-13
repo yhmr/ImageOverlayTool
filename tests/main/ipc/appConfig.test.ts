@@ -214,6 +214,7 @@ describe("IPC AppConfig Handlers", () => {
             expect(showOpenDialog).toHaveBeenCalledTimes(1);
             expect(fs.readFile).toHaveBeenCalledWith("settings.json", "utf8");
             expect(loaded).toEqual({ language: "en", logLevel: "info" });
+            expect(setLogLevel).toHaveBeenCalledWith("info");
             expect(initializeMainI18n).toHaveBeenCalledWith("en");
             expect(webContentsSend).toHaveBeenCalledWith(
                 IPC_EVENTS.languageUpdated,

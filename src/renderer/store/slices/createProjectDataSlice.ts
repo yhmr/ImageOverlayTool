@@ -69,7 +69,9 @@ export const createProjectDataSlice = (
         hasUnsavedChanges: false,
 
         markProjectSaved: () => {
-            set({ hasUnsavedChanges: false });
+            runAsSystemMutation(getTemporal, () => {
+                set({ hasUnsavedChanges: false });
+            });
         },
 
         // --- Image Sets ---
