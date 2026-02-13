@@ -85,4 +85,82 @@ describe("ProjectRepository", () => {
         expect(fs.readFile).toHaveBeenCalledWith(filePath, "utf-8");
         expect(result).toEqual(mockProjectFile);
     });
+
+    test("loadProject should migrate legacy snake_case anchors and defaults", async () => {
+        const filePath = "/test/path/legacy.iot";
+        const legacyProject = {
+            window: {
+                width: 640,
+                height: 480,
+                x: 10,
+                y: 20,
+                color: "#11223344",
+            },
+            settings: {
+                unitFactor: 2.5,
+            },
+            images: [
+                {
+                    path: "/tmp/a.png",
+                    transparency: 25,
+                    rotation: 15,
+                    init_anchor_pos: {
+                        lt: { x: 0, y: 0 },
+                        lb: { x: 0, y: 10 },
+                        rt: { x: 10, y: 0 },
+                        rb: { x: 10, y: 10 },
+                    },
+                    current_anchor_pos: {
+                        lt: { x: 1, y: 1 },
+                        lb: { x: 1, y: 11 },
+                        rt: { x: 11, y: 1 },
+                        rb: { x: 11, y: 11 },
+                    },
+                },
+            ],
+        };
+
+        vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(legacyProject));
+
+        const result = await repository.loadProject(filePath);
+        const firstImage = result.images[0] as {
+            initAnchorPos: unknown;
+            currentAnchorPos: unknown;
+        };
+
+        expect(result.version).toBe("1.0.0");
+        expect(result.settings.unit).toBe("um");
+        expect(result.dimensionLines).toBeUndefined();
+        expect(firstImage.initAnchorPos).toEqual(
+            legacyProject.images[0].init_anchor_pos
+        );
+        expect(firstImage.currentAnchorPos).toEqual(
+            legacyProject.images[0].current_anchor_pos
+        );
+    });
+
+    test("loadProject should reject invalid schema", async () => {
+        const filePath = "/test/path/invalid.iot";
+        const invalidProject = {
+            version: "1.0.0",
+            window: {
+                width: 800,
+                height: 600,
+                x: 0,
+                y: 0,
+                color: "#000000",
+            },
+            settings: {
+                unitFactor: 1,
+                unit: "um",
+            },
+            images: {},
+        };
+
+        vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(invalidProject));
+
+        await expect(repository.loadProject(filePath)).rejects.toThrow(
+            "images must be an array"
+        );
+    });
 });

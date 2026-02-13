@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import { ProjectFile } from "../../shared/types/ProjectFile";
+import { parseAndMigrateProjectFile } from "./projectSchema";
 
 export interface IProjectRepository {
     saveProject(filePath: string, project: ProjectFile): Promise<void>;
@@ -14,6 +15,7 @@ export class ProjectRepository implements IProjectRepository {
 
     async loadProject(filePath: string): Promise<ProjectFile> {
         const data = await fs.readFile(filePath, "utf-8");
-        return JSON.parse(data) as ProjectFile;
+        const parsed: unknown = JSON.parse(data);
+        return parseAndMigrateProjectFile(parsed);
     }
 }
