@@ -1,7 +1,14 @@
 import fs from "fs";
 import path from "path";
 import { _electron as electron, ElectronApplication, Page } from "playwright";
-import type { E2ESceneInput } from "../../src/shared/types/E2EControl";
+import type { CaptureResult } from "../../src/shared/types/CaptureResult";
+import type {
+    E2ECaptureRequest,
+    E2EControlStatus,
+    E2ESceneInput,
+    E2EWaitStableRequest,
+    E2EWaitStableResult,
+} from "../../src/shared/types/E2EControl";
 
 const APP_ROOT = path.resolve(__dirname, "..", "..");
 const OUT_MAIN_PATH = path.join(APP_ROOT, "out", "main", "index.js");
@@ -68,9 +75,103 @@ export const launchE2EApp = async (): Promise<{
 
     const page = await app.firstWindow();
     await page.getByTestId("main.app.root").waitFor({ state: "attached" });
-    await page.waitForFunction(() => Boolean(window.__IOT_E2E__));
+    await ensureE2EBridge(page);
 
     return { app, page };
+};
+
+export const ensureE2EBridge = async (page: Page): Promise<void> => {
+    await page.waitForFunction(() => Boolean(window.__IOT_E2E__));
+};
+
+export const getE2EStatus = async (page: Page): Promise<E2EControlStatus> => {
+    await ensureE2EBridge(page);
+    return page.evaluate(async () => {
+        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
+            | { getStatus: () => Promise<E2EControlStatus> }
+            | undefined;
+        if (!bridge) {
+            throw new Error("E2E bridge is not available in renderer.");
+        }
+        return bridge.getStatus();
+    });
+};
+
+export const getE2EState = async (
+    page: Page
+): Promise<{
+    imageCount: number;
+    dimensionLineCount: number;
+    selectedImageId: string | null;
+    selectedDimensionLineId: string | null;
+    interactionMode: string;
+    unit: string;
+    unitFactor: number;
+    windowColor: string;
+    isUIHidden: boolean;
+}> => {
+    await ensureE2EBridge(page);
+    return page.evaluate(() => {
+        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
+            | {
+                  getState: () => {
+                      imageCount: number;
+                      dimensionLineCount: number;
+                      selectedImageId: string | null;
+                      selectedDimensionLineId: string | null;
+                      interactionMode: string;
+                      unit: string;
+                      unitFactor: number;
+                      windowColor: string;
+                      isUIHidden: boolean;
+                  };
+              }
+            | undefined;
+        if (!bridge) {
+            throw new Error("E2E bridge is not available in renderer.");
+        }
+        return bridge.getState();
+    });
+};
+
+export const waitForE2EStable = async (
+    page: Page,
+    request?: E2EWaitStableRequest
+): Promise<E2EWaitStableResult> => {
+    await ensureE2EBridge(page);
+    return page.evaluate(async (waitRequest) => {
+        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
+            | {
+                  waitStable: (
+                      request?: E2EWaitStableRequest
+                  ) => Promise<E2EWaitStableResult>;
+              }
+            | undefined;
+        if (!bridge) {
+            throw new Error("E2E bridge is not available in renderer.");
+        }
+        return bridge.waitStable(waitRequest);
+    }, request);
+};
+
+export const captureViaE2E = async (
+    page: Page,
+    request?: E2ECaptureRequest
+): Promise<CaptureResult | null> => {
+    await ensureE2EBridge(page);
+    return page.evaluate(async (captureRequest) => {
+        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
+            | {
+                  capture: (
+                      request?: E2ECaptureRequest
+                  ) => Promise<CaptureResult | null>;
+              }
+            | undefined;
+        if (!bridge) {
+            throw new Error("E2E bridge is not available in renderer.");
+        }
+        return bridge.capture(captureRequest);
+    }, request);
 };
 
 export const applyScene = async (

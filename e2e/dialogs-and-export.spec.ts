@@ -1,6 +1,7 @@
 import fs from "fs";
 import { test, expect, Page } from "@playwright/test";
 import {
+    applyFixtureScene,
     clickAppMenuItem,
     E2E_CAPTURE_PATH,
     E2E_EXPORT_PATH,
@@ -60,6 +61,7 @@ test("export dialog saves direct export artifact", async () => {
     const { app, page } = await launchE2EApp();
 
     try {
+        await applyFixtureScene(page, "default.scene.json");
         await ensureFabMenuOpened(page);
         await page.getByTestId("main.fab.export").click({ force: true });
         await expect(page.getByTestId("main.export.save")).toBeVisible();
@@ -74,6 +76,7 @@ test("export dialog with include-background saves capture artifact", async () =>
     const { app, page } = await launchE2EApp();
 
     try {
+        await applyFixtureScene(page, "default.scene.json");
         await ensureFabMenuOpened(page);
         await page.getByTestId("main.fab.export").click({ force: true });
         await expect(page.getByTestId("main.export.include-background")).toBeVisible();

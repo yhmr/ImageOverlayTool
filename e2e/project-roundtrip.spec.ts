@@ -1,9 +1,10 @@
 import fs from "fs";
 import { test, expect } from "@playwright/test";
 import {
+    applyFixtureScene,
     clickAppMenuItem,
-    E2E_CAPTURE_PATH,
     E2E_PROJECT_PATH,
+    getE2EState,
     launchE2EApp,
 } from "./helpers/electronHarness";
 
@@ -23,17 +24,9 @@ test("save as -> new project -> open project roundtrip", async () => {
 
     try {
         const undoButton = page.getByTestId("main.action.undo");
-        const redoButton = page.getByTestId("main.action.redo");
-
         await expect(undoButton).toBeDisabled();
-        await expect(redoButton).toBeDisabled();
-
-        // FABメニューを展開してからキャプチャ
-        await page.getByTestId("main.fab.menu-toggle").click();
-        await page.getByTestId("main.fab.capture").click();
-
-        await expect.poll(() => fs.existsSync(E2E_CAPTURE_PATH)).toBe(true);
-        await expect(undoButton).toBeEnabled();
+        await applyFixtureScene(page, "default.scene.json");
+        await expect.poll(async () => (await getE2EState(page)).imageCount).toBeGreaterThan(0);
 
         await clickAppMenuItem(page, "main.menu.item.save-project-as");
 
@@ -47,6 +40,7 @@ test("save as -> new project -> open project roundtrip", async () => {
         await clickAppMenuItem(page, "main.menu.item.save-project");
 
         await expect.poll(() => readProjectImageCount()).toBeGreaterThan(0);
+        await expect.poll(async () => (await getE2EState(page)).imageCount).toBeGreaterThan(0);
     } finally {
         await app.close();
     }
