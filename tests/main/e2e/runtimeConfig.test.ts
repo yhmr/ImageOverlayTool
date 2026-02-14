@@ -29,6 +29,7 @@ describe("resolveE2ERuntimeConfig", () => {
 
     it("resolves deterministic paths and values in e2e mode", () => {
         const artifactsDir = path.resolve("test-results", "e2e-runtime-config-test");
+        const fixturesDir = path.resolve("e2e", "fixtures");
         process.argv = ["node", "index.js", "--e2e"];
         process.env.IOT_E2E_ARTIFACTS_DIR = artifactsDir;
         process.env.IOT_E2E_FIXED_NOW = "1701234567890";
@@ -38,6 +39,7 @@ describe("resolveE2ERuntimeConfig", () => {
 
         expect(config.enabled).toBe(true);
         expect(config.artifactsDir).toBe(artifactsDir);
+        expect(config.fixturesDir).toBe(fixturesDir);
         expect(config.projectFilePath).toBe(
             path.join(artifactsDir, "project.e2e.iot")
         );

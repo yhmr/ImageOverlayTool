@@ -9,6 +9,7 @@ import "./ImageSettingsApp.css";
 
 import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import { useProjectSync } from "../hooks/useProjectSync";
+import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
 import {
     IpcServiceProvider,
     useIpcService,
@@ -24,6 +25,8 @@ const ImageSettingsApp = () => {
     useProjectDataSyncBridge();
     // 同期フックを使用
     useProjectSync();
+    // E2E制御ブリッジ
+    useE2EControlBridge();
 
     React.useEffect(() => {
         let isMounted = true;
@@ -87,7 +90,10 @@ const ImageSettingsApp = () => {
     }, [ipcService]);
 
     return (
-        <div className="settings-container bg-background text-foreground">
+        <div
+            className="settings-container bg-background text-foreground"
+            data-testid="settings.app.root"
+        >
             <SettingsMenuBar />
             <div className="settings-content">
                 <ImageList />

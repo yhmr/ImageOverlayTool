@@ -9,10 +9,12 @@ export const initializeRuntimeEnvironment = (
     if (e2eConfig.enabled) {
         process.env.IOT_E2E_MODE = "1";
         process.env.IOT_E2E_ARTIFACTS_DIR = e2eConfig.artifactsDir;
+        process.env.IOT_E2E_FIXTURES_DIR = e2eConfig.fixturesDir;
         process.env.IOT_E2E_FIXED_NOW = String(e2eConfig.fixedNow);
         process.env.IOT_E2E_RANDOM_SEED = String(e2eConfig.randomSeed);
         log.info("E2E test mode enabled", {
             artifactsDir: e2eConfig.artifactsDir,
+            fixturesDir: e2eConfig.fixturesDir,
             fixedNow: e2eConfig.fixedNow,
             randomSeed: e2eConfig.randomSeed,
         });

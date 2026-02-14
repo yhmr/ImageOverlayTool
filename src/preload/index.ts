@@ -4,6 +4,16 @@ import type { SettingType } from "../shared/types/AppConfig";
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
 import { IPC_CHANNELS, IPC_EVENTS } from "../shared/ipc/channels";
+import type {
+    E2ECaptureRequest,
+    E2EControlStatus,
+    E2ELoadFixtureImageRequest,
+    E2EResolvedFixtureImage,
+    E2EResolvedScene,
+    E2ESceneInput,
+    E2EWaitStableRequest,
+    E2EWaitStableResult,
+} from "../shared/types/E2EControl";
 
 contextBridge.exposeInMainWorld("electronAPI", {
     // Logger
@@ -155,4 +165,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
     captureWindow: () => ipcRenderer.invoke(IPC_CHANNELS.capture.window),
     saveImage: (dataUrl: string) =>
         ipcRenderer.invoke(IPC_CHANNELS.capture.saveImageData, dataUrl),
+    // E2E control plane
+    getE2EStatus: (): Promise<E2EControlStatus> =>
+        ipcRenderer.invoke(IPC_CHANNELS.e2e.getStatus),
+    e2eSetScene: (scene: E2ESceneInput): Promise<E2EResolvedScene> =>
+        ipcRenderer.invoke(IPC_CHANNELS.e2e.setScene, scene),
+    e2eLoadFixtureImage: (
+        request: E2ELoadFixtureImageRequest
+    ): Promise<E2EResolvedFixtureImage> =>
+        ipcRenderer.invoke(IPC_CHANNELS.e2e.loadFixtureImage, request),
+    e2eWaitStable: (
+        request?: E2EWaitStableRequest
+    ): Promise<E2EWaitStableResult> =>
+        ipcRenderer.invoke(IPC_CHANNELS.e2e.waitStable, request),
+    e2eCapture: (request?: E2ECaptureRequest) =>
+        ipcRenderer.invoke(IPC_CHANNELS.e2e.capture, request),
 });

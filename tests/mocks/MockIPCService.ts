@@ -4,6 +4,16 @@ import { ProjectFile } from "@/shared/types/ProjectFile";
 import { CaptureResult } from "@/shared/types/CaptureResult";
 import { SettingType } from "@/shared/types/AppConfig";
 import { LicenseInfo } from "@/shared/types/LicenseInfo";
+import type {
+    E2ECaptureRequest,
+    E2EControlStatus,
+    E2ELoadFixtureImageRequest,
+    E2EResolvedFixtureImage,
+    E2EResolvedScene,
+    E2ESceneInput,
+    E2EWaitStableRequest,
+    E2EWaitStableResult,
+} from "@/shared/types/E2EControl";
 
 /**
  * テスト用モックサービス
@@ -162,6 +172,38 @@ export class MockIPCService implements IIPCService {
     }
 
     async updateProjectDirty(_isDirty: boolean): Promise<void> { }
+
+    async getE2EStatus(): Promise<E2EControlStatus> {
+        return {
+            enabled: false,
+            artifactsDir: "",
+            fixturesDir: "",
+        };
+    }
+
+    async e2eSetScene(_scene: E2ESceneInput): Promise<E2EResolvedScene> {
+        return { images: [] };
+    }
+
+    async e2eLoadFixtureImage(
+        _request: E2ELoadFixtureImageRequest
+    ): Promise<E2EResolvedFixtureImage> {
+        return { path: "" };
+    }
+
+    async e2eWaitStable(
+        _request?: E2EWaitStableRequest
+    ): Promise<E2EWaitStableResult> {
+        return { stable: true, elapsedMs: 0 };
+    }
+
+    async e2eCapture(_request?: E2ECaptureRequest): Promise<CaptureResult | null> {
+        return {
+            filePath: "path/to/e2e-capture.png",
+            width: 800,
+            height: 600,
+        };
+    }
 
     reset(): void {
         this.updateImageSetsCalls = [];

@@ -8,6 +8,16 @@ import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../../shared/types/LicenseInfo";
+import type {
+    E2ECaptureRequest,
+    E2EControlStatus,
+    E2ELoadFixtureImageRequest,
+    E2EResolvedFixtureImage,
+    E2EResolvedScene,
+    E2ESceneInput,
+    E2EWaitStableRequest,
+    E2EWaitStableResult,
+} from "../../shared/types/E2EControl";
 /**
  * IPCサービスのドメイン別インターフェース
  */
@@ -109,6 +119,16 @@ export interface IProjectDirtySyncIPCService {
     updateProjectDirty(isDirty: boolean): Promise<void>;
 }
 
+export interface IE2EIPCService {
+    getE2EStatus(): Promise<E2EControlStatus>;
+    e2eSetScene(scene: E2ESceneInput): Promise<E2EResolvedScene>;
+    e2eLoadFixtureImage(
+        request: E2ELoadFixtureImageRequest
+    ): Promise<E2EResolvedFixtureImage>;
+    e2eWaitStable(request?: E2EWaitStableRequest): Promise<E2EWaitStableResult>;
+    e2eCapture(request?: E2ECaptureRequest): Promise<CaptureResult | null>;
+}
+
 export interface IProjectDataSyncIPCService {
     updateImageSets(imageSets: ImageSet[]): Promise<void>;
     updateUnitFactor(factor: number): Promise<void>;
@@ -130,7 +150,8 @@ export interface IIPCService
         ILicenseIPCService,
         ICaptureIPCService,
         ISelectedImageSyncIPCService,
-        IProjectDirtySyncIPCService {}
+        IProjectDirtySyncIPCService,
+        IE2EIPCService {}
 /**
  * 実際のElectron IPC通信を行う service
  */
@@ -294,6 +315,32 @@ class IPCService implements IIPCService {
 
     async updateProjectDirty(isDirty: boolean): Promise<void> {
         await window.electronAPI.updateProjectDirty(isDirty);
+    }
+
+    async getE2EStatus(): Promise<E2EControlStatus> {
+        return await window.electronAPI.getE2EStatus();
+    }
+
+    async e2eSetScene(scene: E2ESceneInput): Promise<E2EResolvedScene> {
+        return await window.electronAPI.e2eSetScene(scene);
+    }
+
+    async e2eLoadFixtureImage(
+        request: E2ELoadFixtureImageRequest
+    ): Promise<E2EResolvedFixtureImage> {
+        return await window.electronAPI.e2eLoadFixtureImage(request);
+    }
+
+    async e2eWaitStable(
+        request?: E2EWaitStableRequest
+    ): Promise<E2EWaitStableResult> {
+        return await window.electronAPI.e2eWaitStable(request);
+    }
+
+    async e2eCapture(
+        request?: E2ECaptureRequest
+    ): Promise<CaptureResult | null> {
+        return await window.electronAPI.e2eCapture(request);
     }
 }
 

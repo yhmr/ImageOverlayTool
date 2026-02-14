@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { _electron as electron, ElectronApplication, Page } from "playwright";
+import type { E2ESceneInput } from "../../src/shared/types/E2EControl";
 
 const APP_ROOT = path.resolve(__dirname, "..", "..");
 const OUT_MAIN_PATH = path.join(APP_ROOT, "out", "main", "index.js");
@@ -10,6 +11,8 @@ export const E2E_ARTIFACTS_DIR = path.join(
     "test-results",
     "e2e-artifacts"
 );
+export const E2E_FIXTURES_DIR = path.join(APP_ROOT, "e2e", "fixtures");
+export const E2E_SCENES_DIR = path.join(E2E_FIXTURES_DIR, "scenes");
 export const E2E_PROJECT_PATH = path.join(E2E_ARTIFACTS_DIR, "project.e2e.iot");
 export const E2E_CAPTURE_PATH = path.join(E2E_ARTIFACTS_DIR, "capture.e2e.png");
 export const E2E_EXPORT_PATH = path.join(E2E_ARTIFACTS_DIR, "export.e2e.png");
@@ -65,8 +68,37 @@ export const launchE2EApp = async (): Promise<{
 
     const page = await app.firstWindow();
     await page.getByTestId("main.app.root").waitFor({ state: "attached" });
+    await page.waitForFunction(() => Boolean(window.__IOT_E2E__));
 
     return { app, page };
+};
+
+export const applyScene = async (
+    page: Page,
+    scene: E2ESceneInput
+): Promise<void> => {
+    await page.evaluate(async (sceneInput) => {
+        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
+            | { setScene: (scene: E2ESceneInput) => Promise<{ stable: boolean }> }
+            | undefined;
+        if (!bridge) {
+            throw new Error("E2E bridge is not available in renderer.");
+        }
+
+        const result = await bridge.setScene(sceneInput);
+        if (!result.stable) {
+            throw new Error("Renderer did not reach stable state after setScene.");
+        }
+    }, scene);
+};
+
+export const applyFixtureScene = async (
+    page: Page,
+    sceneFileName = "default.scene.json"
+): Promise<void> => {
+    const scenePath = path.join(E2E_SCENES_DIR, sceneFileName);
+    const scene = JSON.parse(fs.readFileSync(scenePath, "utf-8")) as E2ESceneInput;
+    await applyScene(page, scene);
 };
 
 const ensureMenuOpened = async (page: Page): Promise<void> => {
