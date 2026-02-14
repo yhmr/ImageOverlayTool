@@ -7,7 +7,9 @@ vi.mock("electron", () => ({
     ipcMain: {
         handle: vi.fn(),
     },
-    BrowserWindow: vi.fn(),
+    BrowserWindow: {
+        fromWebContents: vi.fn(),
+    },
     app: {
         quit: vi.fn(),
     },
@@ -79,14 +81,34 @@ describe("window IPC handlers", () => {
         expect(result).toBe(false);
     });
 
-    it("setRect handler calls setBounds on mainWindow", async () => {
+    it("setRect handler calls setBounds on sender window when available", async () => {
         registerWindowHandlers(mainWindowMock);
         const setRectHandler = vi.mocked(ipcMain.handle).mock.calls.find(
             (call) => call[0] === IPC_CHANNELS.window.setRect
         )?.[1] as any;
 
+        const senderWindowMock = {
+            setBounds: vi.fn(),
+        };
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            senderWindowMock as any
+        );
+
         const rect = { x: 10, y: 20, width: 100, height: 200 };
-        await setRectHandler({}, rect);
+        await setRectHandler({ sender: {} }, rect);
+
+        expect(senderWindowMock.setBounds).toHaveBeenCalledWith(rect);
+    });
+
+    it("setRect handler falls back to mainWindow when sender window is unavailable", async () => {
+        registerWindowHandlers(mainWindowMock);
+        const setRectHandler = vi.mocked(ipcMain.handle).mock.calls.find(
+            (call) => call[0] === IPC_CHANNELS.window.setRect
+        )?.[1] as any;
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
+
+        const rect = { x: 10, y: 20, width: 100, height: 200 };
+        await setRectHandler({ sender: {} }, rect);
 
         expect(mainWindowMock.setBounds).toHaveBeenCalledWith(rect);
     });

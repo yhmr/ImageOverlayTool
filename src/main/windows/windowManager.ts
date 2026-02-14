@@ -9,6 +9,7 @@ import {
 } from "./windowShortcutManager";
 import { IPC_EVENTS } from "../../shared/ipc/channels";
 import { tUnsavedChanges } from "../../i18n/mainI18n";
+import { MIN_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 
 export interface IMainWindowProvider {
     getMainWindow(): BrowserWindow | null;
@@ -335,6 +336,8 @@ export class WindowManager {
             show: false,
             width: size.width,
             height: size.height,
+            minWidth: MIN_IMAGE_SETTINGS_WINDOW_SIZE.width,
+            minHeight: MIN_IMAGE_SETTINGS_WINDOW_SIZE.height,
             x: pos.x,
             y: pos.y,
             parent: this.mainWindow ?? undefined,

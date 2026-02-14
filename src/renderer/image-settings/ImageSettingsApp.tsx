@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import "../../i18n/configs";
 import { normalizeLanguage } from "../../i18n/languages";
+import { MIN_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 import "../shared/globals.css";
 import "./ImageSettingsApp.css";
 
@@ -14,6 +15,7 @@ import {
     IpcServiceProvider,
     useIpcService,
 } from "../providers/IpcServiceProvider";
+import { WindowResizeHandles } from "../main-window/components/WindowResizeHandles";
 import { ImageList } from "./components/ImageList";
 import { SettingsMenuBar } from "./components/SettingsMenuBar";
 
@@ -98,6 +100,11 @@ const ImageSettingsApp = () => {
             <div className="settings-content">
                 <ImageList />
             </div>
+            <WindowResizeHandles
+                testIdPrefix="settings"
+                minWidth={MIN_IMAGE_SETTINGS_WINDOW_SIZE.width}
+                minHeight={MIN_IMAGE_SETTINGS_WINDOW_SIZE.height}
+            />
         </div>
     );
 };

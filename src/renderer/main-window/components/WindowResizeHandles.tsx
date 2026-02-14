@@ -18,29 +18,41 @@ const clampRect = (
     initialRect: WindowRect,
     direction: ResizeDirection,
     deltaX: number,
-    deltaY: number
+    deltaY: number,
+    minimumSize: { width: number; height: number }
 ): WindowRect => {
     let { x, y, width, height } = initialRect;
 
     if (direction.includes("e")) {
-        width = Math.max(MIN_WIDTH, initialRect.width + deltaX);
+        width = Math.max(minimumSize.width, initialRect.width + deltaX);
     }
     if (direction.includes("s")) {
-        height = Math.max(MIN_HEIGHT, initialRect.height + deltaY);
+        height = Math.max(minimumSize.height, initialRect.height + deltaY);
     }
     if (direction.includes("w")) {
-        width = Math.max(MIN_WIDTH, initialRect.width - deltaX);
+        width = Math.max(minimumSize.width, initialRect.width - deltaX);
         x = initialRect.x + (initialRect.width - width);
     }
     if (direction.includes("n")) {
-        height = Math.max(MIN_HEIGHT, initialRect.height - deltaY);
+        height = Math.max(minimumSize.height, initialRect.height - deltaY);
         y = initialRect.y + (initialRect.height - height);
     }
 
     return { x, y, width, height };
 };
 
-export function WindowResizeHandles() {
+export interface WindowResizeHandlesProps {
+    testIdPrefix?: string;
+    minWidth?: number;
+    minHeight?: number;
+}
+
+export function WindowResizeHandles(props: WindowResizeHandlesProps = {}) {
+    const {
+        testIdPrefix = "main",
+        minWidth = MIN_WIDTH,
+        minHeight = MIN_HEIGHT,
+    } = props;
     const ipcService = useIpcService();
     const isWindows = useMemo(
         () => navigator.userAgent.toLowerCase().includes("windows"),
@@ -74,7 +86,8 @@ export function WindowResizeHandles() {
                     initialRect,
                     direction,
                     deltaX,
-                    deltaY
+                    deltaY,
+                    { width: minWidth, height: minHeight }
                 );
                 void ipcService.setWindowRect(nextRect);
             };
@@ -119,7 +132,7 @@ export function WindowResizeHandles() {
                     key={direction}
                     className={`window-resize-handle window-resize-handle-${direction}`}
                     onMouseDown={beginResize(direction)}
-                    data-testid={`main.window.resize.${direction}`}
+                    data-testid={`${testIdPrefix}.window.resize.${direction}`}
                 />
             ))}
         </div>

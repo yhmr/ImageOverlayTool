@@ -52,6 +52,14 @@ vi.mock("@/renderer/image-settings/components/RotationControl", () => ({
     ),
 }));
 
+vi.mock("@/renderer/image-settings/components/ScaleControl", () => ({
+    ScaleControl: (props: any) => (
+        <button data-testid="scale-control" onClick={() => props.onChange([2])}>
+            scale
+        </button>
+    ),
+}));
+
 vi.mock("@/renderer/image-settings/components/TransparencyControl", () => ({
     TransparencyControl: (props: any) => (
         <button
@@ -222,6 +230,40 @@ describe("ImageListItem", () => {
                 rb: { x: 12.5, y: 12 },
                 lb: { x: 2.5, y: 12 },
             },
+        });
+    });
+
+    it("updates image anchors when scale slider changes", () => {
+        const service = new MockIPCService();
+        useAppStore.setState((state) => ({
+            ...state,
+            imageSets: [
+                {
+                    ...createImageSet(),
+                    initAnchorPos: {
+                        lt: { x: 0, y: 0 },
+                        rt: { x: 10, y: 0 },
+                        rb: { x: 10, y: 10 },
+                        lb: { x: 0, y: 10 },
+                    },
+                    currentAnchorPos: {
+                        lt: { x: 0, y: 0 },
+                        rt: { x: 10, y: 0 },
+                        rb: { x: 10, y: 10 },
+                        lb: { x: 0, y: 10 },
+                    },
+                },
+            ],
+        }));
+
+        renderItem(service);
+        fireEvent.click(screen.getByTestId("scale-control"));
+
+        expect(useAppStore.getState().imageSets[0].currentAnchorPos).toEqual({
+            lt: { x: -5, y: -5 },
+            rt: { x: 15, y: -5 },
+            rb: { x: 15, y: 15 },
+            lb: { x: -5, y: 15 },
         });
     });
 });

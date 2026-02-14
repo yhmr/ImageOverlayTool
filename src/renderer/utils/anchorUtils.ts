@@ -1,6 +1,12 @@
 import { Point } from "../../shared/types/Point";
 import { AnchorPos } from "../../shared/types/AnchorPos";
 
+const EPSILON = 1e-6;
+
+const distance = (a: Point, b: Point): number => {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+};
+
 // 画像全体のドラッグ移動後の新しいアンカー位置を計算する
 export const calculateMovedAnchors = (
     currentAnchors: AnchorPos,
@@ -78,6 +84,64 @@ export const rotateAnchorPos = (
         rt: rotatePoint(currentAnchors.rt, center, angleDiff),
         rb: rotatePoint(currentAnchors.rb, center, angleDiff),
         lb: rotatePoint(currentAnchors.lb, center, angleDiff),
+    };
+};
+
+/**
+ * initAnchorPos/currentAnchorPos から等方スケールを推定する。
+ * 4辺の長さ比（横2辺・縦2辺）の平均値を返す。
+ */
+export const calculateAnchorScale = (
+    initAnchorPos: AnchorPos,
+    currentAnchorPos: AnchorPos
+): number => {
+    const initTop = distance(initAnchorPos.lt, initAnchorPos.rt);
+    const initBottom = distance(initAnchorPos.lb, initAnchorPos.rb);
+    const initLeft = distance(initAnchorPos.lt, initAnchorPos.lb);
+    const initRight = distance(initAnchorPos.rt, initAnchorPos.rb);
+
+    const currentTop = distance(currentAnchorPos.lt, currentAnchorPos.rt);
+    const currentBottom = distance(currentAnchorPos.lb, currentAnchorPos.rb);
+    const currentLeft = distance(currentAnchorPos.lt, currentAnchorPos.lb);
+    const currentRight = distance(currentAnchorPos.rt, currentAnchorPos.rb);
+
+    const initWidth = (initTop + initBottom) / 2;
+    const initHeight = (initLeft + initRight) / 2;
+    if (initWidth < EPSILON || initHeight < EPSILON) {
+        return 1;
+    }
+
+    const currentWidth = (currentTop + currentBottom) / 2;
+    const currentHeight = (currentLeft + currentRight) / 2;
+    const scaleX = currentWidth / initWidth;
+    const scaleY = currentHeight / initHeight;
+    const scale = (scaleX + scaleY) / 2;
+
+    return Number.isFinite(scale) && scale > 0 ? scale : 1;
+};
+
+/**
+ * アンカー群を重心基準で等方拡縮する。
+ */
+export const scaleAnchorPos = (
+    currentAnchors: AnchorPos,
+    scaleRatio: number
+): AnchorPos => {
+    if (!Number.isFinite(scaleRatio) || scaleRatio <= 0) {
+        return currentAnchors;
+    }
+
+    const center = getCenter(currentAnchors);
+    const scalePoint = (point: Point): Point => ({
+        x: center.x + (point.x - center.x) * scaleRatio,
+        y: center.y + (point.y - center.y) * scaleRatio,
+    });
+
+    return {
+        lt: scalePoint(currentAnchors.lt),
+        rt: scalePoint(currentAnchors.rt),
+        rb: scalePoint(currentAnchors.rb),
+        lb: scalePoint(currentAnchors.lb),
     };
 };
 

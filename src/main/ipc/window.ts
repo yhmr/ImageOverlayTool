@@ -28,7 +28,9 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
             rect: { x: number; y: number; width: number; height: number }
         ) => {
             log.debug(`[IPC] window:setRect called: ${JSON.stringify(rect)}`);
-            mainWindow.setBounds(rect);
+            const targetWindow =
+                BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
+            targetWindow.setBounds(rect);
         }
     );
 };

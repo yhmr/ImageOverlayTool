@@ -52,6 +52,7 @@
             "title": "Image Settings",
             "done": "Done",
             "transparency": "Transparency",
+            "scale": "Scale",
             "rotation": "Rotation",
             "no_image": "No Image Selected",
             "reset_transformation": "Reset Transformation",
