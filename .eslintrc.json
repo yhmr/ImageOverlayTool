@@ -30,6 +30,22 @@
             "rules": {
                 "react-compiler/react-compiler": "off"
             }
+        },
+        {
+            "files": [
+                "src/renderer/main-window/**/*.tsx",
+                "src/renderer/image-settings/**/*.tsx"
+            ],
+            "excludedFiles": [
+                "src/renderer/main-window/components/ImageStage.tsx",
+                "src/renderer/main-window/components/PerspectiveImage.tsx",
+                "src/renderer/main-window/components/OverlayControls.tsx",
+                "src/renderer/main-window/components/DimensionLineLayer.tsx",
+                "src/renderer/main-window/components/DrawImage.tsx"
+            ],
+            "rules": {
+                "require-component-testid": "warn"
+            }
         }
     ],
     "parser": "@typescript-eslint/parser",
