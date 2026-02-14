@@ -22,6 +22,7 @@ export function TransparencyControl(props: TransparencyControlProps) {
                 step={0.01}
                 onValueChange={onChange}
                 className="flex-grow"
+                data-testid="settings.image-item.transparency.slider"
             />
             <span className="text-xs min-w-[35px] text-right">
                 {Math.round(transparency * 100)}%

@@ -71,6 +71,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
                             size="icon"
                             className="h-8 w-8"
                             onClick={onToggleVisible}
+                            data-testid="settings.image-item.toggle-visible"
                         >
                             {isVisible ? (
                                 <Eye className="h-4 w-4" />
@@ -92,6 +93,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
                             size="icon"
                             className="h-8 w-8"
                             onClick={onFileOpen}
+                            data-testid="settings.image-item.open-file"
                         >
                             <FolderOpen className="h-4 w-4" />
                         </Button>
@@ -109,6 +111,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
                             size="icon"
                             className="h-8 w-8"
                             onClick={onToggleLock}
+                            data-testid="settings.image-item.toggle-lock"
                         >
                             {isLocked ? (
                                 <Lock className="h-4 w-4" />
@@ -134,6 +137,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                             onClick={onDelete}
+                            data-testid="settings.image-item.delete"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>

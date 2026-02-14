@@ -197,9 +197,24 @@ export function ImageList() {
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="nm">nm</SelectItem>
-                                    <SelectItem value="um">um</SelectItem>
-                                    <SelectItem value="mm">mm</SelectItem>
+                                    <SelectItem
+                                        value="nm"
+                                        data-testid="settings.unit.option.nm"
+                                    >
+                                        nm
+                                    </SelectItem>
+                                    <SelectItem
+                                        value="um"
+                                        data-testid="settings.unit.option.um"
+                                    >
+                                        um
+                                    </SelectItem>
+                                    <SelectItem
+                                        value="mm"
+                                        data-testid="settings.unit.option.mm"
+                                    >
+                                        mm
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

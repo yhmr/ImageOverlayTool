@@ -25,12 +25,14 @@ export function RotationControl(props: RotationControlProps) {
                 max={180}
                 onValueChange={onRotationChange}
                 className="flex-grow"
+                data-testid="settings.image-item.rotation.slider"
             />
             <Input
                 type="number"
                 value={Math.round(rotation)}
                 onChange={onInputChange}
                 className="w-[60px] h-7 text-right text-xs"
+                data-testid="settings.image-item.rotation.input"
             />
         </div>
     );

@@ -119,6 +119,7 @@ export function WindowResizeHandles() {
                     key={direction}
                     className={`window-resize-handle window-resize-handle-${direction}`}
                     onMouseDown={beginResize(direction)}
+                    data-testid={`main.window.resize.${direction}`}
                 />
             ))}
         </div>

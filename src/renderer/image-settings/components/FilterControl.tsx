@@ -47,7 +47,12 @@ export function FilterControl({ filters, onFilterChange }: FilterControlProps) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    data-testid="settings.filters.trigger"
+                >
                     <Settings2 className="mr-2 h-4 w-4" />
                     {t("render.image_settings.filters")}
                 </Button>
@@ -72,6 +77,7 @@ export function FilterControl({ filters, onFilterChange }: FilterControlProps) {
                             <Switch
                                 id="binarization-switch"
                                 checked={binarization.enabled}
+                                data-testid="settings.filters.binarization.switch"
                                 onCheckedChange={(checked) =>
                                     handleBinarizationChange({
                                         enabled: checked,
@@ -90,6 +96,7 @@ export function FilterControl({ filters, onFilterChange }: FilterControlProps) {
                                     max={255}
                                     step={1}
                                     value={[binarization.threshold]}
+                                    data-testid="settings.filters.binarization.threshold"
                                     onValueChange={(val) =>
                                         handleBinarizationChange({
                                             threshold: val[0],
@@ -109,6 +116,7 @@ export function FilterControl({ filters, onFilterChange }: FilterControlProps) {
                             <Switch
                                 id="hsv-switch"
                                 checked={hsv.enabled}
+                                data-testid="settings.filters.hsv.switch"
                                 onCheckedChange={(checked) =>
                                     handleHSVChange({ enabled: checked })
                                 }
@@ -126,6 +134,7 @@ export function FilterControl({ filters, onFilterChange }: FilterControlProps) {
                                         max={180}
                                         step={1}
                                         value={[hsv.h]}
+                                        data-testid="settings.filters.hsv.h"
                                         onValueChange={(val) =>
                                             handleHSVChange({ h: val[0] })
                                         }
@@ -141,6 +150,7 @@ export function FilterControl({ filters, onFilterChange }: FilterControlProps) {
                                         max={100}
                                         step={1}
                                         value={[hsv.s]}
+                                        data-testid="settings.filters.hsv.s"
                                         onValueChange={(val) =>
                                             handleHSVChange({ s: val[0] })
                                         }
@@ -156,6 +166,7 @@ export function FilterControl({ filters, onFilterChange }: FilterControlProps) {
                                         max={100}
                                         step={1}
                                         value={[hsv.v]}
+                                        data-testid="settings.filters.hsv.v"
                                         onValueChange={(val) =>
                                             handleHSVChange({ v: val[0] })
                                         }

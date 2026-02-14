@@ -96,6 +96,7 @@ export function AboutDialog(props: AboutDialogProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-xs text-primary hover:underline"
+                                data-testid="main.about.link.official-site"
                             >
                                 Official Site
                             </a>
@@ -104,6 +105,7 @@ export function AboutDialog(props: AboutDialogProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-xs text-primary hover:underline"
+                                data-testid="main.about.link.github"
                             >
                                 GitHub
                             </a>
@@ -112,6 +114,7 @@ export function AboutDialog(props: AboutDialogProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-xs text-primary hover:underline"
+                                data-testid="main.about.link.issue"
                             >
                                 Report Issue
                             </a>
@@ -120,6 +123,7 @@ export function AboutDialog(props: AboutDialogProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-xs text-primary hover:underline"
+                                data-testid="main.about.link.developer"
                             >
                                 Developer
                             </a>
@@ -198,7 +202,7 @@ export function AboutDialog(props: AboutDialogProps) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={onClose}>
+                    <Button onClick={onClose} data-testid="main.about.done">
                         {t("render.about_dlg.done")}
                     </Button>
                 </DialogFooter>

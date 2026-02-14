@@ -64,14 +64,22 @@ export function ExportDialog({ open, onClose, onExport }: ExportDialogProps) {
                             id="include-background"
                             checked={includeBackground}
                             onCheckedChange={setIncludeBackground}
+                            data-testid="main.export.include-background"
                         />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose}>
+                    <Button
+                        variant="outline"
+                        onClick={onClose}
+                        data-testid="main.export.cancel"
+                    >
                         {t("common.cancel", "キャンセル")}
                     </Button>
-                    <Button onClick={exportAndClose}>
+                    <Button
+                        onClick={exportAndClose}
+                        data-testid="main.export.save"
+                    >
                         {t("common.save", "保存")}
                     </Button>
                 </DialogFooter>

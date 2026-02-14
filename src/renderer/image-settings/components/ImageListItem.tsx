@@ -151,6 +151,7 @@ export function ImageListItem(props: ImageListItemProps) {
                     : "hover:border-muted-foreground/30"
             }`}
             onClick={() => setSelectedImageId(imageSet.id)}
+            data-testid="settings.image-item.card"
         >
             <CardContent className="p-3 space-y-3">
                 <ImageItemHeader
@@ -191,6 +192,7 @@ export function ImageListItem(props: ImageListItemProps) {
                             size="sm"
                             className="flex-1"
                             onClick={resetTransformation}
+                            data-testid="settings.image-item.reset-transformation"
                             title={t(
                                 "render.image_settings.tooltip.reset_transformation"
                             )}
