@@ -34,6 +34,7 @@ nsis:
 appx:
   artifactName: "${productName}-${version}-${arch}.${ext}"
   identityName: "yhmr.ImageOverlayTool"
+  displayName: "Image Overlay Tool"
   publisher: "CN=371576BB-DE03-41A4-B137-1F16D17E3A56"
   publisherDisplayName: "yhmr"
   applicationId: "ImageOverlayTool"
