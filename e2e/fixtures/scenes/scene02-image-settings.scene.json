@@ -1,0 +1,50 @@
+{
+  "name": "scene02-image-settings",
+  "unitFactor": 1,
+  "unit": "um",
+  "windowColor": "#00000000",
+  "canvas": {
+    "x": 0,
+    "y": 0,
+    "scale": 1
+  },
+  "interactionMode": "default",
+  "selectedImageId": "scene02-01",
+  "selectedDimensionLineId": null,
+  "uiHidden": false,
+  "images": [
+    {
+      "id": "scene02-01",
+      "source": "fixture:scene02-01",
+      "transparency": 0,
+      "rotation": 0,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "scene02-02",
+      "source": "fixture:scene02-02",
+      "transparency": 0.12,
+      "rotation": 0,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "scene02-03",
+      "source": "fixture:scene02-03",
+      "transparency": 0.24,
+      "rotation": 0,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "scene02-04",
+      "source": "fixture:scene02-04",
+      "transparency": 0.36,
+      "rotation": 0,
+      "visible": true,
+      "locked": false
+    }
+  ],
+  "dimensionLines": []
+}

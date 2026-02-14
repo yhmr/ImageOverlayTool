@@ -1,38 +1,48 @@
-# fixtures/imagesについて
+# E2E fixtures
 
-操作説明や、スクリーンショットを撮る際に利用するための、AI生成画像です。
+操作説明用のスクリーンショット作成と、E2E検証で利用する fixture 一式です。
 
-## Scene 1: 基本画面とメニュー (Home)
+- 画像: `e2e/fixtures/images/`
+- シーン定義(JSON): `e2e/fixtures/scenes/`
 
-* 画像: なし (アプリ起動直後)
-* 操作: メニューバーを開き、機能一覧を見せる。
+## シーン一覧
 
-## Scene 2: 画像設定 (Image Settings)
+1. Scene 1: 基本画面とメニュー (Home)
+   - Scene JSON: `scene01-home.scene.json`
+   - 画像: なし (アプリ起動直後)
+   - 代表操作: メニューバーを開いて機能一覧を見せる
+2. Scene 2: 画像設定 (Image Settings)
+   - Scene JSON: `scene02-image-settings.scene.json`
+   - 画像: `scene02-01.png` 〜 `scene02-04.png` (4枚)
+   - 代表操作: 画像設定ウィンドウを開いて調整操作を見せる
+3. Scene 3: 画像変形 (Perspective)
+   - Scene JSON: `scene03-perspective.scene.json`
+   - 画像: `scene03-01.png`, `scene03-02.png`
+   - 状態: 2枚目を半透明にして重ね合わせ
+4. Scene 4: フィルタ適用 (Filters)
+   - Scene JSON: `scene04-filters.scene.json`
+   - 画像: `scene04-01.png`, `scene04-02.png`
+   - 状態: 1枚目に 2値化フィルタを適用
+5. Scene 5: コントロールとツールチップ (Controls)
+   - Scene JSON: `scene05-controls.scene.json`
+   - 画像: `scene05-01.png`, `scene05-02.png`
+   - 代表操作: FAB 操作や tooltip 表示
+6. Scene 6: 応用・完成イメージ (Final)
+   - Scene JSON: `scene06-final.scene.json`
+   - 画像: `scene06-01.png`, `scene06-02.png`
+   - 状態: `uiHidden=true` で完成画面寄りに撮影
 
-* 画像: scene02-01.png 〜 scene02-04.png (計4枚)
-* 状態: 4枚の画像を読み込み、リストに表示。
-* 操作: メイン画面の横に「画像設定ダイアログ」を開き、1枚目の画像の透明度を変更中の状態。
+## 既定シーン
 
-## Scene 3: 画像変形 (Perspective)
+- `default.scene.json` は E2E のスモーク/共通検証で使う最小シーンです。
+- ドキュメント用のシナリオ撮影は上記 Scene 1〜6 の JSON を利用してください。
 
-* 画像: scene03-01.png (背景), scene03-02.png (重ねる画像)
-* 状態: 2枚の画像を読み込み、02 を半透明(Opacity 0.7)に設定。
-* 操作: 02 の画像をドラッグしており、背景画像と「少しずれている（合わせようとしている）」状態を再現。アンカーを表示して変形操作中であることを強調。
+## 利用例
 
-## Scene 4: フィルタ適用 (Filters)
+```ts
+import { applyFixtureScene } from "../helpers/electronHarness";
 
-* 画像: scene04-01.png, scene04-02.png
-* 状態: 2枚の画像を読み込み、比較表示。
-* 操作: 01 の画像に「2値化」フィルタを適用し、効果がわかりやすいように並べる（または一部重ねる）。設定ポップオーバーを表示。
+await applyFixtureScene(page, "scene04-filters.scene.json");
+```
 
-## Scene 5: コントロールとツールチップ (Controls)
-
-* 画像: scene05-01.png, scene05-02.png
-* 状態: 2枚の画像を読み込み、ほぼ位置が合っている状態。
-* 操作: 画面下部コントロールバーの「キャプチャ」ボタン等にマウスオーバーし、ツールチップを表示。
-
-## Scene 6: 応用・完成イメージ (Ex)
-
-* 画像: scene06-01.png, scene06-02.png
-* 状態: 複雑な画像を読み込み、綺麗に重ね合わされた状態（完成形）。
-* 操作: UIを非表示気味にするか、あるいは全機能を使っている様子として撮影。
+`source` の `fixture:xxx` は `e2e/fixtures/images/xxx.(png|jpg|jpeg|webp|gif|svg)` を解決します。

@@ -1,0 +1,46 @@
+{
+  "name": "scene04-filters",
+  "unitFactor": 1,
+  "unit": "um",
+  "windowColor": "#00000000",
+  "canvas": {
+    "x": 0,
+    "y": 0,
+    "scale": 1
+  },
+  "interactionMode": "default",
+  "selectedImageId": "scene04-01",
+  "selectedDimensionLineId": null,
+  "uiHidden": false,
+  "images": [
+    {
+      "id": "scene04-01",
+      "source": "fixture:scene04-01",
+      "transparency": 0.1,
+      "rotation": 0,
+      "visible": true,
+      "locked": false,
+      "filters": {
+        "binarization": {
+          "enabled": true,
+          "threshold": 138
+        },
+        "hsv": {
+          "enabled": false,
+          "h": 0,
+          "s": 0,
+          "v": 0
+        }
+      }
+    },
+    {
+      "id": "scene04-02",
+      "source": "fixture:scene04-02",
+      "transparency": 0,
+      "rotation": 0,
+      "visible": true,
+      "locked": false
+    }
+  ],
+  "dimensionLines": []
+}

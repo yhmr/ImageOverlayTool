@@ -1,0 +1,34 @@
+{
+  "name": "scene05-controls",
+  "unitFactor": 1,
+  "unit": "um",
+  "windowColor": "#00000000",
+  "canvas": {
+    "x": 0,
+    "y": 0,
+    "scale": 1
+  },
+  "interactionMode": "default",
+  "selectedImageId": "scene05-02",
+  "selectedDimensionLineId": null,
+  "uiHidden": false,
+  "images": [
+    {
+      "id": "scene05-01",
+      "source": "fixture:scene05-01",
+      "transparency": 0,
+      "rotation": 0,
+      "visible": true,
+      "locked": true
+    },
+    {
+      "id": "scene05-02",
+      "source": "fixture:scene05-02",
+      "transparency": 0.15,
+      "rotation": 0,
+      "visible": true,
+      "locked": false
+    }
+  ],
+  "dimensionLines": []
+}
