@@ -46,3 +46,14 @@ await applyFixtureScene(page, "scene04-filters.scene.json");
 ```
 
 `source` の `fixture:xxx` は `e2e/fixtures/images/xxx.(png|jpg|jpeg|webp|gif|svg)` を解決します。
+
+## シナリオ撮影E2E
+
+シーンを順番に読み込み、説明用スクリーンショットを出力する専用E2E:
+
+```bash
+npm run test:e2e:screenshots
+```
+
+- 出力先: `test-results/e2e-screenshots/`
+- このE2Eは通常の `npm run test:e2e` では実行されません。

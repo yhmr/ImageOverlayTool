@@ -61,6 +61,12 @@ npm run build:linux
 
 # テスト実行
 npm test
+
+# E2Eテスト
+npm run test:e2e
+
+# シナリオ別スクリーンショット撮影（通常のtest:e2e/CIでは自動実行されない）
+npm run test:e2e:screenshots
 ```
 
 ### テストセレクタ（data-testid）規約
@@ -81,6 +87,13 @@ E2E/統合テストで使用する `data-testid` は、以下の形式で命名�
 - `window.__IOT_E2E__.loadFixtureImage(source)` : fixture画像を追加
 - `window.__IOT_E2E__.waitStable({ timeoutMs })` : 描画安定化待ち
 - `window.__IOT_E2E__.capture({ mode })` : E2E用キャプチャ保存
+
+シナリオ撮影用の `e2e/screenshot-scenarios.spec.ts` は、
+`IOT_E2E_SCREENSHOT_SCENARIOS=1` のときのみ有効になります。
+通常の `npm run test:e2e` / CI実行では除外されます。
+
+`npm run test:e2e:screenshots` は、`out/main/index.js` がなければ自動で `npm run build` を先に実行します。
+CI上で明示実行された場合も既定ではスキップし、必要時のみ `IOT_E2E_SCREENSHOT_FORCE_IN_CI=1` で強制実行します。
 
 fixture解決ルール:
 

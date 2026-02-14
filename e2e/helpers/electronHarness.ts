@@ -18,6 +18,11 @@ export const E2E_ARTIFACTS_DIR = path.join(
     "test-results",
     "e2e-artifacts"
 );
+export const E2E_SCREENSHOT_DIR = path.join(
+    APP_ROOT,
+    "test-results",
+    "e2e-screenshots"
+);
 export const E2E_FIXTURES_DIR = path.join(APP_ROOT, "e2e", "fixtures");
 export const E2E_SCENES_DIR = path.join(E2E_FIXTURES_DIR, "scenes");
 export const E2E_PROJECT_PATH = path.join(E2E_ARTIFACTS_DIR, "project.e2e.iot");
@@ -176,30 +181,57 @@ export const captureViaE2E = async (
 
 export const applyScene = async (
     page: Page,
-    scene: E2ESceneInput
+    scene: E2ESceneInput,
+    options?: {
+        requireStable?: boolean;
+        timeoutMs?: number;
+    }
 ): Promise<void> => {
-    await page.evaluate(async (sceneInput) => {
+    await page.evaluate(async (payload) => {
+        const sceneInput = payload.scene;
+        const requireStable = payload.requireStable ?? true;
+        const timeoutMs = payload.timeoutMs ?? 20000;
+
         const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
-            | { setScene: (scene: E2ESceneInput) => Promise<{ stable: boolean }> }
+            | {
+                  setScene: (scene: E2ESceneInput) => Promise<{ stable: boolean }>;
+                  waitStable: (
+                      request?: E2EWaitStableRequest
+                  ) => Promise<E2EWaitStableResult>;
+              }
             | undefined;
         if (!bridge) {
             throw new Error("E2E bridge is not available in renderer.");
         }
 
         const result = await bridge.setScene(sceneInput);
-        if (!result.stable) {
-            throw new Error("Renderer did not reach stable state after setScene.");
+        if (!requireStable) {
+            return;
         }
-    }, scene);
+
+        let stableResult = result;
+        if (!stableResult.stable) {
+            stableResult = await bridge.waitStable({ timeoutMs });
+        }
+        if (!stableResult.stable) {
+            throw new Error(
+                `Renderer did not reach stable state after setScene. elapsedMs=${stableResult.elapsedMs}`
+            );
+        }
+    }, { scene, ...options });
 };
 
 export const applyFixtureScene = async (
     page: Page,
-    sceneFileName = "default.scene.json"
+    sceneFileName = "default.scene.json",
+    options?: {
+        requireStable?: boolean;
+        timeoutMs?: number;
+    }
 ): Promise<void> => {
     const scenePath = path.join(E2E_SCENES_DIR, sceneFileName);
     const scene = JSON.parse(fs.readFileSync(scenePath, "utf-8")) as E2ESceneInput;
-    await applyScene(page, scene);
+    await applyScene(page, scene, options);
 };
 
 const ensureMenuOpened = async (page: Page): Promise<void> => {
@@ -237,4 +269,25 @@ export const clickAppMenuItem = async (
         ) as HTMLElement | null;
         target?.click();
     }, itemTestId);
+};
+
+export const openImageSettingsWindow = async (
+    app: ElectronApplication,
+    page: Page
+): Promise<Page> => {
+    const existing = app.windows().find((windowPage) => windowPage !== page);
+    if (existing) {
+        await existing.getByTestId("settings.app.root").waitFor({
+            state: "visible",
+        });
+        return existing;
+    }
+
+    const settingsWindowPromise = app.waitForEvent("window");
+    await clickAppMenuItem(page, "main.menu.item.open-image-settings");
+    const settingsPage = await settingsWindowPromise;
+    await settingsPage.getByTestId("settings.app.root").waitFor({
+        state: "visible",
+    });
+    return settingsPage;
 };
