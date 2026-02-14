@@ -91,6 +91,9 @@ export const clickAppMenuItem = async (
         | "main.menu.item.open-project"
         | "main.menu.item.save-project"
         | "main.menu.item.save-project-as"
+        | "main.menu.item.open-image-settings"
+        | "main.menu.item.settings"
+        | "main.menu.item.about"
 ): Promise<void> => {
     await ensureMenuOpened(page);
     await page.getByTestId(itemTestId).waitFor({ state: "attached" });
