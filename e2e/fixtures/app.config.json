@@ -1,0 +1,28 @@
+{
+  "window": {
+    "pos": [
+      182,
+      79
+    ],
+    "size": [
+      892,
+      780
+    ],
+    "isMaximized": false,
+    "color": "#d3c07b54"
+  },
+  "setting": {
+    "language": "en",
+    "logLevel": "debug"
+  },
+  "imageSettingsWindow": {
+    "pos": [
+      1103,
+      322
+    ],
+    "size": [
+      484,
+      581
+    ]
+  }
+}

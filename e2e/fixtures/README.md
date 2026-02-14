@@ -3,6 +3,7 @@
 操作説明用のスクリーンショット作成と、E2E検証で利用する fixture 一式です。
 
 - 画像: `e2e/fixtures/images/`
+- ウィンドウ設定: `e2e/fixtures/app.config.json`
 - シーン定義(JSON): `e2e/fixtures/scenes/`
 
 ## シーン一覧
@@ -16,9 +17,11 @@
    - 画像: `scene02-01.png` 〜 `scene02-04.png` (4枚)
    - 代表操作: 画像設定ウィンドウを開いて調整操作を見せる
 3. Scene 3: 画像変形 (Perspective)
-   - Scene JSON: `scene03-perspective.scene.json`
+   - Scene JSON:
+     - `scene03-perspective-a.scene.json`
+     - `scene03-perspective-b.scene.json`
    - 画像: `scene03-01.png`, `scene03-02.png`
-   - 状態: 2枚目を半透明にして重ね合わせ
+   - 状態: 2枚目の透明度違いで2パターン撮影
 4. Scene 4: フィルタ適用 (Filters)
    - Scene JSON: `scene04-filters.scene.json`
    - 画像: `scene04-01.png`, `scene04-02.png`
@@ -30,7 +33,7 @@
 6. Scene 6: 応用・完成イメージ (Final)
    - Scene JSON: `scene06-final.scene.json`
    - 画像: `scene06-01.png`, `scene06-02.png`
-   - 状態: `uiHidden=true` で完成画面寄りに撮影
+   - 状態: 完成イメージ寄りに撮影
 
 ## 既定シーン
 
@@ -57,3 +60,10 @@ npm run test:e2e:screenshots
 
 - 出力先: `test-results/e2e-screenshots/`
 - このE2Eは通常の `npm run test:e2e` では実行されません。
+- 主要出力ファイル:
+  - `scene01-home.png` / `scene01-home-menu.png`
+  - `scene02-main.png` / `scene02-image-settings.png`
+  - `scene03-perspective-a.png` / `scene03-perspective-b.png`
+  - `scene04-main.png` / `scene04-filters.png`
+  - `scene05-controls.png`
+  - `scene06-final.png`

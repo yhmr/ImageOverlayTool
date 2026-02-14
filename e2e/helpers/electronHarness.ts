@@ -30,6 +30,20 @@ export const E2E_CAPTURE_PATH = path.join(E2E_ARTIFACTS_DIR, "capture.e2e.png");
 export const E2E_EXPORT_PATH = path.join(E2E_ARTIFACTS_DIR, "export.e2e.png");
 
 const E2E_RESET_FILES = [E2E_PROJECT_PATH, E2E_CAPTURE_PATH, E2E_EXPORT_PATH];
+const FIXTURE_APP_CONFIG_PATH_CANDIDATES = [
+    path.join(E2E_FIXTURES_DIR, "app.config.json"),
+    path.join(E2E_FIXTURES_DIR, "project", "config.json"),
+];
+
+type WindowLayoutConfig = {
+    pos: [number, number];
+    size: [number, number];
+};
+
+type FixtureAppConfig = {
+    window?: WindowLayoutConfig;
+    imageSettingsWindow?: WindowLayoutConfig;
+};
 
 const assertBuildOutput = (): void => {
     if (!fs.existsSync(OUT_MAIN_PATH)) {
@@ -83,6 +97,100 @@ export const launchE2EApp = async (): Promise<{
     await ensureE2EBridge(page);
 
     return { app, page };
+};
+
+const isValidWindowLayoutConfig = (
+    value: unknown
+): value is WindowLayoutConfig => {
+    if (!value || typeof value !== "object") {
+        return false;
+    }
+
+    const candidate = value as {
+        pos?: unknown;
+        size?: unknown;
+    };
+
+    return (
+        Array.isArray(candidate.pos) &&
+        candidate.pos.length === 2 &&
+        candidate.pos.every((item) => typeof item === "number") &&
+        Array.isArray(candidate.size) &&
+        candidate.size.length === 2 &&
+        candidate.size.every((item) => typeof item === "number")
+    );
+};
+
+export const loadFixtureAppConfig = (): FixtureAppConfig | null => {
+    for (const filePath of FIXTURE_APP_CONFIG_PATH_CANDIDATES) {
+        if (!fs.existsSync(filePath)) {
+            continue;
+        }
+
+        const parsed = JSON.parse(fs.readFileSync(filePath, "utf-8")) as {
+            window?: unknown;
+            imageSettingsWindow?: unknown;
+        };
+
+        const config: FixtureAppConfig = {};
+        if (isValidWindowLayoutConfig(parsed.window)) {
+            config.window = parsed.window;
+        }
+        if (isValidWindowLayoutConfig(parsed.imageSettingsWindow)) {
+            config.imageSettingsWindow = parsed.imageSettingsWindow;
+        }
+
+        return config;
+    }
+
+    return null;
+};
+
+const toBounds = (layout: WindowLayoutConfig) => ({
+    x: layout.pos[0],
+    y: layout.pos[1],
+    width: layout.size[0],
+    height: layout.size[1],
+});
+
+export const applyMainWindowLayout = async (
+    app: ElectronApplication,
+    page: Page,
+    config: FixtureAppConfig | null
+): Promise<void> => {
+    if (!config?.window) {
+        return;
+    }
+
+    const browserWindow = await app.browserWindow(page);
+    const bounds = toBounds(config.window);
+    await browserWindow.evaluate(
+        (windowRef, nextBounds) => {
+            windowRef.setBounds(nextBounds);
+        },
+        bounds
+    );
+    await page.waitForTimeout(120);
+};
+
+export const applyImageSettingsWindowLayout = async (
+    app: ElectronApplication,
+    settingsPage: Page,
+    config: FixtureAppConfig | null
+): Promise<void> => {
+    if (!config?.imageSettingsWindow) {
+        return;
+    }
+
+    const browserWindow = await app.browserWindow(settingsPage);
+    const bounds = toBounds(config.imageSettingsWindow);
+    await browserWindow.evaluate(
+        (windowRef, nextBounds) => {
+            windowRef.setBounds(nextBounds);
+        },
+        bounds
+    );
+    await settingsPage.waitForTimeout(120);
 };
 
 export const ensureE2EBridge = async (page: Page): Promise<void> => {

@@ -2,32 +2,128 @@
   "name": "scene06-final",
   "unitFactor": 1,
   "unit": "um",
-  "windowColor": "#00000000",
+  "windowColor": "#d3c07b54",
   "canvas": {
-    "x": 0,
-    "y": 0,
-    "scale": 1
+    "x": 185.95702474619276,
+    "y": 26.69303307340391,
+    "scale": 0.9090909090909086
   },
   "interactionMode": "default",
   "selectedImageId": null,
   "selectedDimensionLineId": null,
-  "uiHidden": true,
+  "uiHidden": false,
   "images": [
     {
-      "id": "scene06-01",
+      "id": "0c736465-e8f0-41ca-9609-8129e0f44cca",
       "source": "fixture:scene06-01",
       "transparency": 0,
       "rotation": 0,
+      "initAnchorPos": {
+        "lt": {
+          "x": 0,
+          "y": 0
+        },
+        "lb": {
+          "x": 0,
+          "y": 640
+        },
+        "rt": {
+          "x": 640,
+          "y": 0
+        },
+        "rb": {
+          "x": 640,
+          "y": 640
+        }
+      },
+      "currentAnchorPos": {
+        "lt": {
+          "x": 0,
+          "y": 0
+        },
+        "lb": {
+          "x": 0,
+          "y": 640
+        },
+        "rt": {
+          "x": 640,
+          "y": 0
+        },
+        "rb": {
+          "x": 640,
+          "y": 640
+        }
+      },
+      "locked": false,
       "visible": true,
-      "locked": true
+      "filters": {
+        "binarization": {
+          "enabled": false,
+          "threshold": 128
+        },
+        "hsv": {
+          "enabled": false,
+          "h": 0,
+          "s": 0,
+          "v": 0
+        }
+      }
     },
     {
-      "id": "scene06-02",
+      "id": "31ed63c9-d6ce-4989-930a-5d268d8a560a",
       "source": "fixture:scene06-02",
-      "transparency": 0.25,
+      "transparency": 0.23,
       "rotation": 0,
+      "initAnchorPos": {
+        "lt": {
+          "x": 0,
+          "y": 0
+        },
+        "lb": {
+          "x": 0,
+          "y": 1024
+        },
+        "rt": {
+          "x": 1024,
+          "y": 0
+        },
+        "rb": {
+          "x": 1024,
+          "y": 1024
+        }
+      },
+      "currentAnchorPos": {
+        "lt": {
+          "x": -107.77173979000005,
+          "y": 296.4640026700001
+        },
+        "lb": {
+          "x": -108.78710480000012,
+          "y": 726.4078463499992
+        },
+        "rt": {
+          "x": 369.47206747999917,
+          "y": 301.1460586200002
+        },
+        "rb": {
+          "x": 363.8310212999995,
+          "y": 735.0386127799995
+        }
+      },
+      "locked": false,
       "visible": true,
-      "locked": false
+      "filters": {
+        "binarization": {
+          "enabled": false,
+          "threshold": 128
+        },
+        "hsv": {
+          "enabled": false,
+          "h": 0,
+          "s": 43,
+          "v": -28
+        }
+      }
     }
   ],
   "dimensionLines": []
