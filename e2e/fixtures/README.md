@@ -32,8 +32,8 @@
    - 代表操作: FAB 操作や tooltip 表示
 6. Scene 6: 応用・完成イメージ (Final)
    - Scene JSON: `scene06-final.scene.json`
-   - 画像: `scene06-01.png`, `scene06-02.png`
-   - 状態: 完成イメージ寄りに撮影
+   - 画像: `scene06-03.png` (背景キャプチャ), `scene06-02.png` (重ね画像)
+   - 状態: 背景キャプチャに重ね画像を載せた完成イメージ寄りに撮影
 
 ## 既定シーン
 
