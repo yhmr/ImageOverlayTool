@@ -11,8 +11,8 @@ export function TransparencyControl(props: TransparencyControlProps) {
     const { t } = useTranslation();
 
     return (
-        <div className="flex items-center gap-3 mt-2">
-            <span className="text-xs min-w-[50px] text-muted-foreground">
+        <div className="flex items-center gap-4 mt-2">
+            <span className="text-xs w-[72px] shrink-0 whitespace-nowrap text-muted-foreground">
                 {t("render.image_settings.transparency")}
             </span>
             <Slider
@@ -24,7 +24,7 @@ export function TransparencyControl(props: TransparencyControlProps) {
                 className="flex-grow"
                 data-testid="settings.image-item.transparency.slider"
             />
-            <span className="text-xs min-w-[35px] text-right">
+            <span className="text-xs w-[44px] shrink-0 text-right tabular-nums">
                 {Math.round(transparency * 100)}%
             </span>
         </div>

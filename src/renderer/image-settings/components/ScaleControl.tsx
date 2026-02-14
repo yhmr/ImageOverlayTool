@@ -17,11 +17,11 @@ export function ScaleControl(props: ScaleControlProps) {
     const { t } = useTranslation();
 
     return (
-        <div className="flex items-center gap-3 mt-2">
-            <span className="text-xs min-w-[50px] text-muted-foreground">
+        <div className="flex items-center gap-4 mt-2">
+            <span className="text-xs w-[72px] shrink-0 whitespace-nowrap text-muted-foreground">
                 {t("render.image_settings.scale")}
             </span>
-            <ZoomIn className="h-4 w-4 text-muted-foreground" />
+            <ZoomIn className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Slider
                 value={[scale]}
                 min={MIN_SCALE}
@@ -32,7 +32,7 @@ export function ScaleControl(props: ScaleControlProps) {
                 data-testid="settings.image-item.scale.slider"
             />
             <span
-                className="text-xs min-w-[45px] text-right"
+                className="text-xs w-[52px] shrink-0 text-right tabular-nums"
                 data-testid="settings.image-item.scale.value"
             >
                 {Math.round(scale * 100)}%
