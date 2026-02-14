@@ -28,7 +28,8 @@
     "prepare": "husky",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test e2e/startup.spec.ts",
-    "generate-icons": "node scripts/generate-icons.js"
+    "generate-icons": "node scripts/generate-icons.js",
+    "generate:store-assets": "node scripts/generate-store-assets.js"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
@@ -89,6 +90,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "happy-dom": "^20.1.0",
     "husky": "^9.1.7",
+    "jimp": "^1.6.0",
     "jsdom": "^27.4.0",
     "license-checker": "^25.0.1",
     "lint-staged": "^16.2.7",
