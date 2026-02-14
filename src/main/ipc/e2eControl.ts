@@ -31,6 +31,17 @@ const SUPPORTED_IMAGE_EXTENSIONS = [
     ".svg",
 ];
 
+const isPathInsideDirectory = (
+    baseDir: string,
+    targetPath: string
+): boolean => {
+    const relative = path.relative(baseDir, targetPath);
+    return (
+        relative === "" ||
+        (!relative.startsWith("..") && !path.isAbsolute(relative))
+    );
+};
+
 const getDisabledReason = (e2eConfig: E2ERuntimeConfig): string => {
     if (!e2eConfig.enabled) {
         return 'E2E control plane is disabled because "--e2e" is not enabled.';
@@ -57,10 +68,28 @@ const resolveFixtureAliasPath = (
     alias: string
 ): string | undefined => {
     const imageDir = path.resolve(fixturesDir, "images");
-    const aliasPath = path.resolve(imageDir, alias);
+    const normalizedAlias = alias.trim();
+    if (!normalizedAlias) {
+        throw new Error("Fixture alias must not be empty.");
+    }
+
+    const aliasPath = path.resolve(imageDir, normalizedAlias);
+    if (!isPathInsideDirectory(imageDir, aliasPath)) {
+        throw new Error(
+            `Fixture alias escapes fixtures/images: fixture:${alias}`
+        );
+    }
+
     const ext = path.extname(aliasPath).toLowerCase();
 
     if (ext.length > 0) {
+        if (!SUPPORTED_IMAGE_EXTENSIONS.includes(ext)) {
+            throw new Error(
+                `Unsupported fixture alias extension: ${ext}. Supported extensions: ${SUPPORTED_IMAGE_EXTENSIONS.join(
+                    ", "
+                )}`
+            );
+        }
         return fs.existsSync(aliasPath) ? aliasPath : undefined;
     }
 

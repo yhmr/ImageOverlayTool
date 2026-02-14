@@ -101,4 +101,36 @@ describe("e2e control ipc handlers", () => {
         );
         expect(resolved.path).toBe(fixturePath);
     });
+
+    it("rejects fixture alias that escapes fixtures/images", async () => {
+        const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
+        const scenesDir = path.join(tempRoot, "scenes");
+        fs.mkdirSync(scenesDir, { recursive: true });
+        fs.writeFileSync(path.join(scenesDir, "outside.png"), "fixture-bytes");
+
+        process.env.IOT_E2E_MODE = "1";
+        registerE2EControlHandlers({
+            e2eConfig: createConfig({ enabled: true, fixturesDir: tempRoot }),
+        });
+
+        await expect(
+            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "fixture:../scenes/outside" })
+        ).rejects.toThrow("escapes fixtures/images");
+    });
+
+    it("rejects fixture alias with unsupported explicit extension", async () => {
+        const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
+        const imageDir = path.join(tempRoot, "images");
+        fs.mkdirSync(imageDir, { recursive: true });
+        fs.writeFileSync(path.join(imageDir, "sample.txt"), "not-image");
+
+        process.env.IOT_E2E_MODE = "1";
+        registerE2EControlHandlers({
+            e2eConfig: createConfig({ enabled: true, fixturesDir: tempRoot }),
+        });
+
+        await expect(
+            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "fixture:sample.txt" })
+        ).rejects.toThrow("Unsupported fixture alias extension");
+    });
 });
