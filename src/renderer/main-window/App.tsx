@@ -9,6 +9,7 @@ import { useFileHandler } from "../hooks/useFileHandler";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import { useProjectSync } from "../hooks/useProjectSync";
+import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
 import {
     IpcServiceProvider,
     useIpcService,
@@ -33,6 +34,8 @@ const App = () => {
     useFileHandler();
     // キーボードショートカット (Undo/Redo)
     useKeyboardShortcuts();
+    // E2E制御ブリッジ
+    useE2EControlBridge();
 
     // グローバルエラーハンドリング
     useEffect(() => {

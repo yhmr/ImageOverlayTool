@@ -224,6 +224,8 @@ describe("WindowManager", () => {
         expect(settingsOptions.frame).toBe(false);
         expect(settingsOptions.transparent).toBe(true);
         expect(settingsOptions.resizable).toBe(true);
+        expect(settingsOptions.minWidth).toBe(400);
+        expect(settingsOptions.minHeight).toBe(500);
         expect(settingsOptions.thickFrame).toBe(true);
         expect(
             (settingsOptions.webPreferences as Record<string, unknown>).sandbox

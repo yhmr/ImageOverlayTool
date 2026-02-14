@@ -4,6 +4,7 @@ import {
     AppConfig,
     DEFAULT_MAIN_WINDOW_SIZE,
     DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
+    MIN_IMAGE_SETTINGS_WINDOW_SIZE,
 } from "../../shared/types/AppConfig";
 import { calcCenterPosition } from "../utils/calcCenterPosition";
 import { Point } from "../../shared/types/Point";
@@ -68,12 +69,26 @@ export class WindowRepository implements IWindowRepository {
     }
 
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size } {
-        return this.getPositionAndSize(
+        const { pos, size } = this.getPositionAndSize(
             "imageSettingsWindow.pos",
             "imageSettingsWindow.size",
             DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
             { x: 0, y: 0 }
         );
+
+        return {
+            pos,
+            size: {
+                width: Math.max(
+                    size.width,
+                    MIN_IMAGE_SETTINGS_WINDOW_SIZE.width
+                ),
+                height: Math.max(
+                    size.height,
+                    MIN_IMAGE_SETTINGS_WINDOW_SIZE.height
+                ),
+            },
+        };
     }
 
     saveImageSettingsWindowPositionAndSize(

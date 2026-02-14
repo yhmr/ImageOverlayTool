@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { rotateAnchorPos, getCenter, rotatePoint } from "@/renderer/utils/anchorUtils";
+import {
+    calculateAnchorScale,
+    getCenter,
+    rotateAnchorPos,
+    rotatePoint,
+    scaleAnchorPos,
+} from "@/renderer/utils/anchorUtils";
 import { AnchorPos } from "@/shared/types/AnchorPos";
 
 describe("anchorUtils", () => {
@@ -63,6 +69,42 @@ describe("anchorUtils", () => {
 
             expect(rotated.lb.x).toBeCloseTo(-10);
             expect(rotated.lb.y).toBeCloseTo(-10);
+        });
+    });
+
+    describe("calculateAnchorScale", () => {
+        it("should return 2 when current anchors are uniformly doubled", () => {
+            const init: AnchorPos = {
+                lt: { x: 0, y: 0 },
+                rt: { x: 10, y: 0 },
+                rb: { x: 10, y: 10 },
+                lb: { x: 0, y: 10 },
+            };
+            const current: AnchorPos = {
+                lt: { x: -5, y: -5 },
+                rt: { x: 15, y: -5 },
+                rb: { x: 15, y: 15 },
+                lb: { x: -5, y: 15 },
+            };
+
+            expect(calculateAnchorScale(init, current)).toBeCloseTo(2, 6);
+        });
+    });
+
+    describe("scaleAnchorPos", () => {
+        it("should scale anchors around center", () => {
+            const current: AnchorPos = {
+                lt: { x: 0, y: 0 },
+                rt: { x: 10, y: 0 },
+                rb: { x: 10, y: 10 },
+                lb: { x: 0, y: 10 },
+            };
+
+            const scaled = scaleAnchorPos(current, 1.5);
+            expect(scaled.lt).toEqual({ x: -2.5, y: -2.5 });
+            expect(scaled.rt).toEqual({ x: 12.5, y: -2.5 });
+            expect(scaled.rb).toEqual({ x: 12.5, y: 12.5 });
+            expect(scaled.lb).toEqual({ x: -2.5, y: 12.5 });
         });
     });
 });

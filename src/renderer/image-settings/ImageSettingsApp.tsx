@@ -4,15 +4,18 @@ import { useTranslation } from "react-i18next";
 
 import "../../i18n/configs";
 import { normalizeLanguage } from "../../i18n/languages";
+import { MIN_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 import "../shared/globals.css";
 import "./ImageSettingsApp.css";
 
 import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import { useProjectSync } from "../hooks/useProjectSync";
+import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
 import {
     IpcServiceProvider,
     useIpcService,
 } from "../providers/IpcServiceProvider";
+import { WindowResizeHandles } from "../main-window/components/WindowResizeHandles";
 import { ImageList } from "./components/ImageList";
 import { SettingsMenuBar } from "./components/SettingsMenuBar";
 
@@ -24,6 +27,8 @@ const ImageSettingsApp = () => {
     useProjectDataSyncBridge();
     // 同期フックを使用
     useProjectSync();
+    // E2E制御ブリッジ
+    useE2EControlBridge();
 
     React.useEffect(() => {
         let isMounted = true;
@@ -87,11 +92,19 @@ const ImageSettingsApp = () => {
     }, [ipcService]);
 
     return (
-        <div className="settings-container bg-background text-foreground">
+        <div
+            className="settings-container bg-background text-foreground"
+            data-testid="settings.app.root"
+        >
             <SettingsMenuBar />
             <div className="settings-content">
                 <ImageList />
             </div>
+            <WindowResizeHandles
+                testIdPrefix="settings"
+                minWidth={MIN_IMAGE_SETTINGS_WINDOW_SIZE.width}
+                minHeight={MIN_IMAGE_SETTINGS_WINDOW_SIZE.height}
+            />
         </div>
     );
 };

@@ -13,12 +13,12 @@
   - **移動**: 画像をドラッグしてスムーズに移動。
   - **変形**: 画像の四隅にあるアンカーを操作して、自由変形（パースペクティブ補正など）が可能。
   - **ズーム**: マウスホイールでステージ全体を拡大・縮小。
-- **画像設定ウィンドウ**: 画像のリスト表示、並べ替え、透過度調整を独立したウィンドウで管理できます。
+- **画像設定ウィンドウ**: 画像のリスト表示、並べ替え、透過度・拡大/縮小・回転・フィルタ調整を独立したウィンドウで管理できます。
   - ショートカット `Ctrl+I` (`Cmd+I`) またはメニューから素早くアクセス可能。
   - メインウィンドウと設定ウィンドウの状態はリアルタイムに同期されます。
 - **画像フィルタ**: 2値化やHSV（色相・彩度・明度）調整などの画像処理フィルタを適用できます。
 - **寸法線描画**: キャンバス上に寸法線を描画し、解像度係数を考慮した実寸法表示が可能です。
-- **Undo/Redo**: `Ctrl+Z` / `Ctrl+Shift+Z` で操作履歴の元に戻す・やり直しが可能です。
+- **Undo/Redo**: `Ctrl+Z` / `Ctrl+Shift+Z`（または `Ctrl+Y`）で操作履歴の元に戻す・やり直しが可能です。
 - **カスタマイズ**: コンテキストメニューからキャンバスの背景色（ウィンドウの背景）を変更可能。
 - **設定の永続化**: ウィンドウサイズ、表示位置、背景色、言語設定などは自動的に保存され、次回起動時に復元されます。
 
@@ -61,6 +61,12 @@ npm run build:linux
 
 # テスト実行
 npm test
+
+# E2Eテスト
+npm run test:e2e
+
+# シナリオ別スクリーンショット撮影（通常のtest:e2e/CIでは自動実行されない）
+npm run test:e2e:screenshots
 ```
 
 ### テストセレクタ（data-testid）規約
@@ -69,8 +75,36 @@ E2E/統合テストで使用する `data-testid` は、以下の形式で命名�
 
 - 形式: `<screen>.<area>.<action>`
 - 例: `main.menu.item.save-project`, `settings.image-list.add`
+- 主要操作UIには `data-testid` を必須化し、`eslint` の `require-data-testid` / `require-component-testid` ルールで検知します（`npm run lint`）。
 
 原則として、文言や表示順に依存するセレクタは使わず、主要操作は `data-testid` で参照します。
+
+### E2E制御プレーン
+
+`--e2e` 起動時は、テスト用の制御APIが利用できます。
+
+- `window.__IOT_E2E__.setScene(scene)` : シーンJSONをストアへ注入
+- `window.__IOT_E2E__.loadFixtureImage(source)` : fixture画像を追加
+- `window.__IOT_E2E__.waitStable({ timeoutMs })` : 描画安定化待ち
+- `window.__IOT_E2E__.capture({ mode })` : E2E用キャプチャ保存
+
+シナリオ撮影用の `e2e/screenshot-scenarios.spec.ts` は、
+`IOT_E2E_SCREENSHOT_SCENARIOS=1` のときのみ有効になります。
+通常の `npm run test:e2e` / CI実行では除外されます。
+
+`npm run test:e2e:screenshots` は、毎回 `npm run build` を先に実行し、ビルド成功時のみ撮影を実行します。
+CI上で明示実行された場合も既定ではスキップし、必要時のみ `IOT_E2E_SCREENSHOT_FORCE_IN_CI=1` で強制実行します。
+
+fixture解決ルール:
+
+- `fixture:alias` は `e2e/fixtures/images/<alias>.(png|jpg|jpeg|webp|gif|svg)` を探索
+- 相対パスは `e2e/fixtures/` 基準で解決
+- 絶対パスはそのまま利用
+
+セキュリティ境界:
+
+- E2E制御は `--e2e` と `IOT_E2E_MODE=1` の両方が有効なときのみ動作
+- 通常起動/リリースビルドでは無効
 
 ## 📁 ディレクトリ構成
 

@@ -52,6 +52,7 @@
             "title": "画像設定",
             "done": "完了",
             "transparency": "透過度",
+            "scale": "拡大/縮小",
             "rotation": "回転",
             "no_image": "画像未選択",
             "reset_transformation": "変形解除",

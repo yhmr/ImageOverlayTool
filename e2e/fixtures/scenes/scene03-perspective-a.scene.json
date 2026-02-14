@@ -1,0 +1,130 @@
+{
+  "name": "scene03-perspective-a",
+  "unitFactor": 1,
+  "unit": "um",
+  "windowColor": "#d3c07b54",
+  "canvas": {
+    "x": 141.73673572218365,
+    "y": 82.82885104256582,
+    "scale": 0.5131581182307063
+  },
+  "interactionMode": "default",
+  "selectedImageId": null,
+  "selectedDimensionLineId": null,
+  "uiHidden": false,
+  "images": [
+    {
+      "id": "c8dbb08f-1f9a-4f76-9167-a8cfbd0146b2",
+      "source": "fixture:scene03-01",
+      "transparency": 0,
+      "rotation": 0,
+      "initAnchorPos": {
+        "lt": {
+          "x": 0,
+          "y": 0
+        },
+        "lb": {
+          "x": 0,
+          "y": 1024
+        },
+        "rt": {
+          "x": 1024,
+          "y": 0
+        },
+        "rb": {
+          "x": 1024,
+          "y": 1024
+        }
+      },
+      "currentAnchorPos": {
+        "lt": {
+          "x": 0,
+          "y": 0
+        },
+        "lb": {
+          "x": 0,
+          "y": 1024
+        },
+        "rt": {
+          "x": 1024,
+          "y": 0
+        },
+        "rb": {
+          "x": 1024,
+          "y": 1024
+        }
+      },
+      "locked": false,
+      "visible": true,
+      "filters": {
+        "binarization": {
+          "enabled": false,
+          "threshold": 128
+        },
+        "hsv": {
+          "enabled": false,
+          "h": 0,
+          "s": 0,
+          "v": 0
+        }
+      }
+    },
+    {
+      "id": "96938149-4b77-453c-9080-c630c14f73c5",
+      "source": "fixture:scene03-02",
+      "transparency": 0.14,
+      "rotation": 0,
+      "initAnchorPos": {
+        "lt": {
+          "x": 0,
+          "y": 0
+        },
+        "lb": {
+          "x": 0,
+          "y": 640
+        },
+        "rt": {
+          "x": 640,
+          "y": 0
+        },
+        "rb": {
+          "x": 640,
+          "y": 640
+        }
+      },
+      "currentAnchorPos": {
+        "lt": {
+          "x": -5.846151299999974,
+          "y": 3.8974342000000064
+        },
+        "lb": {
+          "x": 1.9487171000000103,
+          "y": 1012.2049661000007
+        },
+        "rt": {
+          "x": 1008.3075319000004,
+          "y": 7.794868399999999
+        },
+        "rb": {
+          "x": 998.5639464000003,
+          "y": 1023.8972687000006
+        }
+      },
+      "locked": false,
+      "visible": true,
+      "filters": {
+        "binarization": {
+          "enabled": false,
+          "threshold": 128
+        },
+        "hsv": {
+          "enabled": false,
+          "h": 0,
+          "s": 0,
+          "v": 0
+        }
+      }
+    }
+  ],
+  "dimensionLines": []
+}

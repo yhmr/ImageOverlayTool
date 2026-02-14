@@ -13,6 +13,14 @@ const resolveArtifactsDir = (): string => {
     return path.resolve(process.cwd(), "test-results", "e2e-artifacts");
 };
 
+const resolveFixturesDir = (): string => {
+    const fromEnv = process.env.IOT_E2E_FIXTURES_DIR;
+    if (fromEnv && fromEnv.trim().length > 0) {
+        return path.resolve(fromEnv);
+    }
+    return path.resolve(process.cwd(), "e2e", "fixtures");
+};
+
 const parseIntFromEnv = (
     value: string | undefined,
     fallback: number
@@ -25,6 +33,7 @@ const parseIntFromEnv = (
 export interface E2ERuntimeConfig {
     enabled: boolean;
     artifactsDir: string;
+    fixturesDir: string;
     projectFilePath: string;
     captureFilePath: string;
     exportImagePath: string;
@@ -35,6 +44,7 @@ export interface E2ERuntimeConfig {
 export const resolveE2ERuntimeConfig = (): E2ERuntimeConfig => {
     const enabled = process.argv.includes(E2E_SWITCH);
     const artifactsDir = resolveArtifactsDir();
+    const fixturesDir = resolveFixturesDir();
     const fixedNow = parseIntFromEnv(
         process.env.IOT_E2E_FIXED_NOW,
         DEFAULT_FIXED_NOW
@@ -51,6 +61,7 @@ export const resolveE2ERuntimeConfig = (): E2ERuntimeConfig => {
     return {
         enabled,
         artifactsDir,
+        fixturesDir,
         projectFilePath: path.join(artifactsDir, "project.e2e.iot"),
         captureFilePath: path.join(artifactsDir, "capture.e2e.png"),
         exportImagePath: path.join(artifactsDir, "export.e2e.png"),

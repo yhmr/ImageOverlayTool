@@ -3,6 +3,7 @@ import { BrowserWindow } from "electron";
 import type { E2ERuntimeConfig } from "../e2e/runtimeConfig";
 import { registerAppConfigHandlers } from "../ipc/appConfig";
 import { registerCaptureHandlers } from "../ipc/capture";
+import { registerE2EControlHandlers } from "../ipc/e2eControl";
 import { registerImageSettingsWindowHandlers } from "../ipc/imageSettingsWindow";
 import { registerLicenseIpc } from "../ipc/license";
 import { registerLogHandlers } from "../ipc/log";
@@ -62,6 +63,8 @@ export const registerCoreIpcHandlers = ({
               }
             : undefined
     );
+
+    registerE2EControlHandlers({ e2eConfig });
 };
 
 export const registerWindowIpcHandlers = (mainWindow: BrowserWindow): void => {

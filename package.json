@@ -22,13 +22,16 @@
     "build:linux": "npm run prepare-release-assets && npm run build && electron-builder --linux",
     "build:all": "npm run prepare-release-assets && npm run build && electron-builder --win --linux",
     "preview": "electron-vite preview",
-    "lint:fix": "eslint --cache --fix src/ && prettier --write src/",
+    "lint": "eslint --cache --rulesdir eslint/rules src/",
+    "lint:fix": "eslint --cache --fix --rulesdir eslint/rules src/ && prettier --write src/",
     "test": "vitest run --reporter=verbose --exclude \"**/e2e/**\" --exclude \"**/node_modules/**\"",
     "test:watch": "vitest",
     "prepare": "husky",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test e2e/startup.spec.ts",
-    "generate-icons": "node scripts/generate-icons.js"
+    "test:e2e:screenshots": "node scripts/run-e2e-screenshot-scenarios.js",
+    "generate-icons": "node scripts/generate-icons.js",
+    "generate:store-assets": "node scripts/generate-store-assets.js"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
@@ -89,6 +92,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "happy-dom": "^20.1.0",
     "husky": "^9.1.7",
+    "jimp": "^1.6.0",
     "jsdom": "^27.4.0",
     "license-checker": "^25.0.1",
     "lint-staged": "^16.2.7",
@@ -101,7 +105,7 @@
   },
   "lint-staged": {
     "src/**/*.{ts,tsx,js,jsx}": [
-      "eslint --cache --fix",
+      "eslint --cache --fix --rulesdir eslint/rules",
       "prettier --write"
     ],
     "src/**/*.{json,css,html}": [

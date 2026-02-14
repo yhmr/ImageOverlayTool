@@ -44,3 +44,9 @@ export const DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE: Size = {
     width: 400,
     height: 500,
 };
+
+// 画像設定ウィンドウの最小サイズ（文言つぶれ防止）
+export const MIN_IMAGE_SETTINGS_WINDOW_SIZE: Size = {
+    width: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width,
+    height: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height,
+};

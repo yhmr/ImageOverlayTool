@@ -63,6 +63,7 @@ export function ColorPicker(props: ColorPickerProps) {
                     zIndex: 1300,
                 }}
                 onClick={closePicker}
+                data-testid="main.color-picker.overlay"
             ></div>
             <div style={pickerStyle}>
                 <HexAlphaColorPicker color={color} onChange={onColorChange} />

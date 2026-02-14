@@ -169,6 +169,23 @@ describe("ipcService", () => {
                     .fn()
                     .mockReturnValue(unsubSelectedImageId),
                 updateProjectDirty: vi.fn().mockResolvedValue(undefined),
+                getE2EStatus: vi.fn().mockResolvedValue({
+                    enabled: true,
+                    artifactsDir: "test-results/e2e-artifacts",
+                    fixturesDir: "e2e/fixtures",
+                }),
+                e2eSetScene: vi.fn().mockResolvedValue({ images: [] }),
+                e2eLoadFixtureImage: vi
+                    .fn()
+                    .mockResolvedValue({ path: "C:/tmp/fixture.png" }),
+                e2eWaitStable: vi
+                    .fn()
+                    .mockResolvedValue({ stable: true, elapsedMs: 10 }),
+                e2eCapture: vi.fn().mockResolvedValue({
+                    filePath: "e2e-capture.png",
+                    width: 50,
+                    height: 60,
+                }),
             };
 
             return {
@@ -248,6 +265,28 @@ describe("ipcService", () => {
             await expect(service.saveImage("data:image/png")).resolves.toBe("saved.png");
             await service.updateSelectedImageId("abc");
             await service.updateProjectDirty(true);
+            await expect(service.getE2EStatus()).resolves.toEqual({
+                enabled: true,
+                artifactsDir: "test-results/e2e-artifacts",
+                fixturesDir: "e2e/fixtures",
+            });
+            await expect(service.e2eSetScene({ images: [] })).resolves.toEqual({
+                images: [],
+            });
+            await expect(
+                service.e2eLoadFixtureImage({ source: "fixture:placeholder" })
+            ).resolves.toEqual({
+                path: "C:/tmp/fixture.png",
+            });
+            await expect(service.e2eWaitStable({ timeoutMs: 1000 })).resolves.toEqual({
+                stable: true,
+                elapsedMs: 10,
+            });
+            await expect(service.e2eCapture({ mode: "window" })).resolves.toEqual({
+                filePath: "e2e-capture.png",
+                width: 50,
+                height: 60,
+            });
 
             expect(api.setWindowRect).toHaveBeenCalledWith({
                 x: 1,
@@ -260,6 +299,13 @@ describe("ipcService", () => {
             expect(api.updateUnit).toHaveBeenCalledWith("nm");
             expect(api.updateSelectedImageId).toHaveBeenCalledWith("abc");
             expect(api.updateProjectDirty).toHaveBeenCalledWith(true);
+            expect(api.getE2EStatus).toHaveBeenCalled();
+            expect(api.e2eSetScene).toHaveBeenCalledWith({ images: [] });
+            expect(api.e2eLoadFixtureImage).toHaveBeenCalledWith({
+                source: "fixture:placeholder",
+            });
+            expect(api.e2eWaitStable).toHaveBeenCalledWith({ timeoutMs: 1000 });
+            expect(api.e2eCapture).toHaveBeenCalledWith({ mode: "window" });
         });
 
         it("delegates subscription IPC methods and returns unsubscriber", () => {

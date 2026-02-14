@@ -3,6 +3,16 @@ import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../shared/types/LicenseInfo";
+import type {
+    E2ECaptureRequest,
+    E2EControlStatus,
+    E2ELoadFixtureImageRequest,
+    E2EResolvedFixtureImage,
+    E2EResolvedScene,
+    E2ESceneInput,
+    E2EWaitStableRequest,
+    E2EWaitStableResult,
+} from "../shared/types/E2EControl";
 
 // APIのインターフェースを定義
 export interface IElectronAPI {
@@ -81,11 +91,46 @@ export interface IElectronAPI {
     captureScreen: () => Promise<CaptureResult>;
     captureWindow: () => Promise<CaptureResult>;
     saveImage: (dataUrl: string) => Promise<string | null>;
+    // E2E control plane
+    getE2EStatus: () => Promise<E2EControlStatus>;
+    e2eSetScene: (scene: E2ESceneInput) => Promise<E2EResolvedScene>;
+    e2eLoadFixtureImage: (
+        request: E2ELoadFixtureImageRequest
+    ) => Promise<E2EResolvedFixtureImage>;
+    e2eWaitStable: (
+        request?: E2EWaitStableRequest
+    ) => Promise<E2EWaitStableResult>;
+    e2eCapture: (request?: E2ECaptureRequest) => Promise<CaptureResult | null>;
+}
+
+export interface IE2EBridgeAPI {
+    getStatus: () => Promise<E2EControlStatus>;
+    getState: () => {
+        imageCount: number;
+        dimensionLineCount: number;
+        selectedImageId: string | null;
+        selectedDimensionLineId: string | null;
+        interactionMode: "default" | "dimension";
+        unit: "nm" | "um" | "mm";
+        unitFactor: number;
+        windowColor: string;
+        isUIHidden: boolean;
+    };
+    setScene: (scene: E2ESceneInput) => Promise<E2EWaitStableResult>;
+    loadFixtureImage: (
+        source: string,
+        overrides?: Omit<E2ESceneInput["images"][number], "source">
+    ) => Promise<E2EWaitStableResult>;
+    waitStable: (
+        request?: E2EWaitStableRequest
+    ) => Promise<E2EWaitStableResult>;
+    capture: (request?: E2ECaptureRequest) => Promise<CaptureResult | null>;
 }
 
 declare global {
     interface Window {
         electronAPI: IElectronAPI;
+        __IOT_E2E__?: IE2EBridgeAPI;
     }
 }
 

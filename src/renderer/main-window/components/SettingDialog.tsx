@@ -108,6 +108,7 @@ export function SettingDialog(props: SettingDialogProps) {
                             <SelectTrigger
                                 className="col-span-3"
                                 id="language-select"
+                                data-testid="main.settings.language.trigger"
                             >
                                 <SelectValue
                                     placeholder={t(
@@ -117,7 +118,11 @@ export function SettingDialog(props: SettingDialogProps) {
                             </SelectTrigger>
                             <SelectContent>
                                 {SUPPORTED_LANGUAGES.map((lng) => (
-                                    <SelectItem key={lng} value={lng}>
+                                    <SelectItem
+                                        key={lng}
+                                        value={lng}
+                                        data-testid={`main.settings.language.option.${lng}`}
+                                    >
                                         {lng}
                                     </SelectItem>
                                 ))}
@@ -136,6 +141,7 @@ export function SettingDialog(props: SettingDialogProps) {
                             <SelectTrigger
                                 className="col-span-3"
                                 id="loglevel-select"
+                                data-testid="main.settings.log-level.trigger"
                             >
                                 <SelectValue
                                     placeholder={t(
@@ -145,7 +151,11 @@ export function SettingDialog(props: SettingDialogProps) {
                             </SelectTrigger>
                             <SelectContent>
                                 {LOG_LEVELS.map((level) => (
-                                    <SelectItem key={level} value={level}>
+                                    <SelectItem
+                                        key={level}
+                                        value={level}
+                                        data-testid={`main.settings.log-level.option.${level}`}
+                                    >
                                         {t(
                                             `render.setting_dlg.log_levels.${level}`
                                         )}
@@ -160,6 +170,7 @@ export function SettingDialog(props: SettingDialogProps) {
                             variant="outline"
                             onClick={exportSettings}
                             type="button"
+                            data-testid="main.settings.export"
                         >
                             {t("render.setting_dlg.export")}
                         </Button>
@@ -167,13 +178,17 @@ export function SettingDialog(props: SettingDialogProps) {
                             variant="outline"
                             onClick={importSettings}
                             type="button"
+                            data-testid="main.settings.import"
                         >
                             {t("render.setting_dlg.import")}
                         </Button>
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={saveAndClose}>
+                    <Button
+                        onClick={saveAndClose}
+                        data-testid="main.settings.done"
+                    >
                         {t("render.setting_dlg.done")}
                     </Button>
                 </DialogFooter>

@@ -113,6 +113,7 @@ class ErrorBoundaryBase extends Component<Props, State> {
                         >
                             <button
                                 onClick={this.handleReload}
+                                data-testid="reload-error-button"
                                 style={{
                                     display: "flex",
                                     alignItems: "center",

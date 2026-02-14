@@ -6,11 +6,16 @@ import { Card, CardContent } from "@/renderer/components/ui/card";
 import { Button } from "@/renderer/components/ui/button";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import { toLocalFileUrl } from "../../factories/imageSetFactory";
-import { resetTransformation as resetAnchors } from "../../utils/anchorUtils";
+import {
+    calculateAnchorScale,
+    resetTransformation as resetAnchors,
+    scaleAnchorPos,
+} from "../../utils/anchorUtils";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
 import { ImageItemHeader } from "./ImageItemHeader";
 import { RotationControl } from "./RotationControl";
+import { ScaleControl } from "./ScaleControl";
 import { TransparencyControl } from "./TransparencyControl";
 import { FilterControl } from "./FilterControl";
 
@@ -87,6 +92,25 @@ export function ImageListItem(props: ImageListItemProps) {
         updateImageSet({ index: index, imageSet: newImageSet });
     };
 
+    const changeScale = (value: number[]) => {
+        if (!imageSet.initAnchorPos || !imageSet.currentAnchorPos) return;
+
+        const nextScale = value[0];
+        if (!Number.isFinite(nextScale) || nextScale <= 0) return;
+
+        const currentScale = calculateAnchorScale(
+            imageSet.initAnchorPos,
+            imageSet.currentAnchorPos
+        );
+        const scaleRatio = nextScale / currentScale;
+        const nextAnchorPos = scaleAnchorPos(
+            imageSet.currentAnchorPos,
+            scaleRatio
+        );
+        const newImageSet = { ...imageSet, currentAnchorPos: nextAnchorPos };
+        updateImageSet({ index, imageSet: newImageSet });
+    };
+
     // 回転入力変更 (Input)
     const changeRotationInput = (
         event: React.ChangeEvent<HTMLInputElement>
@@ -142,6 +166,13 @@ export function ImageListItem(props: ImageListItemProps) {
         : t("render.image_settings.no_image");
 
     const isSelected = selectedImageId === imageSet.id;
+    const imageScale =
+        imageSet.initAnchorPos && imageSet.currentAnchorPos
+            ? calculateAnchorScale(
+                  imageSet.initAnchorPos,
+                  imageSet.currentAnchorPos
+              )
+            : 1;
 
     return (
         <Card
@@ -151,6 +182,7 @@ export function ImageListItem(props: ImageListItemProps) {
                     : "hover:border-muted-foreground/30"
             }`}
             onClick={() => setSelectedImageId(imageSet.id)}
+            data-testid="settings.image-item.card"
         >
             <CardContent className="p-3 space-y-3">
                 <ImageItemHeader
@@ -173,6 +205,16 @@ export function ImageListItem(props: ImageListItemProps) {
                     />
                 )}
 
+                {/* 拡大/縮小スライダー */}
+                {imageSet.path &&
+                    imageSet.initAnchorPos &&
+                    imageSet.currentAnchorPos && (
+                        <ScaleControl
+                            scale={imageScale}
+                            onChange={changeScale}
+                        />
+                    )}
+
                 {/* 回転スライダー */}
                 {imageSet.path && imageSet.currentAnchorPos && (
                     <RotationControl
@@ -191,6 +233,7 @@ export function ImageListItem(props: ImageListItemProps) {
                             size="sm"
                             className="flex-1"
                             onClick={resetTransformation}
+                            data-testid="settings.image-item.reset-transformation"
                             title={t(
                                 "render.image_settings.tooltip.reset_transformation"
                             )}
