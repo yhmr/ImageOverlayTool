@@ -1,12 +1,6 @@
 "use strict";
 
 const { spawnSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
-
-const APP_ROOT = path.resolve(__dirname, "..");
-const BUILD_MAIN_ENTRY = path.join(APP_ROOT, "out", "main", "index.js");
-
 const run = (command, args, extraEnv = {}) => {
     const result = spawnSync(command, args, {
         stdio: "inherit",
@@ -33,12 +27,12 @@ if (isCi && !forceInCi) {
     process.exit(0);
 }
 
-if (!fs.existsSync(BUILD_MAIN_ENTRY)) {
-    console.log("[e2e:screenshots] Build output not found. Running `npm run build`.");
-    const buildStatus = run("npm", ["run", "build"]);
-    if (buildStatus !== 0) {
-        process.exit(buildStatus);
-    }
+console.log(
+    "[e2e:screenshots] Running `npm run build` before screenshot capture."
+);
+const buildStatus = run("npm", ["run", "build"]);
+if (buildStatus !== 0) {
+    process.exit(buildStatus);
 }
 
 const testStatus = run("playwright", ["test", "e2e/screenshot-scenarios.spec.ts"], {

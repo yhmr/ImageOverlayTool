@@ -14,6 +14,10 @@ import {
 } from "./helpers/electronHarness";
 
 const fixtureAppConfig = loadFixtureAppConfig();
+const SCENE02_SETTINGS_WINDOW_TALL_PARTIAL_BOUNDS = {
+    y: 80,
+    height: 920,
+};
 
 const ensureScreenshotDir = (): void => {
     fs.rmSync(E2E_SCREENSHOT_DIR, { recursive: true, force: true });
@@ -71,6 +75,18 @@ test.describe("screenshot scenarios", () => {
             });
             const settingsPage = await openImageSettingsWindow(app, page);
             await applyImageSettingsWindowLayout(app, settingsPage, fixtureAppConfig);
+            const settingsWindow = await app.browserWindow(settingsPage);
+            await settingsWindow.evaluate(
+                (windowRef, partialBounds) => {
+                    const currentBounds = windowRef.getBounds();
+                    windowRef.setBounds({
+                        ...currentBounds,
+                        ...partialBounds,
+                    });
+                },
+                SCENE02_SETTINGS_WINDOW_TALL_PARTIAL_BOUNDS
+            );
+            await settingsPage.waitForTimeout(120);
             const transparencySlider = settingsPage
                 .getByTestId("settings.image-item.transparency.slider")
                 .first();
