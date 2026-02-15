@@ -20,7 +20,7 @@ export const E2E_ARTIFACTS_DIR = path.join(
 );
 export const E2E_SCREENSHOT_DIR = path.join(
     APP_ROOT,
-    "test-results",
+    "release",
     "e2e-screenshots"
 );
 export const E2E_FIXTURES_DIR = path.join(APP_ROOT, "e2e", "fixtures");
@@ -227,18 +227,18 @@ export const getE2EState = async (
     return page.evaluate(() => {
         const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
             | {
-                  getState: () => {
-                      imageCount: number;
-                      dimensionLineCount: number;
-                      selectedImageId: string | null;
-                      selectedDimensionLineId: string | null;
-                      interactionMode: string;
-                      unit: string;
-                      unitFactor: number;
-                      windowColor: string;
-                      isUIHidden: boolean;
-                  };
-              }
+                getState: () => {
+                    imageCount: number;
+                    dimensionLineCount: number;
+                    selectedImageId: string | null;
+                    selectedDimensionLineId: string | null;
+                    interactionMode: string;
+                    unit: string;
+                    unitFactor: number;
+                    windowColor: string;
+                    isUIHidden: boolean;
+                };
+            }
             | undefined;
         if (!bridge) {
             throw new Error("E2E bridge is not available in renderer.");
@@ -255,10 +255,10 @@ export const waitForE2EStable = async (
     return page.evaluate(async (waitRequest) => {
         const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
             | {
-                  waitStable: (
-                      request?: E2EWaitStableRequest
-                  ) => Promise<E2EWaitStableResult>;
-              }
+                waitStable: (
+                    request?: E2EWaitStableRequest
+                ) => Promise<E2EWaitStableResult>;
+            }
             | undefined;
         if (!bridge) {
             throw new Error("E2E bridge is not available in renderer.");
@@ -275,10 +275,10 @@ export const captureViaE2E = async (
     return page.evaluate(async (captureRequest) => {
         const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
             | {
-                  capture: (
-                      request?: E2ECaptureRequest
-                  ) => Promise<CaptureResult | null>;
-              }
+                capture: (
+                    request?: E2ECaptureRequest
+                ) => Promise<CaptureResult | null>;
+            }
             | undefined;
         if (!bridge) {
             throw new Error("E2E bridge is not available in renderer.");
@@ -302,11 +302,11 @@ export const applyScene = async (
 
         const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
             | {
-                  setScene: (scene: E2ESceneInput) => Promise<{ stable: boolean }>;
-                  waitStable: (
-                      request?: E2EWaitStableRequest
-                  ) => Promise<E2EWaitStableResult>;
-              }
+                setScene: (scene: E2ESceneInput) => Promise<{ stable: boolean }>;
+                waitStable: (
+                    request?: E2EWaitStableRequest
+                ) => Promise<E2EWaitStableResult>;
+            }
             | undefined;
         if (!bridge) {
             throw new Error("E2E bridge is not available in renderer.");
