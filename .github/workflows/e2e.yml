@@ -81,8 +81,8 @@ jobs:
 
   e2e-full-main-nightly:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-22.04
-    timeout-minutes: 45
+    runs-on: windows-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -98,13 +98,13 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install
 
       - name: Build Application
         run: npm run build
 
       - name: Run Playwright full suite
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e
+        run: npm run test:e2e
 
       - name: Upload Playwright artifacts (full)
         if: failure()
