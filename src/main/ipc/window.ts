@@ -44,4 +44,13 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
             });
         }
     );
+
+    ipcMain.handle(
+        IPC_CHANNELS.window.setAlwaysOnTop,
+        async (event, enabled: boolean) => {
+            const targetWindow =
+                BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
+            targetWindow.setAlwaysOnTop(Boolean(enabled));
+        }
+    );
 };

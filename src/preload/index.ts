@@ -49,6 +49,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }) => ipcRenderer.invoke(IPC_CHANNELS.window.setRect, rect),
     setIgnoreMouseEvents: (ignore: boolean) =>
         ipcRenderer.invoke(IPC_CHANNELS.window.setIgnoreMouseEvents, ignore),
+    setAlwaysOnTop: (enabled: boolean) =>
+        ipcRenderer.invoke(IPC_CHANNELS.window.setAlwaysOnTop, enabled),
     closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.window.close),
     // Setting
     loadSetting: () => ipcRenderer.invoke(IPC_CHANNELS.setting.load),

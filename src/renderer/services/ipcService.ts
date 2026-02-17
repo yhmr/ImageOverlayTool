@@ -42,6 +42,7 @@ export interface IWindowIPCService {
         height: number;
     }) => Promise<void>;
     setIgnoreMouseEvents: (ignore: boolean) => Promise<void>;
+    setAlwaysOnTop: (enabled: boolean) => Promise<void>;
     closeWindow: () => Promise<void>;
 }
 
@@ -185,6 +186,10 @@ class IPCService implements IIPCService {
 
     async setIgnoreMouseEvents(ignore: boolean): Promise<void> {
         await window.electronAPI.setIgnoreMouseEvents(ignore);
+    }
+
+    async setAlwaysOnTop(enabled: boolean): Promise<void> {
+        await window.electronAPI.setAlwaysOnTop(enabled);
     }
 
     async closeWindow(): Promise<void> {

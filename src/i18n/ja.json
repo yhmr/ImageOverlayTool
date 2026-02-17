@@ -24,7 +24,7 @@
         "menu_button": {
             "app_title": "ImageOverlayTool",
             "status": {
-                "click_through_mode_active": "透過モード中（クリックで解除）"
+                "click_through_mode_active": "透過モード中（最前面固定・クリックで解除）"
             },
             "tooltip": {
                 "menu": "メニュー",

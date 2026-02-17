@@ -56,6 +56,13 @@ export const useClickThroughMode = (): void => {
     }, [setClickThroughMode]);
 
     useEffect(() => {
+        void ipcService.setAlwaysOnTop(isClickThroughMode);
+        return () => {
+            void ipcService.setAlwaysOnTop(false);
+        };
+    }, [ipcService, isClickThroughMode]);
+
+    useEffect(() => {
         let lastIgnoreMouseEvents = false;
 
         const applyIgnoreMouseEvents = (ignore: boolean) => {

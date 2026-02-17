@@ -40,6 +40,8 @@ export class MockIPCService implements IIPCService {
 
     async setIgnoreMouseEvents(_ignore: boolean): Promise<void> { }
 
+    async setAlwaysOnTop(_enabled: boolean): Promise<void> { }
+
     async closeWindow(): Promise<void> { }
 
     async loadSetting(): Promise<SettingType> {

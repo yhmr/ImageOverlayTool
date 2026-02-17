@@ -32,6 +32,7 @@ describe("window IPC handlers", () => {
             maximize: vi.fn(),
             unmaximize: vi.fn(),
             setBounds: vi.fn(),
+            setAlwaysOnTop: vi.fn(),
             setResizable: vi.fn(),
         };
     });
@@ -48,6 +49,10 @@ describe("window IPC handlers", () => {
         );
         expect(ipcMain.handle).toHaveBeenCalledWith(
             IPC_CHANNELS.window.setRect,
+            expect.any(Function)
+        );
+        expect(ipcMain.handle).toHaveBeenCalledWith(
+            IPC_CHANNELS.window.setAlwaysOnTop,
             expect.any(Function)
         );
     });
@@ -111,5 +116,35 @@ describe("window IPC handlers", () => {
         await setRectHandler({ sender: {} }, rect);
 
         expect(mainWindowMock.setBounds).toHaveBeenCalledWith(rect);
+    });
+
+    it("setAlwaysOnTop handler calls sender window when available", async () => {
+        registerWindowHandlers(mainWindowMock);
+        const setAlwaysOnTopHandler = vi.mocked(ipcMain.handle).mock.calls.find(
+            (call) => call[0] === IPC_CHANNELS.window.setAlwaysOnTop
+        )?.[1] as any;
+
+        const senderWindowMock = {
+            setAlwaysOnTop: vi.fn(),
+        };
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            senderWindowMock as any
+        );
+
+        await setAlwaysOnTopHandler({ sender: {} }, true);
+
+        expect(senderWindowMock.setAlwaysOnTop).toHaveBeenCalledWith(true);
+    });
+
+    it("setAlwaysOnTop handler falls back to mainWindow when sender window is unavailable", async () => {
+        registerWindowHandlers(mainWindowMock);
+        const setAlwaysOnTopHandler = vi.mocked(ipcMain.handle).mock.calls.find(
+            (call) => call[0] === IPC_CHANNELS.window.setAlwaysOnTop
+        )?.[1] as any;
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
+
+        await setAlwaysOnTopHandler({ sender: {} }, false);
+
+        expect(mainWindowMock.setAlwaysOnTop).toHaveBeenCalledWith(false);
     });
 });

@@ -24,7 +24,7 @@
         "menu_button": {
             "app_title": "ImageOverlayTool",
             "status": {
-                "click_through_mode_active": "Click-through mode (click to disable)"
+                "click_through_mode_active": "Click-through mode (always on top, click to disable)"
             },
             "tooltip": {
                 "menu": "Menu",

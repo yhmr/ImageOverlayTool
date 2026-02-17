@@ -152,7 +152,7 @@ export function MenuBar() {
                     >
                         {t(
                             "render.menu_button.status.click_through_mode_active",
-                            "透過モード中（クリックで解除）"
+                            "透過モード中（最前面固定・クリックで解除）"
                         )}
                     </Button>
                 )}

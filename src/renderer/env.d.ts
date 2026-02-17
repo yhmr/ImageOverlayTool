@@ -35,6 +35,7 @@ export interface IElectronAPI {
         height: number;
     }) => Promise<void>;
     setIgnoreMouseEvents: (ignore: boolean) => Promise<void>;
+    setAlwaysOnTop: (enabled: boolean) => Promise<void>;
     closeWindow: () => Promise<void>;
     // Setting
     loadSetting: () => Promise<SettingType>;

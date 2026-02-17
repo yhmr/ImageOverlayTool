@@ -8,6 +8,7 @@ export const IPC_CHANNELS = {
         close: "window:close",
         setRect: "window:setRect",
         setIgnoreMouseEvents: "window:setIgnoreMouseEvents",
+        setAlwaysOnTop: "window:setAlwaysOnTop",
     },
     setting: {
         load: "setting:load",

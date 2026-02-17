@@ -117,6 +117,7 @@ describe("ipcService", () => {
                 switchWindowSize: vi.fn().mockResolvedValue(true),
                 setWindowRect: vi.fn().mockResolvedValue(undefined),
                 setIgnoreMouseEvents: vi.fn().mockResolvedValue(undefined),
+                setAlwaysOnTop: vi.fn().mockResolvedValue(undefined),
                 closeWindow: vi.fn().mockResolvedValue(undefined),
                 loadSetting: vi
                     .fn()
@@ -224,6 +225,7 @@ describe("ipcService", () => {
             await expect(service.switchWindowSize()).resolves.toBe(true);
             await service.setWindowRect({ x: 1, y: 2, width: 3, height: 4 });
             await service.setIgnoreMouseEvents(true);
+            await service.setAlwaysOnTop(true);
             await service.closeWindow();
             await expect(service.loadSetting()).resolves.toEqual({
                 language: "ja",
@@ -301,6 +303,7 @@ describe("ipcService", () => {
                 height: 4,
             });
             expect(api.setIgnoreMouseEvents).toHaveBeenCalledWith(true);
+            expect(api.setAlwaysOnTop).toHaveBeenCalledWith(true);
             expect(api.saveProject).toHaveBeenCalledWith("save.iot", project);
             expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
             expect(api.getPathForFile).toHaveBeenCalled();
