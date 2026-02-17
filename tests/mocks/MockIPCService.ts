@@ -38,6 +38,8 @@ export class MockIPCService implements IIPCService {
         height: number;
     }): Promise<void> { }
 
+    async setIgnoreMouseEvents(_ignore: boolean): Promise<void> { }
+
     async closeWindow(): Promise<void> { }
 
     async loadSetting(): Promise<SettingType> {

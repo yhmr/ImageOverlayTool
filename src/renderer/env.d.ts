@@ -34,6 +34,7 @@ export interface IElectronAPI {
         width: number;
         height: number;
     }) => Promise<void>;
+    setIgnoreMouseEvents: (ignore: boolean) => Promise<void>;
     closeWindow: () => Promise<void>;
     // Setting
     loadSetting: () => Promise<SettingType>;

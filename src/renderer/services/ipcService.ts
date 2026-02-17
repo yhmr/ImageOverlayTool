@@ -41,6 +41,7 @@ export interface IWindowIPCService {
         width: number;
         height: number;
     }) => Promise<void>;
+    setIgnoreMouseEvents: (ignore: boolean) => Promise<void>;
     closeWindow: () => Promise<void>;
 }
 
@@ -180,6 +181,10 @@ class IPCService implements IIPCService {
         height: number;
     }): Promise<void> {
         await window.electronAPI.setWindowRect(rect);
+    }
+
+    async setIgnoreMouseEvents(ignore: boolean): Promise<void> {
+        await window.electronAPI.setIgnoreMouseEvents(ignore);
     }
 
     async closeWindow(): Promise<void> {

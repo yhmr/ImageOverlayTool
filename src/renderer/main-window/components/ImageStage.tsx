@@ -17,6 +17,7 @@ import { useStageControls } from "../../hooks/useStageControls";
 import { useDimensionLineMode } from "../../hooks/useDimensionLineMode";
 import { useImageSelection } from "../../hooks/useImageSelection";
 import { useMenuState } from "../../hooks/useMenuState";
+import { useClickThroughMode } from "../../hooks/useClickThroughMode";
 import { useStageExport } from "../hooks/useStageExport";
 import { useImageInitialization } from "../hooks/useImageInitialization";
 import { useStagePointerHandlers } from "../hooks/useStagePointerHandlers";
@@ -80,6 +81,8 @@ export const ImageStage = memo(function ImageStage() {
             onMouseUpDimension,
             onUpdateStage,
         });
+
+    useClickThroughMode();
 
     useEffect(() => {
         const stage = stageRef.current;

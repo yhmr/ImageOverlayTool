@@ -7,6 +7,7 @@ export const IPC_CHANNELS = {
         switchSize: "window:switchSize",
         close: "window:close",
         setRect: "window:setRect",
+        setIgnoreMouseEvents: "window:setIgnoreMouseEvents",
     },
     setting: {
         load: "setting:load",

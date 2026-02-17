@@ -19,6 +19,9 @@ describe("ipc contract", () => {
         expectTypeOf<IIPCService["setWindowRect"]>().toEqualTypeOf<
             IElectronAPI["setWindowRect"]
         >();
+        expectTypeOf<IIPCService["setIgnoreMouseEvents"]>().toEqualTypeOf<
+            IElectronAPI["setIgnoreMouseEvents"]
+        >();
 
         expectTypeOf<IIPCService["loadSetting"]>().toEqualTypeOf<
             IElectronAPI["loadSetting"]

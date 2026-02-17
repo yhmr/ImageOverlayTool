@@ -47,6 +47,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
         width: number;
         height: number;
     }) => ipcRenderer.invoke(IPC_CHANNELS.window.setRect, rect),
+    setIgnoreMouseEvents: (ignore: boolean) =>
+        ipcRenderer.invoke(IPC_CHANNELS.window.setIgnoreMouseEvents, ignore),
     closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.window.close),
     // Setting
     loadSetting: () => ipcRenderer.invoke(IPC_CHANNELS.setting.load),

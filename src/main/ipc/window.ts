@@ -33,4 +33,15 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
             targetWindow.setBounds(rect);
         }
     );
+
+    ipcMain.handle(
+        IPC_CHANNELS.window.setIgnoreMouseEvents,
+        async (event, ignore: boolean) => {
+            const targetWindow =
+                BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
+            targetWindow.setIgnoreMouseEvents(Boolean(ignore), {
+                forward: true,
+            });
+        }
+    );
 };

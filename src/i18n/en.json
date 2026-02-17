@@ -23,6 +23,9 @@
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
+            "status": {
+                "click_through_mode_active": "Click-through mode (click to disable)"
+            },
             "tooltip": {
                 "menu": "Menu",
                 "maximize": "Maximize Window",
@@ -36,7 +39,8 @@
                 "dimension_line": "Draw Dimension Line",
                 "save": "Save Image",
                 "capture": "Capture Background",
-                "image_settings": "Image Settings"
+                "image_settings": "Image Settings",
+                "click_through_mode": "Click-through mode (Ctrl+Shift+M)"
             }
         },
         "export_dialog": {

@@ -101,7 +101,11 @@ const App = () => {
                     overflow: "hidden",
                 }}
             >
-                <div className="image-area" data-testid="main.canvas.area">
+                <div
+                    className="image-area"
+                    data-testid="main.canvas.area"
+                    data-clickthrough-target
+                >
                     <ImageStage />
                 </div>
             </div>

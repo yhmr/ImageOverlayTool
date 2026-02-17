@@ -126,13 +126,18 @@ export function WindowResizeHandles(props: WindowResizeHandlesProps = {}) {
     ];
 
     return (
-        <div className="window-resize-handles" aria-hidden="true">
+        <div
+            className="window-resize-handles"
+            aria-hidden="true"
+            data-clickthrough-allow
+        >
             {handles.map((direction) => (
                 <div
                     key={direction}
                     className={`window-resize-handle window-resize-handle-${direction}`}
                     onMouseDown={beginResize(direction)}
                     data-testid={`${testIdPrefix}.window.resize.${direction}`}
+                    data-clickthrough-allow
                 />
             ))}
         </div>

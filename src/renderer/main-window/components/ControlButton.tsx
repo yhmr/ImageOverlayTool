@@ -6,6 +6,7 @@ import {
     Camera,
     Save,
     Droplets,
+    Ghost,
     Plus,
     X,
 } from "lucide-react";
@@ -34,7 +35,11 @@ export function ControlButton(props: ControlButtonProps) {
         props;
     const { t } = useTranslation();
     const { captureBackground } = useCapture();
-    const { isUIHidden, windowColor, setWindowColor } = useAppStore();
+    const { isUIHidden, windowColor, setWindowColor, isClickThroughMode } =
+        useAppStore();
+    const setClickThroughMode = useAppStore(
+        (state) => state.setClickThroughMode
+    );
     const ipcService = useIpcService();
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
@@ -90,6 +95,18 @@ export function ControlButton(props: ControlButtonProps) {
             ),
             onClick: openWindowColorPicker,
         },
+        {
+            id: "click-through-mode",
+            icon: Ghost,
+            label: t(
+                "render.control_button.tooltip.click_through_mode",
+                "クリック透過モード (Ctrl+Shift+M)"
+            ),
+            onClick: () => setClickThroughMode(!isClickThroughMode),
+            isActive: isClickThroughMode,
+            activeClass:
+                "bg-primary text-primary-foreground hover:bg-primary/90",
+        },
         // Group B: アクション・保存系
         {
             id: "capture",
@@ -111,7 +128,7 @@ export function ControlButton(props: ControlButtonProps) {
 
     return (
         <TooltipProvider>
-            <div className="contents">
+            <div className="contents" data-clickthrough-allow>
                 {/* メニュー展開ボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -125,6 +142,7 @@ export function ControlButton(props: ControlButtonProps) {
                                     : "bg-background/80 hover:bg-background/90 backdrop-blur-sm"
                             )}
                             data-testid="main.fab.menu-toggle"
+                            data-clickthrough-allow
                         >
                             {isOpen ? (
                                 <X className="h-6 w-6" />
@@ -187,6 +205,7 @@ export function ControlButton(props: ControlButtonProps) {
                                             item.isActive && item.activeClass
                                         )}
                                         data-testid={`main.fab.${item.id}`}
+                                        data-clickthrough-allow
                                     >
                                         <item.icon className="h-6 w-6" />
                                     </Button>

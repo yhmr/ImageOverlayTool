@@ -21,7 +21,8 @@ import { useAppStore, type AppState } from "../../store/useAppStore";
 
 export function MenuBar() {
     const { t } = useTranslation();
-    const { isUIHidden } = useAppStore();
+    const { isUIHidden, isClickThroughMode, setClickThroughMode } =
+        useAppStore();
 
     // zundo temporal store
     const undo = useStore(
@@ -65,6 +66,7 @@ export function MenuBar() {
                     transition: "opacity 0.2s",
                 }}
                 data-testid="main.menu.bar"
+                data-clickthrough-allow
             >
                 {/* メニューボタン */}
                 <Tooltip>
@@ -138,6 +140,22 @@ export function MenuBar() {
                 <div className="flex-grow text-center text-lg font-medium app-region-drag pointer-events-none">
                     {t("render.menu_button.app_title")}
                 </div>
+
+                {isClickThroughMode && (
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setClickThroughMode(false)}
+                        className="mr-2 app-region-no-drag bg-amber-500/90 text-amber-950 hover:bg-amber-500"
+                        data-testid="main.status.click-through-mode"
+                        data-clickthrough-allow
+                    >
+                        {t(
+                            "render.menu_button.status.click_through_mode_active",
+                            "透過モード中（クリックで解除）"
+                        )}
+                    </Button>
+                )}
 
                 {/* 最大最小化 */}
                 <Tooltip>
