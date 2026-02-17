@@ -13,7 +13,7 @@ layout: 'page'
 
 ### Download
 
-Download the latest version from [GitHub Releases](https://github.com/yhmr/ImageOverlayTool/releases).
+Get it from [Microsoft Store](https://apps.microsoft.com/store/detail/9PBQ7VPKTXQ1?cid=DevShareMCLPCS) or download from [GitHub Releases](https://github.com/yhmr/ImageOverlayTool/releases).
 
 - **Windows**: `.exe` or `.zip` file
 - **Linux**: `.AppImage` or `.deb` file
