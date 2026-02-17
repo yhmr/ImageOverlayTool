@@ -35,6 +35,37 @@ describe("useAppStore", () => {
                 expect(state.projectDataChangeOrigin).toBe("local");
             });
 
+            it("should replace default empty slot when adding image set with path", () => {
+                useAppStore
+                    .getState()
+                    .addImageSetWithPath("C:\\tmp\\first-image.png");
+
+                const state = useAppStore.getState();
+                expect(state.imageSets).toHaveLength(1);
+                expect(state.imageSets[0].path).toBe(
+                    "local-file://C:/tmp/first-image.png"
+                );
+                expect(state.projectDataChangeOrigin).toBe("local");
+            });
+
+            it("should append image sets when list already has images", () => {
+                useAppStore
+                    .getState()
+                    .addImageSetWithPath("C:\\tmp\\first-image.png");
+                useAppStore
+                    .getState()
+                    .addImageSetWithPath("C:\\tmp\\second-image.jpg");
+
+                const state = useAppStore.getState();
+                expect(state.imageSets).toHaveLength(2);
+                expect(state.imageSets[0].path).toBe(
+                    "local-file://C:/tmp/first-image.png"
+                );
+                expect(state.imageSets[1].path).toBe(
+                    "local-file://C:/tmp/second-image.jpg"
+                );
+            });
+
             it("should sync image sets as remote change", () => {
                 const newSets = [sampleImageSet];
                 useAppStore.getState().syncImageSets(newSets);

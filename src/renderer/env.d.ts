@@ -25,6 +25,7 @@ export interface IElectronAPI {
         export: () => Promise<string | null>;
     };
     loadImage: () => Promise<string | null>;
+    getPathForFile: (file: File) => string;
     // Window
     switchWindowSize: () => Promise<boolean>;
     setWindowRect: (rect: {

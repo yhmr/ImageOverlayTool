@@ -137,6 +137,7 @@ describe("ipcService", () => {
                     .fn()
                     .mockResolvedValue({ project: createProject(), filePath: "b.iot" }),
                 loadImage: vi.fn().mockResolvedValue("C:/tmp/image.png"),
+                getPathForFile: vi.fn().mockReturnValue("C:/tmp/from-drop.png"),
                 toggleImageSettingsWindow: vi.fn().mockResolvedValue(false),
                 updateImageSets: vi.fn().mockResolvedValue(undefined),
                 onImageSetsUpdated: vi.fn().mockReturnValue(unsubImageSets),
@@ -245,6 +246,9 @@ describe("ipcService", () => {
                 filePath: "b.iot",
             });
             await expect(service.loadImage()).resolves.toBe("C:/tmp/image.png");
+            expect(service.getPathForFile({} as File)).toBe(
+                "C:/tmp/from-drop.png"
+            );
             await expect(service.toggleImageSettingsWindow()).resolves.toBe(false);
             await service.updateImageSets([]);
             await service.updateUnitFactor(2.5);
@@ -296,6 +300,7 @@ describe("ipcService", () => {
             });
             expect(api.saveProject).toHaveBeenCalledWith("save.iot", project);
             expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
+            expect(api.getPathForFile).toHaveBeenCalled();
             expect(api.updateUnit).toHaveBeenCalledWith("nm");
             expect(api.updateSelectedImageId).toHaveBeenCalledWith("abc");
             expect(api.updateProjectDirty).toHaveBeenCalledWith(true);

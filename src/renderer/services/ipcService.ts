@@ -71,6 +71,7 @@ export interface IProjectIPCService {
 
 export interface IImageSettingsWindowIPCService {
     loadImage: () => Promise<string | null>;
+    getPathForFile: (file: File) => string;
     toggleImageSettingsWindow: () => Promise<boolean>;
 }
 
@@ -241,6 +242,10 @@ class IPCService implements IIPCService {
 
     async loadImage(): Promise<string | null> {
         return await window.electronAPI.loadImage();
+    }
+
+    getPathForFile(file: File): string {
+        return window.electronAPI.getPathForFile(file);
     }
 
     async toggleImageSettingsWindow(): Promise<boolean> {

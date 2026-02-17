@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type { SettingType } from "../shared/types/AppConfig";
 
 import type { ProjectFile } from "../shared/types/ProjectFile";
@@ -80,6 +80,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Image Settings Window
     loadImage: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.loadImage),
+    getPathForFile: (file: File) => webUtils.getPathForFile(file),
     toggleImageSettingsWindow: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.toggle),
     // ImageSets Sync

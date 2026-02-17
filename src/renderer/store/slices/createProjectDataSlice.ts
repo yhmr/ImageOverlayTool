@@ -7,7 +7,10 @@ import {
     sanitizeUnitFactor,
     UNIT_FACTOR_DEFAULT,
 } from "../../../shared/constants/unitFactor";
-import { createEmptyImageSet } from "../../factories/imageSetFactory";
+import {
+    createEmptyImageSet,
+    createImageSetFromLocalFile,
+} from "../../factories/imageSetFactory";
 import {
     runAsSystemMutation,
     type TemporalStoreAccessor,
@@ -27,6 +30,7 @@ export interface ProjectDataSlice {
     markProjectSaved: () => void;
 
     setImageSets: (imageSets: ImageSet[]) => void;
+    addImageSetWithPath: (path: string) => void;
     updateImageSet: (payload: {
         index?: number;
         id?: string;
@@ -80,6 +84,29 @@ export const createProjectDataSlice = (
                 imageSets,
                 projectDataChangeOrigin: "local",
                 hasUnsavedChanges: true,
+            });
+        },
+
+        addImageSetWithPath: (path) => {
+            if (!path) {
+                return;
+            }
+
+            set((state) => {
+                const nextImageSet = createImageSetFromLocalFile(path);
+                const nextImageSets = [...state.imageSets];
+
+                if (nextImageSets.length === 1 && !nextImageSets[0].path) {
+                    nextImageSets[0] = nextImageSet;
+                } else {
+                    nextImageSets.push(nextImageSet);
+                }
+
+                return {
+                    imageSets: nextImageSets,
+                    projectDataChangeOrigin: "local",
+                    hasUnsavedChanges: true,
+                };
             });
         },
 

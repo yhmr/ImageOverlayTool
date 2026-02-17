@@ -7,6 +7,7 @@ import type {
 import { ImageSet } from "../../shared/types/ImageSet";
 import log from "../logger";
 import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
+import { IMAGE_FILTERS } from "../../shared/constants/imageFormats";
 
 /**
  * 画像設定ウィンドウ用のIPCハンドラを登録
@@ -114,19 +115,7 @@ export const registerImageSettingsWindowHandlers = (
                     window,
                     {
                         buttonLabel: "Open",
-                        filters: [
-                            {
-                                name: "Image",
-                                extensions: [
-                                    "jpg",
-                                    "jpeg",
-                                    "png",
-                                    "webp",
-                                    "gif",
-                                    "svg",
-                                ],
-                            },
-                        ],
+                        filters: IMAGE_FILTERS,
                         properties: ["openFile"],
                     }
                 );

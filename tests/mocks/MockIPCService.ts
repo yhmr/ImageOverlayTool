@@ -93,6 +93,10 @@ export class MockIPCService implements IIPCService {
         return "path/to/image.png";
     }
 
+    getPathForFile(_file: File): string {
+        return "";
+    }
+
     async toggleImageSettingsWindow(): Promise<boolean> {
         return true;
     }

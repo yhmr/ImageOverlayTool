@@ -6,6 +6,7 @@ import "../shared/globals.css";
 import "./App.css";
 
 import { useFileHandler } from "../hooks/useFileHandler";
+import { useImageDrop } from "../hooks/useImageDrop";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import { useProjectSync } from "../hooks/useProjectSync";
@@ -36,6 +37,8 @@ const App = () => {
     useKeyboardShortcuts();
     // E2E制御ブリッジ
     useE2EControlBridge();
+    // D&D画像読み込み
+    const { onDragOver, onDrop } = useImageDrop();
 
     // グローバルエラーハンドリング
     useEffect(() => {
@@ -83,7 +86,12 @@ const App = () => {
     }, [hasUnsavedChanges, ipcService]);
 
     return (
-        <div className="main-app-container" data-testid="main.app.root">
+        <div
+            className="main-app-container"
+            data-testid="main.app.root"
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+        >
             <MenuBar />
             <div
                 style={{
