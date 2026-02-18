@@ -8,8 +8,15 @@
     "email": "yhmr.develop@gmail.com"
   },
   "main": "out/main/index.js",
+  "packageManager": "pnpm@10.30.0",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
   },
   "scripts": {
     "dev": "electron-vite dev --watch --inspect=9229",
@@ -18,10 +25,10 @@
     "generate-licenses": "node scripts/generate-licenses.js",
     "generate-store-license-terms": "node scripts/generate-store-license-terms.js",
     "generate:appx-assets": "node scripts/generate-appx-assets.js",
-    "prepare-release-assets": "npm run generate-licenses && npm run generate-store-license-terms && npm run generate:appx-assets",
-    "build:win": "npm run prepare-release-assets && npm run build && electron-builder --win",
-    "build:linux": "npm run prepare-release-assets && npm run build && electron-builder --linux",
-    "build:all": "npm run prepare-release-assets && npm run build && electron-builder --win --linux",
+    "prepare-release-assets": "pnpm run generate-licenses && pnpm run generate-store-license-terms && pnpm run generate:appx-assets",
+    "build:win": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win",
+    "build:linux": "pnpm run prepare-release-assets && pnpm run build && electron-builder --linux",
+    "build:all": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win --linux",
     "preview": "electron-vite preview",
     "lint": "eslint --cache --rulesdir eslint/rules src/",
     "lint:fix": "eslint --cache --fix --rulesdir eslint/rules src/ && prettier --write src/",

@@ -38,7 +38,7 @@ Except where required by applicable licenses, no additional patent or trademark 
 Generate the final text with:
 
 ```bash
-npm run generate-store-license-terms
+pnpm run generate-store-license-terms
 ```
 
 Then copy `STORE_LICENSE_TERMS.txt` into Partner Center (`Applicable license terms`).

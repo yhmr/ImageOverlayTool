@@ -16,32 +16,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Generate release metadata
-        run: npm run prepare-release-assets
+        run: pnpm run prepare-release-assets
 
       - name: Run typecheck
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Run unit tests
-        run: npm run test
+        run: pnpm run test
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
 
       - name: Build application (for smoke e2e)
-        run: npm run build
+        run: pnpm run build
 
       - name: Run smoke e2e
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e:smoke
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- pnpm run test:e2e:smoke
 
   store-license-terms:
     needs: quality-gate
@@ -51,17 +56,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Generate release metadata
-        run: npm run prepare-release-assets
+        run: pnpm run prepare-release-assets
 
       - name: Upload store license terms artifact
         uses: actions/upload-artifact@v4
@@ -88,17 +98,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Generate release metadata
-        run: npm run prepare-release-assets
+        run: pnpm run prepare-release-assets
 
       # Linux ARM64 クロスコンパイル用の依存関係
       - name: Install Linux ARM64 cross-compile dependencies
@@ -108,19 +123,19 @@ jobs:
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Build application
-        run: npm run build
+        run: pnpm run build
 
       # Windows ビルド
       - name: Build for Windows
         if: matrix.platform == 'win'
-        run: npx electron-builder --win --x64 --arm64 --publish never
+        run: pnpm exec electron-builder --win --x64 --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Linux ビルド
       - name: Build for Linux
         if: matrix.platform == 'linux'
-        run: npx electron-builder --linux --x64 --arm64 --publish never
+        run: pnpm exec electron-builder --linux --x64 --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
