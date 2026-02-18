@@ -65,7 +65,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
             </div>
             {sourceType === "cache" && (
                 <span
-                    className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+                    className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 whitespace-nowrap"
                     data-testid="settings.image-item.cache-badge"
                 >
                     {t("render.image_settings.badge.cache_image")}

@@ -207,6 +207,8 @@ export function ImageListItem(props: ImageListItemProps) {
             className={`mb-2 transition-colors cursor-pointer ${
                 isSelected
                     ? "border-primary border-2"
+                    : isCacheImage
+                    ? "border-muted-foreground/30 border-dashed"
                     : "hover:border-muted-foreground/30"
             }`}
             onClick={() => setSelectedImageId(imageSet.id)}
@@ -283,7 +285,7 @@ export function ImageListItem(props: ImageListItemProps) {
 
                 {isCacheImage && imageSet.path && (
                     <Button
-                        variant="secondary"
+                        variant="default" // Cache save is important action
                         size="sm"
                         className="w-full"
                         onClick={() => void saveCacheImageAs()}
