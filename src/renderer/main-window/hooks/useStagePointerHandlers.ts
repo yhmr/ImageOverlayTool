@@ -53,13 +53,16 @@ export const useStagePointerHandlers = ({
                 ) {
                     setSelectedImageId(null);
                 }
-            } else if (
-                "button" in e.evt &&
-                (e.evt.button === 1 || e.evt.button === 2)
-            ) {
-                setKonvaDragButtons([1, 2]);
-                if (stageRef.current) {
-                    stageRef.current.draggable(true);
+            } else if ("button" in e.evt) {
+                if (e.evt.button === 0) {
+                    // 寸法線追加/編集は左ドラッグを使うため、ノードドラッグ可能な設定に戻す
+                    setKonvaDragButtons([0]);
+                    stageRef.current?.draggable(false);
+                } else if (e.evt.button === 1 || e.evt.button === 2) {
+                    setKonvaDragButtons([1, 2]);
+                    if (stageRef.current) {
+                        stageRef.current.draggable(true);
+                    }
                 }
             }
 
@@ -73,8 +76,13 @@ export const useStagePointerHandlers = ({
     }, [onMouseMoveDimension]);
 
     const onMouseUp = useCallback(() => {
+        if (isDimensionMode) {
+            // 右/中クリックパン後は左ドラッグ編集に即戻す
+            setKonvaDragButtons([0]);
+            stageRef.current?.draggable(false);
+        }
         onMouseUpDimension();
-    }, [onMouseUpDimension]);
+    }, [isDimensionMode, onMouseUpDimension, stageRef]);
 
     return { onDragEnd, onMouseDown, onMouseMove, onMouseUp };
 };

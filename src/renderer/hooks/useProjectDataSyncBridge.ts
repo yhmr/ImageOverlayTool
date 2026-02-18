@@ -13,7 +13,9 @@ export const useProjectDataSyncBridge = () => {
         unitFactor,
         unit,
         projectDataChangeOrigin,
+        interactionMode,
         selectedImageId,
+        selectedDimensionLineId,
     } = useAppStore();
     const ipcService = useIpcService();
 
@@ -62,4 +64,26 @@ export const useProjectDataSyncBridge = () => {
             prevSelectedImageIdRef.current = selectedImageId;
         }
     }, [selectedImageId, ipcService]);
+
+    // selectedDimensionLineIdの同期（undo対象外なので別のeffectで管理）
+    const prevSelectedDimensionLineIdRef = useRef(selectedDimensionLineId);
+    useEffect(() => {
+        if (
+            prevSelectedDimensionLineIdRef.current !== selectedDimensionLineId
+        ) {
+            void ipcService.updateSelectedDimensionLineId(
+                selectedDimensionLineId
+            );
+            prevSelectedDimensionLineIdRef.current = selectedDimensionLineId;
+        }
+    }, [selectedDimensionLineId, ipcService]);
+
+    // interactionModeの同期（undo対象外なので別のeffectで管理）
+    const prevInteractionModeRef = useRef(interactionMode);
+    useEffect(() => {
+        if (prevInteractionModeRef.current !== interactionMode) {
+            void ipcService.updateInteractionMode(interactionMode);
+            prevInteractionModeRef.current = interactionMode;
+        }
+    }, [interactionMode, ipcService]);
 };

@@ -36,15 +36,19 @@ describe("DimensionLineSettingsPanel", () => {
         );
 
         expect(
-            screen.getByTestId("dimension-settings.mode.switch")
+            screen.getByTestId("dimension-settings.mode.add-button")
         ).toBeTruthy();
         expect(
             screen.getByTestId("dimension-settings.unit.factor-input")
         ).toBeTruthy();
         expect(screen.getByTestId("dimension-settings.unit.select")).toBeTruthy();
 
-        fireEvent.click(screen.getByTestId("dimension-settings.mode.switch"));
-        expect(useAppStore.getState().interactionMode).toBe("dimension");
+        fireEvent.click(screen.getByTestId("dimension-settings.mode.add-button"));
+        expect(useAppStore.getState().interactionMode).toBe("dimension_add");
+
+        fireEvent.click(screen.getByTestId("dimension-settings.line.0"));
+        expect(useAppStore.getState().interactionMode).toBe("dimension_select");
+        expect(useAppStore.getState().selectedDimensionLineId).toBe("line-1");
 
         fireEvent.change(
             screen.getByTestId("dimension-settings.unit.factor-input"),

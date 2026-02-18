@@ -106,7 +106,7 @@ describe("useImageSelection", () => {
 
         // 2. Dimension mode -> should NOT change selection
         act(() => {
-            useAppStore.getState().setInteractionMode("dimension");
+            useAppStore.getState().setInteractionMode("dimension_select");
         });
 
         // Mode switch triggers re-render in actual app, here we might need rerender()

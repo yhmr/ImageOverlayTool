@@ -60,7 +60,7 @@ describe("useDimensionLineMode", () => {
             result.current.setDimensionModeEnabled(true);
         });
         expect(result.current.isDimensionMode).toBe(true);
-        expect(useAppStore.getState().interactionMode).toBe("dimension");
+        expect(useAppStore.getState().interactionMode).toBe("dimension_add");
 
         act(() => {
             result.current.setDimensionModeEnabled(false);
@@ -99,6 +99,7 @@ describe("useDimensionLineMode", () => {
         const lines = useAppStore.getState().dimensionLines;
         expect(lines).toHaveLength(1);
         expect(result.current.selectedDimensionLineId).toBe(lines[0]?.id);
+        expect(useAppStore.getState().interactionMode).toBe("dimension_select");
     });
 
     it("should update line on mouse move and handle mouse up", () => {
@@ -127,6 +128,9 @@ describe("useDimensionLineMode", () => {
         expect(useAppStore.getState().dimensionLines).toHaveLength(1);
 
         // 2. Short line (should be removed)
+        act(() => {
+            result.current.setDimensionModeEnabled(true);
+        });
         mockPoint.mockReturnValue({ x: 300, y: 300 });
         act(() => {
             result.current.onMouseDown(createStageMouseDownEvent());
@@ -144,6 +148,7 @@ describe("useDimensionLineMode", () => {
 
         // Only the first long line should remain
         expect(useAppStore.getState().dimensionLines).toHaveLength(1);
+        expect(useAppStore.getState().interactionMode).toBe("dimension_add");
     });
 
     it("should push undo history only when line is fixed", () => {

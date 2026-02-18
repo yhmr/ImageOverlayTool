@@ -7,14 +7,16 @@ import { useProjectSync } from "@/renderer/hooks/useProjectSync";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
+import type { InteractionMode } from "@/shared/types/InteractionMode";
 
 const callbacks = vi.hoisted(() => ({
     unitFactor: null as ((factor: number) => void) | null,
     unit: null as ((unit: "nm" | "um" | "mm") => void) | null,
     imageSets: null as ((imageSets: ImageSet[]) => void) | null,
     dimensionLines: null as ((dimensionLines: DimensionLine[]) => void) | null,
-    interactionMode: null as ((mode: "default" | "dimension") => void) | null,
+    interactionMode: null as ((mode: InteractionMode) => void) | null,
     selectedImageId: null as ((id: string | null) => void) | null,
+    selectedDimensionLineId: null as ((id: string | null) => void) | null,
     requestSync: null as (() => void) | null,
 }));
 
@@ -25,6 +27,7 @@ const unsubscribers = vi.hoisted(() => ({
     dimensionLines: vi.fn(),
     interactionMode: vi.fn(),
     selectedImageId: vi.fn(),
+    selectedDimensionLineId: vi.fn(),
     requestSync: vi.fn(),
 }));
 
@@ -48,7 +51,7 @@ const mockIPC = vi.hoisted(() => ({
         }
     ),
     onInteractionModeUpdated: vi.fn(
-        (cb: (mode: "default" | "dimension") => void) => {
+        (cb: (mode: InteractionMode) => void) => {
             callbacks.interactionMode = cb;
             return unsubscribers.interactionMode;
         }
@@ -56,6 +59,10 @@ const mockIPC = vi.hoisted(() => ({
     onSelectedImageIdUpdated: vi.fn((cb: (id: string | null) => void) => {
         callbacks.selectedImageId = cb;
         return unsubscribers.selectedImageId;
+    }),
+    onSelectedDimensionLineIdUpdated: vi.fn((cb: (id: string | null) => void) => {
+        callbacks.selectedDimensionLineId = cb;
+        return unsubscribers.selectedDimensionLineId;
     }),
     onRequestStateSync: vi.fn((cb: () => void) => {
         callbacks.requestSync = cb;
@@ -66,6 +73,7 @@ const mockIPC = vi.hoisted(() => ({
     updateUnitFactor: vi.fn(),
     updateUnit: vi.fn(),
     updateInteractionMode: vi.fn(),
+    updateSelectedDimensionLineId: vi.fn(),
 }));
 
 vi.mock("@/renderer/services/ipcService", () => ({
@@ -81,6 +89,7 @@ describe("useProjectSync", () => {
         callbacks.dimensionLines = null;
         callbacks.interactionMode = null;
         callbacks.selectedImageId = null;
+        callbacks.selectedDimensionLineId = null;
         callbacks.requestSync = null;
         useAppStore.getState().resetAll();
     });
@@ -128,6 +137,9 @@ describe("useProjectSync", () => {
         expect(mockIPC.updateUnitFactor).toHaveBeenCalledWith(3.2);
         expect(mockIPC.updateUnit).toHaveBeenCalledWith("mm");
         expect(mockIPC.updateInteractionMode).toHaveBeenCalledWith("default");
+        expect(mockIPC.updateSelectedDimensionLineId).toHaveBeenCalledWith(
+            null
+        );
     });
 
     it("should unsubscribe all IPC listeners on unmount", () => {
@@ -141,6 +153,7 @@ describe("useProjectSync", () => {
         expect(unsubscribers.dimensionLines).toHaveBeenCalledTimes(1);
         expect(unsubscribers.interactionMode).toHaveBeenCalledTimes(1);
         expect(unsubscribers.selectedImageId).toHaveBeenCalledTimes(1);
+        expect(unsubscribers.selectedDimensionLineId).toHaveBeenCalledTimes(1);
         expect(unsubscribers.requestSync).toHaveBeenCalledTimes(1);
     });
 });

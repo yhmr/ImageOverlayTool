@@ -133,8 +133,10 @@ describe("useAppStore", () => {
 
     describe("InteractionSlice", () => {
         it("should change interaction mode", () => {
-            useAppStore.getState().setInteractionMode("dimension");
-            expect(useAppStore.getState().interactionMode).toBe("dimension");
+            useAppStore.getState().setInteractionMode("dimension_select");
+            expect(useAppStore.getState().interactionMode).toBe(
+                "dimension_select"
+            );
         });
 
         it("should select image", () => {
@@ -186,7 +188,7 @@ describe("useAppStore", () => {
     describe("Combined Reset", () => {
         it("should reset all slices", () => {
             useAppStore.getState().setUnitFactor(2.0);
-            useAppStore.getState().setInteractionMode("dimension");
+            useAppStore.getState().setInteractionMode("dimension_select");
             useAppStore.getState().setCurrentProjectFilePath("C:/tmp/test.iot");
             useAppStore.getState().resetAll();
 

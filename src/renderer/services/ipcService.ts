@@ -10,6 +10,7 @@ import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../../shared/types/LicenseInfo";
+import type { InteractionMode } from "../../shared/types/InteractionMode";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -111,9 +112,9 @@ export interface IUnitSyncIPCService {
 }
 
 export interface IInteractionModeSyncIPCService {
-    updateInteractionMode(mode: "default" | "dimension"): Promise<void>;
+    updateInteractionMode(mode: InteractionMode): Promise<void>;
     onInteractionModeUpdated: (
-        callback: (mode: "default" | "dimension") => void
+        callback: (mode: InteractionMode) => void
     ) => () => void;
 }
 
@@ -139,6 +140,13 @@ export interface ICaptureIPCService {
 export interface ISelectedImageSyncIPCService {
     updateSelectedImageId(id: string | null): Promise<void>;
     onSelectedImageIdUpdated: (
+        callback: (id: string | null) => void
+    ) => () => void;
+}
+
+export interface ISelectedDimensionLineSyncIPCService {
+    updateSelectedDimensionLineId(id: string | null): Promise<void>;
+    onSelectedDimensionLineIdUpdated: (
         callback: (id: string | null) => void
     ) => () => void;
 }
@@ -181,6 +189,7 @@ export interface IIPCService
         ILicenseIPCService,
         ICaptureIPCService,
         ISelectedImageSyncIPCService,
+        ISelectedDimensionLineSyncIPCService,
         IProjectDirtySyncIPCService,
         IE2EIPCService {}
 /**
@@ -354,12 +363,12 @@ class IPCService implements IIPCService {
         return window.electronAPI.onUnitUpdated(callback);
     }
 
-    async updateInteractionMode(mode: "default" | "dimension"): Promise<void> {
+    async updateInteractionMode(mode: InteractionMode): Promise<void> {
         await window.electronAPI.updateInteractionMode(mode);
     }
 
     onInteractionModeUpdated(
-        callback: (mode: "default" | "dimension") => void
+        callback: (mode: InteractionMode) => void
     ): () => void {
         return window.electronAPI.onInteractionModeUpdated(callback);
     }
@@ -404,6 +413,16 @@ class IPCService implements IIPCService {
         callback: (id: string | null) => void
     ): () => void {
         return window.electronAPI.onSelectedImageIdUpdated(callback);
+    }
+
+    async updateSelectedDimensionLineId(id: string | null): Promise<void> {
+        await window.electronAPI.updateSelectedDimensionLineId(id);
+    }
+
+    onSelectedDimensionLineIdUpdated(
+        callback: (id: string | null) => void
+    ): () => void {
+        return window.electronAPI.onSelectedDimensionLineIdUpdated(callback);
     }
 
     async updateProjectDirty(isDirty: boolean): Promise<void> {

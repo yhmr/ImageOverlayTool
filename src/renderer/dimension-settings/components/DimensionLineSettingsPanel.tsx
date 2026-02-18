@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/renderer/components/ui/button";
@@ -11,11 +11,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/renderer/components/ui/select";
-import { Switch } from "@/renderer/components/ui/switch";
 import { cn } from "@/renderer/lib/utils";
-import { useIpcService } from "@/renderer/providers/IpcServiceProvider";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { sanitizeDimensionLineColor } from "@/shared/constants/dimensionLine";
+import type { InteractionMode } from "@/shared/types/InteractionMode";
 import {
     UNIT_FACTOR_MAX,
     UNIT_FACTOR_MIN,
@@ -36,7 +35,6 @@ const formatLineLength = (
 
 export function DimensionLineSettingsPanel() {
     const { t } = useTranslation();
-    const ipcService = useIpcService();
     const {
         interactionMode,
         setInteractionMode,
@@ -51,28 +49,67 @@ export function DimensionLineSettingsPanel() {
         setSelectedDimensionLineId,
     } = useAppStore();
 
-    const isDimensionMode = interactionMode === "dimension";
+    const isDimensionAddMode = interactionMode === "dimension_add";
+    const isDimensionSelectMode = interactionMode === "dimension_select";
+
+    const updateInteractionMode = (mode: InteractionMode) => {
+        setInteractionMode(mode);
+    };
+
+    const modeLabel = isDimensionAddMode
+        ? t("render.dimension_line_settings.mode.add")
+        : isDimensionSelectMode
+        ? t("render.dimension_line_settings.mode.select")
+        : t("render.dimension_line_settings.mode.default");
 
     return (
         <div className="grid gap-4 p-4" data-testid="dimension-settings.panel">
-            <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+            <div className="grid gap-3 rounded-lg border px-4 py-3">
                 <div className="space-y-1">
                     <p className="text-sm font-medium">
-                        {t("render.dimension_line_settings.draw_mode")}
+                        {t("render.dimension_line_settings.operation")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        {t("render.dimension_line_settings.helper.draw_mode")}
+                        {isDimensionAddMode
+                            ? t(
+                                  "render.dimension_line_settings.helper.add_mode_waiting"
+                              )
+                            : t(
+                                  "render.dimension_line_settings.helper.add_mode"
+                              )}
                     </p>
                 </div>
-                <Switch
-                    checked={isDimensionMode}
-                    onCheckedChange={(checked) => {
-                        const mode = checked ? "dimension" : "default";
-                        setInteractionMode(mode);
-                        void ipcService.updateInteractionMode(mode);
-                    }}
-                    data-testid="dimension-settings.mode.switch"
-                />
+                <div className="flex items-center justify-between gap-2">
+                    <p
+                        className="text-xs text-muted-foreground"
+                        data-testid="dimension-settings.mode.label"
+                    >
+                        {modeLabel}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        {isDimensionAddMode && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => updateInteractionMode("default")}
+                                data-testid="dimension-settings.mode.cancel-button"
+                            >
+                                {t("common.cancel")}
+                            </Button>
+                        )}
+                        <Button
+                            size="sm"
+                            onClick={() => {
+                                setSelectedDimensionLineId(null);
+                                updateInteractionMode("dimension_add");
+                            }}
+                            data-testid="dimension-settings.mode.add-button"
+                        >
+                            <Plus className="mr-1 h-4 w-4" />
+                            {t("render.dimension_line_settings.add_button")}
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <div className="grid gap-2 rounded-lg border p-4">
@@ -130,9 +167,24 @@ export function DimensionLineSettingsPanel() {
                                 />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="nm">nm</SelectItem>
-                                <SelectItem value="um">um</SelectItem>
-                                <SelectItem value="mm">mm</SelectItem>
+                                <SelectItem
+                                    value="nm"
+                                    data-testid="dimension-settings.unit.option.nm"
+                                >
+                                    nm
+                                </SelectItem>
+                                <SelectItem
+                                    value="um"
+                                    data-testid="dimension-settings.unit.option.um"
+                                >
+                                    um
+                                </SelectItem>
+                                <SelectItem
+                                    value="mm"
+                                    data-testid="dimension-settings.unit.option.mm"
+                                >
+                                    mm
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -170,9 +222,10 @@ export function DimensionLineSettingsPanel() {
                                     "mb-2 flex items-center gap-3 rounded-md border px-3 py-2 last:mb-0",
                                     isSelected && "border-primary"
                                 )}
-                                onClick={() =>
-                                    setSelectedDimensionLineId(line.id)
-                                }
+                                onClick={() => {
+                                    updateInteractionMode("dimension_select");
+                                    setSelectedDimensionLineId(line.id);
+                                }}
                                 data-testid={`dimension-settings.line.${index}`}
                             >
                                 <div className="min-w-0 flex-1">
@@ -211,6 +264,11 @@ export function DimensionLineSettingsPanel() {
                                             selectedDimensionLineId === line.id
                                         ) {
                                             setSelectedDimensionLineId(null);
+                                            if (isDimensionSelectMode) {
+                                                updateInteractionMode(
+                                                    "default"
+                                                );
+                                            }
                                         }
                                     }}
                                     data-testid={`dimension-settings.line.${index}.delete`}

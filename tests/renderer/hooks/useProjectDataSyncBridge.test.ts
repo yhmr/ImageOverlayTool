@@ -12,6 +12,9 @@ const mockIPC = vi.hoisted(() => ({
     updateDimensionLines: vi.fn().mockResolvedValue(undefined),
     updateUnitFactor: vi.fn().mockResolvedValue(undefined),
     updateUnit: vi.fn().mockResolvedValue(undefined),
+    updateSelectedImageId: vi.fn().mockResolvedValue(undefined),
+    updateSelectedDimensionLineId: vi.fn().mockResolvedValue(undefined),
+    updateInteractionMode: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@/renderer/services/ipcService", () => ({

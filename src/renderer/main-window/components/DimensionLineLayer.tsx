@@ -12,7 +12,7 @@ interface DimensionLineLayerProps {
     isSelected: (id: string) => boolean;
     onSelect: (id: string | null) => void;
     onUpdate: (line: DimensionLine) => void;
-    isDimensionMode: boolean;
+    isDimensionEditMode: boolean;
 }
 
 type AnchorType = "start" | "end";
@@ -29,7 +29,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
         isSelected,
         onSelect,
         onUpdate,
-        isDimensionMode,
+        isDimensionEditMode,
     } = props;
     const [editingAnchors, setEditingAnchors] = useState<EditingAnchorMap>({});
 
@@ -145,7 +145,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                     <Group
                         key={line.id}
                         onClick={(e) => {
-                            if (isDimensionMode) {
+                            if (isDimensionEditMode) {
                                 onSelect(line.id);
                                 e.cancelBubble = true;
                             }
@@ -174,7 +174,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                         />
 
                         {/* ラベルを編集するためのアンカー */}
-                        {selected && isDimensionMode && (
+                        {selected && isDimensionEditMode && (
                             <>
                                 <Circle
                                     x={start.x}

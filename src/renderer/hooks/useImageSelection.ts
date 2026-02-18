@@ -21,7 +21,7 @@ export const useImageSelection = () => {
     const createImageSelectHandler = useCallback(
         (id: string) => {
             return () => {
-                if (interactionMode !== "dimension") {
+                if (interactionMode === "default") {
                     setSelectedImageId(id);
                 }
             };

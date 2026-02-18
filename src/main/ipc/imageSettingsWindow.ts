@@ -15,6 +15,7 @@ import type {
 } from "../windows/windowManager";
 import { ImageSet } from "../../shared/types/ImageSet";
 import { DimensionLine } from "../../shared/types/DimensionLine";
+import type { InteractionMode } from "../../shared/types/InteractionMode";
 import type { ImageInfoResult } from "../../shared/types/ImageInfo";
 import log from "../logger";
 import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
@@ -147,7 +148,7 @@ export const registerImageSettingsWindowHandlers = (
 
     ipcMain.handle(
         IPC_CHANNELS.sync.updateInteractionMode,
-        (event, mode: "default" | "dimension") => {
+        (event, mode: InteractionMode) => {
             log.debug(
                 `[IPC] interactionMode:update called with value: ${mode}`
             );
@@ -171,6 +172,24 @@ export const registerImageSettingsWindowHandlers = (
             windows.forEach((win) => {
                 if (win.webContents.id !== event.sender.id) {
                     win.webContents.send(IPC_EVENTS.selectedImageIdUpdated, id);
+                }
+            });
+        }
+    );
+
+    ipcMain.handle(
+        IPC_CHANNELS.sync.updateSelectedDimensionLineId,
+        (event, id: string | null) => {
+            log.debug(
+                `[IPC] selectedDimensionLineId:update called with value: ${id}`
+            );
+            const windows = windowManager.getAllWindows();
+            windows.forEach((win) => {
+                if (win.webContents.id !== event.sender.id) {
+                    win.webContents.send(
+                        IPC_EVENTS.selectedDimensionLineIdUpdated,
+                        id
+                    );
                 }
             });
         }

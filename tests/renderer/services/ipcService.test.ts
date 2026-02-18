@@ -107,6 +107,7 @@ describe("ipcService", () => {
             const unsubRequestState = vi.fn();
             const unsubFileOpen = vi.fn();
             const unsubSelectedImageId = vi.fn();
+            const unsubSelectedDimensionLineId = vi.fn();
             const unsubLanguage = vi.fn();
 
             const api = {
@@ -194,6 +195,12 @@ describe("ipcService", () => {
                 onSelectedImageIdUpdated: vi
                     .fn()
                     .mockReturnValue(unsubSelectedImageId),
+                updateSelectedDimensionLineId: vi
+                    .fn()
+                    .mockResolvedValue(undefined),
+                onSelectedDimensionLineIdUpdated: vi
+                    .fn()
+                    .mockReturnValue(unsubSelectedDimensionLineId),
                 updateProjectDirty: vi.fn().mockResolvedValue(undefined),
                 getE2EStatus: vi.fn().mockResolvedValue({
                     enabled: true,
@@ -225,6 +232,7 @@ describe("ipcService", () => {
                     unsubRequestState,
                     unsubFileOpen,
                     unsubSelectedImageId,
+                    unsubSelectedDimensionLineId,
                     unsubLanguage,
                 },
             };
@@ -301,7 +309,7 @@ describe("ipcService", () => {
             await service.updateDimensionLines([] as DimensionLine[]);
             await service.updateUnitFactor(2.5);
             await service.updateUnit("nm");
-            await service.updateInteractionMode("dimension");
+            await service.updateInteractionMode("dimension_select");
             await service.requestInitialState();
             await expect(service.getLicenseInfo()).resolves.toHaveLength(1);
             await expect(service.getAppVersion()).resolves.toBe("0.5.0");
@@ -317,6 +325,7 @@ describe("ipcService", () => {
             });
             await expect(service.saveImage("data:image/png")).resolves.toBe("saved.png");
             await service.updateSelectedImageId("abc");
+            await service.updateSelectedDimensionLineId("line-1");
             await service.updateProjectDirty(true);
             await expect(service.getE2EStatus()).resolves.toEqual({
                 enabled: true,
@@ -360,8 +369,13 @@ describe("ipcService", () => {
             expect(api.saveCacheImageAs).toHaveBeenCalledWith("C:/tmp/paste.png");
             expect(api.getPathForFile).toHaveBeenCalled();
             expect(api.updateUnit).toHaveBeenCalledWith("nm");
-            expect(api.updateInteractionMode).toHaveBeenCalledWith("dimension");
+            expect(api.updateInteractionMode).toHaveBeenCalledWith(
+                "dimension_select"
+            );
             expect(api.updateSelectedImageId).toHaveBeenCalledWith("abc");
+            expect(api.updateSelectedDimensionLineId).toHaveBeenCalledWith(
+                "line-1"
+            );
             expect(api.updateProjectDirty).toHaveBeenCalledWith(true);
             expect(api.getE2EStatus).toHaveBeenCalled();
             expect(api.e2eSetScene).toHaveBeenCalledWith({ images: [] });
@@ -386,6 +400,7 @@ describe("ipcService", () => {
             const onRequestStateSync = vi.fn();
             const onFileOpen = vi.fn();
             const onSelectedImageIdUpdated = vi.fn();
+            const onSelectedDimensionLineIdUpdated = vi.fn();
             const onLanguageUpdated = vi.fn();
 
             expect(service.onImageSetsUpdated(onImageSetsUpdated)).toBe(
@@ -410,6 +425,11 @@ describe("ipcService", () => {
             expect(service.onSelectedImageIdUpdated(onSelectedImageIdUpdated)).toBe(
                 unsubscribers.unsubSelectedImageId
             );
+            expect(
+                service.onSelectedDimensionLineIdUpdated(
+                    onSelectedDimensionLineIdUpdated
+                )
+            ).toBe(unsubscribers.unsubSelectedDimensionLineId);
             expect(service.onLanguageUpdated(onLanguageUpdated)).toBe(
                 unsubscribers.unsubLanguage
             );
@@ -427,6 +447,9 @@ describe("ipcService", () => {
             expect(api.onFileOpen).toHaveBeenCalledWith(onFileOpen);
             expect(api.onSelectedImageIdUpdated).toHaveBeenCalledWith(
                 onSelectedImageIdUpdated
+            );
+            expect(api.onSelectedDimensionLineIdUpdated).toHaveBeenCalledWith(
+                onSelectedDimensionLineIdUpdated
             );
             expect(api.onLanguageUpdated).toHaveBeenCalledWith(onLanguageUpdated);
         });

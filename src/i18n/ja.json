@@ -125,11 +125,20 @@
             "title": "寸法線設定",
             "description": "寸法線の描画と表示設定を変更できます。",
             "draw_mode": "寸法線の描画モード",
+            "operation": "寸法線の追加と編集",
+            "add_button": "寸法線を追加",
             "unitFactor": "解像度係数",
             "unit": "単位",
             "done": "完了",
+            "mode": {
+                "default": "モード: 通常",
+                "add": "モード: 追加待機",
+                "select": "モード: 寸法線編集"
+            },
             "helper": {
                 "draw_mode": "ON中は左ドラッグで寸法線を作成できます",
+                "add_mode": "追加後、メイン画面で左ドラッグすると1本だけ作成します",
+                "add_mode_waiting": "メイン画面で左ドラッグして寸法線を追加します",
                 "unitFactor": "px距離を実距離に換算する係数です"
             },
             "list": {

@@ -6,6 +6,7 @@ import { DimensionLine } from "../../shared/types/DimensionLine";
 import { MIN_DIMENSION_LINE_DISTANCE } from "../constants";
 import { useDimensionKeyboard } from "./useDimensionKeyboard";
 import { DIMENSION_LINE_COLOR_DEFAULT } from "../../shared/constants/dimensionLine";
+import { isDimensionInteractionMode } from "../../shared/types/InteractionMode";
 
 export const useDimensionLineMode = (
     stageRef: RefObject<Konva.Stage | null>
@@ -24,11 +25,13 @@ export const useDimensionLineMode = (
 
     const [draftLine, setDraftLine] = useState<DimensionLine | null>(null);
 
-    const isDimensionMode = interactionMode === "dimension";
+    const isDimensionMode = isDimensionInteractionMode(interactionMode);
+    const isDimensionAddMode = interactionMode === "dimension_add";
+    const isDimensionSelectMode = interactionMode === "dimension_select";
 
     const setDimensionModeEnabled = useCallback(
         (enabled: boolean) => {
-            setInteractionMode(enabled ? "dimension" : "default");
+            setInteractionMode(enabled ? "dimension_add" : "default");
         },
         [setInteractionMode]
     );
@@ -45,23 +48,34 @@ export const useDimensionLineMode = (
 
     const onStageMouseDown = useCallback(
         (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
-            if (!isDimensionMode) return;
             if (e.target.getType() !== "Stage") return;
-            if ("button" in e.evt && e.evt.button === 0) {
-                const pos = getStagePointerPos();
-                if (!pos) return;
+            if (!("button" in e.evt) || e.evt.button !== 0) return;
 
-                const id = crypto.randomUUID();
-                setDraftLine({
-                    id,
-                    start: pos,
-                    end: pos,
-                    color: DIMENSION_LINE_COLOR_DEFAULT,
-                });
+            if (isDimensionSelectMode) {
                 setSelectedDimensionLineId(null);
+                return;
             }
+
+            if (!isDimensionAddMode) return;
+
+            const pos = getStagePointerPos();
+            if (!pos) return;
+
+            const id = crypto.randomUUID();
+            setDraftLine({
+                id,
+                start: pos,
+                end: pos,
+                color: DIMENSION_LINE_COLOR_DEFAULT,
+            });
+            setSelectedDimensionLineId(null);
         },
-        [isDimensionMode, getStagePointerPos, setSelectedDimensionLineId]
+        [
+            isDimensionAddMode,
+            isDimensionSelectMode,
+            getStagePointerPos,
+            setSelectedDimensionLineId,
+        ]
     );
 
     const onStageMouseMove = useCallback(() => {
@@ -80,13 +94,20 @@ export const useDimensionLineMode = (
 
         if (dist >= MIN_DIMENSION_LINE_DISTANCE) {
             addDimensionLine(draftLine);
+            setInteractionMode("dimension_select");
             setSelectedDimensionLineId(draftLine.id);
         } else {
+            setInteractionMode("dimension_add");
             setSelectedDimensionLineId(null);
         }
 
         setDraftLine(null);
-    }, [draftLine, addDimensionLine, setSelectedDimensionLineId]);
+    }, [
+        draftLine,
+        addDimensionLine,
+        setInteractionMode,
+        setSelectedDimensionLineId,
+    ]);
 
     const renderedDimensionLines = useMemo(() => {
         if (!draftLine) {
@@ -100,6 +121,8 @@ export const useDimensionLineMode = (
 
     return {
         isDimensionMode,
+        isDimensionAddMode,
+        isDimensionSelectMode,
         setDimensionModeEnabled,
         selectedDimensionLineId,
         setSelectedDimensionLineId,

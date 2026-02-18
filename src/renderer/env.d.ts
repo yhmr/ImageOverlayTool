@@ -5,6 +5,7 @@ import type { ImageInfoResult } from "../shared/types/ImageInfo";
 import type { DimensionLine } from "../shared/types/DimensionLine";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../shared/types/LicenseInfo";
+import type { InteractionMode } from "../shared/types/InteractionMode";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -86,9 +87,9 @@ export interface IElectronAPI {
     updateUnit: (unit: "nm" | "um" | "mm") => Promise<void>;
     onUnitUpdated: (callback: (unit: "nm" | "um" | "mm") => void) => () => void;
     // Interaction Mode sync
-    updateInteractionMode: (mode: "default" | "dimension") => Promise<void>;
+    updateInteractionMode: (mode: InteractionMode) => Promise<void>;
     onInteractionModeUpdated: (
-        callback: (mode: "default" | "dimension") => void
+        callback: (mode: InteractionMode) => void
     ) => () => void;
     // Unit Factor Sync
     updateUnitFactor: (unitFactor: number) => Promise<void>;
@@ -96,6 +97,10 @@ export interface IElectronAPI {
     // Selected Image Sync
     updateSelectedImageId: (id: string | null) => Promise<void>;
     onSelectedImageIdUpdated: (
+        callback: (id: string | null) => void
+    ) => () => void;
+    updateSelectedDimensionLineId: (id: string | null) => Promise<void>;
+    onSelectedDimensionLineIdUpdated: (
         callback: (id: string | null) => void
     ) => () => void;
     // Project Dirty Sync
@@ -134,7 +139,7 @@ export interface IE2EBridgeAPI {
         dimensionLineCount: number;
         selectedImageId: string | null;
         selectedDimensionLineId: string | null;
-        interactionMode: "default" | "dimension";
+        interactionMode: InteractionMode;
         unit: "nm" | "um" | "mm";
         unitFactor: number;
         windowColor: string;

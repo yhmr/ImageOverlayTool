@@ -6,6 +6,7 @@ import type { ImageSet } from "../shared/types/ImageSet";
 import type { ImageInfoResult } from "../shared/types/ImageInfo";
 import type { DimensionLine } from "../shared/types/DimensionLine";
 import { IPC_CHANNELS, IPC_EVENTS } from "../shared/ipc/channels";
+import type { InteractionMode } from "../shared/types/InteractionMode";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -157,12 +158,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
             ipcRenderer.removeListener(IPC_EVENTS.unitUpdated, subscription);
     },
     // Interaction Mode sync
-    updateInteractionMode: (mode: "default" | "dimension") =>
+    updateInteractionMode: (mode: InteractionMode) =>
         ipcRenderer.invoke(IPC_CHANNELS.sync.updateInteractionMode, mode),
-    onInteractionModeUpdated: (
-        callback: (mode: "default" | "dimension") => void
-    ) => {
-        const subscription = (_event: unknown, mode: "default" | "dimension") =>
+    onInteractionModeUpdated: (callback: (mode: InteractionMode) => void) => {
+        const subscription = (_event: unknown, mode: InteractionMode) =>
             callback(mode);
         ipcRenderer.on(IPC_EVENTS.interactionModeUpdated, subscription);
         return () =>
@@ -194,6 +193,20 @@ contextBridge.exposeInMainWorld("electronAPI", {
         return () =>
             ipcRenderer.removeListener(
                 IPC_EVENTS.selectedImageIdUpdated,
+                subscription
+            );
+    },
+    updateSelectedDimensionLineId: (id: string | null) =>
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateSelectedDimensionLineId, id),
+    onSelectedDimensionLineIdUpdated: (
+        callback: (id: string | null) => void
+    ) => {
+        const subscription = (_event: unknown, id: string | null) =>
+            callback(id);
+        ipcRenderer.on(IPC_EVENTS.selectedDimensionLineIdUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.selectedDimensionLineIdUpdated,
                 subscription
             );
     },

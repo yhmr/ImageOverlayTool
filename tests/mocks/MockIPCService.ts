@@ -16,6 +16,7 @@ import type {
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "@/shared/types/E2EControl";
+import type { InteractionMode } from "@/shared/types/InteractionMode";
 
 /**
  * テスト用モックサービス
@@ -175,10 +176,10 @@ export class MockIPCService implements IIPCService {
         return () => { };
     }
 
-    async updateInteractionMode(_mode: "default" | "dimension"): Promise<void> { }
+    async updateInteractionMode(_mode: InteractionMode): Promise<void> { }
 
     onInteractionModeUpdated(
-        _callback: (mode: "default" | "dimension") => void
+        _callback: (mode: InteractionMode) => void
     ): () => void {
         return () => { };
     }
@@ -224,6 +225,14 @@ export class MockIPCService implements IIPCService {
     async updateSelectedImageId(_id: string | null): Promise<void> { }
 
     onSelectedImageIdUpdated(
+        _callback: (id: string | null) => void
+    ): () => void {
+        return () => { };
+    }
+
+    async updateSelectedDimensionLineId(_id: string | null): Promise<void> { }
+
+    onSelectedDimensionLineIdUpdated(
         _callback: (id: string | null) => void
     ): () => void {
         return () => { };

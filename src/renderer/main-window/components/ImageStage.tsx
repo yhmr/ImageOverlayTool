@@ -53,6 +53,7 @@ export const ImageStage = memo(function ImageStage() {
 
     const {
         isDimensionMode,
+        isDimensionSelectMode,
         selectedDimensionLineId,
         setSelectedDimensionLineId,
         dimensionLines,
@@ -152,7 +153,7 @@ export const ImageStage = memo(function ImageStage() {
                         isSelected={(id) => id === selectedDimensionLineId}
                         onSelect={setSelectedDimensionLineId}
                         onUpdate={updateDimensionLine}
-                        isDimensionMode={isDimensionMode}
+                        isDimensionEditMode={isDimensionSelectMode}
                     />
                 </Layer>
             </Stage>
