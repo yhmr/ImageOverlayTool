@@ -4,6 +4,7 @@
  */
 
 import type { ImageSet } from "../../shared/types/ImageSet";
+import type { ImageInfoResult } from "../../shared/types/ImageInfo";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
@@ -78,6 +79,7 @@ export interface IProjectIPCService {
 
 export interface IImageSettingsWindowIPCService {
     loadImage: () => Promise<string | null>;
+    getImageInfo: (imagePath: string) => Promise<ImageInfoResult>;
     pasteImage: () => Promise<string | null>;
     saveCacheImageAs: (cacheFilePath: string) => Promise<string | null>;
     getPathForFile: (file: File) => string;
@@ -273,6 +275,10 @@ class IPCService implements IIPCService {
 
     async loadImage(): Promise<string | null> {
         return await window.electronAPI.loadImage();
+    }
+
+    async getImageInfo(imagePath: string): Promise<ImageInfoResult> {
+        return await window.electronAPI.getImageInfo(imagePath);
     }
 
     async pasteImage(): Promise<string | null> {

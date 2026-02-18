@@ -60,6 +60,9 @@
             "scale": "Scale",
             "rotation": "Rotation",
             "no_image": "No Image Selected",
+            "missing_file": "Image file is missing",
+            "relink": "Relink Image",
+            "relink_failed": "Failed to relink image",
             "reset_transformation": "Reset Transformation",
             "filters": "Image Filters",
             "binarization": "Binarization",
@@ -83,6 +86,9 @@
             "badge": {
                 "cache_image": "Cache"
             }
+        },
+        "image_status": {
+            "missing_summary": "{{count}} image(s) are missing"
         },
         "project_save": {
             "cache_warning": {

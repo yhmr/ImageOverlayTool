@@ -1,5 +1,6 @@
 import { IIPCService } from "@/renderer/services/ipcService";
 import { ImageSet } from "@/shared/types/ImageSet";
+import type { ImageInfoResult } from "@/shared/types/ImageInfo";
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import { CaptureResult } from "@/shared/types/CaptureResult";
 import { SettingType } from "@/shared/types/AppConfig";
@@ -106,6 +107,12 @@ export class MockIPCService implements IIPCService {
 
     async loadImage(): Promise<string | null> {
         return "path/to/image.png";
+    }
+
+    async getImageInfo(
+        _imagePath: string
+    ): Promise<ImageInfoResult> {
+        return { exists: true, width: 1, height: 1 };
     }
 
     async pasteImage(): Promise<string | null> {

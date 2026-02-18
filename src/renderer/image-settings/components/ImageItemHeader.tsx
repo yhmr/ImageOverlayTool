@@ -22,6 +22,7 @@ interface ImageItemHeaderProps {
     path: string;
     fileName: string;
     sourceType?: "file" | "cache";
+    isMissing?: boolean;
     isLocked?: boolean;
     isVisible?: boolean;
     onFileOpen: () => void;
@@ -36,6 +37,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
         path,
         fileName,
         sourceType = "file",
+        isMissing = false,
         isLocked,
         isVisible = true,
         onFileOpen,
@@ -58,7 +60,9 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
 
             {/* ファイル名 */}
             <div
-                className="flex-grow overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium"
+                className={`flex-grow overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium ${
+                    isMissing ? "text-destructive" : ""
+                }`}
                 title={path}
             >
                 {fileName}

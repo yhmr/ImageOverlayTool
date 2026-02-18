@@ -9,6 +9,8 @@ import { AppMenu } from "./AppMenu";
 import { useMenuState } from "../../hooks/useMenuState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
 import { useProjectOperations } from "../../hooks/useProjectOperations";
+import { useImageFileStatus } from "../../hooks/useImageFileStatus";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 import { Button } from "@/renderer/components/ui/button";
 import {
     Tooltip,
@@ -21,8 +23,10 @@ import { useAppStore, type AppState } from "../../store/useAppStore";
 
 export function MenuBar() {
     const { t } = useTranslation();
-    const { isUIHidden, isClickThroughMode, setClickThroughMode } =
+    const { isUIHidden, isClickThroughMode, setClickThroughMode, imageSets } =
         useAppStore();
+    const ipcService = useIpcService();
+    const { missingCount } = useImageFileStatus(imageSets);
 
     // zundo temporal store
     const undo = useStore(
@@ -140,6 +144,23 @@ export function MenuBar() {
                 <div className="flex-grow text-center text-lg font-medium app-region-drag pointer-events-none">
                     {t("render.menu_button.app_title")}
                 </div>
+
+                {missingCount > 0 && (
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() =>
+                            void ipcService.toggleImageSettingsWindow()
+                        }
+                        className="mr-2 app-region-no-drag"
+                        data-testid="main.status.missing-images"
+                        data-clickthrough-allow
+                    >
+                        {t("render.image_status.missing_summary", {
+                            count: missingCount,
+                        })}
+                    </Button>
+                )}
 
                 {isClickThroughMode && (
                     <Button

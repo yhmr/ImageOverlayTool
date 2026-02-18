@@ -1,12 +1,19 @@
 import fs from "fs/promises";
 import path from "path";
-import { ipcMain, dialog, BrowserWindow, clipboard } from "electron";
+import {
+    ipcMain,
+    dialog,
+    BrowserWindow,
+    clipboard,
+    nativeImage,
+} from "electron";
 import type {
     IImageSettingsWindowController,
     IProjectDirtyStateController,
     IWindowCollectionProvider,
 } from "../windows/windowManager";
 import { ImageSet } from "../../shared/types/ImageSet";
+import type { ImageInfoResult } from "../../shared/types/ImageInfo";
 import log from "../logger";
 import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
 import { IMAGE_FILTERS } from "../../shared/constants/imageFormats";
@@ -15,6 +22,34 @@ import {
     isManagedClipboardCachePath,
     saveClipboardImageToCache,
 } from "../services/clipboardCacheService";
+
+const resolveLocalFilePath = (value: string): string | null => {
+    if (!value || typeof value !== "string") {
+        return null;
+    }
+
+    if (value.startsWith("local-file://")) {
+        try {
+            const url = new URL(value);
+            let resolvedPath = decodeURIComponent(`${url.host}${url.pathname}`);
+            if (/^\/[a-zA-Z]:\//.test(resolvedPath)) {
+                resolvedPath = resolvedPath.slice(1);
+            } else if (/^[a-zA-Z]\//.test(resolvedPath)) {
+                resolvedPath =
+                    resolvedPath.charAt(0).toUpperCase() +
+                    ":" +
+                    resolvedPath.slice(1);
+            }
+            const normalizedPath = path.normalize(resolvedPath);
+            return path.isAbsolute(normalizedPath) ? normalizedPath : null;
+        } catch {
+            return null;
+        }
+    }
+
+    const normalizedPath = path.normalize(value);
+    return path.isAbsolute(normalizedPath) ? normalizedPath : null;
+};
 
 /**
  * 画像設定ウィンドウ用のIPCハンドラを登録
@@ -138,6 +173,38 @@ export const registerImageSettingsWindowHandlers = (
                 log.error("[IPC] image:load failed:", error);
                 throw error;
             }
+        }
+    );
+
+    ipcMain.handle(
+        IPC_CHANNELS.imageSettingsWindow.getImageInfo,
+        async (_event, imagePath: string): Promise<ImageInfoResult> => {
+            const resolvedPath = resolveLocalFilePath(imagePath);
+            if (!resolvedPath) {
+                return { exists: false };
+            }
+
+            try {
+                await fs.access(resolvedPath);
+            } catch {
+                return { exists: false };
+            }
+
+            const image = nativeImage.createFromPath(resolvedPath);
+            if (image.isEmpty()) {
+                return { exists: true };
+            }
+
+            const size = image.getSize();
+            if (size.width > 0 && size.height > 0) {
+                return {
+                    exists: true,
+                    width: size.width,
+                    height: size.height,
+                };
+            }
+
+            return { exists: true };
         }
     );
 

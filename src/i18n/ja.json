@@ -60,6 +60,9 @@
             "scale": "拡大/縮小",
             "rotation": "回転",
             "no_image": "画像未選択",
+            "missing_file": "画像ファイルが見つかりません",
+            "relink": "画像を再割り当て",
+            "relink_failed": "画像の再割り当てに失敗しました",
             "reset_transformation": "変形解除",
             "filters": "画像処理",
             "binarization": "2値化",
@@ -83,6 +86,9 @@
             "badge": {
                 "cache_image": "キャッシュ"
             }
+        },
+        "image_status": {
+            "missing_summary": "画像が{{count}}件見つかりません"
         },
         "project_save": {
             "cache_warning": {

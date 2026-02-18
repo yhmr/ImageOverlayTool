@@ -58,6 +58,9 @@ describe("ipc contract", () => {
         expectTypeOf<IIPCService["toggleImageSettingsWindow"]>().toEqualTypeOf<
             IElectronAPI["toggleImageSettingsWindow"]
         >();
+        expectTypeOf<IIPCService["getImageInfo"]>().toEqualTypeOf<
+            IElectronAPI["getImageInfo"]
+        >();
         expectTypeOf<IIPCService["getLicenseInfo"]>().toEqualTypeOf<
             IElectronAPI["getLicenseInfo"]
         >();

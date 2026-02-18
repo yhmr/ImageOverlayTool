@@ -1,9 +1,10 @@
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { useTranslation } from "react-i18next";
-import { RefreshCcw, Save } from "lucide-react";
+import { AlertTriangle, RefreshCcw, Save } from "lucide-react";
 
 import { Card, CardContent } from "@/renderer/components/ui/card";
 import { Button } from "@/renderer/components/ui/button";
+import type { AnchorPos } from "../../../shared/types/AnchorPos";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import {
     fromLocalFileUrl,
@@ -16,6 +17,7 @@ import {
 } from "../../utils/anchorUtils";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
+import type { ImageFileStatus } from "../../hooks/useImageFileStatus";
 import { ImageItemHeader } from "./ImageItemHeader";
 import { RotationControl } from "./RotationControl";
 import { ScaleControl } from "./ScaleControl";
@@ -25,15 +27,39 @@ import { FilterControl } from "./FilterControl";
 interface ImageListItemProps {
     imageSet: ImageSet;
     index: number;
+    fileStatus?: ImageFileStatus;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
+
+const createInitialAnchors = (width: number, height: number): AnchorPos => ({
+    lt: { x: 0, y: 0 },
+    lb: { x: 0, y: height },
+    rt: { x: width, y: 0 },
+    rb: { x: width, y: height },
+});
+
+const getAnchorSize = (
+    anchorPos: AnchorPos | null
+): { width: number; height: number } | null => {
+    if (!anchorPos) {
+        return null;
+    }
+
+    const width = Math.abs(anchorPos.rt.x - anchorPos.lt.x);
+    const height = Math.abs(anchorPos.lb.y - anchorPos.lt.y);
+    if (width <= 0 || height <= 0) {
+        return null;
+    }
+
+    return { width, height };
+};
 
 /**
  * 画像リストの各アイテム
  * パス表示、透過度スライダー、削除ボタンを含む
  */
 export function ImageListItem(props: ImageListItemProps) {
-    const { imageSet, index, dragHandleProps } = props;
+    const { imageSet, index, fileStatus, dragHandleProps } = props;
     const { t } = useTranslation();
     const ipcService = useIpcService();
 
@@ -44,6 +70,61 @@ export function ImageListItem(props: ImageListItemProps) {
         selectedImageId,
         setSelectedImageId,
     } = useAppStore();
+    const isMissing = Boolean(
+        imageSet.path && fileStatus?.checked && !fileStatus.exists
+    );
+
+    const notifyRelinkFailure = (error: unknown) => {
+        void ipcService.log.warn("Relink failed", { index, error });
+        try {
+            window.alert(t("render.image_settings.relink_failed"));
+        } catch {
+            // noop
+        }
+    };
+
+    const applyRelink = async (selectedPath: string) => {
+        const nextPath = toLocalFileUrl(selectedPath);
+        const nextInfo = await ipcService.getImageInfo(nextPath);
+        const currentSize = getAnchorSize(imageSet.initAnchorPos);
+
+        let nextInitAnchorPos = imageSet.initAnchorPos;
+        if (
+            !nextInitAnchorPos &&
+            nextInfo.exists &&
+            nextInfo.width &&
+            nextInfo.height
+        ) {
+            nextInitAnchorPos = createInitialAnchors(
+                nextInfo.width,
+                nextInfo.height
+            );
+        } else if (
+            currentSize &&
+            nextInfo.exists &&
+            nextInfo.width &&
+            nextInfo.height
+        ) {
+            const sameSize =
+                currentSize.width === nextInfo.width &&
+                currentSize.height === nextInfo.height;
+            if (!sameSize) {
+                nextInitAnchorPos = createInitialAnchors(
+                    nextInfo.width,
+                    nextInfo.height
+                );
+            }
+        }
+
+        const nextImageSet: ImageSet = {
+            ...imageSet,
+            path: nextPath,
+            sourceType: "file",
+            initAnchorPos: nextInitAnchorPos,
+        };
+
+        updateImageSet({ index, imageSet: nextImageSet });
+    };
 
     // ファイルオープン
     const openFile = async () => {
@@ -51,6 +132,14 @@ export function ImageListItem(props: ImageListItemProps) {
         const res = await ipcService.loadImage();
         if (res) {
             ipcService.log.info(`Image loaded for slot ${index}: ${res}`);
+            if (isMissing) {
+                try {
+                    await applyRelink(res);
+                } catch (error) {
+                    notifyRelinkFailure(error);
+                }
+                return;
+            }
             const newImageSet = { ...imageSets[index] };
             newImageSet.path = toLocalFileUrl(res);
             // ファイル読み込み直しの場合は、すべてのパラメータを初期化
@@ -194,6 +283,19 @@ export function ImageListItem(props: ImageListItemProps) {
         };
         updateImageSet({ index, imageSet: newImageSet });
     };
+
+    const relinkMissingImage = async () => {
+        const selectedPath = await ipcService.loadImage();
+        if (!selectedPath) {
+            return;
+        }
+        try {
+            await applyRelink(selectedPath);
+        } catch (error) {
+            notifyRelinkFailure(error);
+        }
+    };
+
     const imageScale =
         imageSet.initAnchorPos && imageSet.currentAnchorPos
             ? calculateAnchorScale(
@@ -207,6 +309,8 @@ export function ImageListItem(props: ImageListItemProps) {
             className={`mb-2 transition-colors cursor-pointer ${
                 isSelected
                     ? "border-primary border-2"
+                    : isMissing
+                    ? "border-destructive/70 border-dashed"
                     : isCacheImage
                     ? "border-muted-foreground/30 border-dashed"
                     : "hover:border-muted-foreground/30"
@@ -219,6 +323,7 @@ export function ImageListItem(props: ImageListItemProps) {
                     path={imageSet.path}
                     fileName={fileName}
                     sourceType={imageSet.sourceType}
+                    isMissing={isMissing}
                     isLocked={imageSet.locked}
                     isVisible={imageSet.visible}
                     onFileOpen={openFile}
@@ -228,8 +333,31 @@ export function ImageListItem(props: ImageListItemProps) {
                     dragHandleProps={dragHandleProps}
                 />
 
+                {isMissing && (
+                    <div
+                        className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-sm text-destructive"
+                        data-testid="settings.image-item.missing-warning"
+                    >
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4" />
+                            <span>
+                                {t("render.image_settings.missing_file")}
+                            </span>
+                        </div>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            className="mt-2 w-full"
+                            onClick={() => void relinkMissingImage()}
+                            data-testid="settings.image-item.relink"
+                        >
+                            {t("render.image_settings.relink")}
+                        </Button>
+                    </div>
+                )}
+
                 {/* 透過度スライダー */}
-                {imageSet.path && (
+                {imageSet.path && !isMissing && (
                     <TransparencyControl
                         transparency={imageSet.transparency}
                         onChange={changeTransparency}
@@ -238,6 +366,7 @@ export function ImageListItem(props: ImageListItemProps) {
 
                 {/* 拡大/縮小スライダー */}
                 {imageSet.path &&
+                    !isMissing &&
                     imageSet.initAnchorPos &&
                     imageSet.currentAnchorPos && (
                         <ScaleControl
@@ -247,7 +376,7 @@ export function ImageListItem(props: ImageListItemProps) {
                     )}
 
                 {/* 回転スライダー */}
-                {imageSet.path && imageSet.currentAnchorPos && (
+                {imageSet.path && !isMissing && imageSet.currentAnchorPos && (
                     <RotationControl
                         rotation={imageSet.rotation || 0}
                         onRotationChange={changeRotation}
@@ -256,7 +385,7 @@ export function ImageListItem(props: ImageListItemProps) {
                 )}
 
                 {/* アクションボタン群 */}
-                {imageSet.path && (
+                {imageSet.path && !isMissing && (
                     <div className="flex gap-2">
                         {/* 変形解除ボタン */}
                         <Button
@@ -283,7 +412,7 @@ export function ImageListItem(props: ImageListItemProps) {
                     </div>
                 )}
 
-                {isCacheImage && imageSet.path && (
+                {isCacheImage && imageSet.path && !isMissing && (
                     <Button
                         variant="default" // Cache save is important action
                         size="sm"

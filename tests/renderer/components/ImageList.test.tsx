@@ -11,6 +11,7 @@ const mockIPC = vi.hoisted(() => ({
     log: {
         info: vi.fn(),
     },
+    getImageInfo: vi.fn().mockResolvedValue({ exists: true, width: 10, height: 10 }),
     updateImageSets: vi.fn().mockResolvedValue(undefined),
     updateUnitFactor: vi.fn().mockResolvedValue(undefined),
     updateUnit: vi.fn().mockResolvedValue(undefined),

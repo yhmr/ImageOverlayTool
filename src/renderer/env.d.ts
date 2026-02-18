@@ -1,6 +1,7 @@
 import type { SettingType } from "../shared/types/AppConfig";
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
+import type { ImageInfoResult } from "../shared/types/ImageInfo";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../shared/types/LicenseInfo";
 import type {
@@ -25,6 +26,7 @@ export interface IElectronAPI {
         export: () => Promise<string | null>;
     };
     loadImage: () => Promise<string | null>;
+    getImageInfo: (imagePath: string) => Promise<ImageInfoResult>;
     getPathForFile: (file: File) => string;
     // Window
     switchWindowSize: () => Promise<boolean>;

@@ -3,6 +3,7 @@ import type { SettingType } from "../shared/types/AppConfig";
 
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
+import type { ImageInfoResult } from "../shared/types/ImageInfo";
 import { IPC_CHANNELS, IPC_EVENTS } from "../shared/ipc/channels";
 import type {
     E2ECaptureRequest,
@@ -94,6 +95,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Image Settings Window
     loadImage: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.loadImage),
+    getImageInfo: (imagePath: string): Promise<ImageInfoResult> =>
+        ipcRenderer.invoke(
+            IPC_CHANNELS.imageSettingsWindow.getImageInfo,
+            imagePath
+        ),
     pasteImage: (): Promise<string | null> =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.pasteImage),
     saveCacheImageAs: (cacheFilePath: string): Promise<string | null> =>

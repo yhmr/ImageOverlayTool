@@ -7,6 +7,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ImageListItem } from "@/renderer/image-settings/components/ImageListItem";
 import { IpcServiceProvider } from "@/renderer/providers/IpcServiceProvider";
 import { useAppStore } from "@/renderer/store/useAppStore";
+import type { ImageFileStatus } from "@/renderer/hooks/useImageFileStatus";
 import { MockIPCService } from "../../../mocks/MockIPCService";
 
 vi.mock("react-i18next", () => ({
@@ -115,11 +116,18 @@ describe("ImageListItem", () => {
         },
     });
 
-    const renderItem = (service: MockIPCService) => {
+    const renderItem = (
+        service: MockIPCService,
+        fileStatus?: ImageFileStatus
+    ) => {
         const imageSet = useAppStore.getState().imageSets[0];
         return render(
             <IpcServiceProvider service={service}>
-                <ImageListItem imageSet={imageSet} index={0} />
+                <ImageListItem
+                    imageSet={imageSet}
+                    index={0}
+                    fileStatus={fileStatus}
+                />
             </IpcServiceProvider>
         );
     };
@@ -264,6 +272,41 @@ describe("ImageListItem", () => {
             rt: { x: 15, y: -5 },
             rb: { x: 15, y: 15 },
             lb: { x: -5, y: 15 },
+        });
+    });
+
+    it("shows missing warning and relinks while preserving current transform", async () => {
+        const service = new MockIPCService();
+        vi.spyOn(service, "loadImage").mockResolvedValue("C:\\img\\relinked.png");
+        vi.spyOn(service, "getImageInfo").mockResolvedValue({
+            exists: true,
+            width: 20,
+            height: 20,
+        });
+
+        const before = useAppStore.getState().imageSets[0];
+        renderItem(service, { checked: true, exists: false });
+
+        expect(screen.getByTestId("settings.image-item.missing-warning")).toBeTruthy();
+        fireEvent.click(screen.getByTestId("settings.image-item.relink"));
+
+        await waitFor(() => {
+            expect(useAppStore.getState().imageSets[0].path).toBe(
+                "local-file://C:/img/relinked.png"
+            );
+        });
+
+        expect(useAppStore.getState().imageSets[0]).toMatchObject({
+            transparency: before.transparency,
+            rotation: before.rotation,
+            currentAnchorPos: before.currentAnchorPos,
+            filters: before.filters,
+            initAnchorPos: {
+                lt: { x: 0, y: 0 },
+                rt: { x: 20, y: 0 },
+                rb: { x: 20, y: 20 },
+                lb: { x: 0, y: 20 },
+            },
         });
     });
 });

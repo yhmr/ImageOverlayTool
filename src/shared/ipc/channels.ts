@@ -29,6 +29,7 @@ export const IPC_CHANNELS = {
     imageSettingsWindow: {
         toggle: "imageSettingsWindow:toggle",
         loadImage: "image:load",
+        getImageInfo: "image:getInfo",
         pasteImage: "imageSettingsWindow:pasteImage",
         saveCacheImageAs: "imageSettingsWindow:saveCacheImageAs",
     },

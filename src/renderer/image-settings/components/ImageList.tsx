@@ -31,6 +31,7 @@ import {
     UNIT_FACTOR_MAX,
     UNIT_FACTOR_MIN,
 } from "../../../shared/constants/unitFactor";
+import { useImageFileStatus } from "../../hooks/useImageFileStatus";
 
 import { ImageListItem } from "./ImageListItem";
 
@@ -50,6 +51,7 @@ export function ImageList() {
         setUnit,
     } = useAppStore();
     const ipcService = useIpcService();
+    const { statusById } = useImageFileStatus(imageSets);
 
     // 新しいImageSetを追加
     const addImageSet = () => {
@@ -106,6 +108,9 @@ export function ImageList() {
                                                 <ImageListItem
                                                     imageSet={imageSet}
                                                     index={index}
+                                                    fileStatus={
+                                                        statusById[imageSet.id]
+                                                    }
                                                     dragHandleProps={
                                                         provided.dragHandleProps
                                                     }
