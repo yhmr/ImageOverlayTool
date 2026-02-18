@@ -1,4 +1,4 @@
-import { useCallback, RefObject, useState } from "react";
+import { useCallback, RefObject, useMemo, useState } from "react";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { useAppStore } from "../store/useAppStore";
@@ -16,14 +16,13 @@ export const useDimensionLineMode = (
         unit,
         addDimensionLine,
         updateDimensionLine,
-        removeDimensionLine,
         interactionMode,
         setInteractionMode,
         selectedDimensionLineId,
         setSelectedDimensionLineId,
     } = useAppStore();
 
-    const [drawingLineId, setDrawingLineId] = useState<string | null>(null);
+    const [draftLine, setDraftLine] = useState<DimensionLine | null>(null);
 
     const isDimensionMode = interactionMode === "dimension";
 
@@ -45,71 +44,56 @@ export const useDimensionLineMode = (
     }, [stageRef]);
 
     const onStageMouseDown = useCallback(
-        (_e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+        (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
             if (!isDimensionMode) return;
-            if ("button" in _e.evt && _e.evt.button === 0) {
+            if (e.target.getType() !== "Stage") return;
+            if ("button" in e.evt && e.evt.button === 0) {
                 const pos = getStagePointerPos();
-                if (pos) {
-                    const id = crypto.randomUUID();
-                    const newLine: DimensionLine = {
-                        id,
-                        start: pos,
-                        end: pos,
-                        color: DIMENSION_LINE_COLOR_DEFAULT,
-                    };
-                    addDimensionLine(newLine);
-                    setDrawingLineId(id);
-                    setSelectedDimensionLineId(id);
-                }
+                if (!pos) return;
+
+                const id = crypto.randomUUID();
+                setDraftLine({
+                    id,
+                    start: pos,
+                    end: pos,
+                    color: DIMENSION_LINE_COLOR_DEFAULT,
+                });
+                setSelectedDimensionLineId(null);
             }
         },
-        [
-            isDimensionMode,
-            getStagePointerPos,
-            addDimensionLine,
-            setSelectedDimensionLineId,
-        ]
+        [isDimensionMode, getStagePointerPos, setSelectedDimensionLineId]
     );
 
     const onStageMouseMove = useCallback(() => {
-        if (drawingLineId) {
-            const pos = getStagePointerPos();
-            if (pos && dimensionLines) {
-                const line = dimensionLines.find((l) => l.id === drawingLineId);
-                if (line) {
-                    updateDimensionLine({ ...line, end: pos });
-                }
-            }
-        }
-    }, [
-        drawingLineId,
-        getStagePointerPos,
-        dimensionLines,
-        updateDimensionLine,
-    ]);
+        const pos = getStagePointerPos();
+        if (!pos) return;
+
+        setDraftLine((prev) => (prev ? { ...prev, end: pos } : prev));
+    }, [getStagePointerPos]);
 
     const onMouseUp = useCallback(() => {
-        if (drawingLineId) {
-            if (dimensionLines) {
-                const line = dimensionLines.find((l) => l.id === drawingLineId);
-                if (line) {
-                    const dx = line.end.x - line.start.x;
-                    const dy = line.end.y - line.start.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < MIN_DIMENSION_LINE_DISTANCE) {
-                        removeDimensionLine(drawingLineId);
-                        setSelectedDimensionLineId(null);
-                    }
-                }
-            }
-            setDrawingLineId(null);
+        if (!draftLine) return;
+
+        const dx = draftLine.end.x - draftLine.start.x;
+        const dy = draftLine.end.y - draftLine.start.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist >= MIN_DIMENSION_LINE_DISTANCE) {
+            addDimensionLine(draftLine);
+            setSelectedDimensionLineId(draftLine.id);
+        } else {
+            setSelectedDimensionLineId(null);
         }
-    }, [
-        drawingLineId,
-        dimensionLines,
-        removeDimensionLine,
-        setSelectedDimensionLineId,
-    ]);
+
+        setDraftLine(null);
+    }, [draftLine, addDimensionLine, setSelectedDimensionLineId]);
+
+    const renderedDimensionLines = useMemo(() => {
+        if (!draftLine) {
+            return dimensionLines;
+        }
+        return [...dimensionLines, draftLine];
+    }, [dimensionLines, draftLine]);
 
     // キーボードイベント処理は専用フックに委譲
     useDimensionKeyboard();
@@ -119,7 +103,7 @@ export const useDimensionLineMode = (
         setDimensionModeEnabled,
         selectedDimensionLineId,
         setSelectedDimensionLineId,
-        dimensionLines,
+        dimensionLines: renderedDimensionLines,
         unitFactor,
         unit,
         updateDimensionLine,
