@@ -19,50 +19,26 @@ import {
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
 import { cn } from "@/renderer/lib/utils";
-import { useCapture } from "../../hooks/useCapture";
-import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
-import { ColorPicker } from "./ColorPicker";
+import type { MainWindowActions } from "../hooks/useMainWindowActions";
 
 interface ControlButtonProps {
     onOpenImageExportDialog: () => void;
+    onOpenWindowColorPicker: () => void;
+    mainWindowActions: MainWindowActions;
 }
 
 export function ControlButton(props: ControlButtonProps) {
-    const { onOpenImageExportDialog } = props;
+    const {
+        onOpenImageExportDialog,
+        onOpenWindowColorPicker,
+        mainWindowActions,
+    } = props;
     const { t } = useTranslation();
-    const { captureBackground } = useCapture();
-    const { isUIHidden, windowColor, setWindowColor, isClickThroughMode } =
-        useAppStore();
-    const setClickThroughMode = useAppStore(
-        (state) => state.setClickThroughMode
-    );
-    const ipcService = useIpcService();
-    const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+    const isUIHidden = useAppStore((state) => state.isUIHidden);
     const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
 
     const toggleFabMenu = () => setIsFabMenuOpen((prev) => !prev);
-
-    // 画像設定ウィンドウを開く
-    const toggleImageSettingsWindow = async () => {
-        await ipcService.toggleImageSettingsWindow();
-    };
-
-    const openWindowColorPicker = () => {
-        setIsColorPickerOpen(true);
-    };
-
-    const toggleDimensionSettingsWindow = async () => {
-        await ipcService.toggleDimensionSettingsWindow();
-    };
-
-    const saveWindowColor = () => {
-        void ipcService.saveWindowColor(windowColor);
-    };
-
-    const changeWindowColor = (color: string) => {
-        setWindowColor(color);
-    };
 
     if (isUIHidden) return null;
 
@@ -73,26 +49,26 @@ export function ControlButton(props: ControlButtonProps) {
             id: "dimension-settings",
             icon: Ruler,
             label: t("render.control_button.tooltip.dimension_line"),
-            onClick: toggleDimensionSettingsWindow,
+            onClick: mainWindowActions.openDimensionSettingsWindow,
         },
         {
             id: "image-settings",
             icon: Settings2,
             label: t("render.control_button.tooltip.image_settings"),
-            onClick: toggleImageSettingsWindow,
+            onClick: mainWindowActions.openImageSettingsWindow,
         },
         {
             id: "background-style",
             icon: Droplets,
             label: t("render.control_button.tooltip.background_style"),
-            onClick: openWindowColorPicker,
+            onClick: onOpenWindowColorPicker,
         },
         {
             id: "click-through-mode",
             icon: Ghost,
             label: t("render.control_button.tooltip.click_through_mode"),
-            onClick: () => setClickThroughMode(!isClickThroughMode),
-            isActive: isClickThroughMode,
+            onClick: mainWindowActions.toggleClickThroughMode,
+            isActive: mainWindowActions.isClickThroughMode,
             activeClass:
                 "bg-primary text-primary-foreground hover:bg-primary/90",
         },
@@ -101,7 +77,7 @@ export function ControlButton(props: ControlButtonProps) {
             id: "capture",
             icon: Camera,
             label: t("render.control_button.tooltip.capture"),
-            onClick: captureBackground,
+            onClick: mainWindowActions.captureBackground,
             separatorBefore: true, // 区切り線用フラグ
         },
         {
@@ -204,15 +180,6 @@ export function ControlButton(props: ControlButtonProps) {
                     );
                 })}
             </div>
-
-            <ColorPicker
-                isOpen={isColorPickerOpen}
-                onOpenChange={setIsColorPickerOpen}
-                color={windowColor}
-                onColorChange={changeWindowColor}
-                onColorChangeComplete={saveWindowColor}
-                centerOnScreen
-            />
         </TooltipProvider>
     );
 }

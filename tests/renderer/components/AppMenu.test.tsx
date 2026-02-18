@@ -5,17 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AppMenu } from "@/renderer/main-window/components/AppMenu";
+import type { MainWindowActions } from "@/renderer/main-window/hooks/useMainWindowActions";
 
-const {
-    toggleImageSettingsWindow,
-    toggleDimensionSettingsWindow,
-    exportLogs,
-    saveWindowColor,
-} = vi.hoisted(() => ({
-    toggleImageSettingsWindow: vi.fn().mockResolvedValue(true),
-    toggleDimensionSettingsWindow: vi.fn().mockResolvedValue(true),
+const { exportLogs } = vi.hoisted(() => ({
     exportLogs: vi.fn().mockResolvedValue("logs.txt"),
-    saveWindowColor: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -26,10 +19,6 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("@/renderer/services/ipcService", () => ({
     getIPCService: () => ({
-        toggleImageSettingsWindow,
-        toggleDimensionSettingsWindow,
-        captureScreen: vi.fn().mockResolvedValue(null),
-        saveWindowColor,
         log: {
             export: exportLogs,
             info: vi.fn(),
@@ -45,29 +34,47 @@ describe("AppMenu test ids", () => {
 
     it("renders stable menu test ids and triggers menu actions", async () => {
         const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+        const openImageSettingsWindow = vi.fn();
+        const openDimensionSettingsWindow = vi.fn();
+        const captureBackground = vi.fn();
+        const toggleClickThroughMode = vi.fn();
+        const onOpenWindowColorPicker = vi.fn();
+        const mainWindowActions: MainWindowActions = {
+            isClickThroughMode: false,
+            openImageSettingsWindow,
+            openDimensionSettingsWindow,
+            captureBackground,
+            toggleClickThroughMode,
+            disableClickThroughMode: vi.fn(),
+        };
 
         render(
             <AppMenu
                 openSettingDialog={vi.fn()}
                 openAboutDialog={vi.fn()}
                 openImageExportDialog={vi.fn()}
+                onOpenWindowColorPicker={onOpenWindowColorPicker}
                 closeWindow={vi.fn()}
                 newProject={vi.fn()}
                 openProject={vi.fn()}
                 saveProject={vi.fn()}
                 saveProjectAs={vi.fn()}
+                mainWindowActions={mainWindowActions}
             />
         );
 
         const trigger = screen.getByTestId("main.menu.trigger");
-        const openMenu = async () => {
+        const ensureMenuOpen = async () => {
+            if (screen.queryByTestId("main.menu.content")) {
+                return;
+            }
             fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
             await waitFor(() => {
                 expect(screen.getByTestId("main.menu.content")).toBeTruthy();
             });
         };
 
-        await openMenu();
+        await ensureMenuOpen();
 
         expect(screen.getByTestId("main.menu.item.new-project")).toBeTruthy();
         expect(screen.getByTestId("main.menu.item.open-project")).toBeTruthy();
@@ -76,34 +83,44 @@ describe("AppMenu test ids", () => {
             screen.getByTestId("main.menu.item.save-project-as")
         ).toBeTruthy();
 
-        fireEvent.click(
-            screen.getByTestId("main.menu.item.open-image-settings")
-        );
+        fireEvent.click(screen.getByTestId("main.menu.item.open-image-settings"));
+        expect(openImageSettingsWindow).toHaveBeenCalledTimes(1);
 
-        await openMenu();
+        await ensureMenuOpen();
         fireEvent.click(
             screen.getByTestId("main.menu.item.open-dimension-settings")
         );
+        expect(openDimensionSettingsWindow).toHaveBeenCalledTimes(1);
 
-        await openMenu();
-        expect(screen.getByTestId("main.menu.item.capture-background")).toBeTruthy();
+        await ensureMenuOpen();
+        expect(
+            screen.getByTestId("main.menu.item.capture-background")
+        ).toBeTruthy();
         expect(screen.getByTestId("main.menu.item.export-image")).toBeTruthy();
-        expect(screen.getByTestId("main.menu.item.background-style")).toBeTruthy();
-        expect(screen.getByTestId("main.menu.item.click-through-mode")).toBeTruthy();
+        expect(
+            screen.getByTestId("main.menu.item.background-style")
+        ).toBeTruthy();
+        expect(
+            screen.getByTestId("main.menu.item.click-through-mode")
+        ).toBeTruthy();
 
+        fireEvent.click(screen.getByTestId("main.menu.item.capture-background"));
+        expect(captureBackground).toHaveBeenCalledTimes(1);
+
+        await ensureMenuOpen();
         fireEvent.click(screen.getByTestId("main.menu.item.background-style"));
-        expect(screen.getByTestId("main.color-picker.overlay")).toBeTruthy();
-        fireEvent.click(screen.getByTestId("main.color-picker.overlay"));
+        expect(onOpenWindowColorPicker).toHaveBeenCalledTimes(1);
 
-        await openMenu();
+        await ensureMenuOpen();
+        fireEvent.click(screen.getByTestId("main.menu.item.click-through-mode"));
+        expect(toggleClickThroughMode).toHaveBeenCalledTimes(1);
+
+        await ensureMenuOpen();
         fireEvent.click(screen.getByTestId("main.menu.item.help-manual"));
 
-        await openMenu();
+        await ensureMenuOpen();
         fireEvent.click(screen.getByTestId("main.menu.item.export-logs"));
 
-        expect(toggleImageSettingsWindow).toHaveBeenCalledTimes(1);
-        expect(toggleDimensionSettingsWindow).toHaveBeenCalledTimes(1);
-        expect(saveWindowColor).toHaveBeenCalledTimes(1);
         expect(exportLogs).toHaveBeenCalledTimes(1);
         expect(openSpy).toHaveBeenCalledWith(
             "https://yhmr.github.io/ImageOverlayTool/guide/",

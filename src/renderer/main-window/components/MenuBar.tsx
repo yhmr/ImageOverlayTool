@@ -10,22 +10,26 @@ import { useMainWindowDialogState } from "../../hooks/useMainWindowDialogState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
 import { useProjectOperations } from "../../hooks/useProjectOperations";
 import { useImageFileStatus } from "../../hooks/useImageFileStatus";
-import { useIpcService } from "../../providers/IpcServiceProvider";
 import { AboutDialog } from "../../dialogs/about/AboutDialog";
 import { Button } from "@/renderer/components/ui/button";
 import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
 import { useAppStore, type AppState } from "../../store/useAppStore";
+import type { MainWindowActions } from "../hooks/useMainWindowActions";
 
 interface MenuBarProps {
     onOpenImageExportDialog: () => void;
+    onOpenWindowColorPicker: () => void;
+    mainWindowActions: MainWindowActions;
 }
 
-export function MenuBar({ onOpenImageExportDialog }: MenuBarProps) {
+export function MenuBar({
+    onOpenImageExportDialog,
+    onOpenWindowColorPicker,
+    mainWindowActions,
+}: MenuBarProps) {
     const { t } = useTranslation();
-    const { isUIHidden, isClickThroughMode, setClickThroughMode, imageSets } =
-        useAppStore();
-    const ipcService = useIpcService();
+    const { isUIHidden, imageSets } = useAppStore();
     const { missingCount } = useImageFileStatus(imageSets);
 
     // zundo temporal store
@@ -77,11 +81,13 @@ export function MenuBar({ onOpenImageExportDialog }: MenuBarProps) {
                     openSettingDialog={openSettingDialog}
                     openAboutDialog={openAboutDialog}
                     openImageExportDialog={onOpenImageExportDialog}
+                    onOpenWindowColorPicker={onOpenWindowColorPicker}
                     closeWindow={closeWindow}
                     newProject={newProject}
                     openProject={openProject}
                     saveProject={saveProject}
                     saveProjectAs={saveProjectAs}
+                    mainWindowActions={mainWindowActions}
                 />
 
                 <MenuBarHistoryActions
@@ -110,9 +116,7 @@ export function MenuBar({ onOpenImageExportDialog }: MenuBarProps) {
                     <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() =>
-                            void ipcService.toggleImageSettingsWindow()
-                        }
+                        onClick={mainWindowActions.openImageSettingsWindow}
                         className="mr-2 app-region-no-drag"
                         data-testid="main.status.missing-images"
                         data-clickthrough-allow
@@ -123,11 +127,11 @@ export function MenuBar({ onOpenImageExportDialog }: MenuBarProps) {
                     </Button>
                 )}
 
-                {isClickThroughMode && (
+                {mainWindowActions.isClickThroughMode && (
                     <Button
                         variant="secondary"
                         size="sm"
-                        onClick={() => setClickThroughMode(false)}
+                        onClick={mainWindowActions.disableClickThroughMode}
                         className="mr-2 app-region-no-drag bg-amber-500/90 text-amber-950 hover:bg-amber-500"
                         data-testid="main.status.click-through-mode"
                         data-clickthrough-allow

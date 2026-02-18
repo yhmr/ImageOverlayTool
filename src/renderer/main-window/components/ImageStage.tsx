@@ -20,11 +20,14 @@ import { useClickThroughMode } from "../../hooks/useClickThroughMode";
 import { useStageExport } from "../hooks/useStageExport";
 import { useImageInitialization } from "../hooks/useImageInitialization";
 import { useStagePointerHandlers } from "../hooks/useStagePointerHandlers";
+import type { MainWindowActions } from "../hooks/useMainWindowActions";
 
 interface ImageStageProps {
     isImageExportDialogOpen: boolean;
     onOpenImageExportDialog: () => void;
     onCloseImageExportDialog: () => void;
+    onOpenWindowColorPicker: () => void;
+    mainWindowActions: MainWindowActions;
 }
 
 export const ImageStage = memo(function ImageStage(props: ImageStageProps) {
@@ -32,6 +35,8 @@ export const ImageStage = memo(function ImageStage(props: ImageStageProps) {
         isImageExportDialogOpen,
         onOpenImageExportDialog,
         onCloseImageExportDialog,
+        onOpenWindowColorPicker,
+        mainWindowActions,
     } = props;
     const {
         imageSets,
@@ -161,7 +166,11 @@ export const ImageStage = memo(function ImageStage(props: ImageStageProps) {
                     />
                 </Layer>
             </Stage>
-            <ControlButton onOpenImageExportDialog={onOpenImageExportDialog} />
+            <ControlButton
+                onOpenImageExportDialog={onOpenImageExportDialog}
+                onOpenWindowColorPicker={onOpenWindowColorPicker}
+                mainWindowActions={mainWindowActions}
+            />
             <ImageExportDialog
                 open={isImageExportDialogOpen}
                 onClose={onCloseImageExportDialog}

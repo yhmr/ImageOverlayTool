@@ -18,16 +18,22 @@ import {
     useIpcService,
 } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
+import { ColorPicker } from "./components/ColorPicker";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { WindowResizeHandles } from "./components/WindowResizeHandles";
+import { useMainWindowActions } from "./hooks/useMainWindowActions";
+import { useWindowColorPickerController } from "./hooks/useWindowColorPickerController";
 
 const App = () => {
     // 設定の読み込み
-    const { windowColor, setWindowColor } = useAppStore();
+    const { setWindowColor } = useAppStore();
+    const windowColor = useAppStore((state) => state.windowColor);
     const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
     const ipcService = useIpcService();
+    const mainWindowActions = useMainWindowActions();
+    const windowColorPicker = useWindowColorPickerController();
     const {
         isImageExportDialogOpen,
         openImageExportDialog,
@@ -101,7 +107,11 @@ const App = () => {
             onDragOver={onDragOver}
             onDrop={onDrop}
         >
-            <MenuBar onOpenImageExportDialog={openImageExportDialog} />
+            <MenuBar
+                onOpenImageExportDialog={openImageExportDialog}
+                onOpenWindowColorPicker={windowColorPicker.open}
+                mainWindowActions={mainWindowActions}
+            />
             <div
                 style={{
                     width: "100%",
@@ -119,9 +129,19 @@ const App = () => {
                         isImageExportDialogOpen={isImageExportDialogOpen}
                         onOpenImageExportDialog={openImageExportDialog}
                         onCloseImageExportDialog={closeImageExportDialog}
+                        onOpenWindowColorPicker={windowColorPicker.open}
+                        mainWindowActions={mainWindowActions}
                     />
                 </div>
             </div>
+            <ColorPicker
+                isOpen={windowColorPicker.isOpen}
+                onOpenChange={windowColorPicker.setOpen}
+                color={windowColorPicker.windowColor}
+                onColorChange={windowColorPicker.setWindowColor}
+                onColorChangeComplete={windowColorPicker.saveWindowColor}
+                centerOnScreen
+            />
             <WindowResizeHandles />
         </div>
     );
