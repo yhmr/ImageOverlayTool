@@ -1,12 +1,10 @@
-import fs from "fs/promises";
-import path from "path";
 import { ipcMain, dialog, BrowserWindow } from "electron";
 import type { IpcMainInvokeEvent } from "electron";
 import { IProjectRepository } from "../repositories/ProjectRepository";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import log from "../logger";
 import { IPC_CHANNELS } from "../../shared/ipc/channels";
-import { deleteClipboardCacheFileIfManaged } from "../services/clipboardCacheService";
+import { ProjectService } from "../services/ProjectService";
 
 export interface ProjectHandlerOptions {
     testMode?: {
@@ -20,6 +18,8 @@ export const registerProjectHandlers = (
     options?: ProjectHandlerOptions
 ) => {
     const testMode = options?.testMode;
+    const projectService = new ProjectService();
+
     const saveDialogOptions = {
         title: "Save Project",
         defaultPath: "project.iot",
@@ -43,34 +43,6 @@ export const registerProjectHandlers = (
         }
 
         return result.filePath;
-    };
-
-    const fileExists = async (targetPath: string): Promise<boolean> => {
-        try {
-            await fs.access(targetPath);
-            return true;
-        } catch {
-            return false;
-        }
-    };
-
-    const resolveAvailablePath = async (
-        directoryPath: string,
-        sourcePath: string
-    ): Promise<string> => {
-        const ext = path.extname(sourcePath) || ".png";
-        const baseName = path.basename(sourcePath, ext) || "image";
-        let candidateName = `${baseName}${ext}`;
-        let candidatePath = path.join(directoryPath, candidateName);
-        let suffix = 1;
-
-        while (await fileExists(candidatePath)) {
-            candidateName = `${baseName}-${suffix}${ext}`;
-            candidatePath = path.join(directoryPath, candidateName);
-            suffix += 1;
-        }
-
-        return candidatePath;
     };
 
     ipcMain.handle(
@@ -215,33 +187,11 @@ export const registerProjectHandlers = (
             }
 
             try {
-                const projectDirectory = path.dirname(projectFilePath);
-                const assetsDirectory = path.join(projectDirectory, "assets");
-                await fs.mkdir(assetsDirectory, { recursive: true });
-
-                const replacements: Record<string, string> = {};
-                for (const sourcePath of new Set(cacheImagePaths)) {
-                    if (!sourcePath || typeof sourcePath !== "string") {
-                        continue;
-                    }
-
-                    if (!(await fileExists(sourcePath))) {
-                        log.warn(
-                            "[IPC] project:materializeCacheImages source not found",
-                            sourcePath
-                        );
-                        continue;
-                    }
-
-                    const destinationPath = await resolveAvailablePath(
-                        assetsDirectory,
-                        sourcePath
+                const replacements =
+                    await projectService.materializeCacheImages(
+                        projectFilePath,
+                        cacheImagePaths
                     );
-                    await fs.copyFile(sourcePath, destinationPath);
-                    await deleteClipboardCacheFileIfManaged(sourcePath);
-                    replacements[sourcePath] = destinationPath;
-                }
-
                 log.info("[IPC] project:materializeCacheImages completed", {
                     count: Object.keys(replacements).length,
                 });

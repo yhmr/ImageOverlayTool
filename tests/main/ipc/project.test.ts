@@ -5,6 +5,10 @@ import { MockProjectRepository } from "../repositories/mocks/MockProjectReposito
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import { invokeIpcHandler } from "../utils/ipcTestHelper";
 
+const { mockMaterializeCacheImages } = vi.hoisted(() => ({
+    mockMaterializeCacheImages: vi.fn(),
+}));
+
 // Mock electron
 vi.mock("electron", () => ({
     ipcMain: {
@@ -22,6 +26,12 @@ vi.mock("electron", () => ({
     },
 }));
 
+vi.mock("@/main/services/ProjectService", () => ({
+    ProjectService: class {
+        materializeCacheImages = mockMaterializeCacheImages;
+    },
+}));
+
 // Mock logger
 vi.mock("@/main/logger", () => ({
     default: {
@@ -36,6 +46,7 @@ describe("IPC Project Handlers", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockMaterializeCacheImages.mockReset();
         mockRepo = new MockProjectRepository();
         // Register handlers using the mock repository
         registerProjectHandlers(mockRepo);
@@ -56,6 +67,10 @@ describe("IPC Project Handlers", () => {
         );
         expect(ipcMain.handle).toHaveBeenCalledWith(
             "project:loadFromPath",
+            expect.any(Function)
+        );
+        expect(ipcMain.handle).toHaveBeenCalledWith(
+            "project:materializeCacheImages",
             expect.any(Function)
         );
     });
@@ -233,6 +248,51 @@ describe("IPC Project Handlers", () => {
                 "/failed/path.iot"
             );
             expect(result).toBeNull();
+        });
+    });
+
+    describe("project:materializeCacheImages", () => {
+        it("should materialize cache images and return replacements", async () => {
+            const payload = {
+                projectFilePath: "/project/test.iot",
+                cacheImagePaths: ["/cache/a.png", "/cache/b.png"],
+            };
+            const replacements = {
+                "/cache/a.png": "/project/assets/a.png",
+                "/cache/b.png": "/project/assets/b.png",
+            };
+            mockMaterializeCacheImages.mockResolvedValue(replacements);
+
+            const result = await invokeIpcHandler(
+                "project:materializeCacheImages",
+                {},
+                payload
+            );
+
+            expect(mockMaterializeCacheImages).toHaveBeenCalledWith(
+                payload.projectFilePath,
+                payload.cacheImagePaths
+            );
+            expect(result).toEqual(replacements);
+        });
+
+        it("should reject invalid payload", async () => {
+            await expect(
+                invokeIpcHandler("project:materializeCacheImages", {}, {} as any)
+            ).rejects.toThrow("Invalid payload for project:materializeCacheImages");
+        });
+
+        it("should propagate errors from ProjectService", async () => {
+            mockMaterializeCacheImages.mockRejectedValue(
+                new Error("materialize failed")
+            );
+
+            await expect(
+                invokeIpcHandler("project:materializeCacheImages", {}, {
+                    projectFilePath: "/project/test.iot",
+                    cacheImagePaths: ["/cache/a.png"],
+                })
+            ).rejects.toThrow("materialize failed");
         });
     });
 
