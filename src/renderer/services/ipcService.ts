@@ -121,6 +121,7 @@ export interface IInteractionModeSyncIPCService {
 export interface IStateSyncIPCService {
     requestInitialState: () => Promise<void>;
     onRequestStateSync: (callback: () => void) => () => void;
+    onClickThroughShortcutTriggered: (callback: () => void) => () => void;
     onFileOpen: (
         callback: (filePath: string, ext: string) => void
     ) => () => void;
@@ -379,6 +380,10 @@ class IPCService implements IIPCService {
 
     onRequestStateSync(callback: () => void): () => void {
         return window.electronAPI.onRequestStateSync(callback);
+    }
+
+    onClickThroughShortcutTriggered(callback: () => void): () => void {
+        return window.electronAPI.onClickThroughShortcutTriggered(callback);
     }
 
     onFileOpen(callback: (filePath: string, ext: string) => void): () => void {

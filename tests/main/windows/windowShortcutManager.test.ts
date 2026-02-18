@@ -19,22 +19,16 @@ describe("ElectronWindowShortcutManager", () => {
         vi.clearAllMocks();
     });
 
-    it("registers Ctrl/Cmd+I shortcut", () => {
+    it("registers Ctrl/Cmd+Shift+M shortcut", () => {
         const manager = new ElectronWindowShortcutManager();
         const callback = vi.fn();
 
-        manager.registerToggleImageSettings(callback);
+        manager.registerToggleClickThroughMode(callback);
 
-        expect(register).toHaveBeenCalledWith("CommandOrControl+I", callback);
-    });
-
-    it("registers Ctrl/Cmd+D shortcut", () => {
-        const manager = new ElectronWindowShortcutManager();
-        const callback = vi.fn();
-
-        manager.registerToggleDimensionSettings(callback);
-
-        expect(register).toHaveBeenCalledWith("CommandOrControl+D", callback);
+        expect(register).toHaveBeenCalledWith(
+            "CommandOrControl+Shift+M",
+            callback
+        );
     });
 
     it("unregisters all shortcuts", () => {

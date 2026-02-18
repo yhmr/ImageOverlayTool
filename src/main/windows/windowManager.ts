@@ -50,6 +50,15 @@ export class WindowManager {
     private pendingFilePath: string | null = null;
     private splashDisplayTime: number | null = null;
 
+    private notifyClickThroughShortcutTriggered(): void {
+        if (!this.mainWindow || this.mainWindow.isDestroyed()) {
+            return;
+        }
+        this.mainWindow.webContents.send(
+            IPC_EVENTS.clickThroughShortcutTriggered
+        );
+    }
+
     private resetDimensionInteractionState(): void {
         const windows = this.getAllWindows();
         windows.forEach((win) => {
@@ -558,11 +567,8 @@ export class WindowManager {
      * グローバルショートカットを登録
      */
     registerShortcuts(): void {
-        this.shortcutManager.registerToggleImageSettings(() => {
-            this.toggleImageSettingsWindow();
-        });
-        this.shortcutManager.registerToggleDimensionSettings(() => {
-            this.toggleDimensionSettingsWindow();
+        this.shortcutManager.registerToggleClickThroughMode(() => {
+            this.notifyClickThroughShortcutTriggered();
         });
     }
 

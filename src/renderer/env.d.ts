@@ -47,6 +47,7 @@ export interface IElectronAPI {
     exportSettings: () => Promise<string | null>;
     importSettings: () => Promise<SettingType | null>;
     onLanguageUpdated: (callback: (language: string) => void) => () => void;
+    onClickThroughShortcutTriggered: (callback: () => void) => () => void;
     // Window Color
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;

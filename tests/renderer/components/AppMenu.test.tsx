@@ -59,6 +59,7 @@ describe("AppMenu test ids", () => {
                 openProject={vi.fn()}
                 saveProject={vi.fn()}
                 saveProjectAs={vi.fn()}
+                onExportLogs={exportLogs}
                 mainWindowActions={mainWindowActions}
             />
         );

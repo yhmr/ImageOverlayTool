@@ -6,15 +6,6 @@ import { useAppStore } from "../store/useAppStore";
 const CLICK_THROUGH_TARGET_SELECTOR = "[data-clickthrough-target]";
 const CLICK_THROUGH_ALLOW_SELECTOR = "[data-clickthrough-allow]";
 
-const isEditableElement = (element: HTMLElement): boolean => {
-    const tagName = element.tagName;
-    return (
-        tagName === "INPUT" ||
-        tagName === "TEXTAREA" ||
-        element.isContentEditable
-    );
-};
-
 const shouldIgnoreMouseEvents = (element: HTMLElement | null): boolean => {
     if (!element) {
         return false;
@@ -33,27 +24,12 @@ export const useClickThroughMode = (): void => {
     );
 
     useEffect(() => {
-        const onKeyDown = (event: KeyboardEvent) => {
-            const target = event.target;
-            if (target instanceof HTMLElement && isEditableElement(target)) {
-                return;
-            }
-
-            if (
-                (event.ctrlKey || event.metaKey) &&
-                event.shiftKey &&
-                !event.altKey &&
-                event.key.toLowerCase() === "m"
-            ) {
-                event.preventDefault();
-                const current = useAppStore.getState().isClickThroughMode;
-                setClickThroughMode(!current);
-            }
-        };
-
-        window.addEventListener("keydown", onKeyDown);
-        return () => window.removeEventListener("keydown", onKeyDown);
-    }, [setClickThroughMode]);
+        const unsubscribe = ipcService.onClickThroughShortcutTriggered(() => {
+            const current = useAppStore.getState().isClickThroughMode;
+            setClickThroughMode(!current);
+        });
+        return unsubscribe;
+    }, [ipcService, setClickThroughMode]);
 
     useEffect(() => {
         void ipcService.setAlwaysOnTop(isClickThroughMode);

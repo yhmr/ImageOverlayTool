@@ -190,6 +190,10 @@ export class MockIPCService implements IIPCService {
         return () => { };
     }
 
+    onClickThroughShortcutTriggered(_callback: () => void): () => void {
+        return () => { };
+    }
+
     onFileOpen(_callback: (filePath: string, ext: string) => void): () => void {
         return () => { };
     }

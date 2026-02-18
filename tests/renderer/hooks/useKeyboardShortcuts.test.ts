@@ -62,4 +62,49 @@ describe("useKeyboardShortcuts", () => {
         expect(state.canvas.y).toBeCloseTo(7.5, 5);
         expect(state.selectedImageId).toBeNull();
     });
+
+    it("calls new project handler on Ctrl+N", () => {
+        const onNewProject = vi.fn();
+        renderHook(() => useKeyboardShortcuts({ onNewProject }));
+
+        const preventDefault = vi.fn();
+
+        act(() => {
+            const event = new KeyboardEvent("keydown", {
+                key: "n",
+                ctrlKey: true,
+            });
+            Object.defineProperty(event, "preventDefault", {
+                value: preventDefault,
+            });
+            window.dispatchEvent(event);
+        });
+
+        expect(preventDefault).toHaveBeenCalledTimes(1);
+        expect(onNewProject).toHaveBeenCalledTimes(1);
+    });
+
+    it("calls click-through toggle handler on Ctrl+Shift+M", () => {
+        const onToggleClickThroughMode = vi.fn();
+        renderHook(() =>
+            useKeyboardShortcuts({ onToggleClickThroughMode })
+        );
+
+        const preventDefault = vi.fn();
+
+        act(() => {
+            const event = new KeyboardEvent("keydown", {
+                key: "m",
+                ctrlKey: true,
+                shiftKey: true,
+            });
+            Object.defineProperty(event, "preventDefault", {
+                value: preventDefault,
+            });
+            window.dispatchEvent(event);
+        });
+
+        expect(preventDefault).toHaveBeenCalledTimes(1);
+        expect(onToggleClickThroughMode).toHaveBeenCalledTimes(1);
+    });
 });

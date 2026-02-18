@@ -10,12 +10,15 @@ import { useMainWindowDialogState } from "../../hooks/useMainWindowDialogState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
 import { useProjectOperations } from "../../hooks/useProjectOperations";
 import { useImageFileStatus } from "../../hooks/useImageFileStatus";
+import { useImagePaste } from "../../hooks/useImagePaste";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { AboutDialog } from "../../dialogs/about/AboutDialog";
 import { Button } from "@/renderer/components/ui/button";
 import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
 import { useAppStore, type AppState } from "../../store/useAppStore";
 import type { MainWindowActions } from "../hooks/useMainWindowActions";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface MenuBarProps {
     onOpenImageExportDialog: () => void;
@@ -31,6 +34,7 @@ export function MenuBar({
     const { t } = useTranslation();
     const { isUIHidden, imageSets } = useAppStore();
     const { missingCount } = useImageFileStatus(imageSets);
+    const ipcService = useIpcService();
 
     // zundo temporal store
     const undo = useStore(
@@ -63,6 +67,27 @@ export function MenuBar({
 
     const { newProject, openProject, saveProject, saveProjectAs } =
         useProjectOperations();
+    const { pasteImage } = useImagePaste();
+
+    const exportLogs = () => {
+        void ipcService.log.export();
+    };
+
+    useKeyboardShortcuts({
+        onNewProject: newProject,
+        onOpenProject: openProject,
+        onSaveProject: saveProject,
+        onSaveProjectAs: saveProjectAs,
+        onOpenImageSettings: mainWindowActions.openImageSettingsWindow,
+        onPasteImage: pasteImage,
+        onCaptureBackground: mainWindowActions.captureBackground,
+        onOpenImageExport: onOpenImageExportDialog,
+        onOpenDimensionSettings: mainWindowActions.openDimensionSettingsWindow,
+        onOpenBackgroundStyle: onOpenWindowColorPicker,
+        onOpenSettings: openSettingDialog,
+        onExportLogs: exportLogs,
+        onExit: closeWindow,
+    });
 
     return (
         <TooltipProvider>
@@ -87,6 +112,7 @@ export function MenuBar({
                     openProject={openProject}
                     saveProject={saveProject}
                     saveProjectAs={saveProjectAs}
+                    onExportLogs={exportLogs}
                     mainWindowActions={mainWindowActions}
                 />
 

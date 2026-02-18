@@ -380,26 +380,45 @@ describe("WindowManager", () => {
 
     it("delegates shortcut registration to injected manager", () => {
         const shortcutManager: IWindowShortcutManager = {
-            registerToggleImageSettings: vi.fn(),
-            registerToggleDimensionSettings: vi.fn(),
+            registerToggleClickThroughMode: vi.fn(),
             unregisterAll: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository, shortcutManager);
 
         windowManager.registerShortcuts();
 
-        expect(shortcutManager.registerToggleImageSettings).toHaveBeenCalledTimes(
-            1
-        );
         expect(
-            shortcutManager.registerToggleDimensionSettings
+            shortcutManager.registerToggleClickThroughMode
         ).toHaveBeenCalledTimes(1);
+    });
+
+    it("sends click-through shortcut event to main window when global shortcut fires", () => {
+        let registeredCallback: (() => void) | null = null;
+        const shortcutManager: IWindowShortcutManager = {
+            registerToggleClickThroughMode: vi.fn((callback: () => void) => {
+                registeredCallback = callback;
+            }),
+            unregisterAll: vi.fn(),
+        };
+        windowManager = new WindowManager(mockWindowRepository, shortcutManager);
+        const mainWindow = windowManager.createMainWindow() as any;
+
+        windowManager.registerShortcuts();
+        expect(registeredCallback).toBeTypeOf("function");
+
+        if (typeof registeredCallback !== "function") {
+            throw new Error("registeredCallback should be set");
+        }
+        (registeredCallback as () => void)();
+
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "clickThrough:shortcutTriggered"
+        );
     });
 
     it("delegates shortcut unregistration to injected manager", () => {
         const shortcutManager: IWindowShortcutManager = {
-            registerToggleImageSettings: vi.fn(),
-            registerToggleDimensionSettings: vi.fn(),
+            registerToggleClickThroughMode: vi.fn(),
             unregisterAll: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository, shortcutManager);
@@ -411,8 +430,7 @@ describe("WindowManager", () => {
 
     it("cleanup unregisters shortcuts and closes all windows", () => {
         const shortcutManager: IWindowShortcutManager = {
-            registerToggleImageSettings: vi.fn(),
-            registerToggleDimensionSettings: vi.fn(),
+            registerToggleClickThroughMode: vi.fn(),
             unregisterAll: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository, shortcutManager);

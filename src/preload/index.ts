@@ -71,6 +71,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
                 subscription
             );
     },
+    onClickThroughShortcutTriggered: (callback: () => void) => {
+        const subscription = () => callback();
+        ipcRenderer.on(IPC_EVENTS.clickThroughShortcutTriggered, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.clickThroughShortcutTriggered,
+                subscription
+            );
+    },
     // Window Color
     loadWindowColor: () =>
         ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorLoad),
