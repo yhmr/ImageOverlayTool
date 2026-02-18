@@ -26,6 +26,7 @@ describe("imageSetFactory", () => {
         expect(imageSet).toEqual({
             id: "factory-uuid",
             path: "",
+            sourceType: "file",
             transparency: 0,
             rotation: 0,
             initAnchorPos: null,

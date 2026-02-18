@@ -19,7 +19,8 @@
             "help_manual": "ヘルプ/マニュアル",
             "export_logs": "ログをエクスポート",
             "exit": "終了",
-            "fit_screen": "画面をフィッティング"
+            "fit_screen": "画面をフィッティング",
+            "paste_image": "画像を貼り付け"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -69,6 +70,7 @@
             "value": "明度",
             "tooltip": {
                 "load_image": "画像の読み込み",
+                "save_cache_image_as": "保存先を選んで保存",
                 "delete_image": "削除",
                 "visible": "表示/非表示",
                 "reset_transformation": "変形解除",
@@ -77,6 +79,14 @@
                 "add": "新規追加",
                 "capture": "背景をキャプチャ",
                 "close": "閉じる"
+            },
+            "badge": {
+                "cache_image": "キャッシュ"
+            }
+        },
+        "project_save": {
+            "cache_warning": {
+                "confirm_move": "キャッシュ画像が含まれています。プロジェクトと同じフォルダの assets に移動して保存しますか？\nキャンセルすると保存を中止し、画像設定を開きます。"
             }
         },
         "setting_dlg": {

@@ -6,6 +6,7 @@ import type { ImageSet } from "../../shared/types/ImageSet";
 type ImageSetFactoryOptions = {
     id?: string;
     path?: string;
+    sourceType?: ImageSet["sourceType"];
     transparency?: number;
     rotation?: number;
     initAnchorPos?: AnchorPos | null;
@@ -18,11 +19,34 @@ type ImageSetFactoryOptions = {
 export const toLocalFileUrl = (filePath: string): string =>
     `local-file://${filePath.replace(/\\/g, "/")}`;
 
+export const fromLocalFileUrl = (value: string): string | null => {
+    if (!value || typeof value !== "string") {
+        return null;
+    }
+    if (!value.startsWith("local-file://")) {
+        return null;
+    }
+
+    try {
+        const url = new URL(value);
+        let resolvedPath = decodeURIComponent(`${url.host}${url.pathname}`);
+        if (/^\/[a-zA-Z]:\//.test(resolvedPath)) {
+            resolvedPath = resolvedPath.slice(1);
+        } else if (/^[a-zA-Z]\//.test(resolvedPath)) {
+            resolvedPath = resolvedPath.charAt(0) + ":" + resolvedPath.slice(1);
+        }
+        return resolvedPath;
+    } catch {
+        return null;
+    }
+};
+
 export const createImageSet = (
     options: ImageSetFactoryOptions = {}
 ): ImageSet => ({
     id: options.id ?? UUID.generate(),
     path: options.path ?? "",
+    sourceType: options.sourceType ?? "file",
     transparency: options.transparency ?? 0,
     rotation: options.rotation ?? 0,
     initAnchorPos: options.initAnchorPos ?? null,
@@ -44,4 +68,14 @@ export const createImageSetFromLocalFile = (
     createImageSet({
         ...options,
         path: toLocalFileUrl(filePath),
+        sourceType: options.sourceType ?? "file",
+    });
+
+export const createImageSetFromCacheFile = (
+    filePath: string,
+    options: Omit<ImageSetFactoryOptions, "path" | "sourceType"> = {}
+): ImageSet =>
+    createImageSetFromLocalFile(filePath, {
+        ...options,
+        sourceType: "cache",
     });

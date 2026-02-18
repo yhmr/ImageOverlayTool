@@ -21,6 +21,7 @@ import {
 interface ImageItemHeaderProps {
     path: string;
     fileName: string;
+    sourceType?: "file" | "cache";
     isLocked?: boolean;
     isVisible?: boolean;
     onFileOpen: () => void;
@@ -34,6 +35,7 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
     const {
         path,
         fileName,
+        sourceType = "file",
         isLocked,
         isVisible = true,
         onFileOpen,
@@ -61,6 +63,14 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
             >
                 {fileName}
             </div>
+            {sourceType === "cache" && (
+                <span
+                    className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+                    data-testid="settings.image-item.cache-badge"
+                >
+                    {t("render.image_settings.badge.cache_image")}
+                </span>
+            )}
 
             <TooltipProvider>
                 {/* 表示切り替えボタン */}

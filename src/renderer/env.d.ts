@@ -59,8 +59,15 @@ export interface IElectronAPI {
         project: ProjectFile<ImageSet>
     ) => Promise<boolean>;
     saveProjectAs: (project: ProjectFile<ImageSet>) => Promise<string | null>;
+    pickProjectSavePath: () => Promise<string | null>;
+    materializeCacheImages: (
+        projectFilePath: string,
+        cacheImagePaths: string[]
+    ) => Promise<Record<string, string>>;
     // Image Settings Window
     toggleImageSettingsWindow: () => Promise<boolean>;
+    pasteImage: () => Promise<string | null>;
+    saveCacheImageAs: (cacheFilePath: string) => Promise<string | null>;
     // ImageSets Sync
     updateImageSets: (imageSets: ImageSet[]) => Promise<void>;
     onImageSetsUpdated: (

@@ -1,8 +1,12 @@
+import fs from "fs/promises";
+import path from "path";
 import { ipcMain, dialog, BrowserWindow } from "electron";
+import type { IpcMainInvokeEvent } from "electron";
 import { IProjectRepository } from "../repositories/ProjectRepository";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import log from "../logger";
 import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { deleteClipboardCacheFileIfManaged } from "../services/clipboardCacheService";
 
 export interface ProjectHandlerOptions {
     testMode?: {
@@ -16,32 +20,67 @@ export const registerProjectHandlers = (
     options?: ProjectHandlerOptions
 ) => {
     const testMode = options?.testMode;
+    const saveDialogOptions = {
+        title: "Save Project",
+        defaultPath: "project.iot",
+        filters: [{ name: "Overlay Project", extensions: ["iot"] }],
+    };
+
+    const selectProjectSavePath = async (
+        event: IpcMainInvokeEvent
+    ): Promise<string | null> => {
+        if (testMode?.enabled) {
+            return testMode.projectFilePath;
+        }
+
+        const window = BrowserWindow.fromWebContents(event.sender);
+        const result = window
+            ? await dialog.showSaveDialog(window, saveDialogOptions)
+            : await dialog.showSaveDialog(saveDialogOptions);
+
+        if (result.canceled || !result.filePath) {
+            return null;
+        }
+
+        return result.filePath;
+    };
+
+    const fileExists = async (targetPath: string): Promise<boolean> => {
+        try {
+            await fs.access(targetPath);
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    const resolveAvailablePath = async (
+        directoryPath: string,
+        sourcePath: string
+    ): Promise<string> => {
+        const ext = path.extname(sourcePath) || ".png";
+        const baseName = path.basename(sourcePath, ext) || "image";
+        let candidateName = `${baseName}${ext}`;
+        let candidatePath = path.join(directoryPath, candidateName);
+        let suffix = 1;
+
+        while (await fileExists(candidatePath)) {
+            candidateName = `${baseName}-${suffix}${ext}`;
+            candidatePath = path.join(directoryPath, candidateName);
+            suffix += 1;
+        }
+
+        return candidatePath;
+    };
 
     ipcMain.handle(
         IPC_CHANNELS.project.saveAs,
         async (event, project: ProjectFile) => {
             log.debug("[IPC] project:saveAs called");
 
-            if (testMode?.enabled) {
-                await repository.saveProject(testMode.projectFilePath, project);
-                log.info(
-                    `[IPC] project:saveAs saved in e2e mode: ${testMode.projectFilePath}`
-                );
-                return testMode.projectFilePath;
-            }
-
-            const window = BrowserWindow.fromWebContents(event.sender);
-            const options = {
-                title: "Save Project",
-                defaultPath: "project.iot",
-                filters: [{ name: "Overlay Project", extensions: ["iot"] }],
-            };
             try {
-                const { canceled, filePath } = window
-                    ? await dialog.showSaveDialog(window, options)
-                    : await dialog.showSaveDialog(options);
-
-                if (canceled || !filePath) {
+                const filePath = await selectProjectSavePath(event);
+                if (!filePath) {
                     log.debug("[IPC] project:saveAs canceled by user");
                     return null;
                 }
@@ -55,6 +94,22 @@ export const registerProjectHandlers = (
             }
         }
     );
+
+    ipcMain.handle(IPC_CHANNELS.project.pickSavePath, async (event) => {
+        log.debug("[IPC] project:pickSavePath called");
+        try {
+            const filePath = await selectProjectSavePath(event);
+            if (!filePath) {
+                log.debug("[IPC] project:pickSavePath canceled by user");
+                return null;
+            }
+            log.info(`[IPC] project:pickSavePath selected: ${filePath}`);
+            return filePath;
+        } catch (error) {
+            log.error("[IPC] project:pickSavePath failed:", error);
+            throw error;
+        }
+    });
 
     ipcMain.handle(
         IPC_CHANNELS.project.save,
@@ -134,6 +189,69 @@ export const registerProjectHandlers = (
                     error
                 );
                 return null;
+            }
+        }
+    );
+
+    ipcMain.handle(
+        IPC_CHANNELS.project.materializeCacheImages,
+        async (
+            _event,
+            payload: { projectFilePath: string; cacheImagePaths: string[] }
+        ) => {
+            log.debug("[IPC] project:materializeCacheImages called");
+
+            const projectFilePath = payload?.projectFilePath;
+            const cacheImagePaths = payload?.cacheImagePaths;
+
+            if (
+                !projectFilePath ||
+                typeof projectFilePath !== "string" ||
+                !Array.isArray(cacheImagePaths)
+            ) {
+                throw new Error(
+                    "Invalid payload for project:materializeCacheImages"
+                );
+            }
+
+            try {
+                const projectDirectory = path.dirname(projectFilePath);
+                const assetsDirectory = path.join(projectDirectory, "assets");
+                await fs.mkdir(assetsDirectory, { recursive: true });
+
+                const replacements: Record<string, string> = {};
+                for (const sourcePath of new Set(cacheImagePaths)) {
+                    if (!sourcePath || typeof sourcePath !== "string") {
+                        continue;
+                    }
+
+                    if (!(await fileExists(sourcePath))) {
+                        log.warn(
+                            "[IPC] project:materializeCacheImages source not found",
+                            sourcePath
+                        );
+                        continue;
+                    }
+
+                    const destinationPath = await resolveAvailablePath(
+                        assetsDirectory,
+                        sourcePath
+                    );
+                    await fs.copyFile(sourcePath, destinationPath);
+                    await deleteClipboardCacheFileIfManaged(sourcePath);
+                    replacements[sourcePath] = destinationPath;
+                }
+
+                log.info("[IPC] project:materializeCacheImages completed", {
+                    count: Object.keys(replacements).length,
+                });
+                return replacements;
+            } catch (error) {
+                log.error(
+                    "[IPC] project:materializeCacheImages failed:",
+                    error
+                );
+                throw error;
             }
         }
     );

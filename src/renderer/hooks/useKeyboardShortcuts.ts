@@ -4,7 +4,12 @@ import type { TemporalState } from "zundo";
 import { useFitToScreen } from "./useFitToScreen";
 import { useAppStore, type AppState } from "../store/useAppStore";
 
-export const useKeyboardShortcuts = () => {
+type KeyboardShortcutOptions = {
+    onPasteImage?: () => Promise<void> | void;
+};
+
+export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
+    const onPasteImage = options.onPasteImage;
     // zundo temporal store
     const undo = useStore(
         useAppStore.temporal,
@@ -49,6 +54,19 @@ export const useKeyboardShortcuts = () => {
                 redo();
                 useAppStore.setState({ projectDataChangeOrigin: "local" });
             }
+            // Paste Image: Ctrl/Cmd + V
+            else if (
+                (e.ctrlKey || e.metaKey) &&
+                !e.shiftKey &&
+                !e.altKey &&
+                e.key.toLowerCase() === "v"
+            ) {
+                if (!onPasteImage) {
+                    return;
+                }
+                e.preventDefault();
+                void onPasteImage();
+            }
             // Fit to Screen: Ctrl/Cmd + F
             else if (
                 (e.ctrlKey || e.metaKey) &&
@@ -63,5 +81,5 @@ export const useKeyboardShortcuts = () => {
 
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [fitToScreen, redo, undo]);
+    }, [fitToScreen, onPasteImage, redo, undo]);
 };

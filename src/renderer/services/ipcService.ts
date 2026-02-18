@@ -58,6 +58,11 @@ export interface ISettingsIPCService {
 
 export interface IProjectIPCService {
     saveProjectAs: (project: ProjectFile<ImageSet>) => Promise<string | null>;
+    pickProjectSavePath: () => Promise<string | null>;
+    materializeCacheImages: (
+        projectFilePath: string,
+        cacheImagePaths: string[]
+    ) => Promise<Record<string, string>>;
     saveProject: (
         filePath: string,
         project: ProjectFile<ImageSet>
@@ -73,6 +78,8 @@ export interface IProjectIPCService {
 
 export interface IImageSettingsWindowIPCService {
     loadImage: () => Promise<string | null>;
+    pasteImage: () => Promise<string | null>;
+    saveCacheImageAs: (cacheFilePath: string) => Promise<string | null>;
     getPathForFile: (file: File) => string;
     toggleImageSettingsWindow: () => Promise<boolean>;
 }
@@ -230,6 +237,20 @@ class IPCService implements IIPCService {
         return await window.electronAPI.saveProjectAs(project);
     }
 
+    async pickProjectSavePath(): Promise<string | null> {
+        return await window.electronAPI.pickProjectSavePath();
+    }
+
+    async materializeCacheImages(
+        projectFilePath: string,
+        cacheImagePaths: string[]
+    ): Promise<Record<string, string>> {
+        return await window.electronAPI.materializeCacheImages(
+            projectFilePath,
+            cacheImagePaths
+        );
+    }
+
     async saveProject(
         filePath: string,
         project: ProjectFile<ImageSet>
@@ -252,6 +273,14 @@ class IPCService implements IIPCService {
 
     async loadImage(): Promise<string | null> {
         return await window.electronAPI.loadImage();
+    }
+
+    async pasteImage(): Promise<string | null> {
+        return await window.electronAPI.pasteImage();
+    }
+
+    async saveCacheImageAs(cacheFilePath: string): Promise<string | null> {
+        return await window.electronAPI.saveCacheImageAs(cacheFilePath);
     }
 
     getPathForFile(file: File): string {

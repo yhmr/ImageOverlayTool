@@ -7,6 +7,7 @@ import "./App.css";
 
 import { useFileHandler } from "../hooks/useFileHandler";
 import { useImageDrop } from "../hooks/useImageDrop";
+import { useImagePaste } from "../hooks/useImagePaste";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import { useProjectSync } from "../hooks/useProjectSync";
@@ -33,8 +34,10 @@ const App = () => {
     useProjectSync();
     // ファイルハンドラフックを使用 (起動時引数など)
     useFileHandler();
+    // クリップボード画像貼り付け
+    const { pasteImage } = useImagePaste();
     // キーボードショートカット (Undo/Redo)
-    useKeyboardShortcuts();
+    useKeyboardShortcuts({ onPasteImage: pasteImage });
     // E2E制御ブリッジ
     useE2EControlBridge();
     // D&D画像読み込み

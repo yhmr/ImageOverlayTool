@@ -132,6 +132,10 @@ describe("ipcService", () => {
                 saveWindowColor: vi.fn().mockResolvedValue(undefined),
                 saveProjectAs: vi.fn().mockResolvedValue("project.iot"),
                 saveProject: vi.fn().mockResolvedValue(true),
+                pickProjectSavePath: vi.fn().mockResolvedValue("picked.iot"),
+                materializeCacheImages: vi
+                    .fn()
+                    .mockResolvedValue({ "C:/tmp/cache.png": "C:/tmp/assets/cache.png" }),
                 loadProject: vi
                     .fn()
                     .mockResolvedValue({ project: createProject(), filePath: "a.iot" }),
@@ -139,6 +143,10 @@ describe("ipcService", () => {
                     .fn()
                     .mockResolvedValue({ project: createProject(), filePath: "b.iot" }),
                 loadImage: vi.fn().mockResolvedValue("C:/tmp/image.png"),
+                pasteImage: vi.fn().mockResolvedValue("C:/tmp/paste.png"),
+                saveCacheImageAs: vi
+                    .fn()
+                    .mockResolvedValue("C:/tmp/explicit.png"),
                 getPathForFile: vi.fn().mockReturnValue("C:/tmp/from-drop.png"),
                 toggleImageSettingsWindow: vi.fn().mockResolvedValue(false),
                 updateImageSets: vi.fn().mockResolvedValue(undefined),
@@ -241,6 +249,12 @@ describe("ipcService", () => {
             await service.saveWindowColor("#222222");
             await expect(service.saveProjectAs(project)).resolves.toBe("project.iot");
             await expect(service.saveProject("save.iot", project)).resolves.toBe(true);
+            await expect(service.pickProjectSavePath()).resolves.toBe("picked.iot");
+            await expect(
+                service.materializeCacheImages("save.iot", ["C:/tmp/cache.png"])
+            ).resolves.toEqual({
+                "C:/tmp/cache.png": "C:/tmp/assets/cache.png",
+            });
             await expect(service.loadProject()).resolves.toEqual({
                 project,
                 filePath: "a.iot",
@@ -250,6 +264,10 @@ describe("ipcService", () => {
                 filePath: "b.iot",
             });
             await expect(service.loadImage()).resolves.toBe("C:/tmp/image.png");
+            await expect(service.pasteImage()).resolves.toBe("C:/tmp/paste.png");
+            await expect(service.saveCacheImageAs("C:/tmp/paste.png")).resolves.toBe(
+                "C:/tmp/explicit.png"
+            );
             expect(service.getPathForFile({} as File)).toBe(
                 "C:/tmp/from-drop.png"
             );
@@ -305,7 +323,13 @@ describe("ipcService", () => {
             expect(api.setIgnoreMouseEvents).toHaveBeenCalledWith(true);
             expect(api.setAlwaysOnTop).toHaveBeenCalledWith(true);
             expect(api.saveProject).toHaveBeenCalledWith("save.iot", project);
+            expect(api.pickProjectSavePath).toHaveBeenCalled();
+            expect(api.materializeCacheImages).toHaveBeenCalledWith("save.iot", [
+                "C:/tmp/cache.png",
+            ]);
             expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
+            expect(api.pasteImage).toHaveBeenCalled();
+            expect(api.saveCacheImageAs).toHaveBeenCalledWith("C:/tmp/paste.png");
             expect(api.getPathForFile).toHaveBeenCalled();
             expect(api.updateUnit).toHaveBeenCalledWith("nm");
             expect(api.updateSelectedImageId).toHaveBeenCalledWith("abc");

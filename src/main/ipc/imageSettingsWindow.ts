@@ -1,4 +1,6 @@
-import { ipcMain, dialog, BrowserWindow } from "electron";
+import fs from "fs/promises";
+import path from "path";
+import { ipcMain, dialog, BrowserWindow, clipboard } from "electron";
 import type {
     IImageSettingsWindowController,
     IProjectDirtyStateController,
@@ -8,6 +10,11 @@ import { ImageSet } from "../../shared/types/ImageSet";
 import log from "../logger";
 import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
 import { IMAGE_FILTERS } from "../../shared/constants/imageFormats";
+import {
+    deleteClipboardCacheFileIfManaged,
+    isManagedClipboardCachePath,
+    saveClipboardImageToCache,
+} from "../services/clipboardCacheService";
 
 /**
  * 画像設定ウィンドウ用のIPCハンドラを登録
@@ -129,6 +136,81 @@ export const registerImageSettingsWindowHandlers = (
                 return filePaths[0];
             } catch (error) {
                 log.error("[IPC] image:load failed:", error);
+                throw error;
+            }
+        }
+    );
+
+    ipcMain.handle(IPC_CHANNELS.imageSettingsWindow.pasteImage, async () => {
+        log.debug("[IPC] imageSettingsWindow:pasteImage called");
+        try {
+            const image = clipboard.readImage();
+            if (image.isEmpty()) {
+                log.debug(
+                    "[IPC] imageSettingsWindow:pasteImage no image found"
+                );
+                return null;
+            }
+
+            const filePath = await saveClipboardImageToCache(image);
+            log.info(
+                `[IPC] imageSettingsWindow:pasteImage cached: ${filePath}`
+            );
+            return filePath;
+        } catch (error) {
+            log.error("[IPC] imageSettingsWindow:pasteImage failed:", error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle(
+        IPC_CHANNELS.imageSettingsWindow.saveCacheImageAs,
+        async (event, cacheFilePath: string) => {
+            log.debug("[IPC] imageSettingsWindow:saveCacheImageAs called", {
+                cacheFilePath,
+            });
+
+            if (!cacheFilePath || !isManagedClipboardCachePath(cacheFilePath)) {
+                log.warn(
+                    "[IPC] imageSettingsWindow:saveCacheImageAs invalid cache path"
+                );
+                return null;
+            }
+
+            const ownerWindow = BrowserWindow.fromWebContents(event.sender);
+            const extension = path.extname(cacheFilePath) || ".png";
+            const fallbackName = `pasted-image${extension}`;
+            const defaultName = path.basename(cacheFilePath) || fallbackName;
+
+            const options = {
+                title: "Save Image",
+                defaultPath: defaultName,
+                filters: IMAGE_FILTERS,
+            };
+
+            try {
+                const result = ownerWindow
+                    ? await dialog.showSaveDialog(ownerWindow, options)
+                    : await dialog.showSaveDialog(options);
+
+                if (result.canceled || !result.filePath) {
+                    log.debug(
+                        "[IPC] imageSettingsWindow:saveCacheImageAs canceled"
+                    );
+                    return null;
+                }
+
+                await fs.copyFile(cacheFilePath, result.filePath);
+                await deleteClipboardCacheFileIfManaged(cacheFilePath);
+                log.info(
+                    `[IPC] imageSettingsWindow:saveCacheImageAs saved: ${result.filePath}`
+                );
+                return result.filePath;
+            } catch (error) {
+                log.error(
+                    "[IPC] imageSettingsWindow:saveCacheImageAs failed:",
+                    error
+                );
                 throw error;
             }
         }

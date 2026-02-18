@@ -19,6 +19,7 @@ describe("useAppStore", () => {
         const sampleImageSet: ImageSet = {
             id: "img1",
             path: "path/to/img1.png",
+            sourceType: "file",
             transparency: 0.8,
             rotation: 0,
             initAnchorPos: null,
@@ -200,6 +201,7 @@ describe("useAppStore", () => {
         const createHistorySample = (id: string, path: string): ImageSet => ({
             id,
             path,
+            sourceType: "file",
             transparency: 0,
             rotation: 0,
             initAnchorPos: null,
@@ -285,6 +287,7 @@ describe("useAppStore", () => {
             const sampleImageSet: ImageSet = {
                 id: "img1",
                 path: "path/to/img1.png",
+                sourceType: "file",
                 transparency: 0.8,
                 rotation: 0,
                 initAnchorPos: null,

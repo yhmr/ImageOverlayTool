@@ -32,6 +32,9 @@ describe("projectCommandService", () => {
         loadProjectFromPath: vi.fn(),
         saveProjectAs: vi.fn(),
         saveProject: vi.fn(),
+        pickProjectSavePath: vi.fn(),
+        materializeCacheImages: vi.fn(),
+        toggleImageSettingsWindow: vi.fn(),
         setWindowRect: vi.fn(),
         log: {
             info: vi.fn(),
@@ -56,6 +59,7 @@ describe("projectCommandService", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.stubGlobal("confirm", vi.fn().mockReturnValue(true));
     });
 
     it("openProject should apply loaded project", async () => {
@@ -139,5 +143,82 @@ describe("projectCommandService", () => {
 
         expect(mutations.resetAll).toHaveBeenCalledTimes(1);
         expect(mutations.setCurrentProjectFilePath).toHaveBeenCalledWith(null);
+    });
+
+    it("saveProject should materialize cache images before saving", async () => {
+        mockIpc.materializeCacheImages.mockResolvedValue({
+            "C:/cache/pasted.png": "C:/tmp/assets/pasted.png",
+        });
+
+        const cacheSnapshot = {
+            ...snapshot,
+            imageSets: [
+                {
+                    id: "cache-1",
+                    path: "local-file://C:/cache/pasted.png",
+                    sourceType: "cache" as const,
+                    transparency: 0,
+                    rotation: 0,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
+                },
+            ],
+        };
+
+        const service = createProjectCommandService({
+            ipcService: mockIpc,
+            readSnapshot: () => cacheSnapshot,
+            readCurrentProjectFilePath: () => "C:/tmp/current.iot",
+            mutations,
+        });
+
+        await service.saveProject();
+
+        expect(mockIpc.materializeCacheImages).toHaveBeenCalledWith(
+            "C:/tmp/current.iot",
+            ["C:/cache/pasted.png"]
+        );
+        expect(mockIpc.saveProject).toHaveBeenCalledWith(
+            "C:/tmp/current.iot",
+            expect.objectContaining({
+                images: [
+                    expect.objectContaining({
+                        path: "local-file://C:/tmp/assets/pasted.png",
+                        sourceType: "file",
+                    }),
+                ],
+            })
+        );
+    });
+
+    it("saveProject should reject save and open image settings when user cancels cache move", async () => {
+        (globalThis.confirm as any).mockReturnValue(false);
+
+        const cacheSnapshot = {
+            ...snapshot,
+            imageSets: [
+                {
+                    id: "cache-1",
+                    path: "local-file://C:/cache/pasted.png",
+                    sourceType: "cache" as const,
+                    transparency: 0,
+                    rotation: 0,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
+                },
+            ],
+        };
+
+        const service = createProjectCommandService({
+            ipcService: mockIpc,
+            readSnapshot: () => cacheSnapshot,
+            readCurrentProjectFilePath: () => "C:/tmp/current.iot",
+            mutations,
+        });
+
+        await service.saveProject();
+
+        expect(mockIpc.toggleImageSettingsWindow).toHaveBeenCalledTimes(1);
+        expect(mockIpc.saveProject).not.toHaveBeenCalled();
     });
 });

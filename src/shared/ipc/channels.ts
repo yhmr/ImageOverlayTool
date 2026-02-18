@@ -23,10 +23,14 @@ export const IPC_CHANNELS = {
         save: "project:save",
         load: "project:load",
         loadFromPath: "project:loadFromPath",
+        pickSavePath: "project:pickSavePath",
+        materializeCacheImages: "project:materializeCacheImages",
     },
     imageSettingsWindow: {
         toggle: "imageSettingsWindow:toggle",
         loadImage: "image:load",
+        pasteImage: "imageSettingsWindow:pasteImage",
+        saveCacheImageAs: "imageSettingsWindow:saveCacheImageAs",
     },
     sync: {
         updateImageSets: "imageSets:update",

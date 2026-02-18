@@ -1,6 +1,8 @@
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { ImageSet } from "../../shared/types/ImageSet";
 
+import i18n from "../../i18n/configs";
+import { fromLocalFileUrl, toLocalFileUrl } from "../factories/imageSetFactory";
 import type { IIPCService } from "./ipcService";
 
 type ProjectSnapshot = {
@@ -64,6 +66,12 @@ const buildProjectFile = (
     dimensionLines: snapshot.dimensionLines,
 });
 
+const getCacheImageLocalPaths = (imageSets: ImageSet[]): string[] =>
+    imageSets
+        .filter((imageSet) => (imageSet.sourceType ?? "file") === "cache")
+        .map((imageSet) => fromLocalFileUrl(imageSet.path))
+        .filter((value): value is string => Boolean(value));
+
 const applyProject = async (
     ipcService: IIPCService,
     mutations: ProjectMutations,
@@ -96,6 +104,67 @@ export const createProjectCommandService = ({
         return buildProjectFile(readSnapshot());
     };
 
+    const resolveProjectFileForSave = async (
+        targetProjectFilePath: string,
+        snapshot: ProjectSnapshot
+    ): Promise<ProjectFile<ImageSet> | null> => {
+        const cacheImagePaths = getCacheImageLocalPaths(snapshot.imageSets);
+        if (cacheImagePaths.length === 0) {
+            return buildProjectFile(snapshot);
+        }
+
+        const shouldMaterialize = window.confirm(
+            i18n.t(
+                "render.project_save.cache_warning.confirm_move",
+                "This project contains cached images. Move them into an assets folder next to the project file and continue saving?\nCancel will reject save and open Image Settings."
+            )
+        );
+        if (!shouldMaterialize) {
+            await ipcService.toggleImageSettingsWindow();
+            return null;
+        }
+
+        const replacementMap = await ipcService.materializeCacheImages(
+            targetProjectFilePath,
+            cacheImagePaths
+        );
+        const missingPaths = cacheImagePaths.filter(
+            (path) => !replacementMap[path]
+        );
+        if (missingPaths.length > 0) {
+            throw new Error(
+                `Failed to materialize cache images: ${missingPaths.join(", ")}`
+            );
+        }
+
+        const nextImageSets = snapshot.imageSets.map((imageSet) => {
+            if ((imageSet.sourceType ?? "file") !== "cache") {
+                return imageSet;
+            }
+
+            const sourcePath = fromLocalFileUrl(imageSet.path);
+            if (!sourcePath) {
+                return imageSet;
+            }
+
+            const destinationPath = replacementMap[sourcePath];
+            if (!destinationPath) {
+                return imageSet;
+            }
+
+            return {
+                ...imageSet,
+                path: toLocalFileUrl(destinationPath),
+                sourceType: "file" as const,
+            };
+        });
+
+        return buildProjectFile({
+            ...snapshot,
+            imageSets: nextImageSets,
+        });
+    };
+
     const newProject = async (): Promise<void> => {
         ipcService.log.info("New project requested");
         mutations.resetAll();
@@ -122,9 +191,32 @@ export const createProjectCommandService = ({
 
     const saveProjectAs = async (): Promise<void> => {
         ipcService.log.info("Save Project As requested");
+        const snapshot = readSnapshot();
+        const hasCacheImages =
+            getCacheImageLocalPaths(snapshot.imageSets).length > 0;
 
-        const savedPath = await ipcService.saveProjectAs(createProjectFile());
+        if (!hasCacheImages) {
+            const savedPath = await ipcService.saveProjectAs(
+                buildProjectFile(snapshot)
+            );
+            if (savedPath) {
+                mutations.setCurrentProjectFilePath(savedPath);
+                mutations.markProjectSaved();
+            }
+            return;
+        }
+
+        const savedPath = await ipcService.pickProjectSavePath();
         if (savedPath) {
+            const projectForSave = await resolveProjectFileForSave(
+                savedPath,
+                snapshot
+            );
+            if (!projectForSave) {
+                return;
+            }
+
+            await ipcService.saveProject(savedPath, projectForSave);
             mutations.setCurrentProjectFilePath(savedPath);
             mutations.markProjectSaved();
         }
@@ -137,11 +229,17 @@ export const createProjectCommandService = ({
             return;
         }
 
-        ipcService.log.info(`Saving project to: ${currentProjectFilePath}`);
-        await ipcService.saveProject(
+        const snapshot = readSnapshot();
+        const projectForSave = await resolveProjectFileForSave(
             currentProjectFilePath,
-            createProjectFile()
+            snapshot
         );
+        if (!projectForSave) {
+            return;
+        }
+
+        ipcService.log.info(`Saving project to: ${currentProjectFilePath}`);
+        await ipcService.saveProject(currentProjectFilePath, projectForSave);
         mutations.markProjectSaved();
     };
 

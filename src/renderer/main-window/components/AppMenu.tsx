@@ -23,10 +23,12 @@ import {
     Save,
     SaveAll,
     Maximize2,
+    ClipboardPaste,
 } from "lucide-react";
 
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useFitToScreen } from "../../hooks/useFitToScreen";
+import { useImagePaste } from "../../hooks/useImagePaste";
 
 interface AppMenuProps {
     openSettingDialog: () => void;
@@ -52,6 +54,7 @@ export function AppMenu(props: AppMenuProps) {
     const { t } = useTranslation();
     const ipcService = useIpcService();
     const { fitToScreen } = useFitToScreen();
+    const { pasteImage } = useImagePaste();
 
     // 画像設定ウィンドウを開く
     const openImageSettings = async () => {
@@ -140,6 +143,14 @@ export function AppMenu(props: AppMenuProps) {
                         <Maximize2 className="mr-2 h-4 w-4" />
                         {t("render.menu.fit_screen")}
                         <DropdownMenuShortcut>Ctrl+F</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => void pasteImage()}
+                        data-testid="main.menu.item.paste-image"
+                    >
+                        <ClipboardPaste className="mr-2 h-4 w-4" />
+                        {t("render.menu.paste_image")}
+                        <DropdownMenuShortcut>Ctrl+V</DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
 

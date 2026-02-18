@@ -119,6 +119,7 @@ const normalizeImage = (value: unknown, index: number): ImageSet => {
     return {
         id,
         path,
+        sourceType: value.sourceType === "cache" ? "cache" : "file",
         transparency: Math.max(
             0,
             Math.min(100, toFiniteNumber(value.transparency, 0))

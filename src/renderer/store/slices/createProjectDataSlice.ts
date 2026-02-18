@@ -30,7 +30,10 @@ export interface ProjectDataSlice {
     markProjectSaved: () => void;
 
     setImageSets: (imageSets: ImageSet[]) => void;
-    addImageSetWithPath: (path: string) => void;
+    addImageSetWithPath: (
+        path: string,
+        options?: { sourceType?: ImageSet["sourceType"] }
+    ) => void;
     updateImageSet: (payload: {
         index?: number;
         id?: string;
@@ -87,13 +90,15 @@ export const createProjectDataSlice = (
             });
         },
 
-        addImageSetWithPath: (path) => {
+        addImageSetWithPath: (path, options) => {
             if (!path) {
                 return;
             }
 
             set((state) => {
-                const nextImageSet = createImageSetFromLocalFile(path);
+                const nextImageSet = createImageSetFromLocalFile(path, {
+                    sourceType: options?.sourceType ?? "file",
+                });
                 const nextImageSets = [...state.imageSets];
 
                 if (nextImageSets.length === 1 && !nextImageSets[0].path) {
@@ -237,7 +242,10 @@ export const createProjectDataSlice = (
 
         // --- Bulk Actions ---
         loadProjectData: (project) => {
-            const newImageSets = project.images;
+            const newImageSets = project.images.map((imageSet) => ({
+                ...imageSet,
+                sourceType: imageSet.sourceType ?? "file",
+            }));
             const newDimensionLines = project.dimensionLines || [];
             const newUnitFactor = sanitizeUnitFactor(
                 project.settings.unitFactor

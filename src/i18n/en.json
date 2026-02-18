@@ -19,7 +19,8 @@
             "help_manual": "Help / Manual",
             "export_logs": "Export Logs",
             "exit": "Exit",
-            "fit_screen": "Fit to Screen"
+            "fit_screen": "Fit to Screen",
+            "paste_image": "Paste Image"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -69,6 +70,7 @@
             "value": "Value",
             "tooltip": {
                 "load_image": "Load Image",
+                "save_cache_image_as": "Save As...",
                 "delete_image": "Delete Image",
                 "visible": "Toggle Visibility",
                 "reset_transformation": "Reset Transformation",
@@ -77,6 +79,14 @@
                 "add": "Add",
                 "capture": "Capture Background",
                 "close": "Close"
+            },
+            "badge": {
+                "cache_image": "Cache"
+            }
+        },
+        "project_save": {
+            "cache_warning": {
+                "confirm_move": "This project contains cached images. Move them into an assets folder next to the project file and continue saving?\nCancel will reject save and open Image Settings."
             }
         },
         "setting_dlg": {

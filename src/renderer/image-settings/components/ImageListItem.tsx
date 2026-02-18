@@ -1,11 +1,14 @@
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { useTranslation } from "react-i18next";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, Save } from "lucide-react";
 
 import { Card, CardContent } from "@/renderer/components/ui/card";
 import { Button } from "@/renderer/components/ui/button";
 import { ImageSet } from "../../../shared/types/ImageSet";
-import { toLocalFileUrl } from "../../factories/imageSetFactory";
+import {
+    fromLocalFileUrl,
+    toLocalFileUrl,
+} from "../../factories/imageSetFactory";
 import {
     calculateAnchorScale,
     resetTransformation as resetAnchors,
@@ -55,6 +58,7 @@ export function ImageListItem(props: ImageListItemProps) {
             newImageSet.rotation = 0;
             newImageSet.initAnchorPos = null;
             newImageSet.currentAnchorPos = null;
+            newImageSet.sourceType = "file";
             // フィルタ系もリセット
             newImageSet.visible = true;
             newImageSet.filters = {
@@ -166,6 +170,30 @@ export function ImageListItem(props: ImageListItemProps) {
         : t("render.image_settings.no_image");
 
     const isSelected = selectedImageId === imageSet.id;
+    const isCacheImage = (imageSet.sourceType ?? "file") === "cache";
+
+    const saveCacheImageAs = async () => {
+        if (!isCacheImage) {
+            return;
+        }
+
+        const localPath = fromLocalFileUrl(imageSet.path);
+        if (!localPath) {
+            return;
+        }
+
+        const savedPath = await ipcService.saveCacheImageAs(localPath);
+        if (!savedPath) {
+            return;
+        }
+
+        const newImageSet = {
+            ...imageSet,
+            path: toLocalFileUrl(savedPath),
+            sourceType: "file" as const,
+        };
+        updateImageSet({ index, imageSet: newImageSet });
+    };
     const imageScale =
         imageSet.initAnchorPos && imageSet.currentAnchorPos
             ? calculateAnchorScale(
@@ -188,6 +216,7 @@ export function ImageListItem(props: ImageListItemProps) {
                 <ImageItemHeader
                     path={imageSet.path}
                     fileName={fileName}
+                    sourceType={imageSet.sourceType}
                     isLocked={imageSet.locked}
                     isVisible={imageSet.visible}
                     onFileOpen={openFile}
@@ -250,6 +279,22 @@ export function ImageListItem(props: ImageListItemProps) {
                             />
                         </div>
                     </div>
+                )}
+
+                {isCacheImage && imageSet.path && (
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => void saveCacheImageAs()}
+                        data-testid="settings.image-item.save-cache-image-as"
+                        title={t(
+                            "render.image_settings.tooltip.save_cache_image_as"
+                        )}
+                    >
+                        <Save className="mr-2 h-4 w-4" />
+                        {t("render.image_settings.tooltip.save_cache_image_as")}
+                    </Button>
                 )}
             </CardContent>
         </Card>

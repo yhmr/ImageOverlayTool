@@ -78,12 +78,29 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.invoke(IPC_CHANNELS.project.saveAs, project),
     saveProject: (filePath: string, project: ProjectFile) =>
         ipcRenderer.invoke(IPC_CHANNELS.project.save, { filePath, project }),
+    pickProjectSavePath: () =>
+        ipcRenderer.invoke(IPC_CHANNELS.project.pickSavePath),
+    materializeCacheImages: (
+        projectFilePath: string,
+        cacheImagePaths: string[]
+    ): Promise<Record<string, string>> =>
+        ipcRenderer.invoke(IPC_CHANNELS.project.materializeCacheImages, {
+            projectFilePath,
+            cacheImagePaths,
+        }),
     loadProject: () => ipcRenderer.invoke(IPC_CHANNELS.project.load),
     loadProjectFromPath: (filePath: string) =>
         ipcRenderer.invoke(IPC_CHANNELS.project.loadFromPath, filePath),
     // Image Settings Window
     loadImage: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.loadImage),
+    pasteImage: (): Promise<string | null> =>
+        ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.pasteImage),
+    saveCacheImageAs: (cacheFilePath: string): Promise<string | null> =>
+        ipcRenderer.invoke(
+            IPC_CHANNELS.imageSettingsWindow.saveCacheImageAs,
+            cacheFilePath
+        ),
     getPathForFile: (file: File) => webUtils.getPathForFile(file),
     toggleImageSettingsWindow: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.toggle),

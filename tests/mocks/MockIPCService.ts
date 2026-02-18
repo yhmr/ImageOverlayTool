@@ -72,6 +72,17 @@ export class MockIPCService implements IIPCService {
         return "path/to/project.iot";
     }
 
+    async pickProjectSavePath(): Promise<string | null> {
+        return "path/to/project.iot";
+    }
+
+    async materializeCacheImages(
+        _projectFilePath: string,
+        _cacheImagePaths: string[]
+    ): Promise<Record<string, string>> {
+        return {};
+    }
+
     async saveProject(
         _filePath: string,
         _project: ProjectFile
@@ -95,6 +106,14 @@ export class MockIPCService implements IIPCService {
 
     async loadImage(): Promise<string | null> {
         return "path/to/image.png";
+    }
+
+    async pasteImage(): Promise<string | null> {
+        return null;
+    }
+
+    async saveCacheImageAs(_cacheFilePath: string): Promise<string | null> {
+        return null;
     }
 
     getPathForFile(_file: File): string {
