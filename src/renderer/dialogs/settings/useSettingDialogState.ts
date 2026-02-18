@@ -37,7 +37,7 @@ export const useSettingDialogState = ({
         });
     }, [i18n.language, ipcService, logLevel]);
 
-    const saveAndClose = useCallback(async () => {
+    const persistAndClose = useCallback(async () => {
         await persistSettings();
         onClose();
     }, [onClose, persistSettings]);
@@ -78,7 +78,7 @@ export const useSettingDialogState = ({
         logLevel,
         setLogLevel,
         changeLanguage,
-        saveAndClose,
+        persistAndClose,
         exportSettings,
         importSettings,
     };

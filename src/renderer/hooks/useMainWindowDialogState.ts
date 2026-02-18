@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-export const useMenuState = () => {
+export const useMainWindowDialogState = () => {
     // SettingDialog関連
     const [isSettingDialogOpen, setIsSettingDialogOpen] = useState(false);
     const openSettingDialog = useCallback(() => {
@@ -19,13 +19,14 @@ export const useMenuState = () => {
         setIsAboutDialogOpen(false);
     }, []);
 
-    // ExportDialog関連
-    const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-    const openExportDialog = useCallback(() => {
-        setIsExportDialogOpen(true);
+    // ImageExportDialog関連
+    const [isImageExportDialogOpen, setIsImageExportDialogOpen] =
+        useState(false);
+    const openImageExportDialog = useCallback(() => {
+        setIsImageExportDialogOpen(true);
     }, []);
-    const closeExportDialog = useCallback(() => {
-        setIsExportDialogOpen(false);
+    const closeImageExportDialog = useCallback(() => {
+        setIsImageExportDialogOpen(false);
     }, []);
 
     return {
@@ -35,8 +36,8 @@ export const useMenuState = () => {
         isAboutDialogOpen,
         openAboutDialog,
         closeAboutDialog,
-        isExportDialogOpen,
-        openExportDialog,
-        closeExportDialog,
+        isImageExportDialogOpen,
+        openImageExportDialog,
+        closeImageExportDialog,
     };
 };

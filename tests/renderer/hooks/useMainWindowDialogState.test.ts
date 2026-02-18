@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
-import { useMenuState } from "@/renderer/hooks/useMenuState";
+import { useMainWindowDialogState } from "@/renderer/hooks/useMainWindowDialogState";
 import { describe, it, expect } from "vitest";
 
-describe("useMenuState", () => {
+describe("useMainWindowDialogState", () => {
     it("should handle setting dialog", () => {
-        const { result } = renderHook(() => useMenuState());
+        const { result } = renderHook(() => useMainWindowDialogState());
 
         expect(result.current.isSettingDialogOpen).toBe(false);
 
@@ -21,7 +21,7 @@ describe("useMenuState", () => {
     });
 
     it("should handle about dialog", () => {
-        const { result } = renderHook(() => useMenuState());
+        const { result } = renderHook(() => useMainWindowDialogState());
 
         expect(result.current.isAboutDialogOpen).toBe(false);
 
@@ -34,6 +34,22 @@ describe("useMenuState", () => {
             result.current.closeAboutDialog();
         });
         expect(result.current.isAboutDialogOpen).toBe(false);
+    });
+
+    it("should handle image export dialog", () => {
+        const { result } = renderHook(() => useMainWindowDialogState());
+
+        expect(result.current.isImageExportDialogOpen).toBe(false);
+
+        act(() => {
+            result.current.openImageExportDialog();
+        });
+        expect(result.current.isImageExportDialogOpen).toBe(true);
+
+        act(() => {
+            result.current.closeImageExportDialog();
+        });
+        expect(result.current.isImageExportDialogOpen).toBe(false);
     });
 });
 

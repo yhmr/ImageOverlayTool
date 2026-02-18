@@ -35,7 +35,7 @@ export function SettingDialog(props: SettingDialogProps) {
         logLevel,
         setLogLevel,
         changeLanguage,
-        saveAndClose,
+        persistAndClose,
         exportSettings,
         importSettings,
     } = useSettingDialogState({
@@ -46,7 +46,7 @@ export function SettingDialog(props: SettingDialogProps) {
     return (
         <Dialog
             open={open}
-            onOpenChange={(isOpen) => !isOpen && saveAndClose()}
+            onOpenChange={(isOpen) => !isOpen && persistAndClose()}
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -145,7 +145,7 @@ export function SettingDialog(props: SettingDialogProps) {
                 </div>
                 <DialogFooter>
                     <Button
-                        onClick={saveAndClose}
+                        onClick={persistAndClose}
                         data-testid="main.settings.done"
                     >
                         {t("render.setting_dlg.done")}

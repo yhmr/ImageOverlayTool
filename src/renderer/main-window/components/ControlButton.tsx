@@ -27,11 +27,11 @@ import { ColorPicker } from "./ColorPicker";
 interface ControlButtonProps {
     isDimensionMode: boolean;
     onToggleDimensionMode: () => void;
-    onOpenExportDialog: () => void;
+    onOpenImageExportDialog: () => void;
 }
 
 export function ControlButton(props: ControlButtonProps) {
-    const { isDimensionMode, onToggleDimensionMode, onOpenExportDialog } =
+    const { isDimensionMode, onToggleDimensionMode, onOpenImageExportDialog } =
         props;
     const { t } = useTranslation();
     const { captureBackground } = useCapture();
@@ -42,12 +42,12 @@ export function ControlButton(props: ControlButtonProps) {
     );
     const ipcService = useIpcService();
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
+    const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
 
-    const toggleMenu = () => setIsOpen((prev) => !prev);
+    const toggleFabMenu = () => setIsFabMenuOpen((prev) => !prev);
 
     // 画像設定ウィンドウを開く
-    const openImageSettings = async () => {
+    const toggleImageSettingsWindow = async () => {
         await ipcService.toggleImageSettingsWindow();
     };
 
@@ -81,7 +81,7 @@ export function ControlButton(props: ControlButtonProps) {
             id: "image-settings",
             icon: Settings2,
             label: t("render.control_button.tooltip.image_settings"),
-            onClick: openImageSettings,
+            onClick: toggleImageSettingsWindow,
         },
         {
             id: "background-style",
@@ -110,7 +110,7 @@ export function ControlButton(props: ControlButtonProps) {
             id: "export",
             icon: Save,
             label: t("render.control_button.tooltip.save"),
-            onClick: onOpenExportDialog,
+            onClick: onOpenImageExportDialog,
         },
     ];
 
@@ -122,17 +122,17 @@ export function ControlButton(props: ControlButtonProps) {
                     <TooltipTrigger asChild>
                         <Button
                             variant="secondary"
-                            onClick={toggleMenu}
+                            onClick={toggleFabMenu}
                             className={cn(
                                 "absolute bottom-9 right-4 h-12 w-12 rounded-full shadow-lg transition-all duration-300 z-50",
-                                isOpen
+                                isFabMenuOpen
                                     ? "bg-muted rotate-90"
                                     : "bg-background/80 hover:bg-background/90 backdrop-blur-sm"
                             )}
                             data-testid="main.fab.menu-toggle"
                             data-clickthrough-allow
                         >
-                            {isOpen ? (
+                            {isFabMenuOpen ? (
                                 <X className="h-6 w-6" />
                             ) : (
                                 <Plus className="h-6 w-6" />
@@ -140,7 +140,11 @@ export function ControlButton(props: ControlButtonProps) {
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top">
-                        <p>{isOpen ? t("common.close") : t("common.menu")}</p>
+                        <p>
+                            {isFabMenuOpen
+                                ? t("common.close")
+                                : t("common.menu")}
+                        </p>
                     </TooltipContent>
                 </Tooltip>
 
@@ -158,13 +162,13 @@ export function ControlButton(props: ControlButtonProps) {
                             key={item.id}
                             className={cn(
                                 "absolute bottom-9 transition-all duration-300 ease-out flex items-center justify-center z-50", // justify-centerを追加
-                                isOpen
+                                isFabMenuOpen
                                     ? "opacity-100 scale-100 translate-x-0"
                                     : "opacity-0 scale-75 translate-x-12 pointer-events-none"
                             )}
                             style={{
                                 right: `${rightPos * 0.25}rem`,
-                                transitionDelay: isOpen
+                                transitionDelay: isFabMenuOpen
                                     ? `${index * 50}ms`
                                     : "0ms",
                             }}

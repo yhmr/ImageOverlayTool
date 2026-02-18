@@ -16,7 +16,7 @@ import { bindStageDragEndDisable } from "./imageStageDragEnd";
 import { useStageControls } from "../../hooks/useStageControls";
 import { useDimensionLineMode } from "../../hooks/useDimensionLineMode";
 import { useImageSelection } from "../../hooks/useImageSelection";
-import { useMenuState } from "../../hooks/useMenuState";
+import { useMainWindowDialogState } from "../../hooks/useMainWindowDialogState";
 import { useClickThroughMode } from "../../hooks/useClickThroughMode";
 import { useStageExport } from "../hooks/useStageExport";
 import { useImageInitialization } from "../hooks/useImageInitialization";
@@ -34,8 +34,11 @@ export const ImageStage = memo(function ImageStage() {
 
     const stageRef = useRef<Konva.Stage>(null);
 
-    const { isExportDialogOpen, openExportDialog, closeExportDialog } =
-        useMenuState();
+    const {
+        isImageExportDialogOpen,
+        openImageExportDialog,
+        closeImageExportDialog,
+    } = useMainWindowDialogState();
 
     const { exportImage } = useStageExport({ stageRef, setUIHidden });
 
@@ -164,11 +167,11 @@ export const ImageStage = memo(function ImageStage() {
                         setSelectedDimensionLineId(null);
                     }
                 }}
-                onOpenExportDialog={openExportDialog}
+                onOpenImageExportDialog={openImageExportDialog}
             />
             <ImageExportDialog
-                open={isExportDialogOpen}
-                onClose={closeExportDialog}
+                open={isImageExportDialogOpen}
+                onClose={closeImageExportDialog}
                 onExport={exportImage}
             />
         </>

@@ -57,7 +57,7 @@ export function AppMenu(props: AppMenuProps) {
     const { pasteImage } = useImagePaste();
 
     // 画像設定ウィンドウを開く
-    const openImageSettings = async () => {
+    const toggleImageSettingsWindow = async () => {
         await ipcService.toggleImageSettingsWindow();
     };
 
@@ -65,7 +65,7 @@ export function AppMenu(props: AppMenuProps) {
         await ipcService.log.export();
     };
 
-    const openManual = () => {
+    const openUserGuide = () => {
         window.open("https://yhmr.github.io/ImageOverlayTool/guide/", "_blank");
     };
 
@@ -129,11 +129,11 @@ export function AppMenu(props: AppMenuProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuGroup>
                     <DropdownMenuItem
-                        onClick={openImageSettings}
+                        onClick={toggleImageSettingsWindow}
                         data-testid="main.menu.item.open-image-settings"
                     >
                         <Settings2 className="mr-2 h-4 w-4" />
-                        {t("render.menu.load_image")}
+                        {t("render.menu.open_image_settings")}
                         <DropdownMenuShortcut>Ctrl+I</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -169,7 +169,7 @@ export function AppMenu(props: AppMenuProps) {
                         {t("render.menu.settings")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                        onClick={openManual}
+                        onClick={openUserGuide}
                         data-testid="main.menu.item.help-manual"
                     >
                         <BookOpen className="mr-2 h-4 w-4" />

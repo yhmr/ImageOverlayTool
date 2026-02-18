@@ -13,7 +13,7 @@
             "group_project": "Project",
             "group_image": "Image",
             "group_app": "Application",
-            "load_image": "Image Settings",
+            "open_image_settings": "Image Settings",
             "new_project": "New Project",
             "open_project": "Open Project",
             "save_project": "Save Project",

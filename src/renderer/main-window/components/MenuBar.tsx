@@ -6,7 +6,7 @@ import { SettingDialog } from "../../dialogs/settings/SettingDialog";
 import { AppMenu } from "./AppMenu";
 import { MenuBarHistoryActions } from "./MenuBarHistoryActions";
 import { MenuBarWindowActions } from "./MenuBarWindowActions";
-import { useMenuState } from "../../hooks/useMenuState";
+import { useMainWindowDialogState } from "../../hooks/useMainWindowDialogState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
 import { useProjectOperations } from "../../hooks/useProjectOperations";
 import { useImageFileStatus } from "../../hooks/useImageFileStatus";
@@ -54,7 +54,7 @@ export function MenuBar() {
         isAboutDialogOpen,
         openAboutDialog,
         closeAboutDialog,
-    } = useMenuState();
+    } = useMainWindowDialogState();
 
     const { isMaximized, toggleMaximized, closeWindow } = useWindowOperations();
 
