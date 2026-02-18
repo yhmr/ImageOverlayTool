@@ -12,8 +12,10 @@
         "menu": {
             "group_project": "プロジェクト",
             "group_image": "画像",
+            "group_dimension": "寸法線",
             "group_app": "アプリケーション",
             "open_image_settings": "画像設定",
+            "open_dimension_settings": "寸法線設定",
             "new_project": "新規作成",
             "open_project": "プロジェクトを開く",
             "save_project": "プロジェクトを保存",
@@ -144,7 +146,8 @@
             "list": {
                 "title": "寸法線リスト",
                 "empty": "寸法線はまだありません。",
-                "line_name": "寸法線 {{index}}"
+                "line_name": "寸法線 {{index}}",
+                "show_unit_label": "単位表示"
             }
         },
         "about_dlg": {

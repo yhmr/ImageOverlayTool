@@ -552,6 +552,9 @@ export class WindowManager {
         this.shortcutManager.registerToggleImageSettings(() => {
             this.toggleImageSettingsWindow();
         });
+        this.shortcutManager.registerToggleDimensionSettings(() => {
+            this.toggleDimensionSettingsWindow();
+        });
     }
 
     /**

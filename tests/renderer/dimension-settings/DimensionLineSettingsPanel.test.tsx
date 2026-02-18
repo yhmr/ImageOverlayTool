@@ -64,6 +64,13 @@ describe("DimensionLineSettingsPanel", () => {
         expect(useAppStore.getState().dimensionLines[0].color).toBe("#ff0000");
 
         fireEvent.click(
+            screen.getByTestId("dimension-settings.line.0.show-unit-switch")
+        );
+        expect(useAppStore.getState().dimensionLines[0].showUnitLabel).toBe(
+            false
+        );
+
+        fireEvent.click(
             screen.getByTestId("dimension-settings.line.0.delete")
         );
         expect(useAppStore.getState().dimensionLines).toHaveLength(0);

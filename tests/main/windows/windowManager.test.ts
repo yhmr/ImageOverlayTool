@@ -361,6 +361,7 @@ describe("WindowManager", () => {
     it("delegates shortcut registration to injected manager", () => {
         const shortcutManager: IWindowShortcutManager = {
             registerToggleImageSettings: vi.fn(),
+            registerToggleDimensionSettings: vi.fn(),
             unregisterAll: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository, shortcutManager);
@@ -370,11 +371,15 @@ describe("WindowManager", () => {
         expect(shortcutManager.registerToggleImageSettings).toHaveBeenCalledTimes(
             1
         );
+        expect(
+            shortcutManager.registerToggleDimensionSettings
+        ).toHaveBeenCalledTimes(1);
     });
 
     it("delegates shortcut unregistration to injected manager", () => {
         const shortcutManager: IWindowShortcutManager = {
             registerToggleImageSettings: vi.fn(),
+            registerToggleDimensionSettings: vi.fn(),
             unregisterAll: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository, shortcutManager);
@@ -387,6 +392,7 @@ describe("WindowManager", () => {
     it("cleanup unregisters shortcuts and closes all windows", () => {
         const shortcutManager: IWindowShortcutManager = {
             registerToggleImageSettings: vi.fn(),
+            registerToggleDimensionSettings: vi.fn(),
             unregisterAll: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository, shortcutManager);

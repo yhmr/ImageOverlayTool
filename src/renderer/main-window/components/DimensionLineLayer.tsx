@@ -140,6 +140,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                 const mid = getMidPoint(start, end);
                 const label = getLabel(start, end);
                 const lineColor = sanitizeDimensionLineColor(line.color);
+                const shouldShowUnitLabel = line.showUnitLabel !== false;
 
                 return (
                     <Group
@@ -163,15 +164,17 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                         />
 
                         {/* ラベル */}
-                        <Text
-                            x={mid.x}
-                            y={mid.y}
-                            text={label}
-                            fontSize={16}
-                            fill={lineColor}
-                            align="center"
-                            offset={{ x: label.length * 4, y: 20 }} // approximate centering
-                        />
+                        {shouldShowUnitLabel && (
+                            <Text
+                                x={mid.x}
+                                y={mid.y}
+                                text={label}
+                                fontSize={16}
+                                fill={lineColor}
+                                align="center"
+                                offset={{ x: label.length * 4, y: 20 }} // approximate centering
+                            />
+                        )}
 
                         {/* ラベルを編集するためのアンカー */}
                         {selected && isDimensionEditMode && (

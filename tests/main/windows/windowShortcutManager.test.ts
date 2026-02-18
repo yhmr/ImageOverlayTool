@@ -28,6 +28,15 @@ describe("ElectronWindowShortcutManager", () => {
         expect(register).toHaveBeenCalledWith("CommandOrControl+I", callback);
     });
 
+    it("registers Ctrl/Cmd+D shortcut", () => {
+        const manager = new ElectronWindowShortcutManager();
+        const callback = vi.fn();
+
+        manager.registerToggleDimensionSettings(callback);
+
+        expect(register).toHaveBeenCalledWith("CommandOrControl+D", callback);
+    });
+
     it("unregisters all shortcuts", () => {
         const manager = new ElectronWindowShortcutManager();
 

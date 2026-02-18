@@ -11,6 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/renderer/components/ui/select";
+import { Switch } from "@/renderer/components/ui/switch";
 import { cn } from "@/renderer/lib/utils";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { sanitizeDimensionLineColor } from "@/shared/constants/dimensionLine";
@@ -253,6 +254,28 @@ export function DimensionLineSettingsPanel() {
                                     className="h-9 w-12 p-1"
                                     data-testid={`dimension-settings.line.${index}.color`}
                                 />
+
+                                <div
+                                    className="flex items-center gap-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                    data-testid={`dimension-settings.line.${index}.show-unit`}
+                                >
+                                    <Label className="text-xs whitespace-nowrap">
+                                        {t(
+                                            "render.dimension_line_settings.list.show_unit_label"
+                                        )}
+                                    </Label>
+                                    <Switch
+                                        checked={line.showUnitLabel !== false}
+                                        onCheckedChange={(checked) =>
+                                            updateDimensionLine({
+                                                ...line,
+                                                showUnitLabel: checked,
+                                            })
+                                        }
+                                        data-testid={`dimension-settings.line.${index}.show-unit-switch`}
+                                    />
+                                </div>
 
                                 <Button
                                     variant="ghost"

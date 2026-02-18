@@ -67,6 +67,7 @@ export const useDimensionLineMode = (
                 start: pos,
                 end: pos,
                 color: DIMENSION_LINE_COLOR_DEFAULT,
+                showUnitLabel: true,
             });
             setSelectedDimensionLineId(null);
         },

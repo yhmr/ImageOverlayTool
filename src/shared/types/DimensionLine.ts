@@ -3,4 +3,5 @@ export interface DimensionLine {
     start: { x: number; y: number };
     end: { x: number; y: number };
     color?: string;
+    showUnitLabel?: boolean;
 }

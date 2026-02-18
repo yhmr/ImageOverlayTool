@@ -12,8 +12,10 @@
         "menu": {
             "group_project": "Project",
             "group_image": "Image",
+            "group_dimension": "Dimension",
             "group_app": "Application",
             "open_image_settings": "Image Settings",
+            "open_dimension_settings": "Dimension Line Settings",
             "new_project": "New Project",
             "open_project": "Open Project",
             "save_project": "Save Project",
@@ -144,7 +146,8 @@
             "list": {
                 "title": "Dimension Line List",
                 "empty": "No dimension lines yet.",
-                "line_name": "Line {{index}}"
+                "line_name": "Line {{index}}",
+                "show_unit_label": "Unit Label"
             }
         },
         "about_dlg": {

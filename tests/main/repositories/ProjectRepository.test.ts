@@ -209,12 +209,14 @@ describe("ProjectRepository", () => {
                     start: { x: 0, y: 0 },
                     end: { x: 100, y: 0 },
                     color: "#AABBCCDD",
+                    showUnitLabel: false,
                 },
                 {
                     id: "line-2",
                     start: { x: 0, y: 10 },
                     end: { x: 100, y: 10 },
                     color: "invalid",
+                    showUnitLabel: "invalid",
                 },
             ],
         };
@@ -227,5 +229,7 @@ describe("ProjectRepository", () => {
         expect(result.dimensionLines?.[1]?.color).toBe(
             DIMENSION_LINE_COLOR_DEFAULT
         );
+        expect(result.dimensionLines?.[0]?.showUnitLabel).toBe(false);
+        expect(result.dimensionLines?.[1]?.showUnitLabel).toBeUndefined();
     });
 });

@@ -6,10 +6,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AppMenu } from "@/renderer/main-window/components/AppMenu";
 
-const { toggleImageSettingsWindow, exportLogs } = vi.hoisted(() => ({
+const { toggleImageSettingsWindow, toggleDimensionSettingsWindow, exportLogs } =
+    vi.hoisted(() => ({
     toggleImageSettingsWindow: vi.fn().mockResolvedValue(true),
+    toggleDimensionSettingsWindow: vi.fn().mockResolvedValue(true),
     exportLogs: vi.fn().mockResolvedValue("logs.txt"),
-}));
+    }));
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
@@ -20,6 +22,7 @@ vi.mock("react-i18next", () => ({
 vi.mock("@/renderer/services/ipcService", () => ({
     getIPCService: () => ({
         toggleImageSettingsWindow,
+        toggleDimensionSettingsWindow,
         log: {
             export: exportLogs,
         },
@@ -68,12 +71,18 @@ describe("AppMenu test ids", () => {
         );
 
         await openMenu();
+        fireEvent.click(
+            screen.getByTestId("main.menu.item.open-dimension-settings")
+        );
+
+        await openMenu();
         fireEvent.click(screen.getByTestId("main.menu.item.help-manual"));
 
         await openMenu();
         fireEvent.click(screen.getByTestId("main.menu.item.export-logs"));
 
         expect(toggleImageSettingsWindow).toHaveBeenCalledTimes(1);
+        expect(toggleDimensionSettingsWindow).toHaveBeenCalledTimes(1);
         expect(exportLogs).toHaveBeenCalledTimes(1);
         expect(openSpy).toHaveBeenCalledWith(
             "https://yhmr.github.io/ImageOverlayTool/guide/",

@@ -24,6 +24,7 @@ import {
     SaveAll,
     Maximize2,
     ClipboardPaste,
+    Ruler,
 } from "lucide-react";
 
 import { useIpcService } from "../../providers/IpcServiceProvider";
@@ -59,6 +60,10 @@ export function AppMenu(props: AppMenuProps) {
     // 画像設定ウィンドウを開く
     const toggleImageSettingsWindow = async () => {
         await ipcService.toggleImageSettingsWindow();
+    };
+
+    const toggleDimensionSettingsWindow = async () => {
+        await ipcService.toggleDimensionSettingsWindow();
     };
 
     const exportLogs = async () => {
@@ -151,6 +156,23 @@ export function AppMenu(props: AppMenuProps) {
                         <ClipboardPaste className="mr-2 h-4 w-4" />
                         {t("render.menu.paste_image")}
                         <DropdownMenuShortcut>Ctrl+V</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                {/* 寸法線 グループ */}
+                <DropdownMenuLabel>
+                    {t("render.menu.group_dimension")}
+                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                    <DropdownMenuItem
+                        onClick={toggleDimensionSettingsWindow}
+                        data-testid="main.menu.item.open-dimension-settings"
+                    >
+                        <Ruler className="mr-2 h-4 w-4" />
+                        {t("render.menu.open_dimension_settings")}
+                        <DropdownMenuShortcut>Ctrl+D</DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
 

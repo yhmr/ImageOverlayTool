@@ -217,6 +217,10 @@ const normalizeDimensionLines = (
             typeof line.color === "string"
                 ? sanitizeDimensionLineColor(line.color)
                 : undefined;
+        const showUnitLabel =
+            typeof line.showUnitLabel === "boolean"
+                ? line.showUnitLabel
+                : undefined;
 
         const normalizedLine = {
             id,
@@ -224,14 +228,11 @@ const normalizeDimensionLines = (
             end: normalizePoint(line.end, `dimensionLines[${index}].end`),
         };
 
-        if (color) {
-            return {
-                ...normalizedLine,
-                color,
-            };
-        }
-
-        return normalizedLine;
+        return {
+            ...normalizedLine,
+            ...(color ? { color } : {}),
+            ...(showUnitLabel !== undefined ? { showUnitLabel } : {}),
+        };
     });
 };
 
