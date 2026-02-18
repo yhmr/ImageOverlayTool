@@ -4,7 +4,7 @@
 
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { ErrorBoundary } from "../../../src/renderer/main-window/components/ErrorBoundary";
+import { ErrorBoundary } from "@/renderer/main-window/components/ErrorBoundary";
 
 // コンソールエラーを抑制するためのセットアップ
 const originalConsoleError = console.error;
