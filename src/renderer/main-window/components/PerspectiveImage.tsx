@@ -1,4 +1,3 @@
-"use no memo";
 import React from "react";
 import { Image as KonvaImage } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
@@ -17,6 +16,8 @@ export const PerspectiveImage = ({
     imageSet,
     onSelect,
 }: PerspectiveImageProps) => {
+    "use no memo";
+
     const { canvas, pos, renderTrigger } = usePerspectiveCanvas({
         image,
         imageSet,

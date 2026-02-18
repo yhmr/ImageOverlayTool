@@ -1,4 +1,3 @@
-"use no memo";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { Arrow, Group, Text, Circle } from "react-konva";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
@@ -22,6 +21,8 @@ type EditingAnchorMap = Record<string, Partial<Record<AnchorType, Point>>>;
 export const DimensionLineLayer = memo(function DimensionLineLayer(
     props: DimensionLineLayerProps
 ) {
+    "use no memo";
+
     const {
         dimensionLines,
         unitFactor,

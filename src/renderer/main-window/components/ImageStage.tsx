@@ -1,4 +1,3 @@
-"use no memo";
 import React, { memo, useCallback, useEffect, useRef } from "react";
 
 import { useAppStore } from "../../store/useAppStore";
@@ -31,6 +30,8 @@ interface ImageStageProps {
 }
 
 export const ImageStage = memo(function ImageStage(props: ImageStageProps) {
+    "use no memo";
+
     const {
         isImageExportDialogOpen,
         onOpenImageExportDialog,

@@ -1,4 +1,3 @@
-"use no memo";
 import React, { useRef, useCallback, useLayoutEffect } from "react";
 import Konva from "konva";
 import { Circle, Line } from "react-konva";
@@ -24,6 +23,8 @@ export const OverlayControls = ({
     imageSet,
     onUpdateAnchor,
 }: OverlayControlsProps) => {
+    "use no memo";
+
     // アンカーとラインのRef
     const ltRef = useRef<Konva.Circle>(null);
     const lbRef = useRef<Konva.Circle>(null);
