@@ -4,6 +4,7 @@ import type { SettingType } from "../shared/types/AppConfig";
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
 import type { ImageInfoResult } from "../shared/types/ImageInfo";
+import type { DimensionLine } from "../shared/types/DimensionLine";
 import { IPC_CHANNELS, IPC_EVENTS } from "../shared/ipc/channels";
 import type {
     E2ECaptureRequest,
@@ -110,6 +111,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     getPathForFile: (file: File) => webUtils.getPathForFile(file),
     toggleImageSettingsWindow: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.toggle),
+    toggleDimensionSettingsWindow: () =>
+        ipcRenderer.invoke(IPC_CHANNELS.dimensionSettingsWindow.toggle),
     // ImageSets Sync
     updateImageSets: (imageSets: ImageSet[]) =>
         ipcRenderer.invoke(IPC_CHANNELS.sync.updateImageSets, imageSets),
@@ -123,6 +126,26 @@ contextBridge.exposeInMainWorld("electronAPI", {
                 subscription
             );
     },
+    // DimensionLines Sync
+    updateDimensionLines: (dimensionLines: DimensionLine[]) =>
+        ipcRenderer.invoke(
+            IPC_CHANNELS.sync.updateDimensionLines,
+            dimensionLines
+        ),
+    onDimensionLinesUpdated: (
+        callback: (dimensionLines: DimensionLine[]) => void
+    ) => {
+        const subscription = (
+            _event: unknown,
+            dimensionLines: DimensionLine[]
+        ) => callback(dimensionLines);
+        ipcRenderer.on(IPC_EVENTS.dimensionLinesUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.dimensionLinesUpdated,
+                subscription
+            );
+    },
     // Unit sync
     updateUnit: (unit: "nm" | "um" | "mm") =>
         ipcRenderer.invoke(IPC_CHANNELS.sync.updateUnit, unit),
@@ -132,6 +155,21 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.on(IPC_EVENTS.unitUpdated, subscription);
         return () =>
             ipcRenderer.removeListener(IPC_EVENTS.unitUpdated, subscription);
+    },
+    // Interaction Mode sync
+    updateInteractionMode: (mode: "default" | "dimension") =>
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateInteractionMode, mode),
+    onInteractionModeUpdated: (
+        callback: (mode: "default" | "dimension") => void
+    ) => {
+        const subscription = (_event: unknown, mode: "default" | "dimension") =>
+            callback(mode);
+        ipcRenderer.on(IPC_EVENTS.interactionModeUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.interactionModeUpdated,
+                subscription
+            );
     },
     // Unit Factor Sync
     updateUnitFactor: (unitFactor: number) =>

@@ -33,10 +33,15 @@ export const IPC_CHANNELS = {
         pasteImage: "imageSettingsWindow:pasteImage",
         saveCacheImageAs: "imageSettingsWindow:saveCacheImageAs",
     },
+    dimensionSettingsWindow: {
+        toggle: "dimensionSettingsWindow:toggle",
+    },
     sync: {
         updateImageSets: "imageSets:update",
+        updateDimensionLines: "dimensionLines:update",
         updateUnitFactor: "unitFactor:update",
         updateUnit: "unit:update",
+        updateInteractionMode: "interactionMode:update",
         updateSelectedImageId: "selectedImageId:update",
         updateProjectDirty: "project:dirty:update",
         requestInitialState: "state:requestInitial",
@@ -61,8 +66,10 @@ export const IPC_CHANNELS = {
 
 export const IPC_EVENTS = {
     imageSetsUpdated: "imageSets:updated",
+    dimensionLinesUpdated: "dimensionLines:updated",
     unitFactorUpdated: "unitFactor:updated",
     unitUpdated: "unit:updated",
+    interactionModeUpdated: "interactionMode:updated",
     selectedImageIdUpdated: "selectedImageId:updated",
     languageUpdated: "language:updated",
     requestStateSync: "state:requestSync",

@@ -1,6 +1,7 @@
 import {
     DEFAULT_MAIN_WINDOW_SIZE,
     DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
+    DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE,
 } from "@/shared/types/AppConfig";
 import { Point } from "@/shared/types/Point";
 import { Size } from "@/shared/types/Size";
@@ -18,6 +19,11 @@ export class MockWindowRepository implements IWindowRepository {
     private imageSettingsWindowSize: Size = {
         width: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width,
         height: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height,
+    };
+    private dimensionSettingsWindowPos: Point = { x: 40, y: 40 };
+    private dimensionSettingsWindowSize: Size = {
+        width: DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE.width,
+        height: DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE.height,
     };
 
     async loadWindowColor(): Promise<string> {
@@ -55,5 +61,20 @@ export class MockWindowRepository implements IWindowRepository {
     ): void {
         this.imageSettingsWindowPos = { x: pos[0], y: pos[1] };
         this.imageSettingsWindowSize = { width: size[0], height: size[1] };
+    }
+
+    getDimensionSettingsWindowPositionAndSize(): { pos: Point; size: Size } {
+        return {
+            pos: { ...this.dimensionSettingsWindowPos },
+            size: { ...this.dimensionSettingsWindowSize },
+        };
+    }
+
+    saveDimensionSettingsWindowPositionAndSize(
+        pos: number[],
+        size: number[]
+    ): void {
+        this.dimensionSettingsWindowPos = { x: pos[0], y: pos[1] };
+        this.dimensionSettingsWindowSize = { width: size[0], height: size[1] };
     }
 }

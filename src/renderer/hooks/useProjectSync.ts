@@ -30,6 +30,12 @@ export const useProjectSync = () => {
             }
         );
 
+        const unsubscribeDimensionLines = ipcService.onDimensionLinesUpdated(
+            (dimensionLines) => {
+                useAppStore.getState().receiveDimensionLines(dimensionLines);
+            }
+        );
+
         // selectedImageIdの更新監視
         // dimensionモード中はリモートからの選択変更を無視する
         // （setSelectedImageIdがselectedDimensionLineIdをクリアするため）
@@ -42,23 +48,36 @@ export const useProjectSync = () => {
             }
         );
 
+        const unsubscribeInteractionMode = ipcService.onInteractionModeUpdated(
+            (mode) => {
+                useAppStore.getState().setInteractionMode(mode);
+            }
+        );
+
         // 初期状態同期要求の監視 (メインウィンドウが応答する側)
         const unsubscribeRequestSync = ipcService.onRequestStateSync(() => {
             // 現在の状態を送信
             const currentImageSets = useAppStore.getState().imageSets;
+            const currentDimensionLines = useAppStore.getState().dimensionLines;
             const currentUnitFactor = useAppStore.getState().unitFactor;
             const currentUnit = useAppStore.getState().unit;
+            const currentInteractionMode =
+                useAppStore.getState().interactionMode;
 
             ipcService.updateImageSets(currentImageSets);
+            ipcService.updateDimensionLines(currentDimensionLines);
             ipcService.updateUnitFactor(currentUnitFactor);
             ipcService.updateUnit(currentUnit);
+            ipcService.updateInteractionMode(currentInteractionMode);
         });
 
         return () => {
             unsubscribeUnitFactor();
             unsubscribeUnit();
             unsubscribeImageSets();
+            unsubscribeDimensionLines();
             unsubscribeSelectedImageId();
+            unsubscribeInteractionMode();
             unsubscribeRequestSync();
         };
     }, [ipcService]);

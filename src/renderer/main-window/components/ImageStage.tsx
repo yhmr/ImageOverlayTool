@@ -53,7 +53,6 @@ export const ImageStage = memo(function ImageStage() {
 
     const {
         isDimensionMode,
-        setDimensionModeEnabled,
         selectedDimensionLineId,
         setSelectedDimensionLineId,
         dimensionLines,
@@ -157,18 +156,7 @@ export const ImageStage = memo(function ImageStage() {
                     />
                 </Layer>
             </Stage>
-            <ControlButton
-                isDimensionMode={isDimensionMode}
-                onToggleDimensionMode={() => {
-                    setDimensionModeEnabled(!isDimensionMode);
-                    if (!isDimensionMode) {
-                        setSelectedImageId(null);
-                    } else {
-                        setSelectedDimensionLineId(null);
-                    }
-                }}
-                onOpenImageExportDialog={openImageExportDialog}
-            />
+            <ControlButton onOpenImageExportDialog={openImageExportDialog} />
             <ImageExportDialog
                 open={isImageExportDialogOpen}
                 onClose={closeImageExportDialog}

@@ -5,6 +5,7 @@
 
 import type { ImageSet } from "../../shared/types/ImageSet";
 import type { ImageInfoResult } from "../../shared/types/ImageInfo";
+import type { DimensionLine } from "../../shared/types/DimensionLine";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
@@ -84,6 +85,7 @@ export interface IImageSettingsWindowIPCService {
     saveCacheImageAs: (cacheFilePath: string) => Promise<string | null>;
     getPathForFile: (file: File) => string;
     toggleImageSettingsWindow: () => Promise<boolean>;
+    toggleDimensionSettingsWindow: () => Promise<boolean>;
 }
 
 export interface IImageSyncIPCService {
@@ -93,12 +95,26 @@ export interface IImageSyncIPCService {
     ) => () => void;
 }
 
+export interface IDimensionLineSyncIPCService {
+    updateDimensionLines(dimensionLines: DimensionLine[]): Promise<void>;
+    onDimensionLinesUpdated: (
+        callback: (dimensionLines: DimensionLine[]) => void
+    ) => () => void;
+}
+
 export interface IUnitSyncIPCService {
     updateUnitFactor(factor: number): Promise<void>;
     onUnitFactorUpdated: (callback: (factor: number) => void) => () => void;
 
     updateUnit(unit: Unit): Promise<void>;
     onUnitUpdated: (callback: (unit: Unit) => void) => () => void;
+}
+
+export interface IInteractionModeSyncIPCService {
+    updateInteractionMode(mode: "default" | "dimension"): Promise<void>;
+    onInteractionModeUpdated: (
+        callback: (mode: "default" | "dimension") => void
+    ) => () => void;
 }
 
 export interface IStateSyncIPCService {
@@ -143,6 +159,7 @@ export interface IE2EIPCService {
 
 export interface IProjectDataSyncIPCService {
     updateImageSets(imageSets: ImageSet[]): Promise<void>;
+    updateDimensionLines(dimensionLines: DimensionLine[]): Promise<void>;
     updateUnitFactor(factor: number): Promise<void>;
     updateUnit(unit: Unit): Promise<void>;
 }
@@ -157,7 +174,9 @@ export interface IIPCService
         IProjectIPCService,
         IImageSettingsWindowIPCService,
         IImageSyncIPCService,
+        IDimensionLineSyncIPCService,
         IUnitSyncIPCService,
+        IInteractionModeSyncIPCService,
         IStateSyncIPCService,
         ILicenseIPCService,
         ICaptureIPCService,
@@ -297,12 +316,26 @@ class IPCService implements IIPCService {
         return await window.electronAPI.toggleImageSettingsWindow();
     }
 
+    async toggleDimensionSettingsWindow(): Promise<boolean> {
+        return await window.electronAPI.toggleDimensionSettingsWindow();
+    }
+
     async updateImageSets(imageSets: ImageSet[]): Promise<void> {
         await window.electronAPI.updateImageSets(imageSets);
     }
 
     onImageSetsUpdated(callback: (imageSets: ImageSet[]) => void): () => void {
         return window.electronAPI.onImageSetsUpdated(callback);
+    }
+
+    async updateDimensionLines(dimensionLines: DimensionLine[]): Promise<void> {
+        await window.electronAPI.updateDimensionLines(dimensionLines);
+    }
+
+    onDimensionLinesUpdated(
+        callback: (dimensionLines: DimensionLine[]) => void
+    ): () => void {
+        return window.electronAPI.onDimensionLinesUpdated(callback);
     }
 
     async updateUnitFactor(factor: number): Promise<void> {
@@ -319,6 +352,16 @@ class IPCService implements IIPCService {
 
     onUnitUpdated(callback: (unit: Unit) => void): () => void {
         return window.electronAPI.onUnitUpdated(callback);
+    }
+
+    async updateInteractionMode(mode: "default" | "dimension"): Promise<void> {
+        await window.electronAPI.updateInteractionMode(mode);
+    }
+
+    onInteractionModeUpdated(
+        callback: (mode: "default" | "dimension") => void
+    ): () => void {
+        return window.electronAPI.onInteractionModeUpdated(callback);
     }
 
     async requestInitialState(): Promise<void> {

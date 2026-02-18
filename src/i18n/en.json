@@ -41,7 +41,7 @@
         "control_button": {
             "tooltip": {
                 "background_style": "Background Color/Opacity",
-                "dimension_line": "Draw Dimension Line",
+                "dimension_line": "Dimension Line Settings",
                 "save": "Save Image",
                 "capture": "Capture Background",
                 "image_settings": "Image Settings",
@@ -119,6 +119,23 @@
                 "info": "Info (Default)",
                 "debug": "Debug",
                 "silly": "All"
+            }
+        },
+        "dimension_line_settings": {
+            "title": "Dimension Line Settings",
+            "description": "Configure dimension line drawing and display.",
+            "draw_mode": "Dimension Draw Mode",
+            "unitFactor": "Resolution Factor",
+            "unit": "Unit",
+            "done": "Done",
+            "helper": {
+                "draw_mode": "When enabled, drag with left click to draw lines",
+                "unitFactor": "Converts px distance into real-world values"
+            },
+            "list": {
+                "title": "Dimension Line List",
+                "empty": "No dimension lines yet.",
+                "line_name": "Line {{index}}"
             }
         },
         "about_dlg": {

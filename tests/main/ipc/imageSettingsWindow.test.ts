@@ -42,6 +42,7 @@ vi.mock("@/main/logger", () => ({
 describe("imageSettingsWindow IPC handlers", () => {
     const windowManagerMock = {
         toggleImageSettingsWindow: vi.fn(() => true),
+        toggleDimensionSettingsWindow: vi.fn(() => true),
         getAllWindows: vi.fn(() => []),
         setProjectDirty: vi.fn(),
     };
@@ -59,6 +60,10 @@ describe("imageSettingsWindow IPC handlers", () => {
     it("registers getImageInfo handler", () => {
         expect(ipcMain.handle).toHaveBeenCalledWith(
             IPC_CHANNELS.imageSettingsWindow.getImageInfo,
+            expect.any(Function)
+        );
+        expect(ipcMain.handle).toHaveBeenCalledWith(
+            IPC_CHANNELS.dimensionSettingsWindow.toggle,
             expect.any(Function)
         );
     });

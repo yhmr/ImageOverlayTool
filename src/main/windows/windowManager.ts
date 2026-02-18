@@ -10,6 +10,7 @@ import {
 import { IPC_EVENTS } from "../../shared/ipc/channels";
 import { tUnsavedChanges } from "../../i18n/mainI18n";
 import { MIN_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
+import { MIN_DIMENSION_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 
 export interface IMainWindowProvider {
     getMainWindow(): BrowserWindow | null;
@@ -21,6 +22,10 @@ export interface IWindowCollectionProvider {
 
 export interface IImageSettingsWindowController {
     toggleImageSettingsWindow(): boolean;
+}
+
+export interface IDimensionSettingsWindowController {
+    toggleDimensionSettingsWindow(): boolean;
 }
 
 export interface IProjectDirtyStateController {
@@ -37,6 +42,7 @@ export class WindowManager {
     private mainWindow: BrowserWindow | null = null;
     private splashWindow: BrowserWindow | null = null;
     private imageSettingsWindow: BrowserWindow | null = null;
+    private dimensionSettingsWindow: BrowserWindow | null = null;
     private windowRepository: IWindowRepository;
     private readonly shortcutManager: IWindowShortcutManager;
     private isQuitting = false;
@@ -297,6 +303,12 @@ export class WindowManager {
             ) {
                 this.imageSettingsWindow.close();
             }
+            if (
+                this.dimensionSettingsWindow &&
+                !this.dimensionSettingsWindow.isDestroyed()
+            ) {
+                this.dimensionSettingsWindow.close();
+            }
             this.mainWindow = null;
         });
 
@@ -396,6 +408,86 @@ export class WindowManager {
     }
 
     /**
+     * 寸法線設定ウィンドウを作成
+     */
+    createDimensionSettingsWindow(): BrowserWindow {
+        if (
+            this.dimensionSettingsWindow &&
+            !this.dimensionSettingsWindow.isDestroyed()
+        ) {
+            log.debug("Dimension settings window already exists, focusing");
+            this.dimensionSettingsWindow.focus();
+            return this.dimensionSettingsWindow;
+        }
+
+        log.debug("Creating dimension settings window...");
+
+        const { pos, size } =
+            this.windowRepository.getDimensionSettingsWindowPositionAndSize();
+
+        this.dimensionSettingsWindow = new BrowserWindow({
+            show: false,
+            width: size.width,
+            height: size.height,
+            minWidth: MIN_DIMENSION_SETTINGS_WINDOW_SIZE.width,
+            minHeight: MIN_DIMENSION_SETTINGS_WINDOW_SIZE.height,
+            x: pos.x,
+            y: pos.y,
+            parent: this.mainWindow ?? undefined,
+            transparent: true,
+            frame: false,
+            resizable: true,
+            ...(platform.isMacOS ? { titleBarStyle: "hidden" as const } : {}),
+            ...(platform.isWindows ? { thickFrame: true } : {}),
+            webPreferences: {
+                preload: path.join(__dirname, "../preload/index.js"),
+                contextIsolation: true,
+                nodeIntegration: false,
+                sandbox: true,
+                webSecurity: true,
+            },
+        });
+
+        this.dimensionSettingsWindow.on("ready-to-show", () => {
+            this.dimensionSettingsWindow?.show();
+        });
+
+        this.dimensionSettingsWindow.on("close", (event) => {
+            if (this.dimensionSettingsWindow) {
+                this.windowRepository.saveDimensionSettingsWindowPositionAndSize(
+                    this.dimensionSettingsWindow.getPosition(),
+                    this.dimensionSettingsWindow.getSize()
+                );
+            }
+
+            if (this.isQuitting) {
+                return;
+            }
+
+            event.preventDefault();
+            if (this.dimensionSettingsWindow) {
+                this.dimensionSettingsWindow.hide();
+            }
+        });
+
+        if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+            this.dimensionSettingsWindow.loadURL(
+                process.env["ELECTRON_RENDERER_URL"] + "/dimension-settings/"
+            );
+        } else {
+            this.dimensionSettingsWindow.loadFile(
+                path.join(
+                    __dirname,
+                    "../renderer/dimension-settings/index.html"
+                )
+            );
+        }
+
+        log.info("Dimension settings window created");
+        return this.dimensionSettingsWindow;
+    }
+
+    /**
      * 画像設定ウィンドウの表示/非表示をトグル
      */
     toggleImageSettingsWindow(): boolean {
@@ -420,6 +512,35 @@ export class WindowManager {
             log.debug("Showing image settings window");
             this.imageSettingsWindow.show();
             this.imageSettingsWindow.focus();
+            return true;
+        }
+    }
+
+    /**
+     * 寸法線設定ウィンドウの表示/非表示をトグル
+     */
+    toggleDimensionSettingsWindow(): boolean {
+        if (
+            !this.dimensionSettingsWindow ||
+            this.dimensionSettingsWindow.isDestroyed()
+        ) {
+            log.debug("Dimension settings window not found, creating new one");
+            this.createDimensionSettingsWindow();
+            return true;
+        }
+
+        if (this.dimensionSettingsWindow.isVisible()) {
+            log.debug("Hiding dimension settings window");
+            this.windowRepository.saveDimensionSettingsWindowPositionAndSize(
+                this.dimensionSettingsWindow.getPosition(),
+                this.dimensionSettingsWindow.getSize()
+            );
+            this.dimensionSettingsWindow.hide();
+            return false;
+        } else {
+            log.debug("Showing dimension settings window");
+            this.dimensionSettingsWindow.show();
+            this.dimensionSettingsWindow.focus();
             return true;
         }
     }
@@ -454,6 +575,10 @@ export class WindowManager {
         return this.imageSettingsWindow;
     }
 
+    getDimensionSettingsWindow(): BrowserWindow | null {
+        return this.dimensionSettingsWindow;
+    }
+
     /**
      * すべての有効なウィンドウを取得
      */
@@ -467,6 +592,12 @@ export class WindowManager {
             !this.imageSettingsWindow.isDestroyed()
         ) {
             windows.push(this.imageSettingsWindow);
+        }
+        if (
+            this.dimensionSettingsWindow &&
+            !this.dimensionSettingsWindow.isDestroyed()
+        ) {
+            windows.push(this.dimensionSettingsWindow);
         }
         if (this.splashWindow && !this.splashWindow.isDestroyed()) {
             windows.push(this.splashWindow);
@@ -485,6 +616,14 @@ export class WindowManager {
         ) {
             this.imageSettingsWindow.destroy();
             this.imageSettingsWindow = null;
+        }
+
+        if (
+            this.dimensionSettingsWindow &&
+            !this.dimensionSettingsWindow.isDestroyed()
+        ) {
+            this.dimensionSettingsWindow.destroy();
+            this.dimensionSettingsWindow = null;
         }
 
         this.destroySplashWindow();

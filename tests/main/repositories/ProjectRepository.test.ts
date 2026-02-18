@@ -3,6 +3,7 @@ import { ProjectRepository } from "@/main/repositories/ProjectRepository";
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import fs from "fs/promises";
 import { UNIT_FACTOR_MIN } from "@/shared/constants/unitFactor";
+import { DIMENSION_LINE_COLOR_DEFAULT } from "@/shared/constants/dimensionLine";
 
 // Mock fs/promises
 vi.mock("fs/promises");
@@ -194,6 +195,37 @@ describe("ProjectRepository", () => {
 
         await expect(repository.loadProject(filePath)).rejects.toThrow(
             "Unsupported project file version: 2.0.0"
+        );
+    });
+
+    test("loadProject should normalize dimension line color", async () => {
+        const filePath = "/test/path/dimension-color.iot";
+        const payload = {
+            ...mockProjectFile,
+            images: [],
+            dimensionLines: [
+                {
+                    id: "line-1",
+                    start: { x: 0, y: 0 },
+                    end: { x: 100, y: 0 },
+                    color: "#AABBCCDD",
+                },
+                {
+                    id: "line-2",
+                    start: { x: 0, y: 10 },
+                    end: { x: 100, y: 10 },
+                    color: "invalid",
+                },
+            ],
+        };
+
+        vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(payload));
+
+        const result = await repository.loadProject(filePath);
+
+        expect(result.dimensionLines?.[0]?.color).toBe("#aabbcc");
+        expect(result.dimensionLines?.[1]?.color).toBe(
+            DIMENSION_LINE_COLOR_DEFAULT
         );
     });
 });

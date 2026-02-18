@@ -3,6 +3,7 @@ import React, { memo, useCallback } from "react";
 import { Arrow, Group, Text, Circle } from "react-konva";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { KonvaEventObject } from "konva/lib/Node";
+import { sanitizeDimensionLineColor } from "../../../shared/constants/dimensionLine";
 
 interface DimensionLineLayerProps {
     dimensionLines: DimensionLine[];
@@ -100,6 +101,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                 const selected = isSelected(line.id);
                 const mid = getMidPoint(line.start, line.end);
                 const label = getLabel(line.start, line.end);
+                const lineColor = sanitizeDimensionLineColor(line.color);
 
                 return (
                     <Group
@@ -119,9 +121,9 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                                 line.end.x,
                                 line.end.y,
                             ]}
-                            stroke={selected ? "red" : "blue"}
-                            fill={selected ? "red" : "blue"}
-                            strokeWidth={2}
+                            stroke={lineColor}
+                            fill={lineColor}
+                            strokeWidth={selected ? 3 : 2}
                             pointerLength={10}
                             pointerWidth={10}
                             pointerAtBeginning={true}
@@ -133,7 +135,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                             y={mid.y}
                             text={label}
                             fontSize={16}
-                            fill="black"
+                            fill={lineColor}
                             align="center"
                             offset={{ x: label.length * 4, y: 20 }} // approximate centering
                         />
@@ -145,7 +147,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                                     x={line.start.x}
                                     y={line.start.y}
                                     radius={6}
-                                    fill="red"
+                                    fill={lineColor}
                                     draggable
                                     onDragMove={onAnchorDragMove(
                                         line.id,
@@ -160,7 +162,7 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                                     x={line.end.x}
                                     y={line.end.y}
                                     radius={6}
-                                    fill="red"
+                                    fill={lineColor}
                                     draggable
                                     onDragMove={onAnchorDragMove(
                                         line.id,

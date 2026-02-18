@@ -48,8 +48,6 @@ describe("ImageList test ids", () => {
         expect(screen.getByTestId("settings.image-list.root")).toBeTruthy();
         expect(screen.getByTestId("settings.image-list.items")).toBeTruthy();
         expect(screen.getByTestId("settings.image-list.add")).toBeTruthy();
-        expect(screen.getByTestId("settings.unit.factor-input")).toBeTruthy();
-        expect(screen.getByTestId("settings.unit.select")).toBeTruthy();
 
         fireEvent.click(screen.getByTestId("settings.image-list.add"));
 

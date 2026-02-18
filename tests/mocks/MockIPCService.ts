@@ -1,5 +1,6 @@
 import { IIPCService } from "@/renderer/services/ipcService";
 import { ImageSet } from "@/shared/types/ImageSet";
+import { DimensionLine } from "@/shared/types/DimensionLine";
 import type { ImageInfoResult } from "@/shared/types/ImageInfo";
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import { CaptureResult } from "@/shared/types/CaptureResult";
@@ -131,7 +132,12 @@ export class MockIPCService implements IIPCService {
         return true;
     }
 
+    async toggleDimensionSettingsWindow(): Promise<boolean> {
+        return true;
+    }
+
     public updateImageSetsCalls: ImageSet[][] = [];
+    public updateDimensionLinesCalls: DimensionLine[][] = [];
     public updateUnitFactorCalls: number[] = [];
     public updateUnitCalls: ("nm" | "um" | "mm")[] = [];
 
@@ -140,6 +146,16 @@ export class MockIPCService implements IIPCService {
     }
 
     onImageSetsUpdated(_callback: (imageSets: ImageSet[]) => void): () => void {
+        return () => { };
+    }
+
+    async updateDimensionLines(dimensionLines: DimensionLine[]): Promise<void> {
+        this.updateDimensionLinesCalls.push(dimensionLines);
+    }
+
+    onDimensionLinesUpdated(
+        _callback: (dimensionLines: DimensionLine[]) => void
+    ): () => void {
         return () => { };
     }
 
@@ -156,6 +172,14 @@ export class MockIPCService implements IIPCService {
     }
 
     onUnitUpdated(_callback: (unit: "nm" | "um" | "mm") => void): () => void {
+        return () => { };
+    }
+
+    async updateInteractionMode(_mode: "default" | "dimension"): Promise<void> { }
+
+    onInteractionModeUpdated(
+        _callback: (mode: "default" | "dimension") => void
+    ): () => void {
         return () => { };
     }
 
@@ -241,6 +265,7 @@ export class MockIPCService implements IIPCService {
 
     reset(): void {
         this.updateImageSetsCalls = [];
+        this.updateDimensionLinesCalls = [];
         this.updateUnitFactorCalls = [];
     }
 }

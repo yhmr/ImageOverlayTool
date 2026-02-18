@@ -5,6 +5,7 @@ import { useAppStore } from "../store/useAppStore";
 import { DimensionLine } from "../../shared/types/DimensionLine";
 import { MIN_DIMENSION_LINE_DISTANCE } from "../constants";
 import { useDimensionKeyboard } from "./useDimensionKeyboard";
+import { DIMENSION_LINE_COLOR_DEFAULT } from "../../shared/constants/dimensionLine";
 
 export const useDimensionLineMode = (
     stageRef: RefObject<Konva.Stage | null>
@@ -54,6 +55,7 @@ export const useDimensionLineMode = (
                         id,
                         start: pos,
                         end: pos,
+                        color: DIMENSION_LINE_COLOR_DEFAULT,
                     };
                     addDimensionLine(newLine);
                     setDrawingLineId(id);

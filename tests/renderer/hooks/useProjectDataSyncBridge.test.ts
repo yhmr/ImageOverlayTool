@@ -9,6 +9,7 @@ import { useAppStore } from "@/renderer/store/useAppStore";
 
 const mockIPC = vi.hoisted(() => ({
     updateImageSets: vi.fn().mockResolvedValue(undefined),
+    updateDimensionLines: vi.fn().mockResolvedValue(undefined),
     updateUnitFactor: vi.fn().mockResolvedValue(undefined),
     updateUnit: vi.fn().mockResolvedValue(undefined),
 }));
@@ -40,11 +41,19 @@ describe("useProjectDataSyncBridge", () => {
                     locked: false,
                 },
             ]);
+            useAppStore.getState().setDimensionLines([
+                {
+                    id: "line-1",
+                    start: { x: 0, y: 0 },
+                    end: { x: 10, y: 0 },
+                },
+            ]);
         });
 
         expect(mockIPC.updateUnitFactor).toHaveBeenCalledWith(2.5);
         expect(mockIPC.updateUnit).toHaveBeenCalledWith("mm");
         expect(mockIPC.updateImageSets).toHaveBeenCalledTimes(1);
+        expect(mockIPC.updateDimensionLines).toHaveBeenCalledTimes(1);
     });
 
     it("does not re-broadcast remote synced changes", () => {
@@ -64,11 +73,19 @@ describe("useProjectDataSyncBridge", () => {
                     locked: false,
                 },
             ]);
+            useAppStore.getState().receiveDimensionLines([
+                {
+                    id: "line-2",
+                    start: { x: 1, y: 1 },
+                    end: { x: 20, y: 1 },
+                },
+            ]);
         });
 
         expect(mockIPC.updateUnitFactor).not.toHaveBeenCalled();
         expect(mockIPC.updateUnit).not.toHaveBeenCalled();
         expect(mockIPC.updateImageSets).not.toHaveBeenCalled();
+        expect(mockIPC.updateDimensionLines).not.toHaveBeenCalled();
     });
 });
 

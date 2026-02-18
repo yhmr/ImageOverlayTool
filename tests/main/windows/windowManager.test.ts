@@ -195,6 +195,11 @@ describe("WindowManager", () => {
                 size: { width: 300, height: 400 },
             }),
             saveImageSettingsWindowPositionAndSize: vi.fn(),
+            getDimensionSettingsWindowPositionAndSize: vi.fn().mockReturnValue({
+                pos: { x: 40, y: 40 },
+                size: { width: 460, height: 560 },
+            }),
+            saveDimensionSettingsWindowPositionAndSize: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository);
     });
@@ -297,6 +302,23 @@ describe("WindowManager", () => {
 
         settingsWindow.__setVisible(false);
         expect(windowManager.toggleImageSettingsWindow()).toBe(true);
+        expect(settingsWindow.show).toHaveBeenCalled();
+        expect(settingsWindow.focus).toHaveBeenCalled();
+    });
+
+    it("toggles dimension settings window visibility and persists bounds when hidden", () => {
+        expect(windowManager.toggleDimensionSettingsWindow()).toBe(true);
+        const settingsWindow = windowManager.getDimensionSettingsWindow() as any;
+        settingsWindow.__setVisible(true);
+
+        expect(windowManager.toggleDimensionSettingsWindow()).toBe(false);
+        expect(settingsWindow.hide).toHaveBeenCalledTimes(1);
+        expect(
+            mockWindowRepository.saveDimensionSettingsWindowPositionAndSize
+        ).toHaveBeenCalledWith([100, 200], [800, 600]);
+
+        settingsWindow.__setVisible(false);
+        expect(windowManager.toggleDimensionSettingsWindow()).toBe(true);
         expect(settingsWindow.show).toHaveBeenCalled();
         expect(settingsWindow.focus).toHaveBeenCalled();
     });

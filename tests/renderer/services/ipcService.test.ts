@@ -9,6 +9,7 @@ import {
 } from "@/renderer/services/ipcService";
 import { MockIPCService } from "../../mocks/MockIPCService";
 import type { ImageSet } from "@/shared/types/ImageSet";
+import type { DimensionLine } from "@/shared/types/DimensionLine";
 import type { ProjectFile } from "@/shared/types/ProjectFile";
 
 describe("ipcService", () => {
@@ -101,6 +102,8 @@ describe("ipcService", () => {
             const unsubImageSets = vi.fn();
             const unsubUnitFactor = vi.fn();
             const unsubUnit = vi.fn();
+            const unsubDimensionLines = vi.fn();
+            const unsubInteractionMode = vi.fn();
             const unsubRequestState = vi.fn();
             const unsubFileOpen = vi.fn();
             const unsubSelectedImageId = vi.fn();
@@ -152,12 +155,21 @@ describe("ipcService", () => {
                     .mockResolvedValue("C:/tmp/explicit.png"),
                 getPathForFile: vi.fn().mockReturnValue("C:/tmp/from-drop.png"),
                 toggleImageSettingsWindow: vi.fn().mockResolvedValue(false),
+                toggleDimensionSettingsWindow: vi.fn().mockResolvedValue(true),
                 updateImageSets: vi.fn().mockResolvedValue(undefined),
                 onImageSetsUpdated: vi.fn().mockReturnValue(unsubImageSets),
+                updateDimensionLines: vi.fn().mockResolvedValue(undefined),
+                onDimensionLinesUpdated: vi
+                    .fn()
+                    .mockReturnValue(unsubDimensionLines),
                 updateUnitFactor: vi.fn().mockResolvedValue(undefined),
                 onUnitFactorUpdated: vi.fn().mockReturnValue(unsubUnitFactor),
                 updateUnit: vi.fn().mockResolvedValue(undefined),
                 onUnitUpdated: vi.fn().mockReturnValue(unsubUnit),
+                updateInteractionMode: vi.fn().mockResolvedValue(undefined),
+                onInteractionModeUpdated: vi
+                    .fn()
+                    .mockReturnValue(unsubInteractionMode),
                 requestInitialState: vi.fn().mockResolvedValue(undefined),
                 onRequestStateSync: vi.fn().mockReturnValue(unsubRequestState),
                 onFileOpen: vi.fn().mockReturnValue(unsubFileOpen),
@@ -208,6 +220,8 @@ describe("ipcService", () => {
                     unsubImageSets,
                     unsubUnitFactor,
                     unsubUnit,
+                    unsubDimensionLines,
+                    unsubInteractionMode,
                     unsubRequestState,
                     unsubFileOpen,
                     unsubSelectedImageId,
@@ -280,9 +294,14 @@ describe("ipcService", () => {
                 "C:/tmp/from-drop.png"
             );
             await expect(service.toggleImageSettingsWindow()).resolves.toBe(false);
+            await expect(service.toggleDimensionSettingsWindow()).resolves.toBe(
+                true
+            );
             await service.updateImageSets([]);
+            await service.updateDimensionLines([] as DimensionLine[]);
             await service.updateUnitFactor(2.5);
             await service.updateUnit("nm");
+            await service.updateInteractionMode("dimension");
             await service.requestInitialState();
             await expect(service.getLicenseInfo()).resolves.toHaveLength(1);
             await expect(service.getAppVersion()).resolves.toBe("0.5.0");
@@ -341,6 +360,7 @@ describe("ipcService", () => {
             expect(api.saveCacheImageAs).toHaveBeenCalledWith("C:/tmp/paste.png");
             expect(api.getPathForFile).toHaveBeenCalled();
             expect(api.updateUnit).toHaveBeenCalledWith("nm");
+            expect(api.updateInteractionMode).toHaveBeenCalledWith("dimension");
             expect(api.updateSelectedImageId).toHaveBeenCalledWith("abc");
             expect(api.updateProjectDirty).toHaveBeenCalledWith(true);
             expect(api.getE2EStatus).toHaveBeenCalled();
@@ -361,6 +381,8 @@ describe("ipcService", () => {
             const onImageSetsUpdated = vi.fn();
             const onUnitFactorUpdated = vi.fn();
             const onUnitUpdated = vi.fn();
+            const onDimensionLinesUpdated = vi.fn();
+            const onInteractionModeUpdated = vi.fn();
             const onRequestStateSync = vi.fn();
             const onFileOpen = vi.fn();
             const onSelectedImageIdUpdated = vi.fn();
@@ -374,6 +396,12 @@ describe("ipcService", () => {
             );
             expect(service.onUnitUpdated(onUnitUpdated)).toBe(
                 unsubscribers.unsubUnit
+            );
+            expect(service.onDimensionLinesUpdated(onDimensionLinesUpdated)).toBe(
+                unsubscribers.unsubDimensionLines
+            );
+            expect(service.onInteractionModeUpdated(onInteractionModeUpdated)).toBe(
+                unsubscribers.unsubInteractionMode
             );
             expect(service.onRequestStateSync(onRequestStateSync)).toBe(
                 unsubscribers.unsubRequestState
@@ -389,6 +417,12 @@ describe("ipcService", () => {
             expect(api.onImageSetsUpdated).toHaveBeenCalledWith(onImageSetsUpdated);
             expect(api.onUnitFactorUpdated).toHaveBeenCalledWith(onUnitFactorUpdated);
             expect(api.onUnitUpdated).toHaveBeenCalledWith(onUnitUpdated);
+            expect(api.onDimensionLinesUpdated).toHaveBeenCalledWith(
+                onDimensionLinesUpdated
+            );
+            expect(api.onInteractionModeUpdated).toHaveBeenCalledWith(
+                onInteractionModeUpdated
+            );
             expect(api.onRequestStateSync).toHaveBeenCalledWith(onRequestStateSync);
             expect(api.onFileOpen).toHaveBeenCalledWith(onFileOpen);
             expect(api.onSelectedImageIdUpdated).toHaveBeenCalledWith(

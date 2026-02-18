@@ -43,6 +43,7 @@ export interface ProjectDataSlice {
     receiveImageSets: (imageSets: ImageSet[]) => void;
 
     setDimensionLines: (lines: DimensionLine[]) => void;
+    receiveDimensionLines: (lines: DimensionLine[]) => void;
     addDimensionLine: (line: DimensionLine) => void;
     updateDimensionLine: (line: DimensionLine) => void;
     removeDimensionLine: (id: string) => void;
@@ -161,6 +162,13 @@ export const createProjectDataSlice = (
             set({
                 dimensionLines: lines,
                 projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
+            }),
+
+        receiveDimensionLines: (lines) =>
+            set({
+                dimensionLines: lines,
+                projectDataChangeOrigin: "remote",
                 hasUnsavedChanges: true,
             }),
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Settings2,
-    Scaling,
+    Ruler,
     Camera,
     Save,
     Droplets,
@@ -25,14 +25,11 @@ import { useAppStore } from "../../store/useAppStore";
 import { ColorPicker } from "./ColorPicker";
 
 interface ControlButtonProps {
-    isDimensionMode: boolean;
-    onToggleDimensionMode: () => void;
     onOpenImageExportDialog: () => void;
 }
 
 export function ControlButton(props: ControlButtonProps) {
-    const { isDimensionMode, onToggleDimensionMode, onOpenImageExportDialog } =
-        props;
+    const { onOpenImageExportDialog } = props;
     const { t } = useTranslation();
     const { captureBackground } = useCapture();
     const { isUIHidden, windowColor, setWindowColor, isClickThroughMode } =
@@ -55,6 +52,10 @@ export function ControlButton(props: ControlButtonProps) {
         setIsColorPickerOpen(true);
     };
 
+    const toggleDimensionSettingsWindow = async () => {
+        await ipcService.toggleDimensionSettingsWindow();
+    };
+
     const saveWindowColor = () => {
         void ipcService.saveWindowColor(windowColor);
     };
@@ -69,13 +70,10 @@ export function ControlButton(props: ControlButtonProps) {
     const menuItems = [
         // Group A: 表示・設定系
         {
-            id: "scaling",
-            icon: Scaling,
+            id: "dimension-settings",
+            icon: Ruler,
             label: t("render.control_button.tooltip.dimension_line"),
-            onClick: onToggleDimensionMode,
-            isActive: isDimensionMode,
-            activeClass:
-                "bg-primary text-primary-foreground hover:bg-primary/90",
+            onClick: toggleDimensionSettingsWindow,
         },
         {
             id: "image-settings",

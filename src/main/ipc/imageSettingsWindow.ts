@@ -8,11 +8,13 @@ import {
     nativeImage,
 } from "electron";
 import type {
+    IDimensionSettingsWindowController,
     IImageSettingsWindowController,
     IProjectDirtyStateController,
     IWindowCollectionProvider,
 } from "../windows/windowManager";
 import { ImageSet } from "../../shared/types/ImageSet";
+import { DimensionLine } from "../../shared/types/DimensionLine";
 import type { ImageInfoResult } from "../../shared/types/ImageInfo";
 import log from "../logger";
 import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
@@ -56,6 +58,7 @@ const resolveLocalFilePath = (value: string): string | null => {
  */
 export const registerImageSettingsWindowHandlers = (
     windowManager: IImageSettingsWindowController &
+        IDimensionSettingsWindowController &
         IWindowCollectionProvider &
         IProjectDirtyStateController
 ) => {
@@ -63,6 +66,15 @@ export const registerImageSettingsWindowHandlers = (
         log.debug("[IPC] imageSettingsWindow:toggle called");
         const isVisible = windowManager.toggleImageSettingsWindow();
         log.info(`[IPC] imageSettingsWindow:toggle -> visible: ${isVisible}`);
+        return isVisible;
+    });
+
+    ipcMain.handle(IPC_CHANNELS.dimensionSettingsWindow.toggle, async () => {
+        log.debug("[IPC] dimensionSettingsWindow:toggle called");
+        const isVisible = windowManager.toggleDimensionSettingsWindow();
+        log.info(
+            `[IPC] dimensionSettingsWindow:toggle -> visible: ${isVisible}`
+        );
         return isVisible;
     });
 
@@ -78,6 +90,24 @@ export const registerImageSettingsWindowHandlers = (
                     win.webContents.send(
                         IPC_EVENTS.imageSetsUpdated,
                         imageSets
+                    );
+                }
+            });
+        }
+    );
+
+    ipcMain.handle(
+        IPC_CHANNELS.sync.updateDimensionLines,
+        (event, dimensionLines: DimensionLine[]) => {
+            log.debug(
+                `[IPC] dimensionLines:update called with ${dimensionLines.length} lines`
+            );
+            const windows = windowManager.getAllWindows();
+            windows.forEach((win) => {
+                if (win.webContents.id !== event.sender.id) {
+                    win.webContents.send(
+                        IPC_EVENTS.dimensionLinesUpdated,
+                        dimensionLines
                     );
                 }
             });
@@ -110,6 +140,24 @@ export const registerImageSettingsWindowHandlers = (
             windows.forEach((win) => {
                 if (win.webContents.id !== event.sender.id) {
                     win.webContents.send(IPC_EVENTS.unitUpdated, unit);
+                }
+            });
+        }
+    );
+
+    ipcMain.handle(
+        IPC_CHANNELS.sync.updateInteractionMode,
+        (event, mode: "default" | "dimension") => {
+            log.debug(
+                `[IPC] interactionMode:update called with value: ${mode}`
+            );
+            const windows = windowManager.getAllWindows();
+            windows.forEach((win) => {
+                if (win.webContents.id !== event.sender.id) {
+                    win.webContents.send(
+                        IPC_EVENTS.interactionModeUpdated,
+                        mode
+                    );
                 }
             });
         }

@@ -1,6 +1,7 @@
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { ImageSet } from "../../shared/types/ImageSet";
 import { sanitizeUnitFactor } from "../../shared/constants/unitFactor";
+import { sanitizeDimensionLineColor } from "../../shared/constants/dimensionLine";
 
 const CURRENT_PROJECT_VERSION = "1.0.0";
 const DEFAULT_WINDOW = {
@@ -212,11 +213,25 @@ const normalizeDimensionLines = (
                 ? line.id
                 : `migrated-line-${index}`;
 
-        return {
+        const color =
+            typeof line.color === "string"
+                ? sanitizeDimensionLineColor(line.color)
+                : undefined;
+
+        const normalizedLine = {
             id,
             start: normalizePoint(line.start, `dimensionLines[${index}].start`),
             end: normalizePoint(line.end, `dimensionLines[${index}].end`),
         };
+
+        if (color) {
+            return {
+                ...normalizedLine,
+                color,
+            };
+        }
+
+        return normalizedLine;
     });
 };
 

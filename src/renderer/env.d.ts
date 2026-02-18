@@ -2,6 +2,7 @@ import type { SettingType } from "../shared/types/AppConfig";
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
 import type { ImageInfoResult } from "../shared/types/ImageInfo";
+import type { DimensionLine } from "../shared/types/DimensionLine";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../shared/types/LicenseInfo";
 import type {
@@ -68,6 +69,7 @@ export interface IElectronAPI {
     ) => Promise<Record<string, string>>;
     // Image Settings Window
     toggleImageSettingsWindow: () => Promise<boolean>;
+    toggleDimensionSettingsWindow: () => Promise<boolean>;
     pasteImage: () => Promise<string | null>;
     saveCacheImageAs: (cacheFilePath: string) => Promise<string | null>;
     // ImageSets Sync
@@ -75,9 +77,19 @@ export interface IElectronAPI {
     onImageSetsUpdated: (
         callback: (imageSets: ImageSet[]) => void
     ) => () => void;
+    // DimensionLines Sync
+    updateDimensionLines: (dimensionLines: DimensionLine[]) => Promise<void>;
+    onDimensionLinesUpdated: (
+        callback: (dimensionLines: DimensionLine[]) => void
+    ) => () => void;
     // Unit sync
     updateUnit: (unit: "nm" | "um" | "mm") => Promise<void>;
     onUnitUpdated: (callback: (unit: "nm" | "um" | "mm") => void) => () => void;
+    // Interaction Mode sync
+    updateInteractionMode: (mode: "default" | "dimension") => Promise<void>;
+    onInteractionModeUpdated: (
+        callback: (mode: "default" | "dimension") => void
+    ) => () => void;
     // Unit Factor Sync
     updateUnitFactor: (unitFactor: number) => Promise<void>;
     onUnitFactorUpdated: (callback: (unitFactor: number) => void) => () => void;
