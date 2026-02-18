@@ -26,7 +26,12 @@
             "export_logs": "ログをエクスポート",
             "exit": "終了",
             "fit_screen": "画面をフィッティング",
-            "paste_image": "画像を貼り付け"
+            "paste_image": "画像を貼り付け",
+            "capture_background": "背景をキャプチャ",
+            "export_image": "画像を保存",
+            "background_style": "背景色/透過度",
+            "click_through_mode_enable": "クリック透過モードを有効化",
+            "click_through_mode_disable": "クリック透過モードを無効化"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -34,7 +39,6 @@
                 "click_through_mode_active": "透過モード中（最前面固定・クリックで解除）"
             },
             "tooltip": {
-                "menu": "メニュー",
                 "maximize": "ウィンドウ最大化",
                 "unmaximize": "ウィンドウを戻す（縮小）",
                 "close": "閉じる"

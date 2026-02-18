@@ -13,16 +13,15 @@ import { useImageFileStatus } from "../../hooks/useImageFileStatus";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { AboutDialog } from "../../dialogs/about/AboutDialog";
 import { Button } from "@/renderer/components/ui/button";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/renderer/components/ui/tooltip";
+import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
 import { useAppStore, type AppState } from "../../store/useAppStore";
 
-export function MenuBar() {
+interface MenuBarProps {
+    onOpenImageExportDialog: () => void;
+}
+
+export function MenuBar({ onOpenImageExportDialog }: MenuBarProps) {
     const { t } = useTranslation();
     const { isUIHidden, isClickThroughMode, setClickThroughMode, imageSets } =
         useAppStore();
@@ -74,24 +73,16 @@ export function MenuBar() {
                 data-clickthrough-allow
             >
                 {/* メニューボタン */}
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="mr-2">
-                            <AppMenu
-                                openSettingDialog={openSettingDialog}
-                                openAboutDialog={openAboutDialog}
-                                closeWindow={closeWindow}
-                                newProject={newProject}
-                                openProject={openProject}
-                                saveProject={saveProject}
-                                saveProjectAs={saveProjectAs}
-                            />
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{t("render.menu_button.tooltip.menu")}</p>
-                    </TooltipContent>
-                </Tooltip>
+                <AppMenu
+                    openSettingDialog={openSettingDialog}
+                    openAboutDialog={openAboutDialog}
+                    openImageExportDialog={onOpenImageExportDialog}
+                    closeWindow={closeWindow}
+                    newProject={newProject}
+                    openProject={openProject}
+                    saveProject={saveProject}
+                    saveProjectAs={saveProjectAs}
+                />
 
                 <MenuBarHistoryActions
                     canUndo={pastStates.length > 0}

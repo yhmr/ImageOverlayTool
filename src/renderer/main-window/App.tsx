@@ -12,6 +12,7 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import { useProjectSync } from "../hooks/useProjectSync";
 import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
+import { useMainWindowDialogState } from "../hooks/useMainWindowDialogState";
 import {
     IpcServiceProvider,
     useIpcService,
@@ -27,6 +28,11 @@ const App = () => {
     const { windowColor, setWindowColor } = useAppStore();
     const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
     const ipcService = useIpcService();
+    const {
+        isImageExportDialogOpen,
+        openImageExportDialog,
+        closeImageExportDialog,
+    } = useMainWindowDialogState();
 
     // ローカル編集を他ウィンドウへ同期
     useProjectDataSyncBridge();
@@ -95,7 +101,7 @@ const App = () => {
             onDragOver={onDragOver}
             onDrop={onDrop}
         >
-            <MenuBar />
+            <MenuBar onOpenImageExportDialog={openImageExportDialog} />
             <div
                 style={{
                     width: "100%",
@@ -109,7 +115,11 @@ const App = () => {
                     data-testid="main.canvas.area"
                     data-clickthrough-target
                 >
-                    <ImageStage />
+                    <ImageStage
+                        isImageExportDialogOpen={isImageExportDialogOpen}
+                        onOpenImageExportDialog={openImageExportDialog}
+                        onCloseImageExportDialog={closeImageExportDialog}
+                    />
                 </div>
             </div>
             <WindowResizeHandles />

@@ -26,7 +26,12 @@
             "export_logs": "Export Logs",
             "exit": "Exit",
             "fit_screen": "Fit to Screen",
-            "paste_image": "Paste Image"
+            "paste_image": "Paste Image",
+            "capture_background": "Capture Background",
+            "export_image": "Save Image",
+            "background_style": "Background Color/Opacity",
+            "click_through_mode_enable": "Enable Click-through Mode",
+            "click_through_mode_disable": "Disable Click-through Mode"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -34,7 +39,6 @@
                 "click_through_mode_active": "Click-through mode (always on top, click to disable)"
             },
             "tooltip": {
-                "menu": "Menu",
                 "maximize": "Maximize Window",
                 "unmaximize": "Restore Window",
                 "close": "Close"

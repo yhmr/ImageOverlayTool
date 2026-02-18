@@ -16,13 +16,23 @@ import { bindStageDragEndDisable } from "./imageStageDragEnd";
 import { useStageControls } from "../../hooks/useStageControls";
 import { useDimensionLineMode } from "../../hooks/useDimensionLineMode";
 import { useImageSelection } from "../../hooks/useImageSelection";
-import { useMainWindowDialogState } from "../../hooks/useMainWindowDialogState";
 import { useClickThroughMode } from "../../hooks/useClickThroughMode";
 import { useStageExport } from "../hooks/useStageExport";
 import { useImageInitialization } from "../hooks/useImageInitialization";
 import { useStagePointerHandlers } from "../hooks/useStagePointerHandlers";
 
-export const ImageStage = memo(function ImageStage() {
+interface ImageStageProps {
+    isImageExportDialogOpen: boolean;
+    onOpenImageExportDialog: () => void;
+    onCloseImageExportDialog: () => void;
+}
+
+export const ImageStage = memo(function ImageStage(props: ImageStageProps) {
+    const {
+        isImageExportDialogOpen,
+        onOpenImageExportDialog,
+        onCloseImageExportDialog,
+    } = props;
     const {
         imageSets,
         updateImageSet,
@@ -33,12 +43,6 @@ export const ImageStage = memo(function ImageStage() {
     } = useAppStore();
 
     const stageRef = useRef<Konva.Stage>(null);
-
-    const {
-        isImageExportDialogOpen,
-        openImageExportDialog,
-        closeImageExportDialog,
-    } = useMainWindowDialogState();
 
     const { exportImage } = useStageExport({ stageRef, setUIHidden });
 
@@ -157,10 +161,10 @@ export const ImageStage = memo(function ImageStage() {
                     />
                 </Layer>
             </Stage>
-            <ControlButton onOpenImageExportDialog={openImageExportDialog} />
+            <ControlButton onOpenImageExportDialog={onOpenImageExportDialog} />
             <ImageExportDialog
                 open={isImageExportDialogOpen}
-                onClose={closeImageExportDialog}
+                onClose={onCloseImageExportDialog}
                 onExport={exportImage}
             />
         </>
