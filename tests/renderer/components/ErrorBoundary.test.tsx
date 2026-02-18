@@ -94,4 +94,42 @@ describe("ErrorBoundary", () => {
             expect.stringContaining("Error: Test Error")
         );
     });
+
+    it("should call onError when render error is caught", () => {
+        const onError = vi.fn();
+        render(
+            <ErrorBoundary onError={onError}>
+                <ErrorThrower shouldThrow={true} />
+            </ErrorBoundary>
+        );
+
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(onError.mock.calls[0][0]).toBeInstanceOf(Error);
+        expect(onError.mock.calls[0][1]).toBeTruthy();
+    });
+
+    it("should call onError when copy fails", async () => {
+        const onError = vi.fn();
+        vi.mocked(navigator.clipboard.writeText).mockRejectedValueOnce(
+            new Error("copy failed")
+        );
+
+        render(
+            <ErrorBoundary onError={onError}>
+                <ErrorThrower shouldThrow={true} />
+            </ErrorBoundary>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId("copy-error-button")).toBeTruthy();
+        });
+        fireEvent.click(screen.getByTestId("copy-error-button"));
+
+        await waitFor(() => {
+            expect(onError).toHaveBeenCalledWith(
+                expect.objectContaining({ message: "copy failed" }),
+                null
+            );
+        });
+    });
 });

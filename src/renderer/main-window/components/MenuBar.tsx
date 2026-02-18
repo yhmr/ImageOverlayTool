@@ -4,13 +4,13 @@ import { useStore } from "zustand";
 import type { TemporalState } from "zundo";
 
 import { SettingDialog } from "./SettingDialog";
-import { AboutDialog } from "./AboutDialog";
 import { AppMenu } from "./AppMenu";
 import { useMenuState } from "../../hooks/useMenuState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
 import { useProjectOperations } from "../../hooks/useProjectOperations";
 import { useImageFileStatus } from "../../hooks/useImageFileStatus";
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import { AboutDialog } from "../../dialogs/about/AboutDialog";
 import { Button } from "@/renderer/components/ui/button";
 import {
     Tooltip,

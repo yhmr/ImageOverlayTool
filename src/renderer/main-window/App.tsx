@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect } from "react";
+import React, { useEffect, useLayoutEffect, type ErrorInfo } from "react";
 import ReactDOM from "react-dom/client";
 
 import "../../i18n/configs"; //i18
@@ -117,6 +117,26 @@ const App = () => {
     );
 };
 
+const AppWithErrorBoundary = () => {
+    const ipcService = useIpcService();
+
+    const handleBoundaryError = (
+        error: unknown,
+        errorInfo?: ErrorInfo | null
+    ) => {
+        void ipcService.log.error("Renderer ErrorBoundary caught error", {
+            error,
+            componentStack: errorInfo?.componentStack,
+        });
+    };
+
+    return (
+        <ErrorBoundary onError={handleBoundaryError}>
+            <App />
+        </ErrorBoundary>
+    );
+};
+
 const rootElement = document.getElementById("root");
 if (!rootElement) {
     throw new Error("Root element not found");
@@ -124,10 +144,8 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-        <ErrorBoundary>
-            <IpcServiceProvider>
-                <App />
-            </IpcServiceProvider>
-        </ErrorBoundary>
+        <IpcServiceProvider>
+            <AppWithErrorBoundary />
+        </IpcServiceProvider>
     </React.StrictMode>
 );

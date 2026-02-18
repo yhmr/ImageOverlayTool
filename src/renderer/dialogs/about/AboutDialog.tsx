@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+
 import {
     Dialog,
     DialogContent,
@@ -11,53 +11,31 @@ import {
 import { Button } from "@/renderer/components/ui/button";
 import { VisuallyHidden } from "@/renderer/components/ui/visually-hidden";
 import logo from "@assets/icon.png";
-
-import { useIpcService } from "../../providers/IpcServiceProvider";
-
-interface LicenseInfo {
-    name: string;
-    licenses: string;
-    repository: string;
-    publisher: string;
-    url: string;
-}
+import { useAboutDialogData } from "./useAboutDialogData";
 
 interface AboutDialogProps {
     open: boolean;
     onClose: () => void;
 }
 
+const splitPackageNameVersion = (
+    packageName: string
+): { name: string; version: string } => {
+    const lastAtIndex = packageName.lastIndexOf("@");
+    if (lastAtIndex <= 0 || lastAtIndex >= packageName.length - 1) {
+        return { name: packageName, version: "" };
+    }
+
+    return {
+        name: packageName.substring(0, lastAtIndex),
+        version: packageName.substring(lastAtIndex + 1),
+    };
+};
+
 export function AboutDialog(props: AboutDialogProps) {
     const { open, onClose } = props;
     const { t } = useTranslation();
-    const ipcService = useIpcService();
-
-    const [licenses, setLicenses] = useState<LicenseInfo[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [appVersion, setAppVersion] = useState("");
-
-    useEffect(() => {
-        if (open) {
-            setLoading(true);
-            // ライセンス情報とバージョンを並列で取得
-            Promise.all([
-                ipcService.getLicenseInfo() as Promise<LicenseInfo[]>,
-                ipcService.getAppVersion(),
-            ])
-                .then(([licenseData, version]) => {
-                    setLicenses(licenseData);
-                    setAppVersion(version);
-                })
-                .catch((error) => {
-                    console.error("Failed to load about info:", error);
-                    setLicenses([]);
-                    setAppVersion("");
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-        }
-    }, [open, ipcService]);
+    const { licenses, loading, appVersion } = useAboutDialogData(open);
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -72,7 +50,6 @@ export function AboutDialog(props: AboutDialogProps) {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex-1 flex flex-col min-h-0 py-4 gap-4">
-                    {/* バージョン情報 */}
                     <div className="flex-shrink-0 flex flex-col items-center gap-2 text-center">
                         <img
                             src={logo}
@@ -130,7 +107,6 @@ export function AboutDialog(props: AboutDialogProps) {
                         </div>
                     </div>
 
-                    {/* ライセンス一覧 */}
                     <div className="flex-1 flex flex-col min-h-0">
                         <h3 className="text-sm font-semibold mb-2 flex-shrink-0">
                             {t("render.about_dlg.licenses")}
@@ -147,26 +123,10 @@ export function AboutDialog(props: AboutDialogProps) {
                             ) : (
                                 <div className="space-y-3">
                                     {licenses.map((license, index) => {
-                                        // "package@version" 形式の分割ロジック
-                                        // スコープパッケージ (@org/pkg@1.2.3) に対応
-                                        const lastAtIndex =
-                                            license.name.lastIndexOf("@");
-                                        let name = license.name;
-                                        let version = "";
-
-                                        if (
-                                            lastAtIndex > 0 &&
-                                            lastAtIndex <
-                                                license.name.length - 1
-                                        ) {
-                                            name = license.name.substring(
-                                                0,
-                                                lastAtIndex
+                                        const { name, version } =
+                                            splitPackageNameVersion(
+                                                license.name
                                             );
-                                            version = license.name.substring(
-                                                lastAtIndex + 1
-                                            );
-                                        }
 
                                         return (
                                             <div
