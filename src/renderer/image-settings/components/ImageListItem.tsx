@@ -1,20 +1,14 @@
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, RefreshCcw, Save } from "lucide-react";
+import { RefreshCcw, Save } from "lucide-react";
 
 import { Card, CardContent } from "@/renderer/components/ui/card";
 import { Button } from "@/renderer/components/ui/button";
-import type { AnchorPos } from "../../../shared/types/AnchorPos";
 import { ImageSet } from "../../../shared/types/ImageSet";
 import {
     fromLocalFileUrl,
     toLocalFileUrl,
 } from "../../factories/imageSetFactory";
-import {
-    calculateAnchorScale,
-    resetTransformation as resetAnchors,
-    scaleAnchorPos,
-} from "../../utils/anchorUtils";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
 import type { ImageFileStatus } from "../../hooks/useImageFileStatus";
@@ -23,6 +17,15 @@ import { RotationControl } from "./RotationControl";
 import { ScaleControl } from "./ScaleControl";
 import { TransparencyControl } from "./TransparencyControl";
 import { FilterControl } from "./FilterControl";
+import { MissingImageWarning } from "./MissingImageWarning";
+import {
+    applyScaleToImageSet,
+    calculateImageScale,
+    createDefaultFilters,
+    createResetImageSet,
+    resetImageSetTransformation,
+    resolveRelinkInitAnchorPos,
+} from "./imageListItemHelpers";
 
 interface ImageListItemProps {
     imageSet: ImageSet;
@@ -30,29 +33,6 @@ interface ImageListItemProps {
     fileStatus?: ImageFileStatus;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
-
-const createInitialAnchors = (width: number, height: number): AnchorPos => ({
-    lt: { x: 0, y: 0 },
-    lb: { x: 0, y: height },
-    rt: { x: width, y: 0 },
-    rb: { x: width, y: height },
-});
-
-const getAnchorSize = (
-    anchorPos: AnchorPos | null
-): { width: number; height: number } | null => {
-    if (!anchorPos) {
-        return null;
-    }
-
-    const width = Math.abs(anchorPos.rt.x - anchorPos.lt.x);
-    const height = Math.abs(anchorPos.lb.y - anchorPos.lt.y);
-    if (width <= 0 || height <= 0) {
-        return null;
-    }
-
-    return { width, height };
-};
 
 /**
  * 画像リストの各アイテム
@@ -64,7 +44,6 @@ export function ImageListItem(props: ImageListItemProps) {
     const ipcService = useIpcService();
 
     const {
-        imageSets,
         updateImageSet,
         setImageSets,
         selectedImageId,
@@ -83,47 +62,32 @@ export function ImageListItem(props: ImageListItemProps) {
         }
     };
 
+    const commitImageSet = (nextImageSet: ImageSet) => {
+        updateImageSet({ id: imageSet.id, imageSet: nextImageSet });
+    };
+
+    const patchImageSet = (patch: Partial<ImageSet>) => {
+        commitImageSet({
+            ...imageSet,
+            ...patch,
+        });
+    };
+
     const applyRelink = async (selectedPath: string) => {
         const nextPath = toLocalFileUrl(selectedPath);
         const nextInfo = await ipcService.getImageInfo(nextPath);
-        const currentSize = getAnchorSize(imageSet.initAnchorPos);
-
-        let nextInitAnchorPos = imageSet.initAnchorPos;
-        if (
-            !nextInitAnchorPos &&
-            nextInfo.exists &&
-            nextInfo.width &&
-            nextInfo.height
-        ) {
-            nextInitAnchorPos = createInitialAnchors(
-                nextInfo.width,
-                nextInfo.height
-            );
-        } else if (
-            currentSize &&
-            nextInfo.exists &&
-            nextInfo.width &&
-            nextInfo.height
-        ) {
-            const sameSize =
-                currentSize.width === nextInfo.width &&
-                currentSize.height === nextInfo.height;
-            if (!sameSize) {
-                nextInitAnchorPos = createInitialAnchors(
-                    nextInfo.width,
-                    nextInfo.height
-                );
-            }
-        }
 
         const nextImageSet: ImageSet = {
             ...imageSet,
             path: nextPath,
             sourceType: "file",
-            initAnchorPos: nextInitAnchorPos,
+            initAnchorPos: resolveRelinkInitAnchorPos(
+                imageSet.initAnchorPos,
+                nextInfo
+            ),
         };
 
-        updateImageSet({ index, imageSet: nextImageSet });
+        commitImageSet(nextImageSet);
     };
 
     // ファイルオープン
@@ -140,22 +104,7 @@ export function ImageListItem(props: ImageListItemProps) {
                 }
                 return;
             }
-            const newImageSet = { ...imageSets[index] };
-            newImageSet.path = toLocalFileUrl(res);
-            // ファイル読み込み直しの場合は、すべてのパラメータを初期化
-            newImageSet.transparency = 0.0;
-            newImageSet.rotation = 0;
-            newImageSet.initAnchorPos = null;
-            newImageSet.currentAnchorPos = null;
-            newImageSet.sourceType = "file";
-            // フィルタ系もリセット
-            newImageSet.visible = true;
-            newImageSet.filters = {
-                binarization: { enabled: false, threshold: 128 },
-                hsv: { enabled: false, h: 0, s: 0, v: 0 },
-            };
-
-            updateImageSet({ index: index, imageSet: newImageSet });
+            commitImageSet(createResetImageSet(imageSet, toLocalFileUrl(res)));
         } else {
             ipcService.log.debug("Image loading canceled by user");
         }
@@ -163,45 +112,35 @@ export function ImageListItem(props: ImageListItemProps) {
 
     // 削除
     const deleteImageSet = () => {
-        const newImageSets = [...imageSets];
-        newImageSets.splice(index, 1);
+        const newImageSets = useAppStore
+            .getState()
+            .imageSets.filter((item) => item.id !== imageSet.id);
         setImageSets(newImageSets);
     };
 
     // 透過度変更 (shadcn Slider returns number[])
     const changeTransparency = (value: number[]) => {
-        const newImageSet = { ...imageSet };
-        newImageSet.transparency = value[0];
-        updateImageSet({ index: index, imageSet: newImageSet });
+        const nextTransparency = value[0];
+        if (!Number.isFinite(nextTransparency)) return;
+
+        patchImageSet({ transparency: nextTransparency });
     };
 
     // 回転変更
     const changeRotation = (value: number[]) => {
         if (!imageSet.currentAnchorPos) return;
 
-        const newImageSet = { ...imageSet };
-        newImageSet.rotation = value[0];
+        const nextRotation = value[0];
+        if (!Number.isFinite(nextRotation)) return;
 
-        updateImageSet({ index: index, imageSet: newImageSet });
+        patchImageSet({ rotation: nextRotation });
     };
 
     const changeScale = (value: number[]) => {
-        if (!imageSet.initAnchorPos || !imageSet.currentAnchorPos) return;
+        const nextImageSet = applyScaleToImageSet(imageSet, value[0]);
+        if (!nextImageSet) return;
 
-        const nextScale = value[0];
-        if (!Number.isFinite(nextScale) || nextScale <= 0) return;
-
-        const currentScale = calculateAnchorScale(
-            imageSet.initAnchorPos,
-            imageSet.currentAnchorPos
-        );
-        const scaleRatio = nextScale / currentScale;
-        const nextAnchorPos = scaleAnchorPos(
-            imageSet.currentAnchorPos,
-            scaleRatio
-        );
-        const newImageSet = { ...imageSet, currentAnchorPos: nextAnchorPos };
-        updateImageSet({ index, imageSet: newImageSet });
+        commitImageSet(nextImageSet);
     };
 
     // 回転入力変更 (Input)
@@ -212,45 +151,35 @@ export function ImageListItem(props: ImageListItemProps) {
         if (isNaN(value)) return;
 
         if (!imageSet.currentAnchorPos) return;
-        const newImageSet = { ...imageSet };
-        newImageSet.rotation = value;
-        updateImageSet({ index: index, imageSet: newImageSet });
+        patchImageSet({ rotation: value });
     };
 
     // ロック切り替え
     const toggleLock = () => {
-        const newImageSet = { ...imageSet };
-        // undefinedの場合はfalseとして扱う
-        newImageSet.locked = !newImageSet.locked;
-        updateImageSet({ index: index, imageSet: newImageSet });
+        patchImageSet({
+            // undefinedの場合はfalseとして扱う
+            locked: !imageSet.locked,
+        });
     };
 
     // 表示切り替え
     const toggleVisible = () => {
-        const newImageSet = { ...imageSet };
-        newImageSet.visible = !(newImageSet.visible ?? true);
-        updateImageSet({ index: index, imageSet: newImageSet });
+        patchImageSet({
+            visible: !(imageSet.visible ?? true),
+        });
     };
 
     // 変形解除
     const resetTransformation = () => {
-        if (!imageSet.initAnchorPos || !imageSet.currentAnchorPos) return;
-        const newAnchorPos = resetAnchors(
-            imageSet.initAnchorPos,
-            imageSet.currentAnchorPos
-        );
-        const newImageSet = {
-            ...imageSet,
-            currentAnchorPos: newAnchorPos,
-            rotation: 0,
-        };
-        updateImageSet({ index, imageSet: newImageSet });
+        const nextImageSet = resetImageSetTransformation(imageSet);
+        if (!nextImageSet) return;
+
+        commitImageSet(nextImageSet);
     };
 
     // フィルタ変更
     const changeFilters = (filters: ImageSet["filters"]) => {
-        const newImageSet = { ...imageSet, filters };
-        updateImageSet({ index: index, imageSet: newImageSet });
+        patchImageSet({ filters });
     };
 
     // ファイル名を抽出（パスから）
@@ -281,7 +210,7 @@ export function ImageListItem(props: ImageListItemProps) {
             path: toLocalFileUrl(savedPath),
             sourceType: "file" as const,
         };
-        updateImageSet({ index, imageSet: newImageSet });
+        commitImageSet(newImageSet);
     };
 
     const relinkMissingImage = async () => {
@@ -296,13 +225,8 @@ export function ImageListItem(props: ImageListItemProps) {
         }
     };
 
-    const imageScale =
-        imageSet.initAnchorPos && imageSet.currentAnchorPos
-            ? calculateAnchorScale(
-                  imageSet.initAnchorPos,
-                  imageSet.currentAnchorPos
-              )
-            : 1;
+    const imageScale = calculateImageScale(imageSet);
+    const filters = imageSet.filters ?? createDefaultFilters();
 
     return (
         <Card
@@ -334,26 +258,11 @@ export function ImageListItem(props: ImageListItemProps) {
                 />
 
                 {isMissing && (
-                    <div
-                        className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-sm text-destructive"
-                        data-testid="settings.image-item.missing-warning"
-                    >
-                        <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4" />
-                            <span>
-                                {t("render.image_settings.missing_file")}
-                            </span>
-                        </div>
-                        <Button
-                            variant="destructive"
-                            size="sm"
-                            className="mt-2 w-full"
-                            onClick={() => void relinkMissingImage()}
-                            data-testid="settings.image-item.relink"
-                        >
-                            {t("render.image_settings.relink")}
-                        </Button>
-                    </div>
+                    <MissingImageWarning
+                        message={t("render.image_settings.missing_file")}
+                        relinkLabel={t("render.image_settings.relink")}
+                        onRelink={() => void relinkMissingImage()}
+                    />
                 )}
 
                 {/* 透過度スライダー */}
@@ -405,7 +314,7 @@ export function ImageListItem(props: ImageListItemProps) {
                         {/* フィルタ設定ボタン (Popover) */}
                         <div className="flex-1">
                             <FilterControl
-                                filters={imageSet.filters}
+                                filters={filters}
                                 onFilterChange={changeFilters}
                             />
                         </div>
