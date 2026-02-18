@@ -21,14 +21,12 @@ export default defineConfig({
     },
     test: {
         dir: 'tests',
-        environment: 'node', // 現在のテストはDOM不要なのでnodeで実行
+        environment: 'node',
         globals: true,
         testTimeout: 30000,
         include: [
             'unit/**/*.spec.ts',
             'unit/**/*.spec.tsx',
-            'integration/**/*.int-test.ts',
-            'integration/**/*.int-test.tsx',
         ],
         exclude: ['**/node_modules/**'],
         coverage: {

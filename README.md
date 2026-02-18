@@ -64,6 +64,12 @@ pnpm run build:linux
 # テスト実行
 pnpm test
 
+# 単体テストのみ
+pnpm run test:unit
+
+# 結合テストのみ
+pnpm run test:integration
+
 # E2Eテスト
 pnpm run test:e2e
 
@@ -139,8 +145,10 @@ electron-vite の標準的な構成に基づき、コードの分離を行って
 │   └── i18n/           # 多言語対応リソース
 │
 ├── tests/          # テストコード（Vitest）
-│   ├── main/           # メインプロセスのユニットテスト
-│   └── renderer/       # レンダラープロセスのユニットテスト
+│   ├── unit/           # 単体テスト（*.spec.ts / *.spec.tsx）
+│   │   ├── main/
+│   │   └── renderer/
+│   └── integration/    # 結合テスト（*.int-test.ts / *.int-test.tsx）
 │
 └── scripts/        # ビルド・補助スクリプト
 ```
