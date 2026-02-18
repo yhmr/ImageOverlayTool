@@ -50,6 +50,10 @@ describe("DimensionLineSettingsPanel", () => {
         expect(useAppStore.getState().interactionMode).toBe("dimension_select");
         expect(useAppStore.getState().selectedDimensionLineId).toBe("line-1");
 
+        fireEvent.click(screen.getByTestId("dimension-settings.mode.done-button"));
+        expect(useAppStore.getState().interactionMode).toBe("default");
+        expect(useAppStore.getState().selectedDimensionLineId).toBeNull();
+
         fireEvent.change(
             screen.getByTestId("dimension-settings.unit.factor-input"),
             {

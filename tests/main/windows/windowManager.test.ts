@@ -316,6 +316,10 @@ describe("WindowManager", () => {
         expect(
             mockWindowRepository.saveDimensionSettingsWindowPositionAndSize
         ).toHaveBeenCalledWith([100, 200], [800, 600]);
+        expect(settingsWindow.webContents.send).toHaveBeenCalledWith(
+            "interactionMode:updated",
+            "default"
+        );
 
         settingsWindow.__setVisible(false);
         expect(windowManager.toggleDimensionSettingsWindow()).toBe(true);
@@ -333,6 +337,22 @@ describe("WindowManager", () => {
 
         expect(event.preventDefault).toHaveBeenCalledTimes(1);
         expect(settingsWindow.hide).toHaveBeenCalledTimes(1);
+    });
+
+    it("prevents dimension settings close while app is running and resets interaction mode", () => {
+        windowManager.createMainWindow();
+        windowManager.createDimensionSettingsWindow();
+        const settingsWindow = windowManager.getDimensionSettingsWindow() as any;
+        const event = { preventDefault: vi.fn() };
+
+        settingsWindow.__emit("close", event);
+
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        expect(settingsWindow.hide).toHaveBeenCalledTimes(1);
+        expect(settingsWindow.webContents.send).toHaveBeenCalledWith(
+            "interactionMode:updated",
+            "default"
+        );
     });
 
     it("allows image settings close during app quit", () => {

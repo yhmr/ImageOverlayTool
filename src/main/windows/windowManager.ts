@@ -50,6 +50,13 @@ export class WindowManager {
     private pendingFilePath: string | null = null;
     private splashDisplayTime: number | null = null;
 
+    private resetDimensionInteractionState(): void {
+        const windows = this.getAllWindows();
+        windows.forEach((win) => {
+            win.webContents.send(IPC_EVENTS.interactionModeUpdated, "default");
+        });
+    }
+
     constructor(
         windowRepository: IWindowRepository,
         shortcutManager: IWindowShortcutManager = new ElectronWindowShortcutManager()
@@ -468,6 +475,7 @@ export class WindowManager {
             if (this.dimensionSettingsWindow) {
                 this.dimensionSettingsWindow.hide();
             }
+            this.resetDimensionInteractionState();
         });
 
         if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
@@ -536,6 +544,7 @@ export class WindowManager {
                 this.dimensionSettingsWindow.getSize()
             );
             this.dimensionSettingsWindow.hide();
+            this.resetDimensionInteractionState();
             return false;
         } else {
             log.debug("Showing dimension settings window");

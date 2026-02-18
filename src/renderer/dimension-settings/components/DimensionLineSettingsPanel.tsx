@@ -92,10 +92,26 @@ export function DimensionLineSettingsPanel() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => updateInteractionMode("default")}
+                                onClick={() => {
+                                    setSelectedDimensionLineId(null);
+                                    updateInteractionMode("default");
+                                }}
                                 data-testid="dimension-settings.mode.cancel-button"
                             >
                                 {t("common.cancel")}
+                            </Button>
+                        )}
+                        {isDimensionSelectMode && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setSelectedDimensionLineId(null);
+                                    updateInteractionMode("default");
+                                }}
+                                data-testid="dimension-settings.mode.done-button"
+                            >
+                                {t("render.dimension_line_settings.done")}
                             </Button>
                         )}
                         <Button
