@@ -19,6 +19,7 @@
     ]
   },
   "scripts": {
+    "preinstall": "npx -y only-allow pnpm",
     "dev": "electron-vite dev --watch --inspect=9229",
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit",

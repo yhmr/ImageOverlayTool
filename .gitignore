@@ -33,6 +33,7 @@ compile_commands.json
 
 .npmrc
 .npm-cache/
+package-lock.json
 
 # Generated API definitions
 electron-api.json
