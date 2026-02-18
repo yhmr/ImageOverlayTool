@@ -114,10 +114,7 @@ export const createProjectCommandService = ({
         }
 
         const shouldMaterialize = window.confirm(
-            i18n.t(
-                "render.project_save.cache_warning.confirm_move",
-                "This project contains cached images. Move them into an assets folder next to the project file and continue saving?\nCancel will reject save and open Image Settings."
-            )
+            i18n.t("render.project_save.cache_warning.confirm_move")
         );
         if (!shouldMaterialize) {
             await ipcService.toggleImageSettingsWindow();

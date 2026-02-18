@@ -1,7 +1,11 @@
 {
     "common": {
         "save": "保存",
-        "cancel": "キャンセル"
+        "cancel": "キャンセル",
+        "undo": "元に戻す",
+        "redo": "やり直し",
+        "menu": "メニュー",
+        "close": "閉じる"
     },
     "main": {},
     "render": {
@@ -118,6 +122,7 @@
             }
         },
         "about_dlg": {
+            "title": "このアプリについて",
             "version": "バージョン",
             "licenses": "オープンソースライセンス",
             "done": "閉じる"

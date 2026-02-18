@@ -31,14 +31,9 @@ export function ExportDialog({ open, onClose, onExport }: ExportDialogProps) {
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>
-                        {t("render.export_dialog.title", "画像を保存")}
-                    </DialogTitle>
+                    <DialogTitle>{t("render.export_dialog.title")}</DialogTitle>
                     <DialogDescription>
-                        {t(
-                            "render.export_dialog.description",
-                            "保存オプションを選択してください。"
-                        )}
+                        {t("render.export_dialog.description")}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -49,14 +44,12 @@ export function ExportDialog({ open, onClose, onExport }: ExportDialogProps) {
                         >
                             <span>
                                 {t(
-                                    "render.export_dialog.option.include_background",
-                                    "背景を含める"
+                                    "render.export_dialog.option.include_background"
                                 )}
                             </span>
                             <span className="font-normal text-xs text-muted-foreground">
                                 {t(
-                                    "render.export_dialog.option.include_background_desc",
-                                    "ウィンドウの裏にあるデスクトップ画面も一緒に保存します"
+                                    "render.export_dialog.option.include_background_desc"
                                 )}
                             </span>
                         </Label>
@@ -74,13 +67,13 @@ export function ExportDialog({ open, onClose, onExport }: ExportDialogProps) {
                         onClick={onClose}
                         data-testid="main.export.cancel"
                     >
-                        {t("common.cancel", "キャンセル")}
+                        {t("common.cancel")}
                     </Button>
                     <Button
                         onClick={exportAndClose}
                         data-testid="main.export.save"
                     >
-                        {t("common.save", "保存")}
+                        {t("common.save")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

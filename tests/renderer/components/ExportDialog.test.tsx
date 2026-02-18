@@ -8,7 +8,7 @@ import { ExportDialog } from "@/renderer/main-window/components/ExportDialog";
 // Mock translation
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
-        t: (key: string, defaultValue?: string) => defaultValue || key,
+        t: (key: string) => key,
     }),
 }));
 
@@ -24,7 +24,7 @@ describe("ExportDialog", () => {
                 onExport={() => { }}
             />
         );
-        expect(screen.getByText("画像を保存")).toBeTruthy();
+        expect(screen.getByTestId("main.export.save")).toBeTruthy();
     });
 
     it("should call onExport with false when background is not included (default)", () => {
@@ -38,8 +38,7 @@ describe("ExportDialog", () => {
             />
         );
 
-        // Click Save button (text: 保存)
-        fireEvent.click(screen.getByText("保存"));
+        fireEvent.click(screen.getByTestId("main.export.save"));
 
         expect(onExport).toHaveBeenCalledWith(false);
         expect(onClose).toHaveBeenCalled();
@@ -60,8 +59,7 @@ describe("ExportDialog", () => {
         const switchEl = screen.getByRole("switch");
         fireEvent.click(switchEl);
 
-        // Click Save button
-        fireEvent.click(screen.getByText("保存"));
+        fireEvent.click(screen.getByTestId("main.export.save"));
 
         expect(onExport).toHaveBeenCalledWith(true);
         expect(onClose).toHaveBeenCalled();
@@ -78,7 +76,7 @@ describe("ExportDialog", () => {
             />
         );
 
-        fireEvent.click(screen.getByText("キャンセル"));
+        fireEvent.click(screen.getByTestId("main.export.cancel"));
 
         expect(onExport).not.toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();

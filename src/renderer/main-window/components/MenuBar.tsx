@@ -113,7 +113,7 @@ export function MenuBar() {
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>{t("common.undo", "Undo")}</p>
+                            <p>{t("common.undo")}</p>
                         </TooltipContent>
                     </Tooltip>
                     <Tooltip>
@@ -135,7 +135,7 @@ export function MenuBar() {
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>{t("common.redo", "Redo")}</p>
+                            <p>{t("common.redo")}</p>
                         </TooltipContent>
                     </Tooltip>
                 </div>
@@ -172,8 +172,7 @@ export function MenuBar() {
                         data-clickthrough-allow
                     >
                         {t(
-                            "render.menu_button.status.click_through_mode_active",
-                            "透過モード中（最前面固定・クリックで解除）"
+                            "render.menu_button.status.click_through_mode_active"
                         )}
                     </Button>
                 )}

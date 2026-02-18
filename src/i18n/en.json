@@ -1,7 +1,11 @@
 {
     "common": {
         "save": "Save",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "undo": "Undo",
+        "redo": "Redo",
+        "menu": "Menu",
+        "close": "Close"
     },
     "main": {},
     "render": {
@@ -118,6 +122,7 @@
             }
         },
         "about_dlg": {
+            "title": "About",
             "version": "Version",
             "licenses": "Open Source Licenses",
             "done": "Close"

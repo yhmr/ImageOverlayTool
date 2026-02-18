@@ -80,28 +80,19 @@ export function ControlButton(props: ControlButtonProps) {
         {
             id: "image-settings",
             icon: Settings2,
-            label: t(
-                "render.control_button.tooltip.image_settings",
-                "画像設定 (Ctrl+I)"
-            ),
+            label: t("render.control_button.tooltip.image_settings"),
             onClick: openImageSettings,
         },
         {
             id: "background-style",
             icon: Droplets,
-            label: t(
-                "render.control_button.tooltip.background_style",
-                "背景色/透過度"
-            ),
+            label: t("render.control_button.tooltip.background_style"),
             onClick: openWindowColorPicker,
         },
         {
             id: "click-through-mode",
             icon: Ghost,
-            label: t(
-                "render.control_button.tooltip.click_through_mode",
-                "クリック透過モード (Ctrl+Shift+M)"
-            ),
+            label: t("render.control_button.tooltip.click_through_mode"),
             onClick: () => setClickThroughMode(!isClickThroughMode),
             isActive: isClickThroughMode,
             activeClass:
@@ -111,17 +102,14 @@ export function ControlButton(props: ControlButtonProps) {
         {
             id: "capture",
             icon: Camera,
-            label: t(
-                "render.control_button.tooltip.capture",
-                "背景をキャプチャ"
-            ),
+            label: t("render.control_button.tooltip.capture"),
             onClick: captureBackground,
             separatorBefore: true, // 区切り線用フラグ
         },
         {
             id: "export",
             icon: Save,
-            label: t("render.control_button.tooltip.save", "画像を保存"),
+            label: t("render.control_button.tooltip.save"),
             onClick: onOpenExportDialog,
         },
     ];
@@ -152,11 +140,7 @@ export function ControlButton(props: ControlButtonProps) {
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top">
-                        <p>
-                            {isOpen
-                                ? t("common.close", "閉じる")
-                                : t("common.menu", "メニュー")}
-                        </p>
+                        <p>{isOpen ? t("common.close") : t("common.menu")}</p>
                     </TooltipContent>
                 </Tooltip>
 
