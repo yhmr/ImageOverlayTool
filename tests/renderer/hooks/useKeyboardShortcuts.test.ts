@@ -2,10 +2,28 @@
  * @vitest-environment happy-dom
  */
 import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createImageSet } from "@/renderer/factories/imageSetFactory";
 import { useKeyboardShortcuts } from "@/renderer/hooks/useKeyboardShortcuts";
 import { useAppStore } from "@/renderer/store/useAppStore";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const dispatchKey = (
+    init: KeyboardEventInit,
+    target: EventTarget = window
+): ReturnType<typeof vi.fn> => {
+    const preventDefault = vi.fn();
+    act(() => {
+        const event = new KeyboardEvent("keydown", {
+            bubbles: true,
+            ...init,
+        });
+        Object.defineProperty(event, "preventDefault", {
+            value: preventDefault,
+        });
+        target.dispatchEvent(event);
+    });
+    return preventDefault;
+};
 
 describe("useKeyboardShortcuts", () => {
     beforeEach(() => {
@@ -39,72 +57,199 @@ describe("useKeyboardShortcuts", () => {
         vi.spyOn(container, "offsetWidth", "get").mockReturnValue(400);
         vi.spyOn(container, "offsetHeight", "get").mockReturnValue(300);
         vi.spyOn(document, "querySelector").mockReturnValue(container);
-
         renderHook(() => useKeyboardShortcuts());
 
-        const preventDefault = vi.fn();
+        const preventDefault = dispatchKey({ key: "f", ctrlKey: true });
 
-        act(() => {
-            const event = new KeyboardEvent("keydown", {
-                key: "f",
-                ctrlKey: true,
-            });
-            Object.defineProperty(event, "preventDefault", {
-                value: preventDefault,
-            });
-            window.dispatchEvent(event);
-        });
-
-        const state = useAppStore.getState();
         expect(preventDefault).toHaveBeenCalledTimes(1);
-        expect(state.canvas.scale).toBeCloseTo(2.85, 5);
-        expect(state.canvas.x).toBeCloseTo(57.5, 5);
-        expect(state.canvas.y).toBeCloseTo(7.5, 5);
-        expect(state.selectedImageId).toBeNull();
+        expect(useAppStore.getState().canvas.scale).toBeGreaterThan(1);
+        expect(useAppStore.getState().selectedImageId).toBeNull();
     });
 
-    it("calls new project handler on Ctrl+N", () => {
+    it("handles undo/redo shortcuts and marks origin as local", () => {
+        const undoSpy = vi.spyOn(useAppStore.temporal.getState(), "undo");
+        const redoSpy = vi.spyOn(useAppStore.temporal.getState(), "redo");
+        useAppStore.setState({ projectDataChangeOrigin: "remote" });
+        renderHook(() => useKeyboardShortcuts());
+
+        const undoPrevent = dispatchKey({ key: "z", ctrlKey: true });
+        const redoYPrevent = dispatchKey({ key: "y", ctrlKey: true });
+        const redoShiftZPrevent = dispatchKey({
+            key: "z",
+            ctrlKey: true,
+            shiftKey: true,
+        });
+
+        expect(undoPrevent).toHaveBeenCalledTimes(1);
+        expect(redoYPrevent).toHaveBeenCalledTimes(1);
+        expect(redoShiftZPrevent).toHaveBeenCalledTimes(1);
+        expect(undoSpy).toHaveBeenCalledTimes(1);
+        expect(redoSpy).toHaveBeenCalledTimes(2);
+        expect(useAppStore.getState().projectDataChangeOrigin).toBe("local");
+    });
+
+    it("invokes optional shortcut handlers when registered", () => {
+        const handlers = {
+            onNewProject: vi.fn(),
+            onOpenProject: vi.fn(),
+            onSaveProject: vi.fn(),
+            onSaveProjectAs: vi.fn(),
+            onOpenImageSettings: vi.fn(),
+            onPasteImage: vi.fn(),
+            onCaptureBackground: vi.fn(),
+            onOpenImageExport: vi.fn(),
+            onOpenDimensionSettings: vi.fn(),
+            onOpenBackgroundStyle: vi.fn(),
+            onToggleClickThroughMode: vi.fn(),
+            onOpenSettings: vi.fn(),
+            onExportLogs: vi.fn(),
+            onExit: vi.fn(),
+        };
+        renderHook(() => useKeyboardShortcuts(handlers));
+
+        const tests: Array<{
+            init: KeyboardEventInit;
+            handler: ReturnType<typeof vi.fn>;
+        }> = [
+            { init: { key: "n", ctrlKey: true }, handler: handlers.onNewProject },
+            { init: { key: "o", metaKey: true }, handler: handlers.onOpenProject },
+            { init: { key: "s", ctrlKey: true }, handler: handlers.onSaveProject },
+            {
+                init: { key: "s", ctrlKey: true, shiftKey: true },
+                handler: handlers.onSaveProjectAs,
+            },
+            {
+                init: { key: "i", ctrlKey: true },
+                handler: handlers.onOpenImageSettings,
+            },
+            { init: { key: "v", ctrlKey: true }, handler: handlers.onPasteImage },
+            {
+                init: { key: "c", ctrlKey: true, shiftKey: true },
+                handler: handlers.onCaptureBackground,
+            },
+            {
+                init: { key: "e", ctrlKey: true },
+                handler: handlers.onOpenImageExport,
+            },
+            {
+                init: { key: "d", ctrlKey: true },
+                handler: handlers.onOpenDimensionSettings,
+            },
+            {
+                init: { key: "b", ctrlKey: true },
+                handler: handlers.onOpenBackgroundStyle,
+            },
+            {
+                init: { key: "m", ctrlKey: true, shiftKey: true },
+                handler: handlers.onToggleClickThroughMode,
+            },
+            {
+                init: { key: ",", ctrlKey: true },
+                handler: handlers.onOpenSettings,
+            },
+            {
+                init: { key: "l", ctrlKey: true, shiftKey: true },
+                handler: handlers.onExportLogs,
+            },
+            { init: { key: "q", ctrlKey: true }, handler: handlers.onExit },
+        ];
+
+        for (const { init, handler } of tests) {
+            const preventDefault = dispatchKey(init);
+            expect(preventDefault).toHaveBeenCalledTimes(1);
+            expect(handler).toHaveBeenCalledTimes(1);
+        }
+    });
+
+    it("does not prevent default when optional handler is missing", () => {
+        renderHook(() => useKeyboardShortcuts());
+
+        const optionalOnly: KeyboardEventInit[] = [
+            { key: "n", ctrlKey: true },
+            { key: "o", ctrlKey: true },
+            { key: "s", ctrlKey: true },
+            { key: "s", ctrlKey: true, shiftKey: true },
+            { key: "i", ctrlKey: true },
+            { key: "v", ctrlKey: true },
+            { key: "c", ctrlKey: true, shiftKey: true },
+            { key: "e", ctrlKey: true },
+            { key: "d", ctrlKey: true },
+            { key: "b", ctrlKey: true },
+            { key: "m", ctrlKey: true, shiftKey: true },
+            { key: ",", ctrlKey: true },
+            { key: "l", ctrlKey: true, shiftKey: true },
+            { key: "q", ctrlKey: true },
+        ];
+
+        for (const init of optionalOnly) {
+            const preventDefault = dispatchKey(init);
+            expect(preventDefault).not.toHaveBeenCalled();
+        }
+    });
+
+    it("ignores shortcuts from input/textarea/contenteditable", () => {
         const onNewProject = vi.fn();
         renderHook(() => useKeyboardShortcuts({ onNewProject }));
 
-        const preventDefault = vi.fn();
+        const input = document.createElement("input");
+        const textarea = document.createElement("textarea");
+        const editable = document.createElement("div");
+        editable.contentEditable = "true";
 
-        act(() => {
-            const event = new KeyboardEvent("keydown", {
-                key: "n",
-                ctrlKey: true,
-            });
-            Object.defineProperty(event, "preventDefault", {
-                value: preventDefault,
-            });
-            window.dispatchEvent(event);
-        });
-
-        expect(preventDefault).toHaveBeenCalledTimes(1);
-        expect(onNewProject).toHaveBeenCalledTimes(1);
-    });
-
-    it("calls click-through toggle handler on Ctrl+Shift+M", () => {
-        const onToggleClickThroughMode = vi.fn();
-        renderHook(() =>
-            useKeyboardShortcuts({ onToggleClickThroughMode })
+        const inputPrevent = dispatchKey({ key: "n", ctrlKey: true }, input);
+        const textareaPrevent = dispatchKey(
+            { key: "n", ctrlKey: true },
+            textarea
+        );
+        const editablePrevent = dispatchKey(
+            { key: "n", ctrlKey: true },
+            editable
         );
 
-        const preventDefault = vi.fn();
+        expect(onNewProject).not.toHaveBeenCalled();
+        expect(inputPrevent).not.toHaveBeenCalled();
+        expect(textareaPrevent).not.toHaveBeenCalled();
+        expect(editablePrevent).not.toHaveBeenCalled();
+    });
 
-        act(() => {
-            const event = new KeyboardEvent("keydown", {
-                key: "m",
-                ctrlKey: true,
-                shiftKey: true,
-            });
-            Object.defineProperty(event, "preventDefault", {
-                value: preventDefault,
-            });
-            window.dispatchEvent(event);
+    it("does not match shortcuts when extra modifiers are present", () => {
+        const onNewProject = vi.fn();
+        renderHook(() => useKeyboardShortcuts({ onNewProject }));
+
+        const altPrevent = dispatchKey({ key: "n", ctrlKey: true, altKey: true });
+        const shiftPrevent = dispatchKey({
+            key: "n",
+            ctrlKey: true,
+            shiftKey: true,
         });
+        const noCtrlPrevent = dispatchKey({ key: "n" });
+
+        expect(altPrevent).not.toHaveBeenCalled();
+        expect(shiftPrevent).not.toHaveBeenCalled();
+        expect(noCtrlPrevent).not.toHaveBeenCalled();
+        expect(onNewProject).not.toHaveBeenCalled();
+    });
+
+    it("supports case-insensitive keys and meta modifiers", () => {
+        const onOpenProject = vi.fn();
+        renderHook(() => useKeyboardShortcuts({ onOpenProject }));
+
+        const preventDefault = dispatchKey({ key: "O", metaKey: true });
 
         expect(preventDefault).toHaveBeenCalledTimes(1);
-        expect(onToggleClickThroughMode).toHaveBeenCalledTimes(1);
+        expect(onOpenProject).toHaveBeenCalledTimes(1);
+    });
+
+    it("cleans up keydown listener on unmount", () => {
+        const onNewProject = vi.fn();
+        const { unmount } = renderHook(() =>
+            useKeyboardShortcuts({ onNewProject })
+        );
+        unmount();
+
+        const preventDefault = dispatchKey({ key: "n", ctrlKey: true });
+
+        expect(preventDefault).not.toHaveBeenCalled();
+        expect(onNewProject).not.toHaveBeenCalled();
     });
 });

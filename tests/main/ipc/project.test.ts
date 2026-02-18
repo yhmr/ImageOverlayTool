@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ipcMain, dialog } from "electron";
+import { ipcMain, dialog, BrowserWindow } from "electron";
 import { registerProjectHandlers } from "@/main/ipc/project";
 import { MockProjectRepository } from "../repositories/mocks/MockProjectRepository";
 import { ProjectFile } from "@/shared/types/ProjectFile";
@@ -71,6 +71,10 @@ describe("IPC Project Handlers", () => {
         );
         expect(ipcMain.handle).toHaveBeenCalledWith(
             "project:materializeCacheImages",
+            expect.any(Function)
+        );
+        expect(ipcMain.handle).toHaveBeenCalledWith(
+            "project:pickSavePath",
             expect.any(Function)
         );
     });
@@ -166,6 +170,64 @@ describe("IPC Project Handlers", () => {
             await expect(
                 invokeIpcHandler("project:saveAs", { sender: {} }, {} as any)
             ).rejects.toThrow("SaveAs failed");
+        });
+
+        it("should use parent window when available for save dialog", async () => {
+            vi.mocked(BrowserWindow.fromWebContents).mockReturnValueOnce(
+                {} as any
+            );
+            vi.mocked(dialog.showSaveDialog).mockResolvedValueOnce({
+                canceled: true,
+                filePath: undefined as any,
+            });
+
+            await invokeIpcHandler("project:saveAs", { sender: {} }, {} as any);
+
+            expect(dialog.showSaveDialog).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({
+                    title: "Save Project",
+                    defaultPath: "project.iot",
+                })
+            );
+        });
+    });
+
+    describe("project:pickSavePath", () => {
+        it("should return selected save path", async () => {
+            vi.mocked(dialog.showSaveDialog).mockResolvedValueOnce({
+                canceled: false,
+                filePath: "/path/to/picked.iot",
+            });
+
+            const result = await invokeIpcHandler("project:pickSavePath", {
+                sender: {},
+            });
+
+            expect(result).toBe("/path/to/picked.iot");
+        });
+
+        it("should return null when save path dialog is canceled", async () => {
+            vi.mocked(dialog.showSaveDialog).mockResolvedValueOnce({
+                canceled: true,
+                filePath: undefined as any,
+            });
+
+            const result = await invokeIpcHandler("project:pickSavePath", {
+                sender: {},
+            });
+
+            expect(result).toBeNull();
+        });
+
+        it("should throw when save path dialog fails", async () => {
+            vi.mocked(dialog.showSaveDialog).mockRejectedValueOnce(
+                new Error("pick failed")
+            );
+
+            await expect(
+                invokeIpcHandler("project:pickSavePath", { sender: {} })
+            ).rejects.toThrow("pick failed");
         });
     });
 
@@ -347,6 +409,16 @@ describe("IPC Project Handlers", () => {
                 project: existingProject,
                 filePath: e2eProjectPath,
             });
+        });
+
+        it("load should return null in e2e mode when source file is missing", async () => {
+            vi.spyOn(mockRepo, "loadProject").mockRejectedValueOnce(
+                new Error("missing")
+            );
+            const result = await invokeIpcHandler("project:load", { sender: {} });
+
+            expect(dialog.showOpenDialog).not.toHaveBeenCalled();
+            expect(result).toBeNull();
         });
     });
 });

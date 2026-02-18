@@ -106,6 +106,70 @@ describe("useProjectSync", () => {
         expect(useAppStore.getState().unitFactor).toBe(2.5);
     });
 
+    it("should sync unit, imageSets, dimensionLines and interaction mode from IPC", () => {
+        renderHook(() => useProjectSync());
+
+        const imageSets: ImageSet[] = [
+            {
+                id: "img-sync",
+                path: "local-file:///tmp/sync.png",
+                transparency: 0.2,
+                rotation: 10,
+                initAnchorPos: null,
+                currentAnchorPos: null,
+            },
+        ];
+        const dimensionLines: DimensionLine[] = [
+            {
+                id: "dim-sync",
+                start: { x: 1, y: 2 },
+                end: { x: 3, y: 4 },
+                color: "#ff0000",
+            },
+        ];
+
+        act(() => {
+            callbacks.unit?.("mm");
+            callbacks.imageSets?.(imageSets);
+            callbacks.dimensionLines?.(dimensionLines);
+            callbacks.interactionMode?.("dimension_add");
+        });
+
+        const state = useAppStore.getState();
+        expect(state.unit).toBe("mm");
+        expect(state.imageSets).toEqual(imageSets);
+        expect(state.dimensionLines).toEqual(dimensionLines);
+        expect(state.interactionMode).toBe("dimension_add");
+    });
+
+    it("should sync selectedImageId only in default interaction mode", () => {
+        renderHook(() => useProjectSync());
+
+        act(() => {
+            useAppStore.setState({ interactionMode: "default" });
+            callbacks.selectedImageId?.("img-default");
+        });
+        expect(useAppStore.getState().selectedImageId).toBe("img-default");
+
+        act(() => {
+            useAppStore.setState({ interactionMode: "dimension_select" });
+            callbacks.selectedImageId?.("img-ignored");
+        });
+        expect(useAppStore.getState().selectedImageId).toBe("img-default");
+    });
+
+    it("should always sync selectedDimensionLineId", () => {
+        renderHook(() => useProjectSync());
+
+        act(() => {
+            callbacks.selectedDimensionLineId?.("line-selected");
+        });
+
+        expect(useAppStore.getState().selectedDimensionLineId).toBe(
+            "line-selected"
+        );
+    });
+
     it("should include unitFactor when responding to state:requestSync", () => {
         const imageSets: ImageSet[] = [
             {
@@ -121,8 +185,18 @@ describe("useProjectSync", () => {
         act(() => {
             useAppStore.setState({
                 imageSets,
+                dimensionLines: [
+                    {
+                        id: "line-1",
+                        start: { x: 0, y: 0 },
+                        end: { x: 10, y: 10 },
+                        color: "#ffffff",
+                    },
+                ],
                 unitFactor: 3.2,
                 unit: "mm",
+                interactionMode: "dimension_select",
+                selectedDimensionLineId: "line-1",
             });
         });
 
@@ -133,12 +207,21 @@ describe("useProjectSync", () => {
         });
 
         expect(mockIPC.updateImageSets).toHaveBeenCalledWith(imageSets);
-        expect(mockIPC.updateDimensionLines).toHaveBeenCalledWith([]);
+        expect(mockIPC.updateDimensionLines).toHaveBeenCalledWith([
+            {
+                id: "line-1",
+                start: { x: 0, y: 0 },
+                end: { x: 10, y: 10 },
+                color: "#ffffff",
+            },
+        ]);
         expect(mockIPC.updateUnitFactor).toHaveBeenCalledWith(3.2);
         expect(mockIPC.updateUnit).toHaveBeenCalledWith("mm");
-        expect(mockIPC.updateInteractionMode).toHaveBeenCalledWith("default");
+        expect(mockIPC.updateInteractionMode).toHaveBeenCalledWith(
+            "dimension_select"
+        );
         expect(mockIPC.updateSelectedDimensionLineId).toHaveBeenCalledWith(
-            null
+            "line-1"
         );
     });
 

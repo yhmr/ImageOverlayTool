@@ -129,4 +129,40 @@ describe("AppMenu test ids", () => {
         );
         openSpy.mockRestore();
     });
+
+    it("renders disable label when click-through mode is enabled", async () => {
+        render(
+            <AppMenu
+                openSettingDialog={vi.fn()}
+                openAboutDialog={vi.fn()}
+                openImageExportDialog={vi.fn()}
+                onOpenWindowColorPicker={vi.fn()}
+                closeWindow={vi.fn()}
+                newProject={vi.fn()}
+                openProject={vi.fn()}
+                saveProject={vi.fn()}
+                saveProjectAs={vi.fn()}
+                onExportLogs={vi.fn()}
+                mainWindowActions={{
+                    isClickThroughMode: true,
+                    openImageSettingsWindow: vi.fn(),
+                    openDimensionSettingsWindow: vi.fn(),
+                    captureBackground: vi.fn(),
+                    toggleClickThroughMode: vi.fn(),
+                    disableClickThroughMode: vi.fn(),
+                }}
+            />
+        );
+
+        fireEvent.pointerDown(screen.getByTestId("main.menu.trigger"), {
+            button: 0,
+            ctrlKey: false,
+        });
+
+        await waitFor(() => {
+            expect(
+                screen.getByText("render.menu.click_through_mode_disable")
+            ).toBeTruthy();
+        });
+    });
 });

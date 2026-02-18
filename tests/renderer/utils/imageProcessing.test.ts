@@ -22,6 +22,12 @@ describe('imageProcessing', () => {
         it('should convert blue correctly', () => {
             expect(rgbToHsv(0, 0, 255)).toEqual([240, 100, 100]);
         });
+
+        it("should normalize negative hue into 0-360 range", () => {
+            const [h] = rgbToHsv(255, 0, 128);
+            expect(h).toBeGreaterThan(300);
+            expect(h).toBeLessThan(360);
+        });
     });
 
     describe('hsvToRgb', () => {
@@ -35,6 +41,15 @@ describe('imageProcessing', () => {
 
         it('should convert red correctly', () => {
             expect(hsvToRgb(0, 100, 100)).toEqual([255, 0, 0]);
+        });
+
+        it("should convert hue ranges for all segments", () => {
+            expect(hsvToRgb(30, 100, 100)).toEqual([255, 128, 0]);
+            expect(hsvToRgb(90, 100, 100)).toEqual([128, 255, 0]);
+            expect(hsvToRgb(150, 100, 100)).toEqual([0, 255, 128]);
+            expect(hsvToRgb(210, 100, 100)).toEqual([0, 128, 255]);
+            expect(hsvToRgb(270, 100, 100)).toEqual([128, 0, 255]);
+            expect(hsvToRgb(330, 100, 100)).toEqual([255, 0, 128]);
         });
     });
 

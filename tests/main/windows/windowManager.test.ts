@@ -1,6 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const { mockIs, mockPlatform, appMock, shellMock, browserWindowState } =
+const {
+    mockIs,
+    mockPlatform,
+    appMock,
+    shellMock,
+    dialogMock,
+    browserWindowState,
+} =
     vi.hoisted(() => {
         const mockIs = {
             dev: false,
@@ -11,114 +18,127 @@ const { mockIs, mockPlatform, appMock, shellMock, browserWindowState } =
             isLinux: false,
         };
 
-    const appMock = {
-        quit: vi.fn(),
-        on: vi.fn(),
-        whenReady: vi.fn().mockResolvedValue(undefined),
-        isPackaged: false,
-        commandLine: {
-            appendSwitch: vi.fn(),
-        },
-        requestSingleInstanceLock: vi.fn().mockReturnValue(true),
-    };
-
-    const shellMock = {
-        openExternal: vi.fn(),
-    };
-
-    type Listener = (...args: unknown[]) => void;
-    const windows: any[] = [];
-    const windowOptionsHistory: unknown[] = [];
-
-    const createMockWindow = (options?: unknown) => {
-        const listeners: Record<string, Listener[]> = {};
-        let isVisible = true;
-        let isDestroyed = false;
-
-        const on = vi.fn((event: string, handler: Listener) => {
-            if (!listeners[event]) listeners[event] = [];
-            listeners[event].push(handler);
-        });
-        const off = (event: string, handler: Listener) => {
-            listeners[event] = (listeners[event] ?? []).filter((h) => h !== handler);
+        const appMock = {
+            quit: vi.fn(),
+            on: vi.fn(),
+            whenReady: vi.fn().mockResolvedValue(undefined),
+            isPackaged: false,
+            commandLine: {
+                appendSwitch: vi.fn(),
+            },
+            requestSingleInstanceLock: vi.fn().mockReturnValue(true),
         };
-        const once = vi.fn((event: string, handler: Listener) => {
-            const wrapped: Listener = (...args: unknown[]) => {
-                off(event, wrapped);
-                handler(...args);
+
+        const shellMock = {
+            openExternal: vi.fn(),
+        };
+
+        const dialogMock = {
+            showOpenDialog: vi.fn(),
+            showMessageBoxSync: vi.fn().mockReturnValue(1),
+        };
+
+        type Listener = (...args: unknown[]) => void;
+        const windows: any[] = [];
+        const windowOptionsHistory: unknown[] = [];
+
+        const createMockWindow = (options?: unknown) => {
+            const listeners: Record<string, Listener[]> = {};
+            let isVisible = true;
+            let isDestroyed = false;
+
+            const on = vi.fn((event: string, handler: Listener) => {
+                if (!listeners[event]) listeners[event] = [];
+                listeners[event].push(handler);
+            });
+            const off = (event: string, handler: Listener) => {
+                listeners[event] = (listeners[event] ?? []).filter(
+                    (h) => h !== handler
+                );
             };
-            on(event, wrapped);
-        });
-        const emit = (event: string, ...args: unknown[]) => {
-            [...(listeners[event] ?? [])].forEach((h) => h(...args));
-        };
+            const once = vi.fn((event: string, handler: Listener) => {
+                const wrapped: Listener = (...args: unknown[]) => {
+                    off(event, wrapped);
+                    handler(...args);
+                };
+                on(event, wrapped);
+            });
+            const emit = (event: string, ...args: unknown[]) => {
+                [...(listeners[event] ?? [])].forEach((h) => h(...args));
+            };
 
-        const windowMock: any = {
-            isDestroyed: vi.fn(() => isDestroyed),
-            isVisible: vi.fn(() => isVisible),
-            webContents: {
-                send: vi.fn(),
-                id: windows.length + 1,
-                setWindowOpenHandler: vi.fn(),
-                openDevTools: vi.fn(),
-            },
-            on,
-            once,
-            loadURL: vi.fn(),
-            loadFile: vi.fn(),
-            getPosition: vi.fn(() => [100, 200]),
-            getSize: vi.fn(() => [800, 600]),
-            isMaximized: vi.fn(() => false),
-            maximize: vi.fn(),
-            setResizable: vi.fn(),
-            getNormalBounds: vi.fn(() => ({ x: 100, y: 200, width: 800, height: 600 })),
-            show: vi.fn(() => {
-                isVisible = true;
-                emit("show");
-            }),
-            hide: vi.fn(() => {
-                isVisible = false;
-            }),
-            focus: vi.fn(),
-            close: vi.fn(() => {
-                const closeEvent = { preventDefault: vi.fn() };
-                emit("close", closeEvent);
-                if (closeEvent.preventDefault.mock.calls.length === 0) {
+            const windowMock: any = {
+                isDestroyed: vi.fn(() => isDestroyed),
+                isVisible: vi.fn(() => isVisible),
+                webContents: {
+                    send: vi.fn(),
+                    id: windows.length + 1,
+                    setWindowOpenHandler: vi.fn(),
+                    openDevTools: vi.fn(),
+                },
+                on,
+                once,
+                loadURL: vi.fn(),
+                loadFile: vi.fn(),
+                getPosition: vi.fn(() => [100, 200]),
+                getSize: vi.fn(() => [800, 600]),
+                isMaximized: vi.fn(() => false),
+                maximize: vi.fn(),
+                setResizable: vi.fn(),
+                getNormalBounds: vi.fn(() => ({
+                    x: 100,
+                    y: 200,
+                    width: 800,
+                    height: 600,
+                })),
+                show: vi.fn(() => {
+                    isVisible = true;
+                    emit("show");
+                }),
+                hide: vi.fn(() => {
+                    isVisible = false;
+                }),
+                focus: vi.fn(),
+                close: vi.fn(() => {
+                    const closeEvent = { preventDefault: vi.fn() };
+                    emit("close", closeEvent);
+                    if (closeEvent.preventDefault.mock.calls.length === 0) {
+                        isDestroyed = true;
+                        emit("closed");
+                    }
+                }),
+                destroy: vi.fn(() => {
                     isDestroyed = true;
-                    emit("closed");
-                }
-            }),
-            destroy: vi.fn(() => {
-                isDestroyed = true;
-            }),
-            __emit: emit,
-            __constructorOptions: options,
-            __setVisible: (value: boolean) => {
-                isVisible = value;
-            },
-            __setDestroyed: (value: boolean) => {
-                isDestroyed = value;
-            },
-            __resetListeners: () => {
-                Object.keys(listeners).forEach((event) => {
-                    delete listeners[event];
-                });
-            },
+                }),
+                __emit: emit,
+                __constructorOptions: options,
+                __setVisible: (value: boolean) => {
+                    isVisible = value;
+                },
+                __setDestroyed: (value: boolean) => {
+                    isDestroyed = value;
+                },
+                __resetListeners: () => {
+                    Object.keys(listeners).forEach((event) => {
+                        delete listeners[event];
+                    });
+                },
+            };
+
+            return windowMock;
         };
 
-        return windowMock;
-    };
-
-    const resetWindows = () => {
-        windows.splice(0, windows.length);
-        windowOptionsHistory.splice(0, windowOptionsHistory.length);
-    };
+        const resetWindows = () => {
+            windows.splice(0, windows.length);
+            windowOptionsHistory.splice(0, windowOptionsHistory.length);
+        };
 
         return {
             mockIs,
             mockPlatform,
             appMock,
             shellMock,
+            dialogMock,
             browserWindowState: {
                 windows,
                 createMockWindow,
@@ -155,15 +175,16 @@ vi.mock("electron", () => {
         Menu: {
             setApplicationMenu: vi.fn(),
         },
-        dialog: {
-            showOpenDialog: vi.fn(),
-        },
+        dialog: dialogMock,
     };
 });
 
 vi.mock("@electron-toolkit/utils", () => ({
     is: mockIs,
     platform: mockPlatform,
+}));
+vi.mock("@/i18n/mainI18n", () => ({
+    tUnsavedChanges: (key: string) => key,
 }));
 
 import { WindowManager } from "@/main/windows/windowManager";
@@ -178,6 +199,9 @@ describe("WindowManager", () => {
         vi.clearAllMocks();
         browserWindowState.resetWindows();
         mockIs.dev = false;
+        mockPlatform.isMacOS = false;
+        mockPlatform.isWindows = true;
+        mockPlatform.isLinux = false;
         appMock.isPackaged = false;
         delete process.env["ELECTRON_RENDERER_URL"];
 
@@ -202,6 +226,9 @@ describe("WindowManager", () => {
             saveDimensionSettingsWindowPositionAndSize: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository);
+    });
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     it("creates windows with resize-friendly options on Windows", () => {
@@ -236,6 +263,33 @@ describe("WindowManager", () => {
             (settingsOptions.webPreferences as Record<string, unknown>).sandbox
         ).toBe(true);
         expect(settingsOptions).not.toHaveProperty("titleBarStyle");
+    });
+
+    it("creates windows with macOS title bar style and without Windows thick frame", () => {
+        mockPlatform.isMacOS = true;
+        mockPlatform.isWindows = false;
+
+        windowManager.createMainWindow();
+        windowManager.createImageSettingsWindow();
+        windowManager.createDimensionSettingsWindow();
+
+        const mainOptions = browserWindowState.windowOptionsHistory[0] as Record<
+            string,
+            unknown
+        >;
+        const imageOptions = browserWindowState.windowOptionsHistory[1] as Record<
+            string,
+            unknown
+        >;
+        const dimensionOptions =
+            browserWindowState.windowOptionsHistory[2] as Record<string, unknown>;
+
+        expect(mainOptions.titleBarStyle).toBe("hidden");
+        expect(mainOptions).not.toHaveProperty("thickFrame");
+        expect(imageOptions.titleBarStyle).toBe("hidden");
+        expect(imageOptions).not.toHaveProperty("thickFrame");
+        expect(dimensionOptions.titleBarStyle).toBe("hidden");
+        expect(dimensionOptions).not.toHaveProperty("thickFrame");
     });
 
     it("openFile sends IPC message if window exists and visible", () => {
@@ -378,6 +432,18 @@ describe("WindowManager", () => {
         expect(mainWindow.close).toHaveBeenCalledTimes(1);
     });
 
+    it("closes all windows and destroys dimension settings window", () => {
+        const mainWindow = windowManager.createMainWindow() as any;
+        windowManager.createDimensionSettingsWindow();
+        const dimensionWindow = windowManager.getDimensionSettingsWindow() as any;
+
+        windowManager.closeAllWindows();
+
+        expect(dimensionWindow.destroy).toHaveBeenCalledTimes(1);
+        expect(windowManager.getDimensionSettingsWindow()).toBeNull();
+        expect(mainWindow.close).toHaveBeenCalledTimes(1);
+    });
+
     it("delegates shortcut registration to injected manager", () => {
         const shortcutManager: IWindowShortcutManager = {
             registerToggleClickThroughMode: vi.fn(),
@@ -414,6 +480,30 @@ describe("WindowManager", () => {
         expect(mainWindow.webContents.send).toHaveBeenCalledWith(
             "clickThrough:shortcutTriggered"
         );
+    });
+
+    it("does not send click-through shortcut event when main window is missing or destroyed", () => {
+        let registeredCallback: (() => void) | null = null;
+        const shortcutManager: IWindowShortcutManager = {
+            registerToggleClickThroughMode: vi.fn((callback: () => void) => {
+                registeredCallback = callback;
+            }),
+            unregisterAll: vi.fn(),
+        };
+        windowManager = new WindowManager(mockWindowRepository, shortcutManager);
+        windowManager.registerShortcuts();
+
+        if (typeof registeredCallback !== "function") {
+            throw new Error("registeredCallback should be set");
+        }
+
+        registeredCallback();
+
+        const mainWindow = windowManager.createMainWindow() as any;
+        mainWindow.__setDestroyed(true);
+        registeredCallback();
+
+        expect(mainWindow.webContents.send).not.toHaveBeenCalled();
     });
 
     it("delegates shortcut unregistration to injected manager", () => {
@@ -478,6 +568,87 @@ describe("WindowManager", () => {
         expect(browserWindowState.windows).toHaveLength(2);
     });
 
+    it("uses loadURL for splash and main windows in dev mode", async () => {
+        mockIs.dev = true;
+        process.env["ELECTRON_RENDERER_URL"] = "http://localhost:5173";
+
+        const launchPromise = windowManager.launchMainWindow();
+        const splashWindow = browserWindowState.windows[0];
+
+        expect(splashWindow.loadURL).toHaveBeenCalledWith(
+            "http://localhost:5173/splash/"
+        );
+
+        splashWindow.__emit("ready-to-show");
+        const mainWindow = await launchPromise;
+
+        expect(mainWindow.loadURL).toHaveBeenCalledWith(
+            "http://localhost:5173/main-window/"
+        );
+    });
+
+    it("delays main window show while splash minimum duration is not reached", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2024-01-01T00:00:00.000Z"));
+        vi.mocked(mockWindowRepository.getWindowPositionAndSize).mockReturnValue({
+            pos: { x: 0, y: 0 },
+            size: { width: 800, height: 600 },
+            isMaximized: true,
+        });
+
+        const launchPromise = windowManager.launchMainWindow();
+        const splashWindow = browserWindowState.windows[0];
+        splashWindow.__emit("ready-to-show");
+        const mainWindow = (await launchPromise) as any;
+
+        vi.setSystemTime(new Date("2024-01-01T00:00:00.500Z"));
+        mainWindow.__emit("ready-to-show");
+
+        expect(mainWindow.show).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(1000);
+
+        expect(mainWindow.maximize).toHaveBeenCalledTimes(1);
+        expect(mainWindow.setResizable).toHaveBeenCalledWith(true);
+        expect(mainWindow.show).toHaveBeenCalledTimes(1);
+        expect(splashWindow.destroy).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows main window after splash delay without maximizing when state is not maximized", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2024-01-01T00:00:00.000Z"));
+        vi.mocked(mockWindowRepository.getWindowPositionAndSize).mockReturnValue({
+            pos: { x: 0, y: 0 },
+            size: { width: 800, height: 600 },
+            isMaximized: false,
+        });
+
+        const launchPromise = windowManager.launchMainWindow();
+        const splashWindow = browserWindowState.windows[0];
+        splashWindow.__emit("ready-to-show");
+        const mainWindow = (await launchPromise) as any;
+
+        vi.setSystemTime(new Date("2024-01-01T00:00:00.700Z"));
+        mainWindow.__emit("ready-to-show");
+        vi.advanceTimersByTime(800);
+
+        expect(mainWindow.maximize).not.toHaveBeenCalled();
+        expect(mainWindow.setResizable).not.toHaveBeenCalled();
+        expect(mainWindow.show).toHaveBeenCalledTimes(1);
+        expect(splashWindow.destroy).toHaveBeenCalledTimes(1);
+    });
+
+    it("destroySplashWindow destroys splash only when available", async () => {
+        const launchPromise = windowManager.launchMainWindow();
+        const splashWindow = browserWindowState.windows[0];
+        splashWindow.__emit("ready-to-show");
+        await launchPromise;
+
+        windowManager.destroySplashWindow();
+        windowManager.destroySplashWindow();
+
+        expect(splashWindow.destroy).toHaveBeenCalledTimes(1);
+    });
+
     it("persists normal bounds and isMaximized=true when closing maximized window", () => {
         const mainWindow = windowManager.createMainWindow() as any;
 
@@ -514,5 +685,161 @@ describe("WindowManager", () => {
         expect(mainWindow.maximize).toHaveBeenCalled();
         expect(mainWindow.setResizable).toHaveBeenCalledWith(true);
         expect(mainWindow.show).toHaveBeenCalled();
+    });
+
+    it("uses loadURL for image and dimension settings windows in dev mode", () => {
+        mockIs.dev = true;
+        process.env["ELECTRON_RENDERER_URL"] = "http://localhost:5173";
+
+        const imageWindow = windowManager.createImageSettingsWindow() as any;
+        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+
+        expect(imageWindow.loadURL).toHaveBeenCalledWith(
+            "http://localhost:5173/image-settings/"
+        );
+        expect(dimensionWindow.loadURL).toHaveBeenCalledWith(
+            "http://localhost:5173/dimension-settings/"
+        );
+    });
+
+    it("focuses existing image and dimension settings windows when create is called again", () => {
+        const imageWindow = windowManager.createImageSettingsWindow() as any;
+        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+
+        const imageWindowAgain = windowManager.createImageSettingsWindow();
+        const dimensionWindowAgain = windowManager.createDimensionSettingsWindow();
+
+        expect(imageWindowAgain).toBe(imageWindow);
+        expect(dimensionWindowAgain).toBe(dimensionWindow);
+        expect(imageWindow.focus).toHaveBeenCalledTimes(1);
+        expect(dimensionWindow.focus).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows settings windows when ready-to-show event is emitted", () => {
+        const imageWindow = windowManager.createImageSettingsWindow() as any;
+        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+
+        imageWindow.__emit("ready-to-show");
+        dimensionWindow.__emit("ready-to-show");
+
+        expect(imageWindow.show).toHaveBeenCalledTimes(1);
+        expect(dimensionWindow.show).toHaveBeenCalledTimes(1);
+    });
+
+    it("prevents main close when project is dirty and user cancels discard", () => {
+        const mainWindow = windowManager.createMainWindow() as any;
+        windowManager.setProjectDirty(true);
+        dialogMock.showMessageBoxSync.mockReturnValue(0);
+        const event = { preventDefault: vi.fn() };
+
+        mainWindow.__emit("close", event);
+
+        expect(dialogMock.showMessageBoxSync).toHaveBeenCalledTimes(1);
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        expect(
+            mockWindowRepository.saveWindowPositionAndSize
+        ).not.toHaveBeenCalled();
+    });
+
+    it("allows main close when project is dirty and user confirms discard", () => {
+        const mainWindow = windowManager.createMainWindow() as any;
+        windowManager.setProjectDirty(true);
+        dialogMock.showMessageBoxSync.mockReturnValue(1);
+        const event = { preventDefault: vi.fn() };
+
+        mainWindow.__emit("close", event);
+
+        expect(dialogMock.showMessageBoxSync).toHaveBeenCalledTimes(1);
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(mockWindowRepository.saveWindowPositionAndSize).toHaveBeenCalledWith(
+            [100, 200],
+            [800, 600],
+            false
+        );
+    });
+
+    it("close listeners tolerate null child-window references", () => {
+        windowManager.createMainWindow();
+        windowManager.createImageSettingsWindow();
+        windowManager.createDimensionSettingsWindow();
+
+        const imageWindow = windowManager.getImageSettingsWindow() as any;
+        const dimensionWindow = windowManager.getDimensionSettingsWindow() as any;
+
+        (windowManager as any).imageSettingsWindow = null;
+        (windowManager as any).dimensionSettingsWindow = null;
+
+        const imageCloseEvent = { preventDefault: vi.fn() };
+        const dimensionCloseEvent = { preventDefault: vi.fn() };
+        imageWindow.__emit("close", imageCloseEvent);
+        dimensionWindow.__emit("close", dimensionCloseEvent);
+
+        expect(imageCloseEvent.preventDefault).toHaveBeenCalledTimes(1);
+        expect(dimensionCloseEvent.preventDefault).toHaveBeenCalledTimes(1);
+    });
+
+    it("allows dimension settings close during app quit", () => {
+        windowManager.createMainWindow();
+        windowManager.createDimensionSettingsWindow();
+        windowManager.willQuit();
+        const settingsWindow = windowManager.getDimensionSettingsWindow() as any;
+        const event = { preventDefault: vi.fn() };
+
+        settingsWindow.__emit("close", event);
+
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(settingsWindow.hide).not.toHaveBeenCalled();
+    });
+
+    it("closes child windows when main window is closed", () => {
+        const mainWindow = windowManager.createMainWindow() as any;
+        const imageWindow = windowManager.createImageSettingsWindow() as any;
+        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+
+        mainWindow.__emit("closed");
+
+        expect(imageWindow.close).toHaveBeenCalledTimes(1);
+        expect(dimensionWindow.close).toHaveBeenCalledTimes(1);
+        expect(windowManager.getMainWindow()).toBeNull();
+    });
+
+    it("ignores close event when main window reference is already cleared", () => {
+        const mainWindow = windowManager.createMainWindow() as any;
+
+        mainWindow.__emit("closed");
+        const event = { preventDefault: vi.fn() };
+        mainWindow.__emit("close", event);
+
+        expect(mockWindowRepository.saveWindowPositionAndSize).not.toHaveBeenCalled();
+        expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it("getAllWindows includes main, image, dimension, and splash windows", async () => {
+        const launchPromise = windowManager.launchMainWindow();
+        const splashWindow = browserWindowState.windows[0];
+        splashWindow.__emit("ready-to-show");
+        const mainWindow = await launchPromise;
+        const imageWindow = windowManager.createImageSettingsWindow();
+        const dimensionWindow = windowManager.createDimensionSettingsWindow();
+
+        const windows = windowManager.getAllWindows();
+
+        expect(windows).toContain(mainWindow);
+        expect(windows).toContain(imageWindow);
+        expect(windows).toContain(dimensionWindow);
+        expect(windows).toContain(splashWindow);
+    });
+
+    it("getAllWindows excludes destroyed dimension settings window", () => {
+        const mainWindow = windowManager.createMainWindow();
+        const imageWindow = windowManager.createImageSettingsWindow();
+        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+
+        dimensionWindow.__setDestroyed(true);
+        const windows = windowManager.getAllWindows();
+
+        expect(windows).toContain(mainWindow);
+        expect(windows).toContain(imageWindow);
+        expect(windows).not.toContain(dimensionWindow);
     });
 });

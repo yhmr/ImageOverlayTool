@@ -3,6 +3,9 @@ import { ProjectService } from '../../../src/main/services/ProjectService';
 import fs from 'fs/promises';
 import path from 'path';
 import { deleteClipboardCacheFileIfManaged } from '../../../src/main/services/clipboardCacheService';
+const { logWarnMock } = vi.hoisted(() => ({
+    logWarnMock: vi.fn(),
+}));
 
 // fs/promises のモック
 vi.mock('fs/promises');
@@ -11,7 +14,7 @@ vi.mock('fs/promises');
 vi.mock('../../../src/main/logger', () => ({
     default: {
         info: vi.fn(),
-        warn: vi.fn(),
+        warn: logWarnMock,
         error: vi.fn(),
         debug: vi.fn(),
     },
@@ -57,6 +60,20 @@ describe('ProjectService', () => {
             const result = await service.resolveAvailablePath(dir, source);
             expect(result).toBe(resolvedPath);
         });
+
+        it('should fallback to .png extension when source has no extension', async () => {
+            (fs.access as any).mockRejectedValue(new Error('ENOENT'));
+
+            const result = await service.resolveAvailablePath('/test/dir', '/source/image');
+            expect(result).toBe(path.join('/test/dir', 'image.png'));
+        });
+
+        it('should fallback to default basename when source path is empty', async () => {
+            (fs.access as any).mockRejectedValue(new Error('ENOENT'));
+
+            const result = await service.resolveAvailablePath('/test/dir', '');
+            expect(result).toBe(path.join('/test/dir', 'image.png'));
+        });
     });
 
     describe('materializeCacheImages', () => {
@@ -97,6 +114,33 @@ describe('ProjectService', () => {
             expect(fs.copyFile).not.toHaveBeenCalled();
             expect(deleteClipboardCacheFileIfManaged).not.toHaveBeenCalled();
             expect(result).toEqual({});
+            expect(logWarnMock).toHaveBeenCalledWith(
+                '[ProjectService] materializeCacheImages source not found',
+                cachePath
+            );
+        });
+
+        it('should ignore invalid cache paths and deduplicate repeated source paths', async () => {
+            const projectPath = '/project/test.iot';
+            const cachePath = '/cache/temp.png';
+            const destPath = path.join('/project', 'assets', 'temp.png');
+
+            (fs.access as any).mockImplementation(async (p: string) => {
+                if (p === cachePath) return undefined;
+                throw new Error('ENOENT');
+            });
+
+            const result = await service.materializeCacheImages(projectPath, [
+                '',
+                cachePath,
+                cachePath,
+                null as any,
+                undefined as any,
+            ]);
+
+            expect(fs.copyFile).toHaveBeenCalledTimes(1);
+            expect(fs.copyFile).toHaveBeenCalledWith(cachePath, destPath);
+            expect(result).toEqual({ [cachePath]: destPath });
         });
     });
 });

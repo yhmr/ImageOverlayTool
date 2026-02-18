@@ -207,6 +207,20 @@ describe("IPC AppConfig Handlers", () => {
             expect(payload.setting.logLevel).toBe("info");
         });
 
+        it("should return null when export dialog is canceled", async () => {
+            showSaveDialog.mockResolvedValueOnce({
+                canceled: true,
+                filePath: undefined,
+            });
+
+            const result = await invokeIpcHandler("setting:export", {
+                sender: {},
+            });
+
+            expect(result).toBeNull();
+            expect(fs.writeFile).not.toHaveBeenCalled();
+        });
+
         it("should import settings snapshot from selected file", async () => {
             const loaded = await invokeIpcHandler("setting:import", {
                 sender: {},
@@ -220,6 +234,50 @@ describe("IPC AppConfig Handlers", () => {
                 IPC_EVENTS.languageUpdated,
                 "en"
             );
+        });
+
+        it("should return null when import dialog is canceled", async () => {
+            showOpenDialog.mockResolvedValueOnce({
+                canceled: true,
+                filePaths: [],
+            });
+
+            const result = await invokeIpcHandler("setting:import", {
+                sender: {},
+            });
+
+            expect(result).toBeNull();
+            expect(fs.readFile).not.toHaveBeenCalled();
+        });
+
+        it("should throw when imported settings format is invalid", async () => {
+            readFile.mockResolvedValueOnce("1");
+
+            await expect(
+                invokeIpcHandler("setting:import", { sender: {} })
+            ).rejects.toThrow("Invalid settings file format.");
+        });
+
+        it("should import settings without changing log level when missing", async () => {
+            readFile.mockResolvedValueOnce(
+                JSON.stringify({
+                    version: 1,
+                    exportedAt: "2026-02-12T00:00:00.000Z",
+                    setting: { language: "ja" },
+                    window: { color: "#000000" },
+                })
+            );
+            vi.spyOn(mockSettingsRepo, "loadSettings").mockResolvedValueOnce({
+                language: "ja",
+            });
+
+            const loaded = await invokeIpcHandler("setting:import", {
+                sender: {},
+            });
+
+            expect(loaded).toEqual({ language: "ja" });
+            expect(setLogLevel).not.toHaveBeenCalled();
+            expect(initializeMainI18n).toHaveBeenCalledWith("ja");
         });
     });
 });

@@ -90,5 +90,52 @@ describe("useProjectDataSyncBridge", () => {
         expect(mockIPC.updateImageSets).not.toHaveBeenCalled();
         expect(mockIPC.updateDimensionLines).not.toHaveBeenCalled();
     });
+
+    it("broadcasts only changed local fields and skips unchanged image sets", () => {
+        renderHook(() => useProjectDataSyncBridge());
+
+        act(() => {
+            useAppStore.getState().setUnitFactor(1.25);
+        });
+
+        expect(mockIPC.updateUnitFactor).toHaveBeenCalledWith(1.25);
+        expect(mockIPC.updateImageSets).not.toHaveBeenCalled();
+        expect(mockIPC.updateDimensionLines).not.toHaveBeenCalled();
+        expect(mockIPC.updateUnit).not.toHaveBeenCalled();
+    });
+
+    it("syncs selected ids and interaction mode only when values change", () => {
+        renderHook(() => useProjectDataSyncBridge());
+
+        act(() => {
+            useAppStore.getState().setSelectedImageId("img-1");
+        });
+        expect(mockIPC.updateSelectedImageId).toHaveBeenCalledWith("img-1");
+
+        act(() => {
+            useAppStore.getState().setSelectedDimensionLineId("line-1");
+        });
+        expect(mockIPC.updateSelectedDimensionLineId).toHaveBeenCalledWith(
+            "line-1"
+        );
+
+        act(() => {
+            useAppStore.getState().setInteractionMode("dimension_select");
+        });
+        expect(mockIPC.updateInteractionMode).toHaveBeenCalledWith(
+            "dimension_select"
+        );
+
+        vi.clearAllMocks();
+        act(() => {
+            useAppStore.getState().setSelectedImageId(null);
+            useAppStore.getState().setSelectedDimensionLineId("line-1");
+            useAppStore.getState().setInteractionMode("dimension_select");
+        });
+
+        expect(mockIPC.updateSelectedImageId).not.toHaveBeenCalled();
+        expect(mockIPC.updateSelectedDimensionLineId).not.toHaveBeenCalled();
+        expect(mockIPC.updateInteractionMode).not.toHaveBeenCalled();
+    });
 });
 

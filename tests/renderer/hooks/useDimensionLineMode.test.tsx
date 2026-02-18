@@ -178,5 +178,103 @@ describe("useDimensionLineMode", () => {
         });
         expect(useAppStore.temporal.getState().pastStates.length).toBe(1);
     });
+
+    it("should no-op on mousedown for non-stage target and non-left click", () => {
+        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        act(() => {
+            result.current.setDimensionModeEnabled(true);
+        });
+
+        act(() => {
+            result.current.onMouseDown({
+                evt: { button: 0 },
+                target: { getType: () => "Rect" },
+            } as any);
+        });
+        act(() => {
+            result.current.onMouseDown({
+                evt: { button: 1 },
+                target: { getType: () => "Stage" },
+            } as any);
+        });
+
+        expect(useAppStore.getState().dimensionLines).toHaveLength(0);
+    });
+
+    it("should clear selected dimension id when clicking stage in select mode", () => {
+        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        act(() => {
+            useAppStore.getState().setInteractionMode("dimension_select");
+            useAppStore.getState().setSelectedDimensionLineId("line-1");
+        });
+
+        act(() => {
+            result.current.onMouseDown(createStageMouseDownEvent());
+        });
+
+        expect(useAppStore.getState().selectedDimensionLineId).toBeNull();
+        expect(useAppStore.getState().interactionMode).toBe("dimension_select");
+    });
+
+    it("should ignore stage click when not in add/select mode", () => {
+        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        act(() => {
+            useAppStore.getState().setInteractionMode("default");
+        });
+
+        act(() => {
+            result.current.onMouseDown(createStageMouseDownEvent());
+        });
+
+        expect(useAppStore.getState().dimensionLines).toHaveLength(0);
+        expect(useAppStore.getState().selectedDimensionLineId).toBeNull();
+    });
+
+    it("should no-op when stage or pointer position is unavailable", () => {
+        const nullStageRef = { current: null } as RefObject<Konva.Stage>;
+        const pointerNullStage = {
+            getPointerPosition: vi.fn().mockReturnValue(null),
+            getAbsoluteTransform: vi.fn().mockReturnValue({
+                copy: vi.fn().mockReturnValue({
+                    invert: vi.fn(),
+                    point: vi.fn().mockReturnValue({ x: 0, y: 0 }),
+                }),
+            }),
+        } as unknown as Konva.Stage;
+        const pointerNullRef = { current: pointerNullStage } as RefObject<Konva.Stage>;
+
+        const { result: nullStageResult } = renderHook(() =>
+            useDimensionLineMode(nullStageRef)
+        );
+        act(() => {
+            nullStageResult.current.setDimensionModeEnabled(true);
+            nullStageResult.current.onMouseDown(createStageMouseDownEvent());
+            nullStageResult.current.onMouseMove();
+            nullStageResult.current.onMouseUp();
+        });
+        expect(useAppStore.getState().dimensionLines).toHaveLength(0);
+
+        const { result: pointerNullResult } = renderHook(() =>
+            useDimensionLineMode(pointerNullRef)
+        );
+        act(() => {
+            pointerNullResult.current.setDimensionModeEnabled(true);
+            pointerNullResult.current.onMouseDown(createStageMouseDownEvent());
+            pointerNullResult.current.onMouseMove();
+            pointerNullResult.current.onMouseUp();
+        });
+        expect(useAppStore.getState().dimensionLines).toHaveLength(0);
+    });
+
+    it("should keep draft untouched when moving without an active draft line", () => {
+        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+
+        act(() => {
+            result.current.onMouseMove();
+            result.current.onMouseUp();
+        });
+
+        expect(useAppStore.getState().dimensionLines).toHaveLength(0);
+    });
 });
 

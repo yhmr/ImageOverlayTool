@@ -67,6 +67,12 @@ describe("useAppStore", () => {
                 );
             });
 
+            it("should ignore addImageSetWithPath when path is empty", () => {
+                const before = useAppStore.getState().imageSets;
+                useAppStore.getState().addImageSetWithPath("");
+                expect(useAppStore.getState().imageSets).toEqual(before);
+            });
+
             it("should sync image sets as remote change", () => {
                 const newSets = [sampleImageSet];
                 useAppStore.getState().syncImageSets(newSets);
@@ -86,6 +92,38 @@ describe("useAppStore", () => {
                 const state = useAppStore.getState();
                 expect(state.imageSets[0]).toEqual(updatedSet);
                 expect(state.projectDataChangeOrigin).toBe("local");
+            });
+
+            it("should update image set by id", () => {
+                const a: ImageSet = { ...sampleImageSet, id: "a", path: "a.png" };
+                const b: ImageSet = { ...sampleImageSet, id: "b", path: "b.png" };
+                useAppStore.getState().setImageSets([a, b]);
+                const updatedB: ImageSet = { ...b, path: "updated-b.png" };
+
+                useAppStore
+                    .getState()
+                    .updateImageSet({ id: "b", imageSet: updatedB });
+
+                const state = useAppStore.getState();
+                expect(state.imageSets[0]?.path).toBe("a.png");
+                expect(state.imageSets[1]).toEqual(updatedB);
+            });
+
+            it("should keep image sets unchanged when updateImageSet index/id is invalid", () => {
+                const initialSet: ImageSet = { ...sampleImageSet, path: "old.png" };
+                useAppStore.getState().setImageSets([initialSet]);
+
+                useAppStore.getState().updateImageSet({
+                    index: 5,
+                    imageSet: { ...sampleImageSet, path: "out-of-range.png" },
+                });
+                useAppStore.getState().updateImageSet({
+                    imageSet: { ...sampleImageSet, path: "no-target.png" },
+                });
+
+                const state = useAppStore.getState();
+                expect(state.imageSets).toHaveLength(1);
+                expect(state.imageSets[0]?.path).toBe("old.png");
             });
         });
 
@@ -127,6 +165,16 @@ describe("useAppStore", () => {
                 useAppStore.getState().addDimensionLine(sampleLine);
                 useAppStore.getState().removeDimensionLine(sampleLine.id);
                 expect(useAppStore.getState().dimensionLines).not.toContain(sampleLine);
+            });
+
+            it("should ignore updateDimensionLine when target id is missing", () => {
+                useAppStore.getState().setDimensionLines([sampleLine]);
+                useAppStore.getState().updateDimensionLine({
+                    ...sampleLine,
+                    id: "unknown",
+                    start: { x: 99, y: 99 },
+                });
+                expect(useAppStore.getState().dimensionLines).toEqual([sampleLine]);
             });
         });
     });
@@ -317,6 +365,32 @@ describe("useAppStore", () => {
             expect(state.windowColor).toBe("#123456");
             expect(state.imageSets).toEqual([sampleImageSet]);
             expect(state.dimensionLines).toHaveLength(1);
+        });
+
+        it("should load project data with sourceType/dimensionLines/unit fallbacks", () => {
+            const projectData = {
+                version: "1.0.0",
+                window: { width: 800, height: 600, x: 0, y: 0, color: "#123456" },
+                settings: { unitFactor: 1.5, unit: undefined as any },
+                images: [
+                    {
+                        id: "img1",
+                        path: "path/to/img1.png",
+                        transparency: 0.8,
+                        rotation: 0,
+                        initAnchorPos: null,
+                        currentAnchorPos: null,
+                    },
+                ],
+                dimensionLines: undefined as any,
+            };
+
+            useAppStore.getState().loadProjectData(projectData as any);
+
+            const state = useAppStore.getState();
+            expect(state.imageSets[0]?.sourceType).toBe("file");
+            expect(state.dimensionLines).toEqual([]);
+            expect(state.unit).toBe("um");
         });
 
         it("should reset project data", () => {
