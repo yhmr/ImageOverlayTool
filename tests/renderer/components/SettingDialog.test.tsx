@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { SettingDialog } from "@/renderer/main-window/components/SettingDialog";
+import { SettingDialog } from "@/renderer/dialogs/settings/SettingDialog";
 
 const i18nMock = {
     language: "en",
@@ -47,6 +47,13 @@ describe("SettingDialog", () => {
 
     it("loads settings on mount", async () => {
         render(<SettingDialog open={true} onClose={vi.fn()} />);
+        await waitFor(() => {
+            expect(ipcMock.loadSetting).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    it("loads settings even when dialog is closed", async () => {
+        render(<SettingDialog open={false} onClose={vi.fn()} />);
         await waitFor(() => {
             expect(ipcMock.loadSetting).toHaveBeenCalledTimes(1);
         });

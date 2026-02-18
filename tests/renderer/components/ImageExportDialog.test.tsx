@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { ExportDialog } from "@/renderer/main-window/components/ExportDialog";
+import { ImageExportDialog } from "@/renderer/dialogs/export/ImageExportDialog";
 
 // Mock translation
 vi.mock("react-i18next", () => ({
@@ -15,10 +15,10 @@ vi.mock("react-i18next", () => ({
 // Mock Dialog components if necessary, but Radix UI usually works.
 // If needed, we can rely on standard rendering.
 
-describe("ExportDialog", () => {
+describe("ImageExportDialog", () => {
     it("should render when open is true", () => {
         render(
-            <ExportDialog
+            <ImageExportDialog
                 open={true}
                 onClose={() => { }}
                 onExport={() => { }}
@@ -31,7 +31,7 @@ describe("ExportDialog", () => {
         const onExport = vi.fn();
         const onClose = vi.fn();
         render(
-            <ExportDialog
+            <ImageExportDialog
                 open={true}
                 onClose={onClose}
                 onExport={onExport}
@@ -48,7 +48,7 @@ describe("ExportDialog", () => {
         const onExport = vi.fn();
         const onClose = vi.fn();
         render(
-            <ExportDialog
+            <ImageExportDialog
                 open={true}
                 onClose={onClose}
                 onExport={onExport}
@@ -69,7 +69,7 @@ describe("ExportDialog", () => {
         const onExport = vi.fn();
         const onClose = vi.fn();
         render(
-            <ExportDialog
+            <ImageExportDialog
                 open={true}
                 onClose={onClose}
                 onExport={onExport}

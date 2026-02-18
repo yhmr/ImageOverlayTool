@@ -12,13 +12,17 @@ import { Label } from "@/renderer/components/ui/label";
 import { Switch } from "@/renderer/components/ui/switch";
 import { useState } from "react";
 
-interface ExportDialogProps {
+interface ImageExportDialogProps {
     open: boolean;
     onClose: () => void;
     onExport: (includeBackground: boolean) => void;
 }
 
-export function ExportDialog({ open, onClose, onExport }: ExportDialogProps) {
+export function ImageExportDialog({
+    open,
+    onClose,
+    onExport,
+}: ImageExportDialogProps) {
     const { t } = useTranslation();
     const [includeBackground, setIncludeBackground] = useState(false);
 

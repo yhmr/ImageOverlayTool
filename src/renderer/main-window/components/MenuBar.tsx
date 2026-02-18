@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { Maximize, Minimize, X, Undo, Redo } from "lucide-react";
 import { useStore } from "zustand";
 import type { TemporalState } from "zundo";
 
-import { SettingDialog } from "./SettingDialog";
+import { SettingDialog } from "../../dialogs/settings/SettingDialog";
 import { AppMenu } from "./AppMenu";
+import { MenuBarHistoryActions } from "./MenuBarHistoryActions";
+import { MenuBarWindowActions } from "./MenuBarWindowActions";
 import { useMenuState } from "../../hooks/useMenuState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
 import { useProjectOperations } from "../../hooks/useProjectOperations";
@@ -92,53 +93,22 @@ export function MenuBar() {
                     </TooltipContent>
                 </Tooltip>
 
-                {/* Undo / Redo */}
-                <div className="flex items-center gap-1 app-region-no-drag">
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                    undo();
-                                    useAppStore.setState({
-                                        projectDataChangeOrigin: "local",
-                                    });
-                                }}
-                                disabled={pastStates.length === 0}
-                                className="h-8 w-8"
-                                data-testid="main.action.undo"
-                            >
-                                <Undo className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{t("common.undo")}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                    redo();
-                                    useAppStore.setState({
-                                        projectDataChangeOrigin: "local",
-                                    });
-                                }}
-                                disabled={futureStates.length === 0}
-                                className="h-8 w-8"
-                                data-testid="main.action.redo"
-                            >
-                                <Redo className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{t("common.redo")}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </div>
+                <MenuBarHistoryActions
+                    canUndo={pastStates.length > 0}
+                    canRedo={futureStates.length > 0}
+                    onUndo={() => {
+                        undo();
+                        useAppStore.setState({
+                            projectDataChangeOrigin: "local",
+                        });
+                    }}
+                    onRedo={() => {
+                        redo();
+                        useAppStore.setState({
+                            projectDataChangeOrigin: "local",
+                        });
+                    }}
+                />
 
                 {/* タイトル */}
                 <div className="flex-grow text-center text-lg font-medium app-region-drag pointer-events-none">
@@ -177,49 +147,11 @@ export function MenuBar() {
                     </Button>
                 )}
 
-                {/* 最大最小化 */}
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={toggleMaximized}
-                            className="app-region-no-drag"
-                            data-testid="main.action.window-toggle"
-                        >
-                            {isMaximized ? (
-                                <Minimize className="h-6 w-6" />
-                            ) : (
-                                <Maximize className="h-6 w-6" />
-                            )}
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>
-                            {isMaximized
-                                ? t("render.menu_button.tooltip.unmaximize")
-                                : t("render.menu_button.tooltip.maximize")}
-                        </p>
-                    </TooltipContent>
-                </Tooltip>
-
-                {/* ウィンドウ閉じる */}
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={closeWindow}
-                            className="app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
-                            data-testid="main.action.window-close"
-                        >
-                            <X className="h-6 w-6" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{t("render.menu_button.tooltip.close")}</p>
-                    </TooltipContent>
-                </Tooltip>
+                <MenuBarWindowActions
+                    isMaximized={isMaximized}
+                    onToggleMaximized={toggleMaximized}
+                    onCloseWindow={closeWindow}
+                />
 
                 <SettingDialog
                     open={isSettingDialogOpen}

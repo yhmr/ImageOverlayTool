@@ -10,7 +10,7 @@ import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
 import { OverlayControls } from "./OverlayControls";
 import { DimensionLineLayer } from "./DimensionLineLayer";
-import { ExportDialog } from "./ExportDialog";
+import { ImageExportDialog } from "../../dialogs/export/ImageExportDialog";
 import { bindStageDragEndDisable } from "./imageStageDragEnd";
 
 import { useStageControls } from "../../hooks/useStageControls";
@@ -166,7 +166,7 @@ export const ImageStage = memo(function ImageStage() {
                 }}
                 onOpenExportDialog={openExportDialog}
             />
-            <ExportDialog
+            <ImageExportDialog
                 open={isExportDialogOpen}
                 onClose={closeExportDialog}
                 onExport={exportImage}

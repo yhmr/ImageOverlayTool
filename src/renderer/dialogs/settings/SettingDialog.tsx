@@ -1,4 +1,3 @@
-import { useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Dialog,
@@ -17,72 +16,32 @@ import {
 } from "@/renderer/components/ui/select";
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
-import { useIpcService } from "../../providers/IpcServiceProvider";
 import {
+    LOG_LEVELS,
     normalizeLanguage,
     SUPPORTED_LANGUAGES,
-} from "../../../i18n/languages";
+    useSettingDialogState,
+} from "./useSettingDialogState";
 
 interface SettingDialogProps {
     open: boolean;
     onClose: () => void;
 }
 
-const LOG_LEVELS = ["error", "warn", "info", "debug", "silly"];
-
 export function SettingDialog(props: SettingDialogProps) {
     const { open, onClose } = props;
     const { t, i18n } = useTranslation();
-    const ipcService = useIpcService();
-    const [logLevel, setLogLevel] = useState("info");
-
-    // 言語切り替え
-    const changeLanguage = (value: string) => {
-        i18n.changeLanguage(normalizeLanguage(value));
-    };
-
-    const persistSettings = async () => {
-        await ipcService.saveSetting({
-            language: normalizeLanguage(i18n.language),
-            logLevel,
-        });
-    };
-
-    // 終了時に設定保存
-    const saveAndClose = async () => {
-        await persistSettings();
-        onClose();
-    };
-
-    const exportSettings = async () => {
-        // Export must include currently edited values in this dialog.
-        await persistSettings();
-        await ipcService.exportSettings();
-    };
-
-    const importSettings = async () => {
-        const imported = await ipcService.importSettings();
-        if (imported) {
-            if (imported.language) {
-                i18n.changeLanguage(normalizeLanguage(imported.language));
-            }
-            if (imported.logLevel) {
-                setLogLevel(imported.logLevel);
-            }
-        }
-    };
-
-    // 初期化
-    useLayoutEffect(() => {
-        const loadSetting = async () => {
-            const setting = await ipcService.loadSetting();
-            i18n.changeLanguage(normalizeLanguage(setting.language));
-            if (setting.logLevel) {
-                setLogLevel(setting.logLevel);
-            }
-        };
-        void loadSetting();
-    }, [i18n, ipcService]);
+    const {
+        logLevel,
+        setLogLevel,
+        changeLanguage,
+        saveAndClose,
+        exportSettings,
+        importSettings,
+    } = useSettingDialogState({
+        onClose,
+        i18n,
+    });
 
     return (
         <Dialog
