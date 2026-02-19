@@ -12,3 +12,140 @@
 ```bash
 pnpm run generate-store-submission-files
 ```
+
+## Store Page
+
+### description
+
+```
+ImageOverlayTool is a desktop app built around a transparent overlay window, so you can place reference images directly on top of other applications for accurate visual comparison.
+
+Instead of switching between windows, you can align and inspect images in context while your target app stays visible underneath. This is useful for design checks, UI matching, before/after verification, and measurement-oriented review workflows.
+
+Key capabilities:
+- Transparent overlay window for cross-application comparison
+- Multi-layer image overlay with drag-and-drop reordering
+- Precise move, zoom, rotation, and perspective transform (corner anchors)
+- Per-layer controls: opacity, visibility, scale, and filters
+- Binarization and HSV adjustment for detailed visual analysis
+- Dimension line drawing for measurement workflows
+- Project save/load with `.iot` files
+- Export output with or without background
+- Undo/Redo and persistent settings
+
+ImageOverlayTool is designed for local/offline use. Your images, projects, and settings are processed on your device unless you explicitly export or share them.
+```
+
+### What's new
+
+```
+- Initial Microsoft Store release (v1.0.0)
+- Added multi-layer overlay workflow with perspective transform
+- Added image settings window (opacity/scale/rotation/filter controls)
+- Added project save/load, export options, and undo/redo support
+```
+
+### Product features
+
+```
+- Overlay multiple images and reorder layers
+- Precise alignment with move, zoom, and perspective transform
+- Per-image controls: opacity, scale, rotation, visibility
+- Binarization and HSV filters for visual analysis
+- Dimension line drawing for measurement workflows
+- Save/open .iot projects and export final images
+- Transparent overlay window for cross-application visual alignment and comparison
+```
+
+### Screenshots
+
+```
+- scene02-main.png
+  - Overlay and align multiple images on one canvas with precise drag and anchor controls.
+- scene02-settings.png
+  - Control layer order, opacity, scale, rotation, and visibility in the Image Settings window.
+- scene04-main.png
+  - Apply visual filters such as binarization and HSV adjustment for detailed image comparison.
+- scene06-final.png
+  - Overlay images on other applications using a transparent window.
+- scene03-perspective-a.png
+  - empty
+- scene03-perspective-b.png
+  - empty
+```
+
+### Other information
+
+```
+- ImageOverlayTool
+- Image Overlay Tool
+- Transparent overlay window for cross-application image alignment and comparison.
+```
+
+## ストアページ
+
+### 説明
+
+```
+ImageOverlayTool は、透過ウィンドウを中核機能として、他のアプリケーションの上に参照画像を直接重ねて比較できるデスクトップアプリです。
+
+ウィンドウを切り替えずに、対象アプリを表示したまま位置合わせや差分確認ができるため、UI検証、デザイン調整、ビフォー/アフター比較、計測を伴う確認作業を効率化できます。
+
+主な機能:
+- 透過ウィンドウによる他アプリとの重ね合わせ比較
+- 複数画像レイヤーの読み込みとドラッグ＆ドロップ並べ替え
+- 移動・ズーム・回転・四隅アンカーによる自由変形（パース補正）
+- レイヤーごとの透明度・表示/非表示・拡大縮小・フィルタ調整
+- 二値化・HSV調整による詳細な可視比較
+- 寸法線描画による計測ワークフロー対応
+- .iot プロジェクトの保存/読み込み
+- 背景あり/なしの画像書き出し
+- Undo/Redo と設定の永続化
+
+本アプリはローカル/オフライン利用を前提としており、画像・プロジェクト・設定は、ユーザーが明示的に共有しない限りデバイス内で処理されます。
+```
+
+### このバージョンの最新情報
+
+```
+- Microsoft Store 初回リリース（v1.0.0）
+- 透過ウィンドウを使った複数画像の重ね合わせワークフローを実装
+- 画像設定ウィンドウ（透明度/拡大縮小/回転/フィルタ）を追加
+- プロジェクト保存/読み込み、書き出し、Undo/Redo に対応
+```
+
+### 製品の機能
+
+```
+- 透過ウィンドウで他アプリ上に画像を重ねて比較
+- 複数画像レイヤーの重ね合わせと順序変更
+- 高精度な移動・ズーム・パース変形による位置合わせ
+- 透明度・拡大縮小・回転・表示切替の個別調整
+- 二値化・HSVフィルタによる画像解析
+- 寸法線描画、.iot 保存/読み込み、画像書き出し
+```
+
+### スクリーンショット
+
+```
+- scene02-main.png
+  - 複数画像を1つのキャンバスに重ね、ドラッグとアンカー操作で精密に位置合わせできます。
+- scene02-settings.png
+  - 画像設定ウィンドウで、レイヤー順序・透明度・拡大縮小・回転・表示状態を一括管理できます。
+- scene04-main.png
+  - 二値化やHSV調整などのフィルタを適用し、差分や形状を視覚的に比較できます。
+- scene06-final.png
+  - 透過ウィンドウで他のアプリケーションと重ね合わせ表示し、そのまま目視確認できます。
+- scene03-perspective-a.png
+  - 空
+- scene03-perspective-b.png
+  - 空
+```
+
+### その他の情報
+
+```
+- ImageOverlayTool
+- Image Overlay Tool
+- 透過ウィンドウで他アプリと重ね合わせ比較できる画像位置合わせツール
+```
