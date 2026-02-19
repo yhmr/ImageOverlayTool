@@ -9,8 +9,6 @@ import {
 type UnsavedChangesTranslationKey =
     keyof AppTranslation["render"]["unsaved_changes"];
 
-type ErrorDialogTranslationKey = keyof AppTranslation["main"]["error_dialog"];
-
 const mainI18n: I18nInstance = createInstance();
 let initPromise: Promise<void> | null = null;
 
@@ -42,11 +40,4 @@ export const initializeMainI18n = async (language?: string): Promise<void> => {
 
 export const tUnsavedChanges = (key: UnsavedChangesTranslationKey): string => {
     return mainI18n.t(`render.unsaved_changes.${key}`);
-};
-
-export const tErrorDialog = (
-    key: ErrorDialogTranslationKey,
-    variables?: Record<string, string>
-): string => {
-    return mainI18n.t(`main.error_dialog.${key}`, variables);
 };
