@@ -336,7 +336,14 @@ describe("WindowManager", () => {
 
     it("registers external link handler for main window", () => {
         const mainWindow = windowManager.createMainWindow() as any;
-        const handler = mainWindow.webContents.setWindowOpenHandler.mock.calls[0][0];
+        const setWindowOpenHandler = vi.mocked(
+            mainWindow.webContents.setWindowOpenHandler
+        );
+        expect(setWindowOpenHandler).toHaveBeenCalledWith(expect.any(Function));
+        const [handler] = setWindowOpenHandler.mock.lastCall ?? [];
+        if (typeof handler !== "function") {
+            throw new Error("window open handler should be registered");
+        }
 
         expect(handler({ url: "https://example.com" })).toEqual({ action: "deny" });
         expect(shellMock.openExternal).toHaveBeenCalledWith("https://example.com");

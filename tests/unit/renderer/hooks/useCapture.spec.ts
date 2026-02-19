@@ -33,6 +33,7 @@ describe("useCapture", () => {
     const mockSetImageSets = vi.fn();
     const mockImageSets = [{ id: "existing-1", path: "existing" }];
     const mockCanvas = { x: 100, y: 50, scale: 2 };
+    let capturedImageSets: unknown[] | null = null;
 
     // IPCのモック関数
     const mockCaptureScreen = vi.fn();
@@ -40,6 +41,10 @@ describe("useCapture", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        capturedImageSets = null;
+        mockSetImageSets.mockImplementation((nextImageSets: unknown[]) => {
+            capturedImageSets = nextImageSets;
+        });
 
         // useAppStoreのモック実装
         mockUseAppStore.mockReturnValue({
@@ -79,9 +84,19 @@ describe("useCapture", () => {
         expect(mockSetImageSets).toHaveBeenCalledTimes(1);
 
         // 3. 追加されるImageSetの内容検証
-        const addedImageSets = mockSetImageSets.mock.calls[0][0];
+        if (!capturedImageSets) {
+            throw new Error("setImageSets should be called with image sets");
+        }
+        const addedImageSets = capturedImageSets;
         expect(addedImageSets).toHaveLength(2); // 既存1 + 新規1
-        const newImageSet = addedImageSets[0]; // unshiftなので先頭
+        const newImageSet = addedImageSets[0] as {
+            id: string;
+            path: string;
+            initAnchorPos: {
+                lt: { x: number; y: number };
+                rt: { x: number; y: number };
+            };
+        }; // unshiftなので先頭
 
         expect(newImageSet.id).toBe("test-uuid");
         expect(newImageSet.path).toBe("local-file://C:/tmp/capture.png");
@@ -134,8 +149,11 @@ describe("useCapture", () => {
             await result.current.captureBackground();
         });
 
-        const addedImageSets = mockSetImageSets.mock.calls[0][0];
+        if (!capturedImageSets) {
+            throw new Error("setImageSets should be called with image sets");
+        }
+        const addedImageSets = capturedImageSets;
         expect(addedImageSets).toHaveLength(1);
-        expect(addedImageSets[0].id).toBe("test-uuid");
+        expect((addedImageSets[0] as { id: string }).id).toBe("test-uuid");
     });
 });

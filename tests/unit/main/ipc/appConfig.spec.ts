@@ -200,9 +200,11 @@ describe("IPC AppConfig Handlers", () => {
 
             expect(showSaveDialog).toHaveBeenCalledTimes(1);
             expect(fs.writeFile).toHaveBeenCalledTimes(1);
-            const payload = JSON.parse(
-                vi.mocked(fs.writeFile).mock.calls[0][1] as string
-            );
+            const writeCall = vi.mocked(fs.writeFile).mock.lastCall;
+            if (!writeCall) {
+                throw new Error("fs.writeFile should be called");
+            }
+            const payload = JSON.parse(String(writeCall[1]));
             expect(payload.setting.language).toBe("en");
             expect(payload.setting.logLevel).toBe("info");
         });

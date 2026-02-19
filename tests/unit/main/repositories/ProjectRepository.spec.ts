@@ -68,8 +68,11 @@ describe("ProjectRepository", () => {
             ],
         });
 
-        const written = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
-        const parsed = JSON.parse(written);
+        const writeCall = vi.mocked(fs.writeFile).mock.lastCall;
+        if (!writeCall) {
+            throw new Error("fs.writeFile should be called");
+        }
+        const parsed = JSON.parse(String(writeCall[1]));
 
         expect(parsed.images[0].initAnchorPos).toBeTruthy();
         expect(parsed.images[0].currentAnchorPos).toBeTruthy();

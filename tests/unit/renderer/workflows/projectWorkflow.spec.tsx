@@ -100,15 +100,20 @@ describe("Renderer workflow: image add -> settings change -> save", () => {
         });
 
         expect(mockIPC.saveProjectAs).toHaveBeenCalledTimes(1);
-
-        const savedProject = mockIPC.saveProjectAs.mock.calls[0][0];
-        expect(savedProject.images).toHaveLength(1);
-        expect(savedProject.images[0].transparency).toBe(35);
-        expect(savedProject.images[0].rotation).toBe(12);
-        expect(savedProject.settings.unitFactor).toBe(
-            useAppStore.getState().unitFactor
+        expect(mockIPC.saveProjectAs).toHaveBeenCalledWith(
+            expect.objectContaining({
+                images: [
+                    expect.objectContaining({
+                        transparency: 35,
+                        rotation: 12,
+                    }),
+                ],
+                settings: expect.objectContaining({
+                    unitFactor: useAppStore.getState().unitFactor,
+                    unit: useAppStore.getState().unit,
+                }),
+            })
         );
-        expect(savedProject.settings.unit).toBe(useAppStore.getState().unit);
 
         // capture + updateImageSet の2回で同期送信される
         expect(mockIPC.updateImageSets).toHaveBeenCalledTimes(2);

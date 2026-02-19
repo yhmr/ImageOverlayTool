@@ -22,7 +22,11 @@ describe("bindStageDragEndDisable", () => {
         expect(on).toHaveBeenCalledTimes(1);
         expect(on).toHaveBeenCalledWith("dragend", expect.any(Function));
 
-        const dragEndHandler = on.mock.calls[0][1] as () => void;
+        const onCall = vi.mocked(on).mock.lastCall;
+        if (!onCall) {
+            throw new Error("dragend handler should be registered");
+        }
+        const [, dragEndHandler] = onCall as [string, () => void];
         dragEndHandler();
 
         expect(draggable).toHaveBeenCalledWith(false);

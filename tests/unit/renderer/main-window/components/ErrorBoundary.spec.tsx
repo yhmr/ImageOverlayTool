@@ -104,8 +104,10 @@ describe("ErrorBoundary", () => {
         );
 
         expect(onError).toHaveBeenCalledTimes(1);
-        expect(onError.mock.calls[0][0]).toBeInstanceOf(Error);
-        expect(onError.mock.calls[0][1]).toBeTruthy();
+        expect(onError).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.any(Object)
+        );
     });
 
     it("should call onError when copy fails", async () => {

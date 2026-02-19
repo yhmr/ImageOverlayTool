@@ -77,6 +77,8 @@ pnpm run test:e2e
 pnpm run test:e2e:screenshots
 ```
 
+- テスト作法の基準は `tests/TESTING_GUIDELINES.md` を参照
+
 ### テストセレクタ（data-testid）規約
 
 E2E/統合テストで使用する `data-testid` は、以下の形式で命名します。

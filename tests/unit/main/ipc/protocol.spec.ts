@@ -47,12 +47,19 @@ describe("protocol handlers", () => {
         Object.defineProperty(process, "platform", { value: platform });
     };
 
-    const getHandler = () => {
+    type LocalProtocolRequest = {
+        method: string;
+        url: string;
+    };
+    type LocalProtocolHandler = (request: LocalProtocolRequest) => Promise<Response>;
+
+    const getHandler = (): LocalProtocolHandler => {
         setupProtocolHandler();
-        return handleMock.mock.calls[0][1] as (request: {
-            method: string;
-            url: string;
-        }) => Promise<Response>;
+        const [, handler] = vi.mocked(handleMock).mock.lastCall ?? [];
+        if (typeof handler !== "function") {
+            throw new Error("protocol handler should be registered");
+        }
+        return handler as LocalProtocolHandler;
     };
 
     beforeEach(() => {
@@ -101,8 +108,8 @@ describe("protocol handlers", () => {
 
         expect(fs.stat).toHaveBeenCalledTimes(1);
         expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(String(fetchMock.mock.calls[0][0]).startsWith("file://")).toBe(
-            true
+        expect(fetchMock).toHaveBeenCalledWith(
+            expect.stringMatching(/^file:\/\//)
         );
     });
 

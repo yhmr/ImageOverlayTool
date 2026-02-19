@@ -46,8 +46,12 @@ describe("useStageControls", () => {
 
         expect(preventDefault).toHaveBeenCalled();
         expect(onUpdate).toHaveBeenCalled();
-        // Check new scale > 1
-        expect(onUpdate.mock.calls[0][0].scale).toBeGreaterThan(1);
+        const onUpdateCall = vi.mocked(onUpdate).mock.lastCall;
+        if (!onUpdateCall) {
+            throw new Error("onUpdate should receive latest stage state");
+        }
+        const [stageUpdate] = onUpdateCall as [{ scale: number }];
+        expect(stageUpdate.scale).toBeGreaterThan(1);
     });
 
     it("should no-op wheel handling when stage ref is null", () => {
@@ -109,7 +113,11 @@ describe("useStageControls", () => {
 
         expect(mockStage.scale).toHaveBeenCalledTimes(1);
         expect(mockStage.position).toHaveBeenCalledTimes(1);
-        const scaleArg = mockStage.scale.mock.calls[0][0];
+        const scaleCall = vi.mocked(mockStage.scale).mock.lastCall;
+        if (!scaleCall) {
+            throw new Error("stage scale should be updated");
+        }
+        const [scaleArg] = scaleCall as [{ x: number; y: number }];
         expect(scaleArg.x).toBeLessThan(2);
         expect(scaleArg.y).toBeLessThan(2);
     });

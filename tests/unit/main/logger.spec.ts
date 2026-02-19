@@ -94,8 +94,12 @@ describe("Logger Module", () => {
 
         it("should replace processType with scope if present", async () => {
             await import("@/main/logger");
-            // get the registered hook function
-            const hookFn = mocks.hooks.push.mock.calls[0][0];
+            const hookPush = vi.mocked(mocks.hooks.push);
+            expect(hookPush).toHaveBeenCalledWith(expect.any(Function));
+            const [hookFn] = hookPush.mock.lastCall ?? [];
+            if (typeof hookFn !== "function") {
+                throw new Error("log hook should be registered");
+            }
 
             // test case: has scope
             const msgWithScope = { scope: "renderer", variables: {} };
