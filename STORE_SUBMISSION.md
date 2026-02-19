@@ -62,7 +62,7 @@ ImageOverlayTool is designed for local/offline use. Your images, projects, and s
 ```
 - scene02-main.png
   - Overlay and align multiple images on one canvas with precise drag and anchor controls.
-- scene02-settings.png
+- scene02-image-settings.png
   - Control layer order, opacity, scale, rotation, and visibility in the Image Settings window.
 - scene04-main.png
   - Apply visual filters such as binarization and HSV adjustment for detailed image comparison.
@@ -130,7 +130,7 @@ ImageOverlayTool は、透過ウィンドウを中核機能として、他のア
 ```
 - scene02-main.png
   - 複数画像を1つのキャンバスに重ね、ドラッグとアンカー操作で精密に位置合わせできます。
-- scene02-settings.png
+- scene02-image-settings.png
   - 画像設定ウィンドウで、レイヤー順序・透明度・拡大縮小・回転・表示状態を一括管理できます。
 - scene04-main.png
   - 二値化やHSV調整などのフィルタを適用し、差分や形状を視覚的に比較できます。
