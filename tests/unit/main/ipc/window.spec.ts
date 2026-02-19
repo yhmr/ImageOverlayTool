@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow } from "electron";
 import { registerWindowHandlers } from "@/main/ipc/window";
 import { IPC_CHANNELS } from "@/shared/ipc/channels";
+import { invokeIpcHandler } from "../utils/ipcTestHelper";
 
 vi.mock("electron", () => ({
     ipcMain: {
@@ -22,186 +23,169 @@ vi.mock("@/main/logger", () => ({
     },
 }));
 
+type MainWindowMock = Pick<
+    BrowserWindow,
+    | "isMaximized"
+    | "maximize"
+    | "unmaximize"
+    | "close"
+    | "setBounds"
+    | "setIgnoreMouseEvents"
+    | "setAlwaysOnTop"
+    | "setResizable"
+>;
+
+type SenderWindowMock = Pick<
+    BrowserWindow,
+    "setBounds" | "setIgnoreMouseEvents" | "setAlwaysOnTop"
+>;
+
+const asBrowserWindow = (value: Partial<BrowserWindow>): BrowserWindow =>
+    value as unknown as BrowserWindow;
+
+const createMainWindowMock = (): MainWindowMock => ({
+    isMaximized: vi.fn(() => false),
+    maximize: vi.fn(),
+    unmaximize: vi.fn(),
+    close: vi.fn(),
+    setBounds: vi.fn(),
+    setIgnoreMouseEvents: vi.fn(),
+    setAlwaysOnTop: vi.fn(),
+    setResizable: vi.fn(),
+});
+
+const createSenderWindowMock = (): SenderWindowMock => ({
+    setBounds: vi.fn(),
+    setIgnoreMouseEvents: vi.fn(),
+    setAlwaysOnTop: vi.fn(),
+});
+
 describe("window IPC handlers", () => {
-    let mainWindowMock: any;
+    let mainWindowMock: MainWindowMock;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mainWindowMock = {
-            isMaximized: vi.fn(),
-            maximize: vi.fn(),
-            unmaximize: vi.fn(),
-            close: vi.fn(),
-            setBounds: vi.fn(),
-            setIgnoreMouseEvents: vi.fn(),
-            setAlwaysOnTop: vi.fn(),
-            setResizable: vi.fn(),
-        };
+        mainWindowMock = createMainWindowMock();
+        registerWindowHandlers(asBrowserWindow(mainWindowMock));
     });
 
-    it("registers all window handlers", () => {
-        registerWindowHandlers(mainWindowMock);
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            IPC_CHANNELS.window.switchSize,
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            IPC_CHANNELS.window.close,
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            IPC_CHANNELS.window.setRect,
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            IPC_CHANNELS.window.setIgnoreMouseEvents,
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            IPC_CHANNELS.window.setAlwaysOnTop,
-            expect.any(Function)
-        );
-    });
+    it("switchSize maximizes when current window is not maximized", async () => {
+        vi.mocked(mainWindowMock.isMaximized).mockReturnValue(false);
 
-    it("switchSize handler maximizes if not maximized", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const switchSizeHandler = vi.mocked(ipcMain.handle).mock.calls.find(
-            (call) => call[0] === IPC_CHANNELS.window.switchSize
-        )?.[1] as any;
+        const result = await invokeIpcHandler<boolean>(
+            IPC_CHANNELS.window.switchSize
+        );
 
-        mainWindowMock.isMaximized.mockReturnValue(false);
-
-        const result = await switchSizeHandler();
-
-        expect(mainWindowMock.maximize).toHaveBeenCalled();
+        expect(mainWindowMock.maximize).toHaveBeenCalledTimes(1);
         expect(result).toBe(true);
     });
 
-    it("switchSize handler unmaximizes and enables resizing if maximized", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const switchSizeHandler = vi.mocked(ipcMain.handle).mock.calls.find(
-            (call) => call[0] === IPC_CHANNELS.window.switchSize
-        )?.[1] as any;
+    it("switchSize unmaximizes and enables resize when current window is maximized", async () => {
+        vi.mocked(mainWindowMock.isMaximized).mockReturnValue(true);
 
-        mainWindowMock.isMaximized.mockReturnValue(true);
+        const result = await invokeIpcHandler<boolean>(
+            IPC_CHANNELS.window.switchSize
+        );
 
-        const result = await switchSizeHandler();
-
-        expect(mainWindowMock.unmaximize).toHaveBeenCalled();
+        expect(mainWindowMock.unmaximize).toHaveBeenCalledTimes(1);
         expect(mainWindowMock.setResizable).toHaveBeenCalledWith(true);
         expect(result).toBe(false);
     });
 
-    it("close handler closes main window", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const closeHandler = vi.mocked(ipcMain.handle).mock.calls.find(
-            (call) => call[0] === IPC_CHANNELS.window.close
-        )?.[1] as any;
-
-        await closeHandler();
+    it("close delegates to mainWindow.close", async () => {
+        await invokeIpcHandler(IPC_CHANNELS.window.close);
 
         expect(mainWindowMock.close).toHaveBeenCalledTimes(1);
     });
 
-    it("setRect handler calls setBounds on sender window when available", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const setRectHandler = vi.mocked(ipcMain.handle).mock.calls.find(
-            (call) => call[0] === IPC_CHANNELS.window.setRect
-        )?.[1] as any;
-
-        const senderWindowMock = {
-            setBounds: vi.fn(),
-        };
+    it("setRect applies bounds to sender window when available", async () => {
+        const senderWindowMock = createSenderWindowMock();
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
-            senderWindowMock as any
+            asBrowserWindow(senderWindowMock)
         );
 
         const rect = { x: 10, y: 20, width: 100, height: 200 };
-        await setRectHandler({ sender: {} }, rect);
+        await invokeIpcHandler(
+            IPC_CHANNELS.window.setRect,
+            { sender: {} },
+            rect
+        );
 
         expect(senderWindowMock.setBounds).toHaveBeenCalledWith(rect);
+        expect(mainWindowMock.setBounds).not.toHaveBeenCalled();
     });
 
-    it("setRect handler falls back to mainWindow when sender window is unavailable", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const setRectHandler = vi.mocked(ipcMain.handle).mock.calls.find(
-            (call) => call[0] === IPC_CHANNELS.window.setRect
-        )?.[1] as any;
+    it("setRect falls back to main window when sender window is unavailable", async () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
 
         const rect = { x: 10, y: 20, width: 100, height: 200 };
-        await setRectHandler({ sender: {} }, rect);
+        await invokeIpcHandler(
+            IPC_CHANNELS.window.setRect,
+            { sender: {} },
+            rect
+        );
 
         expect(mainWindowMock.setBounds).toHaveBeenCalledWith(rect);
     });
 
-    it("setAlwaysOnTop handler calls sender window when available", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const setAlwaysOnTopHandler = vi.mocked(ipcMain.handle).mock.calls.find(
-            (call) => call[0] === IPC_CHANNELS.window.setAlwaysOnTop
-        )?.[1] as any;
-
-        const senderWindowMock = {
-            setAlwaysOnTop: vi.fn(),
-        };
+    it("setAlwaysOnTop uses sender window when available", async () => {
+        const senderWindowMock = createSenderWindowMock();
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
-            senderWindowMock as any
+            asBrowserWindow(senderWindowMock)
         );
 
-        await setAlwaysOnTopHandler({ sender: {} }, true);
+        await invokeIpcHandler(
+            IPC_CHANNELS.window.setAlwaysOnTop,
+            { sender: {} },
+            true
+        );
 
         expect(senderWindowMock.setAlwaysOnTop).toHaveBeenCalledWith(true);
+        expect(mainWindowMock.setAlwaysOnTop).not.toHaveBeenCalled();
     });
 
-    it("setAlwaysOnTop handler falls back to mainWindow when sender window is unavailable", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const setAlwaysOnTopHandler = vi.mocked(ipcMain.handle).mock.calls.find(
-            (call) => call[0] === IPC_CHANNELS.window.setAlwaysOnTop
-        )?.[1] as any;
+    it("setAlwaysOnTop falls back to main window when sender window is unavailable", async () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
 
-        await setAlwaysOnTopHandler({ sender: {} }, false);
+        await invokeIpcHandler(
+            IPC_CHANNELS.window.setAlwaysOnTop,
+            { sender: {} },
+            false
+        );
 
         expect(mainWindowMock.setAlwaysOnTop).toHaveBeenCalledWith(false);
     });
 
-    it("setIgnoreMouseEvents handler uses sender window when available", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const setIgnoreMouseEventsHandler = vi
-            .mocked(ipcMain.handle)
-            .mock.calls.find(
-                (call) => call[0] === IPC_CHANNELS.window.setIgnoreMouseEvents
-            )?.[1] as any;
-        const senderWindowMock = {
-            setIgnoreMouseEvents: vi.fn(),
-        };
+    it("setIgnoreMouseEvents coerces truthy values on sender window", async () => {
+        const senderWindowMock = createSenderWindowMock();
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
-            senderWindowMock as any
+            asBrowserWindow(senderWindowMock)
         );
 
-        await setIgnoreMouseEventsHandler({ sender: {} }, 1 as any);
+        await invokeIpcHandler(
+            IPC_CHANNELS.window.setIgnoreMouseEvents,
+            { sender: {} },
+            1
+        );
 
         expect(senderWindowMock.setIgnoreMouseEvents).toHaveBeenCalledWith(
             true,
-            {
-                forward: true,
-            }
+            { forward: true }
         );
     });
 
-    it("setIgnoreMouseEvents handler falls back to mainWindow when sender window is unavailable", async () => {
-        registerWindowHandlers(mainWindowMock);
-        const setIgnoreMouseEventsHandler = vi
-            .mocked(ipcMain.handle)
-            .mock.calls.find(
-                (call) => call[0] === IPC_CHANNELS.window.setIgnoreMouseEvents
-            )?.[1] as any;
+    it("setIgnoreMouseEvents falls back to main window and coerces falsy values", async () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
 
-        await setIgnoreMouseEventsHandler({ sender: {} }, 0 as any);
+        await invokeIpcHandler(
+            IPC_CHANNELS.window.setIgnoreMouseEvents,
+            { sender: {} },
+            0
+        );
 
-        expect(mainWindowMock.setIgnoreMouseEvents).toHaveBeenCalledWith(false, {
-            forward: true,
-        });
+        expect(mainWindowMock.setIgnoreMouseEvents).toHaveBeenCalledWith(
+            false,
+            { forward: true }
+        );
     });
 });

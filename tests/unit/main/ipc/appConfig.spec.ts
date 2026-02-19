@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ipcMain } from "electron";
 import fs from "fs/promises";
 import { registerAppConfigHandlers } from "@/main/ipc/appConfig";
 import { MockSettingsRepository } from "../repositories/mocks/MockSettingsRepository";
@@ -103,15 +102,6 @@ describe("IPC AppConfig Handlers", () => {
         registerAppConfigHandlers(mockSettingsRepo, mockWindowRepo);
     });
 
-    it("should register handlers for app config events", () => {
-        expect(ipcMain.handle).toHaveBeenCalledWith("setting:load", expect.any(Function));
-        expect(ipcMain.handle).toHaveBeenCalledWith("setting:save", expect.any(Function));
-        expect(ipcMain.handle).toHaveBeenCalledWith("setting:export", expect.any(Function));
-        expect(ipcMain.handle).toHaveBeenCalledWith("setting:import", expect.any(Function));
-        expect(ipcMain.handle).toHaveBeenCalledWith("window_color:load", expect.any(Function));
-        expect(ipcMain.handle).toHaveBeenCalledWith("window_color:save", expect.any(Function));
-    });
-
     describe("setting:save & setting:load", () => {
         it("should save and load settings via repository", async () => {
             const newSettings: SettingType = { language: "ja", logLevel: "debug" };
@@ -137,6 +127,23 @@ describe("IPC AppConfig Handlers", () => {
             // Test setting:load
             const loaded = await invokeIpcHandler("setting:load", event);
             expect(loaded).toEqual(newSettings);
+        });
+
+        it("should broadcast language updates to all windows on save", async () => {
+            const sendA = vi.fn();
+            const sendB = vi.fn();
+            getAllWindows.mockReturnValue([
+                { webContents: { send: sendA } },
+                { webContents: { send: sendB } },
+            ]);
+
+            await invokeIpcHandler("setting:save", { sender: {} }, {
+                language: "ja",
+                logLevel: "info",
+            });
+
+            expect(sendA).toHaveBeenCalledWith(IPC_EVENTS.languageUpdated, "ja");
+            expect(sendB).toHaveBeenCalledWith(IPC_EVENTS.languageUpdated, "ja");
         });
     });
 

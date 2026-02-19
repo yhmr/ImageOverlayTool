@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import os from "os";
 import path from "path";
+import type Store from "electron-store";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
@@ -102,6 +103,10 @@ class InMemoryStore<T extends object> {
     }
 }
 
+const asElectronStore = <T extends object>(
+    store: InMemoryStore<T>
+): Store<T> => store as unknown as Store<T>;
+
 describe("Main integration: appConfig persistence", () => {
     let tempRootDir: string;
     let exportPath: string;
@@ -154,8 +159,8 @@ describe("Main integration: appConfig persistence", () => {
         });
 
         registerAppConfigHandlers(
-            new SettingsRepository(store as any),
-            new WindowRepository(store as any)
+            new SettingsRepository(asElectronStore(store)),
+            new WindowRepository(asElectronStore(store))
         );
     });
 

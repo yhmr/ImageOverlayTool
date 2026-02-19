@@ -72,7 +72,10 @@ describe("Logger Module", () => {
     describe("in production environment", () => {
         beforeEach(() => {
             process.env.NODE_ENV = "production";
-            (app.isPackaged as any) = true;
+            Object.defineProperty(app, "isPackaged", {
+                value: true,
+                configurable: true,
+            });
         });
 
         it("should set info level for file", async () => {

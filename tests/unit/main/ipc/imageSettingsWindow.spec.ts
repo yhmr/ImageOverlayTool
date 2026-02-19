@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import fs from "fs/promises";
-import { BrowserWindow, clipboard, dialog, ipcMain, nativeImage } from "electron";
+import { BrowserWindow, clipboard, dialog, nativeImage } from "electron";
 
 import { registerImageSettingsWindowHandlers } from "@/main/ipc/imageSettingsWindow";
 import { IPC_CHANNELS, IPC_EVENTS } from "@/shared/ipc/channels";
@@ -56,11 +56,42 @@ vi.mock("@/main/logger", () => ({
 }));
 
 describe("imageSettingsWindow IPC handlers", () => {
-    const windowManagerMock = {
-        toggleImageSettingsWindow: vi.fn(() => true),
-        toggleDimensionSettingsWindow: vi.fn(() => true),
-        getAllWindows: vi.fn((): any[] => []),
-        setProjectDirty: vi.fn(),
+    type WindowManager = Parameters<typeof registerImageSettingsWindowHandlers>[0];
+    type NativeImageLike = {
+        isEmpty: () => boolean;
+        getSize: () => { width: number; height: number };
+    };
+
+    const asBrowserWindow = (
+        value: Partial<BrowserWindow>
+    ): BrowserWindow => value as unknown as BrowserWindow;
+
+    const createWindowWithSender = (
+        id: number,
+        send = vi.fn()
+    ): BrowserWindow =>
+        asBrowserWindow({
+            webContents: {
+                id,
+                send,
+            } as unknown as BrowserWindow["webContents"],
+        });
+
+    const asNativeImage = (
+        value: NativeImageLike
+    ): ReturnType<typeof nativeImage.createFromPath> =>
+        value as unknown as ReturnType<typeof nativeImage.createFromPath>;
+
+    const toggleImageSettingsWindowMock = vi.fn<() => boolean>(() => true);
+    const toggleDimensionSettingsWindowMock = vi.fn<() => boolean>(() => true);
+    const getAllWindowsMock = vi.fn<() => BrowserWindow[]>(() => []);
+    const setProjectDirtyMock = vi.fn<(value: boolean) => void>();
+
+    const windowManagerMock: WindowManager = {
+        toggleImageSettingsWindow: toggleImageSettingsWindowMock,
+        toggleDimensionSettingsWindow: toggleDimensionSettingsWindowMock,
+        getAllWindows: getAllWindowsMock,
+        setProjectDirty: setProjectDirtyMock,
     };
 
     beforeEach(() => {
@@ -69,29 +100,20 @@ describe("imageSettingsWindow IPC handlers", () => {
         mockIsManagedClipboardCachePath.mockReset();
         mockDeleteClipboardCacheFileIfManaged.mockReset();
         mockIsManagedClipboardCachePath.mockReturnValue(true);
-        registerImageSettingsWindowHandlers(windowManagerMock as any);
+        registerImageSettingsWindowHandlers(windowManagerMock);
         vi.mocked(fs.access).mockResolvedValue(undefined);
-        vi.mocked(nativeImage.createFromPath).mockReturnValue({
-            isEmpty: () => false,
-            getSize: () => ({ width: 640, height: 480 }),
-        } as any);
-    });
-
-    it("registers getImageInfo handler", () => {
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            IPC_CHANNELS.imageSettingsWindow.getImageInfo,
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            IPC_CHANNELS.dimensionSettingsWindow.toggle,
-            expect.any(Function)
+        vi.mocked(nativeImage.createFromPath).mockReturnValue(
+            asNativeImage({
+                isEmpty: () => false,
+                getSize: () => ({ width: 640, height: 480 }),
+            })
         );
     });
 
     it("sync update handlers send events to windows except sender", async () => {
-        const senderWindow = { webContents: { id: 11, send: vi.fn() } };
-        const targetWindow = { webContents: { id: 22, send: vi.fn() } };
-        windowManagerMock.getAllWindows.mockReturnValue([
+        const senderWindow = createWindowWithSender(11);
+        const targetWindow = createWindowWithSender(22);
+        getAllWindowsMock.mockReturnValue([
             senderWindow,
             targetWindow,
         ]);
@@ -110,8 +132,8 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("toggle handlers forward visibility state from windowManager", async () => {
-        windowManagerMock.toggleImageSettingsWindow.mockReturnValueOnce(false);
-        windowManagerMock.toggleDimensionSettingsWindow.mockReturnValueOnce(true);
+        toggleImageSettingsWindowMock.mockReturnValueOnce(false);
+        toggleDimensionSettingsWindowMock.mockReturnValueOnce(true);
 
         const imageSettingsVisible = await invokeIpcHandler(
             IPC_CHANNELS.imageSettingsWindow.toggle
@@ -124,76 +146,61 @@ describe("imageSettingsWindow IPC handlers", () => {
         expect(dimensionSettingsVisible).toBe(true);
     });
 
-    it("sync handlers for unit and selection channels target non-sender windows only", async () => {
-        const senderWindow = { webContents: { id: 100, send: vi.fn() } };
-        const targetWindow = { webContents: { id: 200, send: vi.fn() } };
-        windowManagerMock.getAllWindows.mockReturnValue([
+    it.each([
+        {
+            name: "dimension line updates",
+            channel: IPC_CHANNELS.sync.updateDimensionLines,
+            payload: [{ id: "line-1" }],
+            event: IPC_EVENTS.dimensionLinesUpdated,
+        },
+        {
+            name: "unit factor updates",
+            channel: IPC_CHANNELS.sync.updateUnitFactor,
+            payload: 0.5,
+            event: IPC_EVENTS.unitFactorUpdated,
+        },
+        {
+            name: "unit updates",
+            channel: IPC_CHANNELS.sync.updateUnit,
+            payload: "mm",
+            event: IPC_EVENTS.unitUpdated,
+        },
+        {
+            name: "interaction mode updates",
+            channel: IPC_CHANNELS.sync.updateInteractionMode,
+            payload: "dimension_add",
+            event: IPC_EVENTS.interactionModeUpdated,
+        },
+        {
+            name: "selected image updates",
+            channel: IPC_CHANNELS.sync.updateSelectedImageId,
+            payload: "img-2",
+            event: IPC_EVENTS.selectedImageIdUpdated,
+        },
+        {
+            name: "selected dimension line updates",
+            channel: IPC_CHANNELS.sync.updateSelectedDimensionLineId,
+            payload: "line-2",
+            event: IPC_EVENTS.selectedDimensionLineIdUpdated,
+        },
+    ])("sync handler broadcasts only to non-sender windows: $name", async ({ channel, payload, event }) => {
+        const senderWindow = createWindowWithSender(100);
+        const targetWindow = createWindowWithSender(200);
+        getAllWindowsMock.mockReturnValue([
             senderWindow,
             targetWindow,
         ]);
 
-        await invokeIpcHandler(
-            IPC_CHANNELS.sync.updateDimensionLines,
-            { sender: { id: 100 } },
-            [{ id: "line-1" }]
-        );
-        await invokeIpcHandler(
-            IPC_CHANNELS.sync.updateUnitFactor,
-            { sender: { id: 100 } },
-            0.5
-        );
-        await invokeIpcHandler(
-            IPC_CHANNELS.sync.updateUnit,
-            { sender: { id: 100 } },
-            "mm"
-        );
-        await invokeIpcHandler(
-            IPC_CHANNELS.sync.updateInteractionMode,
-            { sender: { id: 100 } },
-            "dimension_add"
-        );
-        await invokeIpcHandler(
-            IPC_CHANNELS.sync.updateSelectedImageId,
-            { sender: { id: 100 } },
-            "img-2"
-        );
-        await invokeIpcHandler(
-            IPC_CHANNELS.sync.updateSelectedDimensionLineId,
-            { sender: { id: 100 } },
-            "line-2"
-        );
+        await invokeIpcHandler(channel, { sender: { id: 100 } }, payload);
 
         expect(senderWindow.webContents.send).not.toHaveBeenCalled();
-        expect(targetWindow.webContents.send).toHaveBeenCalledWith(
-            IPC_EVENTS.dimensionLinesUpdated,
-            [{ id: "line-1" }]
-        );
-        expect(targetWindow.webContents.send).toHaveBeenCalledWith(
-            IPC_EVENTS.unitFactorUpdated,
-            0.5
-        );
-        expect(targetWindow.webContents.send).toHaveBeenCalledWith(
-            IPC_EVENTS.unitUpdated,
-            "mm"
-        );
-        expect(targetWindow.webContents.send).toHaveBeenCalledWith(
-            IPC_EVENTS.interactionModeUpdated,
-            "dimension_add"
-        );
-        expect(targetWindow.webContents.send).toHaveBeenCalledWith(
-            IPC_EVENTS.selectedImageIdUpdated,
-            "img-2"
-        );
-        expect(targetWindow.webContents.send).toHaveBeenCalledWith(
-            IPC_EVENTS.selectedDimensionLineIdUpdated,
-            "line-2"
-        );
+        expect(targetWindow.webContents.send).toHaveBeenCalledWith(event, payload);
     });
 
-    it("requestInitialState and updateProjectDirty handlers propagate expected effects", async () => {
-        const senderWindow = { webContents: { id: 1, send: vi.fn() } };
-        const otherWindow = { webContents: { id: 2, send: vi.fn() } };
-        windowManagerMock.getAllWindows.mockReturnValue([
+    it("requestInitialState sends requestStateSync to non-sender windows", async () => {
+        const senderWindow = createWindowWithSender(1);
+        const otherWindow = createWindowWithSender(2);
+        getAllWindowsMock.mockReturnValue([
             senderWindow,
             otherWindow,
         ]);
@@ -202,12 +209,17 @@ describe("imageSettingsWindow IPC handlers", () => {
             IPC_CHANNELS.sync.requestInitialState,
             { sender: { id: 1 } }
         );
-        await invokeIpcHandler(IPC_CHANNELS.sync.updateProjectDirty, {}, 1);
 
         expect(otherWindow.webContents.send).toHaveBeenCalledWith(
             IPC_EVENTS.requestStateSync
         );
-        expect(windowManagerMock.setProjectDirty).toHaveBeenCalledWith(true);
+        expect(senderWindow.webContents.send).not.toHaveBeenCalled();
+    });
+
+    it("updateProjectDirty forwards boolean state to windowManager", async () => {
+        await invokeIpcHandler(IPC_CHANNELS.sync.updateProjectDirty, {}, 1);
+
+        expect(setProjectDirtyMock).toHaveBeenCalledWith(true);
     });
 
     it("returns exists and dimensions for existing local-file path", async () => {
@@ -251,7 +263,7 @@ describe("imageSettingsWindow IPC handlers", () => {
         const result = await invokeIpcHandler(
             IPC_CHANNELS.imageSettingsWindow.getImageInfo,
             {},
-            null as any
+            null as unknown as string
         );
 
         expect(fs.access).not.toHaveBeenCalled();
@@ -293,9 +305,12 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("returns exists only when image decode result is empty", async () => {
-        vi.mocked(nativeImage.createFromPath).mockReturnValue({
-            isEmpty: () => true,
-        } as any);
+        vi.mocked(nativeImage.createFromPath).mockReturnValue(
+            asNativeImage({
+                isEmpty: () => true,
+                getSize: () => ({ width: 0, height: 0 }),
+            })
+        );
 
         const result = await invokeIpcHandler(
             IPC_CHANNELS.imageSettingsWindow.getImageInfo,
@@ -307,10 +322,12 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("returns exists only when width or height is zero", async () => {
-        vi.mocked(nativeImage.createFromPath).mockReturnValue({
-            isEmpty: () => false,
-            getSize: () => ({ width: 0, height: 20 }),
-        } as any);
+        vi.mocked(nativeImage.createFromPath).mockReturnValue(
+            asNativeImage({
+                isEmpty: () => false,
+                getSize: () => ({ width: 0, height: 20 }),
+            })
+        );
 
         const result = await invokeIpcHandler(
             IPC_CHANNELS.imageSettingsWindow.getImageInfo,
@@ -334,7 +351,9 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("loadImage returns undefined when user cancels open dialog", async () => {
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow({})
+        );
         vi.mocked(dialog.showOpenDialog).mockResolvedValue({
             canceled: true,
             filePaths: [],
@@ -349,7 +368,9 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("loadImage returns selected path", async () => {
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow({})
+        );
         vi.mocked(dialog.showOpenDialog).mockResolvedValue({
             canceled: false,
             filePaths: ["C:/tmp/opened.png"],
@@ -364,7 +385,9 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("loadImage rethrows showOpenDialog errors", async () => {
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow({})
+        );
         vi.mocked(dialog.showOpenDialog).mockRejectedValue(new Error("open failed"));
 
         await expect(
@@ -375,9 +398,12 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("pasteImage returns null when clipboard has no image", async () => {
-        vi.mocked(clipboard.readImage).mockReturnValue({
-            isEmpty: () => true,
-        } as any);
+        vi.mocked(clipboard.readImage).mockReturnValue(
+            asNativeImage({
+                isEmpty: () => true,
+                getSize: () => ({ width: 0, height: 0 }),
+            })
+        );
 
         const result = await invokeIpcHandler(
             IPC_CHANNELS.imageSettingsWindow.pasteImage,
@@ -389,9 +415,12 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("pasteImage returns cached path when save succeeds", async () => {
-        vi.mocked(clipboard.readImage).mockReturnValue({
-            isEmpty: () => false,
-        } as any);
+        vi.mocked(clipboard.readImage).mockReturnValue(
+            asNativeImage({
+                isEmpty: () => false,
+                getSize: () => ({ width: 100, height: 100 }),
+            })
+        );
         mockSaveClipboardImageToCache.mockResolvedValue("C:/tmp/cache.png");
 
         const result = await invokeIpcHandler(
@@ -404,9 +433,12 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("pasteImage rethrows errors from cache save", async () => {
-        vi.mocked(clipboard.readImage).mockReturnValue({
-            isEmpty: () => false,
-        } as any);
+        vi.mocked(clipboard.readImage).mockReturnValue(
+            asNativeImage({
+                isEmpty: () => false,
+                getSize: () => ({ width: 100, height: 100 }),
+            })
+        );
         mockSaveClipboardImageToCache.mockRejectedValue(new Error("cache failed"));
 
         await expect(
@@ -428,7 +460,9 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("saveCacheImageAs returns null when save dialog is canceled", async () => {
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow({})
+        );
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: true,
             filePath: "",
@@ -445,7 +479,9 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("saveCacheImageAs returns null when save dialog has no filePath", async () => {
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow({})
+        );
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: false,
             filePath: "",
@@ -462,8 +498,8 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("saveCacheImageAs copies file and deletes cache after save", async () => {
-        const ownerWindow = {};
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(ownerWindow as any);
+        const ownerWindow = asBrowserWindow({});
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(ownerWindow);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: false,
             filePath: "C:/tmp/exported.png",
@@ -534,7 +570,9 @@ describe("imageSettingsWindow IPC handlers", () => {
     });
 
     it("saveCacheImageAs rethrows copy failures", async () => {
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow({})
+        );
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: false,
             filePath: "C:/tmp/exported.png",

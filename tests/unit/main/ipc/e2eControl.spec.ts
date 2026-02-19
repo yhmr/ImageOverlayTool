@@ -2,9 +2,13 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import { ipcMain } from "electron";
 
 import type { E2ERuntimeConfig } from "@/main/e2e/runtimeConfig";
+import type {
+    E2EControlStatus,
+    E2EResolvedFixtureImage,
+    E2EResolvedScene,
+} from "@/shared/types/E2EControl";
 import { registerE2EControlHandlers } from "@/main/ipc/e2eControl";
 import { invokeIpcHandler } from "../utils/ipcTestHelper";
 
@@ -49,35 +53,12 @@ describe("e2e control ipc handlers", () => {
         process.env = { ...ORIGINAL_ENV };
     });
 
-    it("registers e2e control channels", () => {
-        registerE2EControlHandlers({ e2eConfig: createConfig() });
-
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "e2e:getStatus",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "e2e:setScene",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "e2e:loadFixtureImage",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "e2e:waitStable",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "e2e:capture",
-            expect.any(Function)
-        );
-    });
-
     it("returns disabled status when e2e flag is off", async () => {
         registerE2EControlHandlers({ e2eConfig: createConfig({ enabled: false }) });
 
-        const status = await invokeIpcHandler("e2e:getStatus");
+        const status = await invokeIpcHandler<E2EControlStatus>(
+            "e2e:getStatus"
+        );
         expect(status.enabled).toBe(false);
         expect(status.reason).toContain("--e2e");
     });
@@ -85,7 +66,9 @@ describe("e2e control ipc handlers", () => {
     it("returns disabled status when IOT_E2E_MODE is off", async () => {
         registerE2EControlHandlers({ e2eConfig: createConfig({ enabled: true }) });
 
-        const status = await invokeIpcHandler("e2e:getStatus");
+        const status = await invokeIpcHandler<E2EControlStatus>(
+            "e2e:getStatus"
+        );
         expect(status.enabled).toBe(false);
         expect(status.reason).toContain("IOT_E2E_MODE");
     });
@@ -94,7 +77,9 @@ describe("e2e control ipc handlers", () => {
         process.env.IOT_E2E_MODE = "1";
         registerE2EControlHandlers({ e2eConfig: createConfig({ enabled: true }) });
 
-        const status = await invokeIpcHandler("e2e:getStatus");
+        const status = await invokeIpcHandler<E2EControlStatus>(
+            "e2e:getStatus"
+        );
         expect(status.enabled).toBe(true);
         expect(status.reason).toBeUndefined();
     });
@@ -128,7 +113,7 @@ describe("e2e control ipc handlers", () => {
             e2eConfig: createConfig({ enabled: true, fixturesDir: tempRoot }),
         });
 
-        const resolved = await invokeIpcHandler(
+        const resolved = await invokeIpcHandler<E2EResolvedFixtureImage>(
             "e2e:loadFixtureImage",
             {},
             { source: "fixture:placeholder" }
@@ -148,7 +133,7 @@ describe("e2e control ipc handlers", () => {
             e2eConfig: createConfig({ enabled: true, fixturesDir: tempRoot }),
         });
 
-        const resolved = await invokeIpcHandler(
+        const resolved = await invokeIpcHandler<E2EResolvedFixtureImage>(
             "e2e:loadFixtureImage",
             {},
             { source: "fixture:exact.png" }
@@ -175,7 +160,7 @@ describe("e2e control ipc handlers", () => {
             e2eConfig: createConfig({ enabled: true, fixturesDir: tempRoot }),
         });
 
-        const resolved = await invokeIpcHandler("e2e:setScene", {}, {
+        const resolved = await invokeIpcHandler<E2EResolvedScene>("e2e:setScene", {}, {
             images: [
                 { id: "img-a", source: "fixture:fixture-image" },
                 { id: "img-b", source: "scenes/relative.png" },

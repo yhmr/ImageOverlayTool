@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ipcMain, dialog, BrowserWindow } from "electron";
+import { dialog, BrowserWindow } from "electron";
 import { registerProjectHandlers } from "@/main/ipc/project";
 import { MockProjectRepository } from "../repositories/mocks/MockProjectRepository";
 import { ProjectFile } from "@/shared/types/ProjectFile";
@@ -47,6 +47,14 @@ vi.mock("@/main/logger", () => ({
 
 describe("IPC Project Handlers", () => {
     let mockRepo: MockProjectRepository;
+    const asBrowserWindow = (value: Partial<BrowserWindow>): BrowserWindow =>
+        value as unknown as BrowserWindow;
+    const createProject = (): ProjectFile => ({
+        version: "1.0.0",
+        window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
+        settings: { unitFactor: 1, unit: "um" },
+        images: [],
+    });
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -57,41 +65,9 @@ describe("IPC Project Handlers", () => {
         registerProjectHandlers(mockRepo);
     });
 
-    it("should register handlers for project IPC events", () => {
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "project:saveAs",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "project:save",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "project:load",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "project:loadFromPath",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "project:materializeCacheImages",
-            expect.any(Function)
-        );
-        expect(ipcMain.handle).toHaveBeenCalledWith(
-            "project:pickSavePath",
-            expect.any(Function)
-        );
-    });
-
     describe("project:save", () => {
         it("should save project using repository", async () => {
-            const dummyProject: ProjectFile = {
-                version: "1.0.0",
-                window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
-                settings: { unitFactor: 1, unit: "um" },
-                images: [],
-            };
+            const dummyProject = createProject();
             const filePath = "/path/to/project.iot";
 
             // Execute the handler via helper
@@ -136,7 +112,10 @@ describe("IPC Project Handlers", () => {
             vi.spyOn(mockRepo, "saveProject").mockRejectedValue(error);
 
             await expect(
-                invokeIpcHandler("project:save", {}, { filePath: "test.iot", project: {} as any })
+                invokeIpcHandler("project:save", {}, {
+                    filePath: "test.iot",
+                    project: {},
+                })
             ).rejects.toThrow("Save failed");
             expect(mockDeleteManagedClipboardCacheFiles).not.toHaveBeenCalled();
         });
@@ -145,8 +124,8 @@ describe("IPC Project Handlers", () => {
             await expect(
                 invokeIpcHandler("project:save", {}, {
                     filePath: "test.iot",
-                    project: {} as any,
-                    cacheImagePathsToDelete: "not-an-array" as any,
+                    project: {},
+                    cacheImagePathsToDelete: "not-an-array",
                 })
             ).rejects.toThrow("Invalid payload for project:save");
         });
@@ -161,12 +140,7 @@ describe("IPC Project Handlers", () => {
                 filePath: savePath,
             });
 
-            const dummyProject: ProjectFile = {
-                version: "1.0.0",
-                window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
-                settings: { unitFactor: 1, unit: "um" },
-                images: [],
-            };
+            const dummyProject = createProject();
 
             // Execute handler (mock event with sender needed for BrowserWindow.fromWebContents)
             const mockEvent = { sender: {} };
@@ -186,13 +160,13 @@ describe("IPC Project Handlers", () => {
         it("should do nothing if dialog canceled", async () => {
             vi.mocked(dialog.showSaveDialog).mockResolvedValue({
                 canceled: true,
-                filePath: undefined as any,
+                filePath: "",
             });
 
             const result = await invokeIpcHandler(
                 "project:saveAs",
                 { sender: {} },
-                {} as any
+                {}
             );
             expect(result).toBeNull();
         });
@@ -207,20 +181,20 @@ describe("IPC Project Handlers", () => {
             vi.spyOn(mockRepo, "saveProject").mockRejectedValue(error);
 
             await expect(
-                invokeIpcHandler("project:saveAs", { sender: {} }, {} as any)
+                invokeIpcHandler("project:saveAs", { sender: {} }, {})
             ).rejects.toThrow("SaveAs failed");
         });
 
         it("should use parent window when available for save dialog", async () => {
             vi.mocked(BrowserWindow.fromWebContents).mockReturnValueOnce(
-                {} as any
+                asBrowserWindow({})
             );
             vi.mocked(dialog.showSaveDialog).mockResolvedValueOnce({
                 canceled: true,
-                filePath: undefined as any,
+                filePath: "",
             });
 
-            await invokeIpcHandler("project:saveAs", { sender: {} }, {} as any);
+            await invokeIpcHandler("project:saveAs", { sender: {} }, {});
 
             expect(dialog.showSaveDialog).toHaveBeenCalledWith(
                 expect.any(Object),
@@ -249,7 +223,7 @@ describe("IPC Project Handlers", () => {
         it("should return null when save path dialog is canceled", async () => {
             vi.mocked(dialog.showSaveDialog).mockResolvedValueOnce({
                 canceled: true,
-                filePath: undefined as any,
+                filePath: "",
             });
 
             const result = await invokeIpcHandler("project:pickSavePath", {
@@ -379,7 +353,7 @@ describe("IPC Project Handlers", () => {
 
         it("should reject invalid payload", async () => {
             await expect(
-                invokeIpcHandler("project:materializeCacheImages", {}, {} as any)
+                invokeIpcHandler("project:materializeCacheImages", {}, {})
             ).rejects.toThrow("Invalid payload for project:materializeCacheImages");
         });
 
@@ -412,12 +386,7 @@ describe("IPC Project Handlers", () => {
         });
 
         it("saveAs should bypass native save dialog and use fixed file path", async () => {
-            const dummyProject: ProjectFile = {
-                version: "1.0.0",
-                window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
-                settings: { unitFactor: 1, unit: "um" },
-                images: [],
-            };
+            const dummyProject = createProject();
 
             const result = await invokeIpcHandler(
                 "project:saveAs",

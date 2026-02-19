@@ -1,9 +1,30 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
+import type Konva from "konva";
 import { useStageControls } from "@/renderer/hooks/useStageControls";
 import { describe, it, expect, vi, afterEach } from "vitest";
 
 describe("useStageControls", () => {
+    type StageStub = {
+        scaleX: () => number;
+        x: () => number;
+        y: () => number;
+        getPointerPosition: () => { x: number; y: number } | null;
+        scale: (value: { x: number; y: number }) => void;
+        position: (value: { x: number; y: number }) => void;
+    };
+
+    const toKonvaStage = (stage: StageStub): Konva.Stage =>
+        stage as unknown as Konva.Stage;
+
+    const createWheelEvent = (
+        deltaY: number,
+        preventDefault = vi.fn()
+    ): Konva.KonvaEventObject<WheelEvent> =>
+        ({
+            evt: { preventDefault, deltaY } as unknown as WheelEvent,
+        }) as unknown as Konva.KonvaEventObject<WheelEvent>;
+
     afterEach(() => {
         vi.restoreAllMocks();
     });
@@ -24,21 +45,21 @@ describe("useStageControls", () => {
 
     it("should handle wheel zoom", () => {
         const onUpdate = vi.fn();
-        const mockStage = {
+        const mockStage: StageStub = {
             scaleX: vi.fn(() => 1),
             x: vi.fn(() => 0),
             y: vi.fn(() => 0),
             getPointerPosition: vi.fn(() => ({ x: 100, y: 100 })),
             scale: vi.fn(),
             position: vi.fn(),
-        } as any;
+        };
 
         const { result } = renderHook(() =>
-            useStageControls({ current: mockStage }, onUpdate)
+            useStageControls({ current: toKonvaStage(mockStage) }, onUpdate)
         );
 
         const preventDefault = vi.fn();
-        const event = { evt: { preventDefault, deltaY: -100 } } as any; // Zoom In
+        const event = createWheelEvent(-100, preventDefault); // Zoom In
 
         act(() => {
             result.current.onWheel(event);
@@ -59,7 +80,7 @@ describe("useStageControls", () => {
         const preventDefault = vi.fn();
 
         act(() => {
-            result.current.onWheel({ evt: { preventDefault, deltaY: -1 } } as any);
+            result.current.onWheel(createWheelEvent(-1, preventDefault));
         });
 
         expect(preventDefault).toHaveBeenCalledTimes(1);
@@ -67,23 +88,21 @@ describe("useStageControls", () => {
 
     it("should no-op when pointer position is unavailable", () => {
         const onUpdate = vi.fn();
-        const mockStage = {
+        const mockStage: StageStub = {
             scaleX: vi.fn(() => 1),
             x: vi.fn(() => 0),
             y: vi.fn(() => 0),
             getPointerPosition: vi.fn(() => null),
             scale: vi.fn(),
             position: vi.fn(),
-        } as any;
+        };
 
         const { result } = renderHook(() =>
-            useStageControls({ current: mockStage }, onUpdate)
+            useStageControls({ current: toKonvaStage(mockStage) }, onUpdate)
         );
 
         act(() => {
-            result.current.onWheel({
-                evt: { preventDefault: vi.fn(), deltaY: -100 },
-            } as any);
+            result.current.onWheel(createWheelEvent(-100));
         });
 
         expect(onUpdate).not.toHaveBeenCalled();
@@ -92,23 +111,21 @@ describe("useStageControls", () => {
     });
 
     it("should zoom out and update stage directly when onUpdate is not provided", () => {
-        const mockStage = {
+        const mockStage: StageStub = {
             scaleX: vi.fn(() => 2),
             x: vi.fn(() => 10),
             y: vi.fn(() => 20),
             getPointerPosition: vi.fn(() => ({ x: 100, y: 120 })),
             scale: vi.fn(),
             position: vi.fn(),
-        } as any;
+        };
 
         const { result } = renderHook(() =>
-            useStageControls({ current: mockStage }, undefined)
+            useStageControls({ current: toKonvaStage(mockStage) }, undefined)
         );
 
         act(() => {
-            result.current.onWheel({
-                evt: { preventDefault: vi.fn(), deltaY: 100 },
-            } as any);
+            result.current.onWheel(createWheelEvent(100));
         });
 
         expect(mockStage.scale).toHaveBeenCalledTimes(1);
