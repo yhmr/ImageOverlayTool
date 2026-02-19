@@ -147,22 +147,26 @@ describe("Main integration: repository branches", () => {
         });
     });
 
-    it("SettingsRepository normalizes language on load and save", async () => {
+    it("SettingsRepository normalizes language on load", async () => {
         store.set("setting.language", "EN-us");
         store.set("setting.logLevel", "warn");
 
-        const loadedBeforeSave = await settingsRepository.loadSettings();
+        const loadedSettings = await settingsRepository.loadSettings();
+
+        expect(loadedSettings).toEqual({
+            language: "en",
+            logLevel: "warn",
+        });
+    });
+
+    it("SettingsRepository normalizes language on save", async () => {
         await settingsRepository.saveSettings({
             language: "ja-JP",
             logLevel: "error",
         });
-        const loadedAfterSave = await settingsRepository.loadSettings();
+        const loadedSettings = await settingsRepository.loadSettings();
 
-        expect(loadedBeforeSave).toEqual({
-            language: "en",
-            logLevel: "warn",
-        });
-        expect(loadedAfterSave).toEqual({
+        expect(loadedSettings).toEqual({
             language: "ja",
             logLevel: "error",
         });

@@ -80,7 +80,7 @@ export interface AppConfigIntegrationContext {
     exportPath: string;
     importPath: string;
     store: InMemoryStore<AppConfig>;
-    languageBroadcastSend: ReturnType<typeof vi.fn>;
+    languageBroadcastSends: Array<ReturnType<typeof vi.fn>>;
     cleanup: () => Promise<void>;
 }
 
@@ -102,14 +102,14 @@ export const setupAppConfigIntegration =
             filePaths: [importPath],
         });
 
-        const languageBroadcastSend = vi.fn();
-        mockGetAllWindows.mockReturnValue([
-            {
+        const languageBroadcastSends = [vi.fn(), vi.fn()];
+        mockGetAllWindows.mockReturnValue(
+            languageBroadcastSends.map((send) => ({
                 webContents: {
-                    send: languageBroadcastSend,
+                    send,
                 },
-            },
-        ]);
+            }))
+        );
 
         const store = new InMemoryStore<AppConfig>(createDefaultAppConfig());
 
@@ -130,7 +130,7 @@ export const setupAppConfigIntegration =
             exportPath,
             importPath,
             store,
-            languageBroadcastSend,
+            languageBroadcastSends,
             cleanup: () =>
                 fs.rm(tempRootDir, {
                     recursive: true,

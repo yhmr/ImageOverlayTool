@@ -12,15 +12,7 @@ import { mockShowOpenDialog } from "./appConfigTestDoubles";
 describe("Main integration: appConfig import", () => {
     let context: AppConfigIntegrationContext;
 
-    beforeEach(async () => {
-        context = await setupAppConfigIntegration();
-    });
-
-    afterEach(async () => {
-        await context.cleanup();
-    });
-
-    it("setting:import persists imported settings and window color", async () => {
+    const writeValidImportSnapshot = async () => {
         const importSnapshot: SettingsSnapshot = {
             version: 1,
             exportedAt: new Date().toISOString(),
@@ -37,14 +29,19 @@ describe("Main integration: appConfig import", () => {
             JSON.stringify(importSnapshot),
             "utf8"
         );
+    };
 
+    beforeEach(async () => {
+        context = await setupAppConfigIntegration();
+    });
+
+    afterEach(async () => {
+        await context.cleanup();
+    });
+
+    it("setting:import returns imported settings", async () => {
+        await writeValidImportSnapshot();
         const importedSettings = await invokeIpcHandler("setting:import", {
-            sender: {},
-        });
-        const loadedSettings = await invokeIpcHandler("setting:load", {
-            sender: {},
-        });
-        const loadedWindowColor = await invokeIpcHandler("window_color:load", {
             sender: {},
         });
 
@@ -52,10 +49,34 @@ describe("Main integration: appConfig import", () => {
             language: "ja",
             logLevel: "error",
         });
+    });
+
+    it("setting:import persists imported settings", async () => {
+        await writeValidImportSnapshot();
+        await invokeIpcHandler("setting:import", {
+            sender: {},
+        });
+
+        const loadedSettings = await invokeIpcHandler("setting:load", {
+            sender: {},
+        });
+
         expect(loadedSettings).toEqual({
             language: "ja",
             logLevel: "error",
         });
+    });
+
+    it("setting:import persists imported window color", async () => {
+        await writeValidImportSnapshot();
+        await invokeIpcHandler("setting:import", {
+            sender: {},
+        });
+
+        const loadedWindowColor = await invokeIpcHandler("window_color:load", {
+            sender: {},
+        });
+
         expect(loadedWindowColor).toBe("#55667788");
     });
 

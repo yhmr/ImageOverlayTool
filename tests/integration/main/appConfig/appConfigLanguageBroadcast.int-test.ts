@@ -8,13 +8,23 @@ import {
     AppConfigIntegrationContext,
     setupAppConfigIntegration,
 } from "./appConfigTestHarness";
-import {
-    mockInitializeMainI18n,
-    mockSetLogLevel,
-} from "./appConfigTestDoubles";
 
 describe("Main integration: appConfig language broadcast", () => {
     let context: AppConfigIntegrationContext;
+
+    const expectLanguageBroadcastedToAllWindows = (
+        language: string,
+        ctx: AppConfigIntegrationContext
+    ) => {
+        expect(ctx.languageBroadcastSends).toHaveLength(2);
+        for (const send of ctx.languageBroadcastSends) {
+            expect(send).toHaveBeenCalledTimes(1);
+            expect(send).toHaveBeenCalledWith(
+                IPC_EVENTS.languageUpdated,
+                language
+            );
+        }
+    };
 
     beforeEach(async () => {
         context = await setupAppConfigIntegration();
@@ -29,13 +39,15 @@ describe("Main integration: appConfig language broadcast", () => {
             language: "en",
             logLevel: "debug",
         });
+        const loadedSettings = await invokeIpcHandler("setting:load", {
+            sender: {},
+        });
 
-        expect(mockSetLogLevel).toHaveBeenCalledWith("debug");
-        expect(mockInitializeMainI18n).toHaveBeenCalledWith("en");
-        expect(context.languageBroadcastSend).toHaveBeenCalledWith(
-            IPC_EVENTS.languageUpdated,
-            "en"
-        );
+        expect(loadedSettings).toEqual({
+            language: "en",
+            logLevel: "debug",
+        });
+        expectLanguageBroadcastedToAllWindows("en", context);
     });
 
     it("setting:import emits languageUpdated for all windows", async () => {
@@ -56,15 +68,14 @@ describe("Main integration: appConfig language broadcast", () => {
             "utf8"
         );
 
-        await invokeIpcHandler("setting:import", {
+        const importedSettings = await invokeIpcHandler("setting:import", {
             sender: {},
         });
 
-        expect(mockSetLogLevel).toHaveBeenCalledWith("error");
-        expect(mockInitializeMainI18n).toHaveBeenCalledWith("ja");
-        expect(context.languageBroadcastSend).toHaveBeenCalledWith(
-            IPC_EVENTS.languageUpdated,
-            "ja"
-        );
+        expect(importedSettings).toEqual({
+            language: "ja",
+            logLevel: "error",
+        });
+        expectLanguageBroadcastedToAllWindows("ja", context);
     });
 });
