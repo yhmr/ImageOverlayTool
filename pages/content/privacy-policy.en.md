@@ -11,7 +11,7 @@ Effective date: 2026-02-13
 
 ## 1. Overview
 
-ImageOverlayTool is a desktop application for image overlay and measurement work.  
+ImageOverlayTool is a desktop application for overlaying, comparing, and adjusting multiple images.  
 This application is designed for local/offline use and does not provide a built-in account system.
 
 ## 2. Data We Process
