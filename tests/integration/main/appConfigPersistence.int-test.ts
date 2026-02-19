@@ -61,7 +61,10 @@ import { SettingsRepository } from "@/main/repositories/SettingsRepository";
 import { WindowRepository } from "@/main/repositories/WindowRepository";
 import { IPC_EVENTS } from "@/shared/ipc/channels";
 import type { AppConfig, SettingsSnapshot } from "@/shared/types/AppConfig";
-import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
+import {
+    invokeIpcHandler,
+    resetIpcHandlerRegistry,
+} from "../../support/helpers/ipcTestHelper";
 
 class InMemoryStore<T extends object> {
     private data: Record<string, unknown>;
@@ -112,9 +115,11 @@ describe("Main integration: appConfig persistence", () => {
     let exportPath: string;
     let importPath: string;
     let languageBroadcastSend: ReturnType<typeof vi.fn>;
+    let store: InMemoryStore<AppConfig>;
 
     beforeEach(async () => {
         vi.clearAllMocks();
+        resetIpcHandlerRegistry();
 
         tempRootDir = await fs.mkdtemp(path.join(os.tmpdir(), "iot-int-"));
         exportPath = path.join(tempRootDir, "settings-export.json");
@@ -138,7 +143,7 @@ describe("Main integration: appConfig persistence", () => {
             },
         ]);
 
-        const store = new InMemoryStore<AppConfig>({
+        store = new InMemoryStore<AppConfig>({
             setting: {
                 language: "ja",
                 logLevel: "info",
@@ -168,43 +173,59 @@ describe("Main integration: appConfig persistence", () => {
         await fs.rm(tempRootDir, { recursive: true, force: true });
     });
 
-    it("saves/loads settings and window color through IPC with repository persistence", async () => {
+    it("save: setting:save persists setting values", async () => {
         await invokeIpcHandler("setting:save", { sender: {} }, {
             language: "en",
             logLevel: "debug",
         });
+
+        expect(store.get("setting.language")).toBe("en");
+        expect(store.get("setting.logLevel")).toBe("debug");
+    });
+
+    it("save: window_color:save persists window color", async () => {
         await invokeIpcHandler("window_color:save", { sender: {} }, "#12345678");
 
-        const loadedSettings = await invokeIpcHandler("setting:load", {
-            sender: {},
+        expect(store.get("window.color")).toBe("#12345678");
+    });
+
+    it("load: setting:load returns current setting snapshot", async () => {
+        store.set("setting", {
+            language: "en",
+            logLevel: "warn",
         });
-        const loadedWindowColor = await invokeIpcHandler("window_color:load", {
+
+        const loadedSettings = await invokeIpcHandler("setting:load", {
             sender: {},
         });
 
         expect(loadedSettings).toEqual({
             language: "en",
-            logLevel: "debug",
+            logLevel: "warn",
         });
-        expect(loadedWindowColor).toBe("#12345678");
-        expect(mockSetLogLevel).toHaveBeenCalledWith("debug");
-        expect(mockInitializeMainI18n).toHaveBeenCalledWith("en");
-        expect(languageBroadcastSend).toHaveBeenCalledWith(
-            IPC_EVENTS.languageUpdated,
-            "en"
-        );
     });
 
-    it("exports then imports settings snapshot through real files", async () => {
-        await invokeIpcHandler("setting:save", { sender: {} }, {
+    it("load: window_color:load returns current window color", async () => {
+        store.set("window.color", "#AABBCCDD");
+
+        const loadedWindowColor = await invokeIpcHandler("window_color:load", {
+            sender: {},
+        });
+
+        expect(loadedWindowColor).toBe("#AABBCCDD");
+    });
+
+    it("export: setting:export writes snapshot file to selected path", async () => {
+        store.set("setting", {
             language: "en",
             logLevel: "warn",
         });
-        await invokeIpcHandler("window_color:save", { sender: {} }, "#11223344");
+        store.set("window.color", "#11223344");
 
         const exportedFilePath = await invokeIpcHandler("setting:export", {
             sender: {},
         });
+
         expect(exportedFilePath).toBe(exportPath);
         const exported = JSON.parse(
             await fs.readFile(exportPath, "utf8")
@@ -216,7 +237,9 @@ describe("Main integration: appConfig persistence", () => {
         expect(exported.window).toEqual({
             color: "#11223344",
         });
+    });
 
+    it("import: setting:import persists imported settings and window color", async () => {
         const importSnapshot: SettingsSnapshot = {
             version: 1,
             exportedAt: new Date().toISOString(),
@@ -249,6 +272,40 @@ describe("Main integration: appConfig persistence", () => {
             logLevel: "error",
         });
         expect(loadedWindowColor).toBe("#55667788");
+    });
+
+    it("language broadcast: setting:save emits languageUpdated for all windows", async () => {
+        await invokeIpcHandler("setting:save", { sender: {} }, {
+            language: "en",
+            logLevel: "debug",
+        });
+
+        expect(mockSetLogLevel).toHaveBeenCalledWith("debug");
+        expect(mockInitializeMainI18n).toHaveBeenCalledWith("en");
+        expect(languageBroadcastSend).toHaveBeenCalledWith(
+            IPC_EVENTS.languageUpdated,
+            "en"
+        );
+    });
+
+    it("language broadcast: setting:import emits languageUpdated for all windows", async () => {
+        const importSnapshot: SettingsSnapshot = {
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            setting: {
+                language: "ja",
+                logLevel: "error",
+            },
+            window: {
+                color: "#55667788",
+            },
+        };
+        await fs.writeFile(importPath, JSON.stringify(importSnapshot), "utf8");
+
+        await invokeIpcHandler("setting:import", {
+            sender: {},
+        });
+
         expect(mockSetLogLevel).toHaveBeenCalledWith("error");
         expect(mockInitializeMainI18n).toHaveBeenCalledWith("ja");
         expect(languageBroadcastSend).toHaveBeenCalledWith(
@@ -257,5 +314,3 @@ describe("Main integration: appConfig persistence", () => {
         );
     });
 });
-
-

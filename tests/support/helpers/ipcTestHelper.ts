@@ -1,17 +1,59 @@
-import { vi, expect } from "vitest";
+import { vi } from "vitest";
 import { ipcMain } from "electron";
 
 type IpcHandler = (event: unknown, ...args: unknown[]) => unknown;
+type IpcMainHandle = typeof ipcMain.handle;
 
-export const getIpcHandler = (channel: string): IpcHandler => {
-    const calls = vi.mocked(ipcMain.handle).mock.calls;
-    const handler = calls.find((call) => call[0] === channel)?.[1];
+const ipcHandlerRegistry = new Map<string, IpcHandler>();
+let delegatedHandleImplementation: IpcMainHandle | undefined;
 
-    if (!handler) {
-        throw new Error(`IPC handler for channel "${channel}" not found.`);
+const captureHandleRegistration: IpcMainHandle = ((channel, handler) => {
+    const handleMock = vi.mocked(ipcMain.handle);
+    const callCount = handleMock.mock.calls.length;
+
+    // vi.clearAllMocks() 後の最初の登録でレジストリを初期化する。
+    if (callCount <= 1) {
+        ipcHandlerRegistry.clear();
     }
 
-    return handler as IpcHandler;
+    ipcHandlerRegistry.set(channel, handler as IpcHandler);
+    return delegatedHandleImplementation?.(channel, handler);
+}) as IpcMainHandle;
+
+const ensureIpcHandlerCapture = () => {
+    const handleMock = vi.mocked(ipcMain.handle);
+    const currentImplementation = handleMock.getMockImplementation();
+
+    if (currentImplementation === captureHandleRegistration) {
+        return;
+    }
+
+    delegatedHandleImplementation = currentImplementation as
+        | IpcMainHandle
+        | undefined;
+    handleMock.mockImplementation(captureHandleRegistration);
+};
+
+/**
+ * IPCハンドラ登録キャプチャのレジストリを明示的に初期化する。
+ * 通常は自動初期化されるが、テスト側で明示的に空にしたい場合に利用する。
+ */
+export const resetIpcHandlerRegistry = () => {
+    ipcHandlerRegistry.clear();
+};
+
+export const getIpcHandler = (channel: string): IpcHandler => {
+    ensureIpcHandlerCapture();
+    const handler = ipcHandlerRegistry.get(channel);
+
+    if (!handler) {
+        const registeredChannels = Array.from(ipcHandlerRegistry.keys());
+        throw new Error(
+            `IPC handler for channel "${channel}" not found. registered=${registeredChannels.join(",")}`
+        );
+    }
+
+    return handler;
 };
 
 /**
@@ -27,6 +69,9 @@ export const invokeIpcHandler = async <TResult = unknown>(
     event: unknown = { sender: {} },
     ...args: unknown[]
 ): Promise<TResult> => {
+    ensureIpcHandlerCapture();
     const handler = getIpcHandler(channel);
     return (await handler(event, ...args)) as TResult;
 };
+
+ensureIpcHandlerCapture();
