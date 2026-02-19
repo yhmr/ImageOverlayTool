@@ -28,6 +28,7 @@ export interface ProjectDataSlice {
 
     // Actions
     markProjectSaved: () => void;
+    replaceImageSetsAfterSave: (imageSets: ImageSet[]) => void;
 
     setImageSets: (imageSets: ImageSet[]) => void;
     addImageSetWithPath: (
@@ -79,6 +80,16 @@ export const createProjectDataSlice = (
         markProjectSaved: () => {
             runAsSystemMutation(getTemporal, () => {
                 set({ hasUnsavedChanges: false });
+            });
+        },
+
+        replaceImageSetsAfterSave: (imageSets) => {
+            runAsSystemMutation(getTemporal, () => {
+                set({
+                    imageSets,
+                    projectDataChangeOrigin: "local",
+                    hasUnsavedChanges: false,
+                });
             });
         },
 

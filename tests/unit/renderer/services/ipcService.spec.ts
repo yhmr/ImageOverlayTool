@@ -358,7 +358,11 @@ describe("ipcService", () => {
             });
             expect(api.setIgnoreMouseEvents).toHaveBeenCalledWith(true);
             expect(api.setAlwaysOnTop).toHaveBeenCalledWith(true);
-            expect(api.saveProject).toHaveBeenCalledWith("save.iot", project);
+            expect(api.saveProject).toHaveBeenCalledWith(
+                "save.iot",
+                project,
+                undefined
+            );
             expect(api.pickProjectSavePath).toHaveBeenCalled();
             expect(api.materializeCacheImages).toHaveBeenCalledWith("save.iot", [
                 "C:/tmp/cache.png",

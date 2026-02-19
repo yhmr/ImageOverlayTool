@@ -88,8 +88,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Project
     saveProjectAs: (project: ProjectFile) =>
         ipcRenderer.invoke(IPC_CHANNELS.project.saveAs, project),
-    saveProject: (filePath: string, project: ProjectFile) =>
-        ipcRenderer.invoke(IPC_CHANNELS.project.save, { filePath, project }),
+    saveProject: (
+        filePath: string,
+        project: ProjectFile,
+        cacheImagePathsToDelete?: string[]
+    ) =>
+        ipcRenderer.invoke(IPC_CHANNELS.project.save, {
+            filePath,
+            project,
+            cacheImagePathsToDelete,
+        }),
     pickProjectSavePath: () =>
         ipcRenderer.invoke(IPC_CHANNELS.project.pickSavePath),
     materializeCacheImages: (

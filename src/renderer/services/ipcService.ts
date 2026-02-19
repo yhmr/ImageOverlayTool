@@ -68,7 +68,8 @@ export interface IProjectIPCService {
     ) => Promise<Record<string, string>>;
     saveProject: (
         filePath: string,
-        project: ProjectFile<ImageSet>
+        project: ProjectFile<ImageSet>,
+        cacheImagePathsToDelete?: string[]
     ) => Promise<boolean>;
     loadProject: () => Promise<{
         project: ProjectFile<ImageSet>;
@@ -284,9 +285,14 @@ class IPCService implements IIPCService {
 
     async saveProject(
         filePath: string,
-        project: ProjectFile<ImageSet>
+        project: ProjectFile<ImageSet>,
+        cacheImagePathsToDelete?: string[]
     ): Promise<boolean> {
-        return await window.electronAPI.saveProject(filePath, project);
+        return await window.electronAPI.saveProject(
+            filePath,
+            project,
+            cacheImagePathsToDelete
+        );
     }
 
     async loadProject(): Promise<{

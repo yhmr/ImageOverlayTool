@@ -61,7 +61,8 @@ export interface IElectronAPI {
     ) => Promise<{ project: ProjectFile<ImageSet>; filePath: string } | null>;
     saveProject: (
         filePath: string,
-        project: ProjectFile<ImageSet>
+        project: ProjectFile<ImageSet>,
+        cacheImagePathsToDelete?: string[]
     ) => Promise<boolean>;
     saveProjectAs: (project: ProjectFile<ImageSet>) => Promise<string | null>;
     pickProjectSavePath: () => Promise<string | null>;

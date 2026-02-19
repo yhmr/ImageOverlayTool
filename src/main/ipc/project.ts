@@ -87,11 +87,34 @@ export const registerProjectHandlers = (
         IPC_CHANNELS.project.save,
         async (
             event,
-            { filePath, project }: { filePath: string; project: ProjectFile }
+            {
+                filePath,
+                project,
+                cacheImagePathsToDelete,
+            }: {
+                filePath: string;
+                project: ProjectFile;
+                cacheImagePathsToDelete?: string[];
+            }
         ) => {
             log.debug(`[IPC] project:save called for: ${filePath}`);
             try {
+                if (
+                    !filePath ||
+                    typeof filePath !== "string" ||
+                    !project ||
+                    (cacheImagePathsToDelete !== undefined &&
+                        !Array.isArray(cacheImagePathsToDelete))
+                ) {
+                    throw new Error("Invalid payload for project:save");
+                }
+
                 await repository.saveProject(filePath, project);
+                if (cacheImagePathsToDelete && cacheImagePathsToDelete.length) {
+                    await projectService.deleteManagedClipboardCacheFiles(
+                        cacheImagePathsToDelete
+                    );
+                }
                 log.info(`[IPC] project:save completed: ${filePath}`);
                 return true;
             } catch (error) {

@@ -59,10 +59,20 @@ export class ProjectService {
                 sourcePath
             );
             await fs.copyFile(sourcePath, destinationPath);
-            await deleteClipboardCacheFileIfManaged(sourcePath);
             replacements[sourcePath] = destinationPath;
         }
 
         return replacements;
+    }
+
+    public async deleteManagedClipboardCacheFiles(
+        cacheImagePaths: string[]
+    ): Promise<void> {
+        for (const sourcePath of new Set(cacheImagePaths)) {
+            if (!sourcePath || typeof sourcePath !== "string") {
+                continue;
+            }
+            await deleteClipboardCacheFileIfManaged(sourcePath);
+        }
     }
 }

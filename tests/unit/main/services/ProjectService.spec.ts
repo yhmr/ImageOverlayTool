@@ -99,7 +99,7 @@ describe('ProjectService', () => {
 
             expect(fs.mkdir).toHaveBeenCalledWith(path.join('/project', 'assets'), { recursive: true });
             expect(fs.copyFile).toHaveBeenCalledWith(cachePath, destPath);
-            expect(deleteClipboardCacheFileIfManaged).toHaveBeenCalledWith(cachePath);
+            expect(deleteClipboardCacheFileIfManaged).not.toHaveBeenCalled();
             expect(result).toEqual({ [cachePath]: destPath });
         });
 
@@ -141,6 +141,40 @@ describe('ProjectService', () => {
             expect(fs.copyFile).toHaveBeenCalledTimes(1);
             expect(fs.copyFile).toHaveBeenCalledWith(cachePath, destPath);
             expect(result).toEqual({ [cachePath]: destPath });
+        });
+    });
+
+    describe('deleteManagedClipboardCacheFiles', () => {
+        it('should delete managed cache paths after deduplication', async () => {
+            await service.deleteManagedClipboardCacheFiles([
+                '/cache/temp.png',
+                '/cache/temp.png',
+                '/cache/other.png',
+            ]);
+
+            expect(deleteClipboardCacheFileIfManaged).toHaveBeenCalledTimes(2);
+            expect(deleteClipboardCacheFileIfManaged).toHaveBeenNthCalledWith(
+                1,
+                '/cache/temp.png'
+            );
+            expect(deleteClipboardCacheFileIfManaged).toHaveBeenNthCalledWith(
+                2,
+                '/cache/other.png'
+            );
+        });
+
+        it('should ignore invalid paths', async () => {
+            await service.deleteManagedClipboardCacheFiles([
+                '',
+                null as any,
+                undefined as any,
+                '/cache/valid.png',
+            ]);
+
+            expect(deleteClipboardCacheFileIfManaged).toHaveBeenCalledTimes(1);
+            expect(deleteClipboardCacheFileIfManaged).toHaveBeenCalledWith(
+                '/cache/valid.png'
+            );
         });
     });
 });

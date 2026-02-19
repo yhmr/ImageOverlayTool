@@ -47,6 +47,7 @@ describe("projectCommandService", () => {
         resetAll: vi.fn(),
         setCurrentProjectFilePath: vi.fn(),
         markProjectSaved: vi.fn(),
+        replaceImageSetsAfterSave: vi.fn(),
     };
 
     const snapshot = {
@@ -302,9 +303,11 @@ describe("projectCommandService", () => {
                 version: "1.0.0",
                 settings: { unitFactor: 1, unit: "um" },
                 canvas: { x: 0, y: 0, scale: 1 },
-            })
+            }),
+            undefined
         );
         expect(mutations.markProjectSaved).toHaveBeenCalledTimes(1);
+        expect(mutations.replaceImageSetsAfterSave).not.toHaveBeenCalled();
     });
 
     it("newProject should reset store and clear current path", async () => {
@@ -350,8 +353,15 @@ describe("projectCommandService", () => {
                         sourceType: "file",
                     }),
                 ],
-            })
+            }),
+            ["C:/cache/pasted.png"]
         );
+        expect(mutations.replaceImageSetsAfterSave).toHaveBeenCalledWith([
+            expect.objectContaining({
+                path: "local-file://C:/tmp/assets/pasted.png",
+                sourceType: "file",
+            }),
+        ]);
     });
 
     it("saveProject should reject save and open image settings when user cancels cache move", async () => {
@@ -414,8 +424,15 @@ describe("projectCommandService", () => {
                         sourceType: "file",
                     }),
                 ],
-            })
+            }),
+            ["C:/cache/pasted.png"]
         );
+        expect(mutations.replaceImageSetsAfterSave).toHaveBeenCalledWith([
+            expect.objectContaining({
+                path: "local-file://C:/tmp/assets/pasted.png",
+                sourceType: "file",
+            }),
+        ]);
         expect(mutations.setCurrentProjectFilePath).toHaveBeenCalledWith(
             "C:/tmp/new-cache.iot"
         );
@@ -519,7 +536,8 @@ describe("projectCommandService", () => {
                         sourceType: "file",
                     }),
                 ],
-            })
+            }),
+            ["C:/cache/pasted.png"]
         );
     });
 
@@ -553,7 +571,8 @@ describe("projectCommandService", () => {
                         sourceType: "cache",
                     }),
                 ],
-            })
+            }),
+            ["C:/cache/pasted.png"]
         );
         fromLocalFileUrlSpy.mockRestore();
     });
@@ -607,7 +626,8 @@ describe("projectCommandService", () => {
                         path: "local-file://C:/images/plain.png",
                     }),
                 ],
-            })
+            }),
+            ["C:/cache/pasted.png"]
         );
     });
 });

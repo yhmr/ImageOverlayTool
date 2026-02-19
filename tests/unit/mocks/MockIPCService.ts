@@ -88,7 +88,8 @@ export class MockIPCService implements IIPCService {
 
     async saveProject(
         _filePath: string,
-        _project: ProjectFile
+        _project: ProjectFile,
+        _cacheImagePathsToDelete?: string[]
     ): Promise<boolean> {
         return true;
     }

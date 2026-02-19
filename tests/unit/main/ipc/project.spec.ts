@@ -5,8 +5,10 @@ import { MockProjectRepository } from "../repositories/mocks/MockProjectReposito
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import { invokeIpcHandler } from "../utils/ipcTestHelper";
 
-const { mockMaterializeCacheImages } = vi.hoisted(() => ({
+const { mockMaterializeCacheImages, mockDeleteManagedClipboardCacheFiles } =
+    vi.hoisted(() => ({
     mockMaterializeCacheImages: vi.fn(),
+    mockDeleteManagedClipboardCacheFiles: vi.fn(),
 }));
 
 // Mock electron
@@ -29,6 +31,8 @@ vi.mock("electron", () => ({
 vi.mock("@/main/services/ProjectService", () => ({
     ProjectService: class {
         materializeCacheImages = mockMaterializeCacheImages;
+        deleteManagedClipboardCacheFiles =
+            mockDeleteManagedClipboardCacheFiles;
     },
 }));
 
@@ -47,6 +51,7 @@ describe("IPC Project Handlers", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockMaterializeCacheImages.mockReset();
+        mockDeleteManagedClipboardCacheFiles.mockReset();
         mockRepo = new MockProjectRepository();
         // Register handlers using the mock repository
         registerProjectHandlers(mockRepo);
@@ -101,6 +106,29 @@ describe("IPC Project Handlers", () => {
             // Verify data was saved in mock repo
             const saved = await mockRepo.loadProject(filePath);
             expect(saved).toEqual(dummyProject);
+            expect(mockDeleteManagedClipboardCacheFiles).not.toHaveBeenCalled();
+        });
+
+        it("should delete cache images after successful save when paths are provided", async () => {
+            const dummyProject: ProjectFile = {
+                version: "1.0.0",
+                window: { width: 800, height: 600, x: 0, y: 0, color: "#000" },
+                settings: { unitFactor: 1, unit: "um" },
+                images: [],
+            };
+            const filePath = "/path/to/project.iot";
+            const cacheImagePathsToDelete = ["/cache/a.png", "/cache/b.png"];
+
+            const result = await invokeIpcHandler("project:save", {}, {
+                filePath,
+                project: dummyProject,
+                cacheImagePathsToDelete,
+            });
+
+            expect(result).toBe(true);
+            expect(mockDeleteManagedClipboardCacheFiles).toHaveBeenCalledWith(
+                cacheImagePathsToDelete
+            );
         });
 
         it("should throw error if repository fails", async () => {
@@ -110,6 +138,17 @@ describe("IPC Project Handlers", () => {
             await expect(
                 invokeIpcHandler("project:save", {}, { filePath: "test.iot", project: {} as any })
             ).rejects.toThrow("Save failed");
+            expect(mockDeleteManagedClipboardCacheFiles).not.toHaveBeenCalled();
+        });
+
+        it("should reject invalid payload for cache delete paths", async () => {
+            await expect(
+                invokeIpcHandler("project:save", {}, {
+                    filePath: "test.iot",
+                    project: {} as any,
+                    cacheImagePathsToDelete: "not-an-array" as any,
+                })
+            ).rejects.toThrow("Invalid payload for project:save");
         });
     });
 

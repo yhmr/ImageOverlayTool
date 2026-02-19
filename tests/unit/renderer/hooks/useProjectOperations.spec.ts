@@ -253,7 +253,8 @@ describe("useProjectOperations", () => {
 
         expect(mockIPC.saveProject).toHaveBeenCalledWith(
             "C:/existing/project.json",
-            expect.objectContaining({ version: "1.0.0" })
+            expect.objectContaining({ version: "1.0.0" }),
+            undefined
         );
     });
 
