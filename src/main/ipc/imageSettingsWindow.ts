@@ -308,7 +308,9 @@ export const registerImageSettingsWindowHandlers = (
             const ownerWindow = BrowserWindow.fromWebContents(event.sender);
             const extension = path.extname(cacheFilePath) || ".png";
             const fallbackName = `pasted-image${extension}`;
-            const defaultName = path.basename(cacheFilePath) || fallbackName;
+            const baseName = path.basename(cacheFilePath);
+            const defaultName =
+                baseName && path.extname(baseName) ? baseName : fallbackName;
 
             const options = {
                 title: "Save Image",
