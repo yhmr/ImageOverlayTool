@@ -8,7 +8,7 @@ import { ImageListItem } from "@/renderer/image-settings/components/ImageListIte
 import { IpcServiceProvider } from "@/renderer/providers/IpcServiceProvider";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import type { ImageFileStatus } from "@/renderer/hooks/useImageFileStatus";
-import { MockIPCService } from "../../../mocks/MockIPCService";
+import { MockIPCService } from "../../../support/mocks/MockIPCService";
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
@@ -310,3 +310,4 @@ describe("ImageListItem", () => {
         });
     });
 });
+

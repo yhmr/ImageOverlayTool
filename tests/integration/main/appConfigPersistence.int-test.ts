@@ -61,7 +61,7 @@ import { SettingsRepository } from "@/main/repositories/SettingsRepository";
 import { WindowRepository } from "@/main/repositories/WindowRepository";
 import { IPC_EVENTS } from "@/shared/ipc/channels";
 import type { AppConfig, SettingsSnapshot } from "@/shared/types/AppConfig";
-import { invokeIpcHandler } from "../../unit/main/utils/ipcTestHelper";
+import { invokeIpcHandler } from "../../unit/support/helpers/ipcTestHelper";
 
 class InMemoryStore<T extends object> {
     private data: Record<string, unknown>;
@@ -257,3 +257,4 @@ describe("Main integration: appConfig persistence", () => {
         );
     });
 });
+

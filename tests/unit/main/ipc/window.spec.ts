@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { BrowserWindow } from "electron";
 import { registerWindowHandlers } from "@/main/ipc/window";
 import { IPC_CHANNELS } from "@/shared/ipc/channels";
-import { invokeIpcHandler } from "../utils/ipcTestHelper";
+import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
 
 vi.mock("electron", () => ({
     ipcMain: {
@@ -189,3 +189,4 @@ describe("window IPC handlers", () => {
         );
     });
 });
+

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { dialog, BrowserWindow } from "electron";
 import { registerProjectHandlers } from "@/main/ipc/project";
-import { MockProjectRepository } from "../repositories/mocks/MockProjectRepository";
+import { MockProjectRepository } from "../../support/mocks/repositories/MockProjectRepository";
 import { ProjectFile } from "@/shared/types/ProjectFile";
-import { invokeIpcHandler } from "../utils/ipcTestHelper";
+import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
 
 const { mockMaterializeCacheImages, mockDeleteManagedClipboardCacheFiles } =
     vi.hoisted(() => ({
@@ -430,3 +430,4 @@ describe("IPC Project Handlers", () => {
         });
     });
 });
+

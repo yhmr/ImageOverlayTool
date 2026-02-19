@@ -34,6 +34,13 @@
    - `save dialog がキャンセルされた場合は null を返す`
    - `import 後に正規化済み設定を永続化する`
 
+## テスト補助コード配置ルール
+
+1. 単一ファイルでしか使わない helper/mock は、その `*.spec.ts(x)` 内に置く。
+2. 複数ファイルで再利用する helper/mock は `tests/unit/support/` に配置する。
+3. `tests/unit/support/helpers/` は実行補助、`tests/unit/support/mocks/` はテストダブルを置く。
+4. `tests/unit/support/` 配下に `*.spec.ts(x)` は置かない。
+
 ## レビューチェックリスト
 
 1. このテストは業務的に1つの理由だけで失敗するか？

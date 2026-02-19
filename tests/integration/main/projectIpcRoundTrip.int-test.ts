@@ -37,7 +37,7 @@ import { registerProjectHandlers } from "@/main/ipc/project";
 import { ProjectRepository } from "@/main/repositories/ProjectRepository";
 import type { ImageSet } from "@/shared/types/ImageSet";
 import type { ProjectFile } from "@/shared/types/ProjectFile";
-import { invokeIpcHandler } from "../../unit/main/utils/ipcTestHelper";
+import { invokeIpcHandler } from "../../unit/support/helpers/ipcTestHelper";
 
 const createProject = (imagePath: string): ProjectFile<ImageSet> => ({
     version: "1.0.0",
@@ -278,3 +278,4 @@ describe("Main integration: project IPC round-trip", () => {
         });
     });
 });
+

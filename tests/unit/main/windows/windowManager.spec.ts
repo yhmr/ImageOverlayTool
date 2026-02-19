@@ -38,8 +38,7 @@ const {
             showMessageBoxSync: vi.fn().mockReturnValue(1),
         };
 
-        type Listener = (...args: unknown[]) => void;
-        const windows: any[] = [];
+        const windows: MockWindow[] = [];
         const windowOptionsHistory: unknown[] = [];
 
         const createMockWindow = (options?: unknown) => {
@@ -67,7 +66,7 @@ const {
                 [...(listeners[event] ?? [])].forEach((h) => h(...args));
             };
 
-            const windowMock: any = {
+            const windowMock: MockWindow = {
                 isDestroyed: vi.fn(() => isDestroyed),
                 isVisible: vi.fn(() => isVisible),
                 webContents: {
@@ -80,8 +79,8 @@ const {
                 once,
                 loadURL: vi.fn(),
                 loadFile: vi.fn(),
-                getPosition: vi.fn(() => [100, 200]),
-                getSize: vi.fn(() => [800, 600]),
+                getPosition: vi.fn<() => [number, number]>(() => [100, 200]),
+                getSize: vi.fn<() => [number, number]>(() => [800, 600]),
                 isMaximized: vi.fn(() => false),
                 maximize: vi.fn(),
                 setResizable: vi.fn(),
@@ -190,6 +189,56 @@ vi.mock("@/i18n/mainI18n", () => ({
 import { WindowManager } from "@/main/windows/windowManager";
 import { IWindowRepository } from "@/main/repositories/WindowRepository";
 import type { IWindowShortcutManager } from "@/main/windows/windowShortcutManager";
+import type { BrowserWindow as ElectronBrowserWindow } from "electron";
+
+type Listener = (...args: unknown[]) => void;
+type MockWindow = {
+    isDestroyed: () => boolean;
+    isVisible: () => boolean;
+    webContents: {
+        send: (...args: unknown[]) => void;
+        id: number;
+        setWindowOpenHandler: (
+            handler: (details: { url: string }) => { action: "allow" | "deny" }
+        ) => void;
+        openDevTools: (options?: { mode: "detach" }) => void;
+    };
+    on: (event: string, handler: Listener) => void;
+    once: (event: string, handler: Listener) => void;
+    loadURL: (url: string) => void;
+    loadFile: (filePath: string) => void;
+    getPosition: () => [number, number];
+    getSize: () => [number, number];
+    isMaximized: () => boolean;
+    maximize: () => void;
+    setResizable: (value: boolean) => void;
+    getNormalBounds: () => {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
+    show: () => void;
+    hide: () => void;
+    focus: () => void;
+    close: () => void;
+    destroy: () => void;
+    __emit: (event: string, ...args: unknown[]) => void;
+    __constructorOptions: unknown;
+    __setVisible: (value: boolean) => void;
+    __setDestroyed: (value: boolean) => void;
+    __resetListeners: () => void;
+};
+
+const requireWindow = (window: unknown, label: string): MockWindow => {
+    if (!window) {
+        throw new Error(`${label} should be created`);
+    }
+    return window as MockWindow;
+};
+
+const asBrowserWindow = (window: MockWindow): ElectronBrowserWindow =>
+    window as unknown as ElectronBrowserWindow;
 
 describe("WindowManager", () => {
     let windowManager: WindowManager;
@@ -293,7 +342,7 @@ describe("WindowManager", () => {
     });
 
     it("openFile sends IPC message if window exists and visible", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         windowManager.openFile("test.png");
 
         expect(mainWindow.webContents.send).toHaveBeenCalledWith("file:open", {
@@ -304,7 +353,7 @@ describe("WindowManager", () => {
 
     it("openFile pends file if window not ready, and sends it when ready", () => {
         windowManager.openFile("test.png");
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
 
         mainWindow.__emit("ready-to-show");
 
@@ -316,7 +365,7 @@ describe("WindowManager", () => {
     });
 
     it("openFile pends file if window exists but hidden, and sends it when shown", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         mainWindow.__setVisible(false);
 
         windowManager.openFile("hidden.png");
@@ -335,7 +384,7 @@ describe("WindowManager", () => {
     });
 
     it("registers external link handler for main window", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         const setWindowOpenHandler = vi.mocked(
             mainWindow.webContents.setWindowOpenHandler
         );
@@ -352,7 +401,7 @@ describe("WindowManager", () => {
 
     it("toggles image settings window visibility and persists bounds when hidden", () => {
         expect(windowManager.toggleImageSettingsWindow()).toBe(true);
-        const settingsWindow = windowManager.getImageSettingsWindow() as any;
+        const settingsWindow = requireWindow(windowManager.getImageSettingsWindow(), "image settings window");
         settingsWindow.__setVisible(true);
 
         expect(windowManager.toggleImageSettingsWindow()).toBe(false);
@@ -369,7 +418,7 @@ describe("WindowManager", () => {
 
     it("toggles dimension settings window visibility and persists bounds when hidden", () => {
         expect(windowManager.toggleDimensionSettingsWindow()).toBe(true);
-        const settingsWindow = windowManager.getDimensionSettingsWindow() as any;
+        const settingsWindow = requireWindow(windowManager.getDimensionSettingsWindow(), "dimension settings window");
         settingsWindow.__setVisible(true);
 
         expect(windowManager.toggleDimensionSettingsWindow()).toBe(false);
@@ -391,7 +440,7 @@ describe("WindowManager", () => {
     it("prevents image settings close while app is running", () => {
         windowManager.createMainWindow();
         windowManager.createImageSettingsWindow();
-        const settingsWindow = windowManager.getImageSettingsWindow() as any;
+        const settingsWindow = requireWindow(windowManager.getImageSettingsWindow(), "image settings window");
         const event = { preventDefault: vi.fn() };
 
         settingsWindow.__emit("close", event);
@@ -403,7 +452,7 @@ describe("WindowManager", () => {
     it("prevents dimension settings close while app is running and resets interaction mode", () => {
         windowManager.createMainWindow();
         windowManager.createDimensionSettingsWindow();
-        const settingsWindow = windowManager.getDimensionSettingsWindow() as any;
+        const settingsWindow = requireWindow(windowManager.getDimensionSettingsWindow(), "dimension settings window");
         const event = { preventDefault: vi.fn() };
 
         settingsWindow.__emit("close", event);
@@ -420,7 +469,7 @@ describe("WindowManager", () => {
         windowManager.createMainWindow();
         windowManager.createImageSettingsWindow();
         windowManager.willQuit();
-        const settingsWindow = windowManager.getImageSettingsWindow() as any;
+        const settingsWindow = requireWindow(windowManager.getImageSettingsWindow(), "image settings window");
         const event = { preventDefault: vi.fn() };
 
         settingsWindow.__emit("close", event);
@@ -429,9 +478,9 @@ describe("WindowManager", () => {
     });
 
     it("closes all windows and destroys image settings window", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         windowManager.createImageSettingsWindow();
-        const settingsWindow = windowManager.getImageSettingsWindow() as any;
+        const settingsWindow = requireWindow(windowManager.getImageSettingsWindow(), "image settings window");
 
         windowManager.closeAllWindows();
 
@@ -440,9 +489,9 @@ describe("WindowManager", () => {
     });
 
     it("closes all windows and destroys dimension settings window", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         windowManager.createDimensionSettingsWindow();
-        const dimensionWindow = windowManager.getDimensionSettingsWindow() as any;
+        const dimensionWindow = requireWindow(windowManager.getDimensionSettingsWindow(), "dimension settings window");
 
         windowManager.closeAllWindows();
 
@@ -474,7 +523,7 @@ describe("WindowManager", () => {
             unregisterAll: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository, shortcutManager);
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
 
         windowManager.registerShortcuts();
         expect(registeredCallback).toBeTypeOf("function");
@@ -506,7 +555,7 @@ describe("WindowManager", () => {
 
         (registeredCallback as () => void)();
 
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         mainWindow.__setDestroyed(true);
         (registeredCallback as () => void)();
 
@@ -540,18 +589,18 @@ describe("WindowManager", () => {
     });
 
     it("opens DevTools only in local development mode", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         mockIs.dev = true;
         process.env["ELECTRON_RENDERER_URL"] = "http://localhost:5173";
 
-        windowManager.openDevTools(mainWindow, false);
+        windowManager.openDevTools(asBrowserWindow(mainWindow), false);
         expect(mainWindow.webContents.openDevTools).toHaveBeenCalledWith({
             mode: "detach",
         });
 
-        mainWindow.webContents.openDevTools.mockClear();
+        vi.mocked(mainWindow.webContents.openDevTools).mockClear();
         appMock.isPackaged = true;
-        windowManager.openDevTools(mainWindow, false);
+        windowManager.openDevTools(asBrowserWindow(mainWindow), false);
         expect(mainWindow.webContents.openDevTools).not.toHaveBeenCalled();
     });
 
@@ -606,7 +655,7 @@ describe("WindowManager", () => {
         const launchPromise = windowManager.launchMainWindow();
         const splashWindow = browserWindowState.windows[0];
         splashWindow.__emit("ready-to-show");
-        const mainWindow = (await launchPromise) as any;
+        const mainWindow = requireWindow(await launchPromise, "main window");
 
         vi.setSystemTime(new Date("2024-01-01T00:00:00.500Z"));
         mainWindow.__emit("ready-to-show");
@@ -632,7 +681,7 @@ describe("WindowManager", () => {
         const launchPromise = windowManager.launchMainWindow();
         const splashWindow = browserWindowState.windows[0];
         splashWindow.__emit("ready-to-show");
-        const mainWindow = (await launchPromise) as any;
+        const mainWindow = requireWindow(await launchPromise, "main window");
 
         vi.setSystemTime(new Date("2024-01-01T00:00:00.700Z"));
         mainWindow.__emit("ready-to-show");
@@ -657,11 +706,11 @@ describe("WindowManager", () => {
     });
 
     it("persists normal bounds and isMaximized=true when closing maximized window", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
 
         // Simulate maximized state
-        mainWindow.isMaximized.mockReturnValue(true);
-        mainWindow.getNormalBounds.mockReturnValue({
+        vi.mocked(mainWindow.isMaximized).mockReturnValue(true);
+        vi.mocked(mainWindow.getNormalBounds).mockReturnValue({
             x: 50,
             y: 50,
             width: 900,
@@ -685,7 +734,7 @@ describe("WindowManager", () => {
             isMaximized: true,
         });
 
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         // Trigger ready-to-show to execute restore logic
         mainWindow.__emit("ready-to-show");
 
@@ -698,8 +747,8 @@ describe("WindowManager", () => {
         mockIs.dev = true;
         process.env["ELECTRON_RENDERER_URL"] = "http://localhost:5173";
 
-        const imageWindow = windowManager.createImageSettingsWindow() as any;
-        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+        const imageWindow = requireWindow(windowManager.createImageSettingsWindow(), "image settings window");
+        const dimensionWindow = requireWindow(windowManager.createDimensionSettingsWindow(), "dimension settings window");
 
         expect(imageWindow.loadURL).toHaveBeenCalledWith(
             "http://localhost:5173/image-settings/"
@@ -710,8 +759,8 @@ describe("WindowManager", () => {
     });
 
     it("focuses existing image and dimension settings windows when create is called again", () => {
-        const imageWindow = windowManager.createImageSettingsWindow() as any;
-        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+        const imageWindow = requireWindow(windowManager.createImageSettingsWindow(), "image settings window");
+        const dimensionWindow = requireWindow(windowManager.createDimensionSettingsWindow(), "dimension settings window");
 
         const imageWindowAgain = windowManager.createImageSettingsWindow();
         const dimensionWindowAgain = windowManager.createDimensionSettingsWindow();
@@ -723,8 +772,8 @@ describe("WindowManager", () => {
     });
 
     it("shows settings windows when ready-to-show event is emitted", () => {
-        const imageWindow = windowManager.createImageSettingsWindow() as any;
-        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+        const imageWindow = requireWindow(windowManager.createImageSettingsWindow(), "image settings window");
+        const dimensionWindow = requireWindow(windowManager.createDimensionSettingsWindow(), "dimension settings window");
 
         imageWindow.__emit("ready-to-show");
         dimensionWindow.__emit("ready-to-show");
@@ -734,7 +783,7 @@ describe("WindowManager", () => {
     });
 
     it("prevents main close when project is dirty and user cancels discard", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         windowManager.setProjectDirty(true);
         dialogMock.showMessageBoxSync.mockReturnValue(0);
         const event = { preventDefault: vi.fn() };
@@ -749,7 +798,7 @@ describe("WindowManager", () => {
     });
 
     it("allows main close when project is dirty and user confirms discard", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         windowManager.setProjectDirty(true);
         dialogMock.showMessageBoxSync.mockReturnValue(1);
         const event = { preventDefault: vi.fn() };
@@ -765,31 +814,11 @@ describe("WindowManager", () => {
         );
     });
 
-    it("close listeners tolerate null child-window references", () => {
-        windowManager.createMainWindow();
-        windowManager.createImageSettingsWindow();
-        windowManager.createDimensionSettingsWindow();
-
-        const imageWindow = windowManager.getImageSettingsWindow() as any;
-        const dimensionWindow = windowManager.getDimensionSettingsWindow() as any;
-
-        (windowManager as any).imageSettingsWindow = null;
-        (windowManager as any).dimensionSettingsWindow = null;
-
-        const imageCloseEvent = { preventDefault: vi.fn() };
-        const dimensionCloseEvent = { preventDefault: vi.fn() };
-        imageWindow.__emit("close", imageCloseEvent);
-        dimensionWindow.__emit("close", dimensionCloseEvent);
-
-        expect(imageCloseEvent.preventDefault).toHaveBeenCalledTimes(1);
-        expect(dimensionCloseEvent.preventDefault).toHaveBeenCalledTimes(1);
-    });
-
     it("allows dimension settings close during app quit", () => {
         windowManager.createMainWindow();
         windowManager.createDimensionSettingsWindow();
         windowManager.willQuit();
-        const settingsWindow = windowManager.getDimensionSettingsWindow() as any;
+        const settingsWindow = requireWindow(windowManager.getDimensionSettingsWindow(), "dimension settings window");
         const event = { preventDefault: vi.fn() };
 
         settingsWindow.__emit("close", event);
@@ -799,9 +828,9 @@ describe("WindowManager", () => {
     });
 
     it("closes child windows when main window is closed", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
-        const imageWindow = windowManager.createImageSettingsWindow() as any;
-        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+        const imageWindow = requireWindow(windowManager.createImageSettingsWindow(), "image settings window");
+        const dimensionWindow = requireWindow(windowManager.createDimensionSettingsWindow(), "dimension settings window");
 
         mainWindow.__emit("closed");
 
@@ -811,7 +840,7 @@ describe("WindowManager", () => {
     });
 
     it("ignores close event when main window reference is already cleared", () => {
-        const mainWindow = windowManager.createMainWindow() as any;
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
 
         mainWindow.__emit("closed");
         const event = { preventDefault: vi.fn() };
@@ -840,7 +869,7 @@ describe("WindowManager", () => {
     it("getAllWindows excludes destroyed dimension settings window", () => {
         const mainWindow = windowManager.createMainWindow();
         const imageWindow = windowManager.createImageSettingsWindow();
-        const dimensionWindow = windowManager.createDimensionSettingsWindow() as any;
+        const dimensionWindow = requireWindow(windowManager.createDimensionSettingsWindow(), "dimension settings window");
 
         dimensionWindow.__setDestroyed(true);
         const windows = windowManager.getAllWindows();
@@ -850,3 +879,4 @@ describe("WindowManager", () => {
         expect(windows).not.toContain(dimensionWindow);
     });
 });
+

@@ -7,7 +7,7 @@ import {
     setIPCService,
     resetIPCService,
 } from "@/renderer/services/ipcService";
-import { MockIPCService } from "../../mocks/MockIPCService";
+import { MockIPCService } from "../../support/mocks/MockIPCService";
 import type { ImageSet } from "@/shared/types/ImageSet";
 import type { DimensionLine } from "@/shared/types/DimensionLine";
 import type { ProjectFile } from "@/shared/types/ProjectFile";
@@ -459,5 +459,6 @@ describe("ipcService", () => {
         });
     });
 });
+
 
 

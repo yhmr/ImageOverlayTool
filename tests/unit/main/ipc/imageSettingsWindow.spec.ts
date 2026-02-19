@@ -4,7 +4,7 @@ import { BrowserWindow, clipboard, dialog, nativeImage } from "electron";
 
 import { registerImageSettingsWindowHandlers } from "@/main/ipc/imageSettingsWindow";
 import { IPC_CHANNELS, IPC_EVENTS } from "@/shared/ipc/channels";
-import { invokeIpcHandler } from "../utils/ipcTestHelper";
+import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
 
 const {
     mockSaveClipboardImageToCache,
@@ -588,3 +588,4 @@ describe("imageSettingsWindow IPC handlers", () => {
         ).rejects.toThrow("copy failed");
     });
 });
+

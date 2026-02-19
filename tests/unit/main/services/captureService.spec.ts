@@ -9,6 +9,14 @@ import {
     nativeImage,
     screen,
 } from "electron";
+import type {
+    BrowserWindow as ElectronBrowserWindow,
+    DesktopCapturerSource,
+    Display,
+    IpcMainInvokeEvent,
+    NativeImage,
+    WebContents,
+} from "electron";
 import {
     captureWindowAreaAndSave,
     saveDataUrlImage,
@@ -51,29 +59,170 @@ vi.mock("@/main/logger", () => ({
     },
 }));
 
+type Rect = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+
+type MainWindowStub = {
+    getBounds: () => Rect;
+    isMinimized: () => boolean;
+    restore: () => void;
+    focus: () => void;
+};
+
+type VisibleWindowStub = {
+    isVisible: () => boolean;
+    hide: () => void;
+    show: () => void;
+};
+
+type CroppedImageStub = {
+    toPNG: () => Buffer;
+    toJPEG: (quality?: number) => Buffer;
+};
+
+type ThumbnailStub = {
+    crop: (bounds: Rect) => CroppedImageStub;
+};
+
+const asWebContents = (value: object = {}): WebContents =>
+    value as unknown as WebContents;
+
+const createIpcEvent = (): IpcMainInvokeEvent =>
+    ({ sender: asWebContents() }) as unknown as IpcMainInvokeEvent;
+
+const asBrowserWindow = <T extends object>(window: T): ElectronBrowserWindow =>
+    window as unknown as ElectronBrowserWindow;
+
+const asDisplay = (display: {
+    id: number;
+    size: { width: number; height: number };
+    scaleFactor: number;
+    bounds: Rect;
+}): Display => display as unknown as Display;
+
+const asSource = (source: {
+    display_id: string;
+    thumbnail: ThumbnailStub;
+}): DesktopCapturerSource => source as unknown as DesktopCapturerSource;
+
+const asNativeImage = (image: {
+    toPNG: () => Buffer;
+    toJPEG?: (quality?: number) => Buffer;
+}): NativeImage => image as unknown as NativeImage;
+
+const createCroppedImage = (
+    pngBuffer = Buffer.from("cropped-png"),
+    jpegBuffer = Buffer.from("cropped-jpeg")
+): CroppedImageStub => ({
+    toPNG: () => pngBuffer,
+    toJPEG: () => jpegBuffer,
+});
+
+const createThumbnail = (cropped: CroppedImageStub): ThumbnailStub => ({
+    crop: vi.fn(() => cropped),
+});
+
+const createMainWindow = (
+    bounds: Rect,
+    isMinimized = false
+): MainWindowStub => ({
+    getBounds: () => bounds,
+    isMinimized: vi.fn(() => isMinimized),
+    restore: vi.fn(),
+    focus: vi.fn(),
+});
+
+const createVisibleWindow = (): VisibleWindowStub => ({
+    isVisible: () => true,
+    hide: vi.fn(),
+    show: vi.fn(),
+});
+
+type CaptureContextOptions = {
+    winBounds?: Rect;
+    display?: {
+        id: number;
+        size: { width: number; height: number };
+        scaleFactor: number;
+        bounds: Rect;
+    };
+    isMinimized?: boolean;
+    windows?: VisibleWindowStub[];
+    sources?: Array<{
+        display_id: string;
+        thumbnail: ThumbnailStub;
+    }>;
+    saveDialogResult?: {
+        canceled: boolean;
+        filePath: string;
+    };
+};
+
+const setupCaptureContext = (options: CaptureContextOptions = {}) => {
+    const winBounds = options.winBounds ?? {
+        x: 140,
+        y: 90,
+        width: 500,
+        height: 300,
+    };
+    const display =
+        options.display ??
+        ({
+            id: 1,
+            size: { width: 1920, height: 1080 },
+            scaleFactor: 2,
+            bounds: { x: 100, y: 50, width: 1920, height: 1080 },
+        } as const);
+    const mainWindow = createMainWindow(winBounds, options.isMinimized ?? false);
+    const windows = options.windows ?? [];
+    const sources = options.sources ?? [];
+
+    vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+        asBrowserWindow(mainWindow)
+    );
+    vi.mocked(BrowserWindow.getAllWindows).mockReturnValue(
+        windows.map(asBrowserWindow)
+    );
+    vi.mocked(screen.getDisplayMatching).mockReturnValue(asDisplay(display));
+    vi.mocked(desktopCapturer.getSources).mockResolvedValue(sources.map(asSource));
+
+    if (options.saveDialogResult) {
+        vi.mocked(dialog.showSaveDialog).mockResolvedValue(options.saveDialogResult);
+    }
+
+    return {
+        event: createIpcEvent(),
+        mainWindow,
+        display,
+        windows,
+    };
+};
+
 describe("captureService", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
-        vi.mocked(fs.writeFile).mockResolvedValue(undefined as any);
+        vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+        vi.mocked(fs.writeFile).mockResolvedValue(undefined);
         vi.useRealTimers();
     });
 
     it("captureWindowAreaAndSave returns placeholder info in test mode with defaults", async () => {
         const placeholderBuffer = Buffer.from("placeholder");
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue({
-            toPNG: () => placeholderBuffer,
-        } as any);
-
-        const result = await captureWindowAreaAndSave(
-            { sender: {} } as any,
-            true,
-            {
-                enabled: true,
-                captureFilePath: "C:/tmp/capture.png",
-                exportImagePath: "C:/tmp/export.png",
-            }
+        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
+            asNativeImage({
+                toPNG: () => placeholderBuffer,
+            })
         );
+
+        const result = await captureWindowAreaAndSave(createIpcEvent(), true, {
+            enabled: true,
+            captureFilePath: "C:/tmp/capture.png",
+            exportImagePath: "C:/tmp/export.png",
+        });
 
         expect(fs.mkdir).toHaveBeenCalledWith(path.dirname("C:/tmp/capture.png"), {
             recursive: true,
@@ -90,21 +239,19 @@ describe("captureService", () => {
     });
 
     it("captureWindowAreaAndSave uses explicit width and height in test mode", async () => {
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue({
-            toPNG: () => Buffer.from("placeholder"),
-        } as any);
-
-        const result = await captureWindowAreaAndSave(
-            { sender: {} } as any,
-            false,
-            {
-                enabled: true,
-                captureFilePath: "C:/tmp/capture.png",
-                exportImagePath: "C:/tmp/export.png",
-                captureWidth: 1920,
-                captureHeight: 1080,
-            }
+        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
+            asNativeImage({
+                toPNG: () => Buffer.from("placeholder"),
+            })
         );
+
+        const result = await captureWindowAreaAndSave(createIpcEvent(), false, {
+            enabled: true,
+            captureFilePath: "C:/tmp/capture.png",
+            exportImagePath: "C:/tmp/export.png",
+            captureWidth: 1920,
+            captureHeight: 1080,
+        });
 
         expect(result).toEqual({
             filePath: "C:/tmp/capture.png",
@@ -116,77 +263,53 @@ describe("captureService", () => {
     it("captureWindowAreaAndSave returns null when sender window is unavailable", async () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
 
-        const result = await captureWindowAreaAndSave(
-            { sender: {} } as any,
-            false
-        );
+        const result = await captureWindowAreaAndSave(createIpcEvent(), false);
 
         expect(result).toBeNull();
     });
 
     it("captureWindowAreaAndSave captures and saves png in normal mode", async () => {
-        const winBounds = { x: 140, y: 90, width: 500, height: 300 };
-        const mainWindow = {
-            getBounds: () => winBounds,
-            isMinimized: () => false,
-            restore: vi.fn(),
-            focus: vi.fn(),
-        };
-        const display = {
-            id: 1,
-            size: { width: 1920, height: 1080 },
-            scaleFactor: 2,
-            bounds: { x: 100, y: 50, width: 1920, height: 1080 },
-        };
-        const toPng = Buffer.from("cropped-png");
-        const cropped = {
-            toPNG: () => toPng,
-            toJPEG: () => Buffer.from("cropped-jpeg"),
-        };
-        const thumbnail = {
-            crop: vi.fn(() => cropped),
-        };
+        const cropped = createCroppedImage(Buffer.from("cropped-png"));
+        const thumbnail = createThumbnail(cropped);
 
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(mainWindow as any);
-        vi.mocked(BrowserWindow.getAllWindows).mockReturnValue([
-            { isVisible: () => true, hide: vi.fn(), show: vi.fn() },
-        ] as any);
-        vi.mocked(screen.getDisplayMatching).mockReturnValue(display as any);
-        vi.mocked(desktopCapturer.getSources).mockResolvedValue([
-            { display_id: "1", thumbnail },
-        ] as any);
-        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
-            canceled: false,
-            filePath: "C:/tmp/out.png",
+        const { event, mainWindow } = setupCaptureContext({
+            windows: [createVisibleWindow()],
+            sources: [{ display_id: "1", thumbnail }],
+            saveDialogResult: {
+                canceled: false,
+                filePath: "C:/tmp/out.png",
+            },
         });
 
-        const result = await captureWindowAreaAndSave(
-            { sender: {} } as any,
-            false,
-            {
-                enabled: false,
-                captureFilePath: "",
-                exportImagePath: "",
-                fixedNow: 123,
-            }
-        );
+        const result = await captureWindowAreaAndSave(event, false, {
+            enabled: false,
+            captureFilePath: "",
+            exportImagePath: "",
+            fixedNow: 123,
+        });
 
-        expect(thumbnail.crop).toHaveBeenCalledWith({
+        expect(vi.mocked(thumbnail.crop)).toHaveBeenCalledWith({
             x: 80,
             y: 80,
             width: 1000,
             height: 600,
         });
         expect(dialog.showSaveDialog).toHaveBeenCalledWith(
-            mainWindow,
+            asBrowserWindow(mainWindow),
             expect.objectContaining({
                 defaultPath: path.join(
-                    vi.mocked(app.getPath).mock.results[0].value,
+                    "C:",
+                    "Users",
+                    "tester",
+                    "Pictures",
                     "capture_123.png"
                 ),
             })
         );
-        expect(fs.writeFile).toHaveBeenCalledWith("C:/tmp/out.png", toPng);
+        expect(fs.writeFile).toHaveBeenCalledWith(
+            "C:/tmp/out.png",
+            Buffer.from("cropped-png")
+        );
         expect(result).toEqual({
             filePath: "C:/tmp/out.png",
             width: 500,
@@ -195,64 +318,52 @@ describe("captureService", () => {
     });
 
     it("captureWindowAreaAndSave uses jpeg encoder for .jpg output", async () => {
-        const mainWindow = {
-            getBounds: () => ({ x: 0, y: 0, width: 100, height: 80 }),
-            isMinimized: () => false,
-            restore: vi.fn(),
-            focus: vi.fn(),
-        };
         const jpeg = Buffer.from("jpeg");
-        const cropped = {
-            toPNG: () => Buffer.from("png"),
-            toJPEG: () => jpeg,
-        };
+        const cropped = createCroppedImage(Buffer.from("png"), jpeg);
 
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(mainWindow as any);
-        vi.mocked(BrowserWindow.getAllWindows).mockReturnValue([] as any);
-        vi.mocked(screen.getDisplayMatching).mockReturnValue({
-            id: 1,
-            size: { width: 100, height: 80 },
-            scaleFactor: 1,
-            bounds: { x: 0, y: 0, width: 100, height: 80 },
-        } as any);
-        vi.mocked(desktopCapturer.getSources).mockResolvedValue([
-            {
-                display_id: "1",
-                thumbnail: { crop: () => cropped },
+        setupCaptureContext({
+            winBounds: { x: 0, y: 0, width: 100, height: 80 },
+            display: {
+                id: 1,
+                size: { width: 100, height: 80 },
+                scaleFactor: 1,
+                bounds: { x: 0, y: 0, width: 100, height: 80 },
             },
-        ] as any);
-        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
-            canceled: false,
-            filePath: "C:/tmp/out.jpg",
+            sources: [
+                {
+                    display_id: "1",
+                    thumbnail: createThumbnail(cropped),
+                },
+            ],
+            saveDialogResult: {
+                canceled: false,
+                filePath: "C:/tmp/out.jpg",
+            },
         });
 
-        await captureWindowAreaAndSave({ sender: {} } as any, false);
+        await captureWindowAreaAndSave(createIpcEvent(), false);
 
         expect(fs.writeFile).toHaveBeenCalledWith("C:/tmp/out.jpg", jpeg);
     });
 
     it("captureWindowAreaAndSave restores hidden windows when source lookup fails", async () => {
-        const visible = { isVisible: () => true, hide: vi.fn(), show: vi.fn() };
-        const mainWindow = {
-            getBounds: () => ({ x: 0, y: 0, width: 100, height: 80 }),
-            isMinimized: () => true,
-            restore: vi.fn(),
-            focus: vi.fn(),
-        };
+        const visible = createVisibleWindow();
+        const { event, mainWindow } = setupCaptureContext({
+            winBounds: { x: 0, y: 0, width: 100, height: 80 },
+            isMinimized: true,
+            windows: [visible],
+            display: {
+                id: 1,
+                size: { width: 100, height: 80 },
+                scaleFactor: 1,
+                bounds: { x: 0, y: 0, width: 100, height: 80 },
+            },
+            sources: [],
+        });
 
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(mainWindow as any);
-        vi.mocked(BrowserWindow.getAllWindows).mockReturnValue([visible] as any);
-        vi.mocked(screen.getDisplayMatching).mockReturnValue({
-            id: 1,
-            size: { width: 100, height: 80 },
-            scaleFactor: 1,
-            bounds: { x: 0, y: 0, width: 100, height: 80 },
-        } as any);
-        vi.mocked(desktopCapturer.getSources).mockResolvedValue([] as any);
-
-        await expect(
-            captureWindowAreaAndSave({ sender: {} } as any, true)
-        ).rejects.toThrow("No display source found for capture.");
+        await expect(captureWindowAreaAndSave(event, true)).rejects.toThrow(
+            "No display source found for capture."
+        );
         expect(visible.hide).toHaveBeenCalled();
         expect(visible.show).toHaveBeenCalled();
         expect(mainWindow.restore).toHaveBeenCalled();
@@ -260,37 +371,27 @@ describe("captureService", () => {
     });
 
     it("captureWindowAreaAndSave falls back to first source when display id cannot be matched", async () => {
-        const mainWindow = {
-            getBounds: () => ({ x: 0, y: 0, width: 100, height: 80 }),
-            isMinimized: () => false,
-            restore: vi.fn(),
-            focus: vi.fn(),
-        };
-        const thumbnail = {
-            crop: () => ({
-                toPNG: () => Buffer.from("png"),
-                toJPEG: () => Buffer.from("jpeg"),
-            }),
-        };
+        const thumbnail = createThumbnail(createCroppedImage());
 
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(mainWindow as any);
-        vi.mocked(BrowserWindow.getAllWindows).mockReturnValue([] as any);
-        vi.mocked(screen.getDisplayMatching).mockReturnValue({
-            id: 1,
-            size: { width: 100, height: 80 },
-            scaleFactor: 1,
-            bounds: { x: 0, y: 0, width: 100, height: 80 },
-        } as any);
-        vi.mocked(desktopCapturer.getSources).mockResolvedValue([
-            { display_id: "9", thumbnail },
-            { display_id: "10", thumbnail },
-        ] as any);
-        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
-            canceled: false,
-            filePath: "C:/tmp/out.png",
+        setupCaptureContext({
+            winBounds: { x: 0, y: 0, width: 100, height: 80 },
+            display: {
+                id: 1,
+                size: { width: 100, height: 80 },
+                scaleFactor: 1,
+                bounds: { x: 0, y: 0, width: 100, height: 80 },
+            },
+            sources: [
+                { display_id: "9", thumbnail },
+                { display_id: "10", thumbnail },
+            ],
+            saveDialogResult: {
+                canceled: false,
+                filePath: "C:/tmp/out.png",
+            },
         });
 
-        await captureWindowAreaAndSave({ sender: {} } as any, false);
+        await captureWindowAreaAndSave(createIpcEvent(), false);
 
         expect(mockWarn).toHaveBeenCalledWith(
             "Could not match display id, using first source.",
@@ -300,37 +401,27 @@ describe("captureService", () => {
     });
 
     it("captureWindowAreaAndSave uses the only source when no display id matches", async () => {
-        const mainWindow = {
-            getBounds: () => ({ x: 0, y: 0, width: 100, height: 80 }),
-            isMinimized: () => false,
-            restore: vi.fn(),
-            focus: vi.fn(),
-        };
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(mainWindow as any);
-        vi.mocked(BrowserWindow.getAllWindows).mockReturnValue([] as any);
-        vi.mocked(screen.getDisplayMatching).mockReturnValue({
-            id: 1,
-            size: { width: 100, height: 80 },
-            scaleFactor: 1,
-            bounds: { x: 0, y: 0, width: 100, height: 80 },
-        } as any);
-        vi.mocked(desktopCapturer.getSources).mockResolvedValue([
-            {
-                display_id: "9",
-                thumbnail: {
-                    crop: () => ({
-                        toPNG: () => Buffer.from("png"),
-                        toJPEG: () => Buffer.from("jpeg"),
-                    }),
-                },
+        setupCaptureContext({
+            winBounds: { x: 0, y: 0, width: 100, height: 80 },
+            display: {
+                id: 1,
+                size: { width: 100, height: 80 },
+                scaleFactor: 1,
+                bounds: { x: 0, y: 0, width: 100, height: 80 },
             },
-        ] as any);
-        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
-            canceled: false,
-            filePath: "C:/tmp/out.png",
+            sources: [
+                {
+                    display_id: "9",
+                    thumbnail: createThumbnail(createCroppedImage()),
+                },
+            ],
+            saveDialogResult: {
+                canceled: false,
+                filePath: "C:/tmp/out.png",
+            },
         });
 
-        const result = await captureWindowAreaAndSave({ sender: {} } as any, false);
+        const result = await captureWindowAreaAndSave(createIpcEvent(), false);
 
         expect(mockWarn).not.toHaveBeenCalled();
         expect(result).toEqual({
@@ -342,41 +433,31 @@ describe("captureService", () => {
 
     it("captureWindowAreaAndSave restores windows and returns null when hide mode save is canceled", async () => {
         vi.useFakeTimers();
-        const visible = { isVisible: () => true, hide: vi.fn(), show: vi.fn() };
-        const mainWindow = {
-            getBounds: () => ({ x: 0, y: 0, width: 100, height: 80 }),
-            isMinimized: () => true,
-            restore: vi.fn(),
-            focus: vi.fn(),
-        };
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(mainWindow as any);
-        vi.mocked(BrowserWindow.getAllWindows).mockReturnValue([visible] as any);
-        vi.mocked(screen.getDisplayMatching).mockReturnValue({
-            id: 1,
-            size: { width: 100, height: 80 },
-            scaleFactor: 1,
-            bounds: { x: 0, y: 0, width: 100, height: 80 },
-        } as any);
-        vi.mocked(desktopCapturer.getSources).mockResolvedValue([
-            {
-                display_id: "1",
-                thumbnail: {
-                    crop: () => ({
-                        toPNG: () => Buffer.from("png"),
-                        toJPEG: () => Buffer.from("jpeg"),
-                    }),
-                },
+
+        const visible = createVisibleWindow();
+        const { event, mainWindow } = setupCaptureContext({
+            winBounds: { x: 0, y: 0, width: 100, height: 80 },
+            isMinimized: true,
+            windows: [visible],
+            display: {
+                id: 1,
+                size: { width: 100, height: 80 },
+                scaleFactor: 1,
+                bounds: { x: 0, y: 0, width: 100, height: 80 },
             },
-        ] as any);
-        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
-            canceled: true,
-            filePath: "",
+            sources: [
+                {
+                    display_id: "1",
+                    thumbnail: createThumbnail(createCroppedImage()),
+                },
+            ],
+            saveDialogResult: {
+                canceled: true,
+                filePath: "",
+            },
         });
 
-        const capturePromise = captureWindowAreaAndSave(
-            { sender: {} } as any,
-            true
-        );
+        const capturePromise = captureWindowAreaAndSave(event, true);
         await vi.advanceTimersByTimeAsync(300);
         const result = await capturePromise;
 
@@ -391,7 +472,7 @@ describe("captureService", () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
 
         const result = await saveDataUrlImage(
-            { sender: {} } as any,
+            createIpcEvent(),
             "data:image/png;base64,AA=="
         );
 
@@ -400,13 +481,15 @@ describe("captureService", () => {
 
     it("saveDataUrlImage writes jpeg in test mode for .jpg path", async () => {
         const jpegBuffer = Buffer.from("jpeg");
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue({
-            toJPEG: () => jpegBuffer,
-            toPNG: () => Buffer.from("png"),
-        } as any);
+        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
+            asNativeImage({
+                toJPEG: () => jpegBuffer,
+                toPNG: () => Buffer.from("png"),
+            })
+        );
 
         const result = await saveDataUrlImage(
-            { sender: {} } as any,
+            createIpcEvent(),
             "data:image/png;base64,AA==",
             {
                 enabled: true,
@@ -421,13 +504,15 @@ describe("captureService", () => {
 
     it("saveDataUrlImage writes png in test mode for non-jpeg path", async () => {
         const pngBuffer = Buffer.from("png");
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue({
-            toJPEG: () => Buffer.from("jpeg"),
-            toPNG: () => pngBuffer,
-        } as any);
+        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
+            asNativeImage({
+                toJPEG: () => Buffer.from("jpeg"),
+                toPNG: () => pngBuffer,
+            })
+        );
 
         const result = await saveDataUrlImage(
-            { sender: {} } as any,
+            createIpcEvent(),
             "data:image/png;base64,AA==",
             {
                 enabled: true,
@@ -441,14 +526,16 @@ describe("captureService", () => {
     });
 
     it("saveDataUrlImage returns null when user cancels save dialog", async () => {
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow({})
+        );
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: true,
             filePath: "",
         });
 
         const result = await saveDataUrlImage(
-            { sender: {} } as any,
+            createIpcEvent(),
             "data:image/png;base64,AA=="
         );
 
@@ -458,23 +545,27 @@ describe("captureService", () => {
     it("saveDataUrlImage saves selected jpeg path in normal mode", async () => {
         const ownerWindow = {};
         const jpegBuffer = Buffer.from("jpeg");
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(ownerWindow as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow(ownerWindow)
+        );
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: false,
             filePath: "C:/tmp/output.jpeg",
         });
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue({
-            toJPEG: () => jpegBuffer,
-            toPNG: () => Buffer.from("png"),
-        } as any);
+        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
+            asNativeImage({
+                toJPEG: () => jpegBuffer,
+                toPNG: () => Buffer.from("png"),
+            })
+        );
 
         const result = await saveDataUrlImage(
-            { sender: {} } as any,
+            createIpcEvent(),
             "data:image/png;base64,AA=="
         );
 
         expect(dialog.showSaveDialog).toHaveBeenCalledWith(
-            ownerWindow,
+            asBrowserWindow(ownerWindow),
             expect.objectContaining({ title: "Save Image" })
         );
         expect(fs.writeFile).toHaveBeenCalledWith("C:/tmp/output.jpeg", jpegBuffer);
@@ -483,18 +574,22 @@ describe("captureService", () => {
 
     it("saveDataUrlImage saves selected png path in normal mode", async () => {
         const pngBuffer = Buffer.from("png");
-        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow({})
+        );
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: false,
             filePath: "C:/tmp/output.png",
         });
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue({
-            toJPEG: () => Buffer.from("jpeg"),
-            toPNG: () => pngBuffer,
-        } as any);
+        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
+            asNativeImage({
+                toJPEG: () => Buffer.from("jpeg"),
+                toPNG: () => pngBuffer,
+            })
+        );
 
         const result = await saveDataUrlImage(
-            { sender: {} } as any,
+            createIpcEvent(),
             "data:image/png;base64,AA=="
         );
 

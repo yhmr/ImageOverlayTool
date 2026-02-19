@@ -7,7 +7,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { DimensionLineSettingsPanel } from "@/renderer/dimension-settings/components/DimensionLineSettingsPanel";
 import { IpcServiceProvider } from "@/renderer/providers/IpcServiceProvider";
 import { useAppStore } from "@/renderer/store/useAppStore";
-import { MockIPCService } from "../../../mocks/MockIPCService";
+import { MockIPCService } from "../../../support/mocks/MockIPCService";
 
 vi.mock("react-i18next", () => ({
     useTranslation: () => ({
@@ -80,3 +80,4 @@ describe("DimensionLineSettingsPanel", () => {
         expect(useAppStore.getState().dimensionLines).toHaveLength(0);
     });
 });
+

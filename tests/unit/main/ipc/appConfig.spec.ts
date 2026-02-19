@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import fs from "fs/promises";
 import { registerAppConfigHandlers } from "@/main/ipc/appConfig";
-import { MockSettingsRepository } from "../repositories/mocks/MockSettingsRepository";
-import { MockWindowRepository } from "../repositories/mocks/MockWindowRepository";
+import { MockSettingsRepository } from "../../support/mocks/repositories/MockSettingsRepository";
+import { MockWindowRepository } from "../../support/mocks/repositories/MockWindowRepository";
 import { SettingType } from "@/shared/types/AppConfig";
-import { invokeIpcHandler } from "../utils/ipcTestHelper";
+import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
 import { setLogLevel } from "@/main/logger";
 import { initializeMainI18n } from "@/i18n/mainI18n";
 import { IPC_EVENTS } from "@/shared/ipc/channels";
@@ -291,3 +291,4 @@ describe("IPC AppConfig Handlers", () => {
         });
     });
 });
+

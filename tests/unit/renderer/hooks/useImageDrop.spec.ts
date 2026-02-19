@@ -10,7 +10,7 @@ import {
     setIPCService,
 } from "@/renderer/services/ipcService";
 import { useAppStore } from "@/renderer/store/useAppStore";
-import { MockIPCService } from "../../mocks/MockIPCService";
+import { MockIPCService } from "../../support/mocks/MockIPCService";
 
 describe("useImageDrop", () => {
     beforeEach(() => {
@@ -264,3 +264,4 @@ describe("useImageDrop", () => {
         expect(imageSets[0].path).toBe("");
     });
 });
+

@@ -10,7 +10,7 @@ import {
     setIPCService,
 } from "@/renderer/services/ipcService";
 import type { ImageSet } from "@/shared/types/ImageSet";
-import { MockIPCService } from "../../mocks/MockIPCService";
+import { MockIPCService } from "../../support/mocks/MockIPCService";
 
 const createImageSet = (id: string, path: string): ImageSet => ({
     id,
@@ -85,3 +85,4 @@ describe("useImageFileStatus", () => {
         });
     });
 });
+
