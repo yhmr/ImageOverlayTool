@@ -126,6 +126,8 @@ export const cleanupClipboardCache = async (): Promise<void> => {
         }
     }
 
+    // TODO: キャッシュファイルが大量の場合 Promise.allSettled でバッチ削除すると高速化可能。
+    // 現在は起動時に void cleanupClipboardCache() で非同期実行されるため影響は軽微。
     for (const file of files) {
         if (now - file.mtimeMs <= MAX_CACHE_AGE_MS) {
             continue;

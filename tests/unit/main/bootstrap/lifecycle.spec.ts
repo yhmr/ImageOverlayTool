@@ -23,6 +23,15 @@ vi.mock("@/main/logger", () => ({
     },
 }));
 
+vi.mock("@/i18n/mainI18n", () => ({
+    tErrorDialog: vi.fn(
+        (key: string, vars?: Record<string, string>) =>
+            vars
+                ? `[${key}] ${JSON.stringify(vars)}`
+                : `[${key}]`
+    ),
+}));
+
 describe("lifecycle", () => {
     let processOnSpy: ReturnType<typeof vi.spyOn>;
     let uncaughtExceptionCallback: ((error: Error) => void) | null;
@@ -83,7 +92,7 @@ describe("lifecycle", () => {
         uncaughtExceptionCallback?.(error);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
-            "An unexpected error occurred",
+            "[title]",
             expect.stringContaining("Test Error")
         );
     });
@@ -95,8 +104,9 @@ describe("lifecycle", () => {
         unhandledRejectionCallback?.(reason);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
-            "An unexpected error occurred",
+            "[title]",
             expect.stringContaining("Test Rejection Reason")
         );
     });
 });
+

@@ -26,7 +26,7 @@ import { useWindowColorPickerController } from "./hooks/useWindowColorPickerCont
 
 const App = () => {
     // 設定の読み込み
-    const { setWindowColor } = useAppStore();
+    const setWindowColor = useAppStore((state) => state.setWindowColor);
     const windowColor = useAppStore((state) => state.windowColor);
     const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
     const ipcService = useIpcService();

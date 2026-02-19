@@ -7,7 +7,13 @@
         "menu": "Menu",
         "close": "Close"
     },
-    "main": {},
+    "main": {
+        "error_dialog": {
+            "title": "An unexpected error occurred",
+            "uncaught_exception": "A critical error occurred in the main process:\n\n{{message}}\n\nPlease copy this message and report it to the developer.",
+            "unhandled_rejection": "An unhandled rejection occurred in the main process:\n\n{{reason}}\n\nPlease copy this message and report it to the developer."
+        }
+    },
     "render": {
         "menu": {
             "group_project": "Project",

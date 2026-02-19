@@ -7,7 +7,13 @@
         "menu": "メニュー",
         "close": "閉じる"
     },
-    "main": {},
+    "main": {
+        "error_dialog": {
+            "title": "予期せぬエラーが発生しました",
+            "uncaught_exception": "メインプロセスで重大なエラーが発生しました:\n\n{{message}}\n\nこのメッセージをコピーして開発者にご報告ください。",
+            "unhandled_rejection": "メインプロセスで未処理のリジェクションが発生しました:\n\n{{reason}}\n\nこのメッセージをコピーして開発者にご報告ください。"
+        }
+    },
     "render": {
         "menu": {
             "group_project": "プロジェクト",

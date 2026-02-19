@@ -7,16 +7,18 @@ import { useAppStore } from "../store/useAppStore";
  * ローカル変更時のみ、プロジェクトデータをIPC経由で他ウィンドウへ同期する。
  */
 export const useProjectDataSyncBridge = () => {
-    const {
-        imageSets,
-        dimensionLines,
-        unitFactor,
-        unit,
-        projectDataChangeOrigin,
-        interactionMode,
-        selectedImageId,
-        selectedDimensionLineId,
-    } = useAppStore();
+    const imageSets = useAppStore((s) => s.imageSets);
+    const dimensionLines = useAppStore((s) => s.dimensionLines);
+    const unitFactor = useAppStore((s) => s.unitFactor);
+    const unit = useAppStore((s) => s.unit);
+    const projectDataChangeOrigin = useAppStore(
+        (s) => s.projectDataChangeOrigin
+    );
+    const interactionMode = useAppStore((s) => s.interactionMode);
+    const selectedImageId = useAppStore((s) => s.selectedImageId);
+    const selectedDimensionLineId = useAppStore(
+        (s) => s.selectedDimensionLineId
+    );
     const ipcService = useIpcService();
 
     const isInitializedRef = useRef(false);

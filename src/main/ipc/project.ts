@@ -86,7 +86,7 @@ export const registerProjectHandlers = (
     ipcMain.handle(
         IPC_CHANNELS.project.save,
         async (
-            event,
+            _event,
             {
                 filePath,
                 project,
