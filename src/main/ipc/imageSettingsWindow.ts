@@ -27,6 +27,9 @@ import {
 } from "../services/clipboardCacheService";
 
 const resolveLocalFilePath = (value: string): string | null => {
+    const isAbsoluteFilesystemPath = (targetPath: string): boolean =>
+        path.isAbsolute(targetPath) || path.win32.isAbsolute(targetPath);
+
     if (!value || typeof value !== "string") {
         return null;
     }
@@ -44,14 +47,16 @@ const resolveLocalFilePath = (value: string): string | null => {
                     resolvedPath.slice(1);
             }
             const normalizedPath = path.normalize(resolvedPath);
-            return path.isAbsolute(normalizedPath) ? normalizedPath : null;
+            return isAbsoluteFilesystemPath(normalizedPath)
+                ? normalizedPath
+                : null;
         } catch {
             return null;
         }
     }
 
     const normalizedPath = path.normalize(value);
-    return path.isAbsolute(normalizedPath) ? normalizedPath : null;
+    return isAbsoluteFilesystemPath(normalizedPath) ? normalizedPath : null;
 };
 
 /**
@@ -312,9 +317,10 @@ export const registerImageSettingsWindowHandlers = (
             }
 
             const ownerWindow = BrowserWindow.fromWebContents(event.sender);
-            const extension = path.extname(cacheFilePath) || ".png";
+            const extension = path.win32.extname(cacheFilePath) || ".png";
             const fallbackName = `pasted-image${extension}`;
-            const defaultName = path.basename(cacheFilePath) || fallbackName;
+            const defaultName =
+                path.win32.basename(cacheFilePath) || fallbackName;
 
             const options = {
                 title: "Save Image",
