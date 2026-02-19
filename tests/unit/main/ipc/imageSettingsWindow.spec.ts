@@ -270,7 +270,7 @@ describe("imageSettingsWindow IPC handlers", () => {
         );
         expect(
             String(vi.mocked(nativeImage.createFromPath).mock.calls[0][0])
-        ).toMatch(/C:\\tmp\\from-leading-slash\.png$/i);
+        ).toMatch(/C:[\\/]+tmp[\\/]+from-leading-slash\.png$/i);
 
         await invokeIpcHandler(
             IPC_CHANNELS.imageSettingsWindow.getImageInfo,
@@ -279,7 +279,7 @@ describe("imageSettingsWindow IPC handlers", () => {
         );
         expect(
             String(vi.mocked(nativeImage.createFromPath).mock.calls[1][0])
-        ).toMatch(/C:\\tmp\\from-colonless-drive\.png$/);
+        ).toMatch(/C:[\\/]+tmp[\\/]+from-colonless-drive\.png$/i);
     });
 
     it("returns not exists for non-absolute local-file path", async () => {
