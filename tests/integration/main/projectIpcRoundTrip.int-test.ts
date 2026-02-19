@@ -38,6 +38,7 @@ import { ProjectRepository } from "@/main/repositories/ProjectRepository";
 import type { ImageSet } from "@/shared/types/ImageSet";
 import type { ProjectFile } from "@/shared/types/ProjectFile";
 import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
+import { dialog, BrowserWindow } from "electron";
 
 const createProject = (imagePath: string): ProjectFile<ImageSet> => ({
     version: "1.0.0",
@@ -276,6 +277,115 @@ describe("Main integration: project IPC round-trip", () => {
                 ],
             },
         });
+    });
+});
+
+describe("Main integration: project IPC dialog branches", () => {
+    let tempRootDir: string;
+    let userDataDir: string;
+
+    beforeEach(async () => {
+        vi.clearAllMocks();
+
+        tempRootDir = await fs.mkdtemp(path.join(os.tmpdir(), "iot-int-"));
+        userDataDir = path.join(tempRootDir, "user-data");
+        mockGetPath.mockReturnValue(userDataDir);
+
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
+
+        registerProjectHandlers(new ProjectRepository());
+    });
+
+    afterEach(async () => {
+        await fs.rm(tempRootDir, { recursive: true, force: true });
+    });
+
+    it("returns null from project:pickSavePath when save dialog is canceled", async () => {
+        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: true,
+        } as Electron.SaveDialogReturnValue);
+
+        const selectedPath = await invokeIpcHandler("project:pickSavePath", {
+            sender: {},
+        });
+
+        expect(selectedPath).toBeNull();
+    });
+
+    it("returns null from project:load when open dialog is canceled", async () => {
+        vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+            canceled: true,
+            filePaths: [],
+        } as Electron.OpenDialogReturnValue);
+
+        const loaded = await invokeIpcHandler("project:load", { sender: {} });
+
+        expect(loaded).toBeNull();
+    });
+
+    it("rejects invalid payload in project:save", async () => {
+        await expect(
+            invokeIpcHandler("project:save", {}, {
+                filePath: path.join(tempRootDir, "invalid.iot"),
+                project: createProject("C:/images/sample.png"),
+                cacheImagePathsToDelete: {} as unknown,
+            })
+        ).rejects.toThrow("Invalid payload for project:save");
+    });
+
+    it("returns null from project:saveAs when save dialog is canceled", async () => {
+        const project = createProject("C:/images/sample.png");
+        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: true,
+        } as Electron.SaveDialogReturnValue);
+
+        const savedPath = await invokeIpcHandler(
+            "project:saveAs",
+            { sender: {} },
+            project
+        );
+
+        expect(savedPath).toBeNull();
+    });
+
+    it("returns null from project:loadFromPath when target file does not exist", async () => {
+        const missingPath = path.join(tempRootDir, "missing.iot");
+
+        const loaded = await invokeIpcHandler(
+            "project:loadFromPath",
+            {},
+            missingPath
+        );
+
+        expect(loaded).toBeNull();
+    });
+
+    it("rejects invalid payload in project:materializeCacheImages", async () => {
+        await expect(
+            invokeIpcHandler("project:materializeCacheImages", {}, {
+                projectFilePath: "",
+                cacheImagePaths: "invalid",
+            })
+        ).rejects.toThrow("Invalid payload for project:materializeCacheImages");
+    });
+
+    it("saves project via project:saveAs in non-test mode", async () => {
+        const savePath = path.join(tempRootDir, "save-as.iot");
+        const project = createProject("C:/images/sample.png");
+        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: false,
+            filePath: savePath,
+        } as Electron.SaveDialogReturnValue);
+
+        const savedPath = await invokeIpcHandler(
+            "project:saveAs",
+            { sender: {} },
+            project
+        );
+
+        expect(savedPath).toBe(savePath);
+        const savedRaw = await fs.readFile(savePath, "utf8");
+        expect(JSON.parse(savedRaw)).toEqual(project);
     });
 });
 

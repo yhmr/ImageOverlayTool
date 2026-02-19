@@ -6,16 +6,9 @@ type IpcMainHandle = typeof ipcMain.handle;
 
 const ipcHandlerRegistry = new Map<string, IpcHandler>();
 let delegatedHandleImplementation: IpcMainHandle | undefined;
+let clearAllMocksPatched = false;
 
 const captureHandleRegistration: IpcMainHandle = ((channel, handler) => {
-    const handleMock = vi.mocked(ipcMain.handle);
-    const callCount = handleMock.mock.calls.length;
-
-    // vi.clearAllMocks() 後の最初の登録でレジストリを初期化する。
-    if (callCount <= 1) {
-        ipcHandlerRegistry.clear();
-    }
-
     ipcHandlerRegistry.set(channel, handler as IpcHandler);
     return delegatedHandleImplementation?.(channel, handler);
 }) as IpcMainHandle;
@@ -32,6 +25,19 @@ const ensureIpcHandlerCapture = () => {
         | IpcMainHandle
         | undefined;
     handleMock.mockImplementation(captureHandleRegistration);
+};
+
+const patchClearAllMocks = () => {
+    if (clearAllMocksPatched) {
+        return;
+    }
+
+    const originalClearAllMocks = vi.clearAllMocks.bind(vi);
+    vi.clearAllMocks = (() => {
+        ipcHandlerRegistry.clear();
+        return originalClearAllMocks();
+    }) as typeof vi.clearAllMocks;
+    clearAllMocksPatched = true;
 };
 
 /**
@@ -74,4 +80,5 @@ export const invokeIpcHandler = async <TResult = unknown>(
     return (await handler(event, ...args)) as TResult;
 };
 
+patchClearAllMocks();
 ensureIpcHandlerCapture();

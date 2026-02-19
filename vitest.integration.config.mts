@@ -34,6 +34,12 @@ export default defineConfig({
             enabled: false,
             reporter: ['text', 'json', 'html'],
             reportsDirectory: './test-results/coverage-int',
+            thresholds: {
+                lines: 80,
+                functions: 90,
+                statements: 80,
+                branches: 75,
+            },
             exclude: ['**/node_modules/**', '**/dist/**', '**/out/**', '**/*.d.ts', '**/tests/**'],
         },
     },
