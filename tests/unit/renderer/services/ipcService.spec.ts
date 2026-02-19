@@ -240,7 +240,7 @@ describe("ipcService", () => {
 
         it("delegates invoke-type IPC methods to window.electronAPI", async () => {
             const { api } = createElectronApiMock();
-            (globalThis as any).window = { electronAPI: api };
+            vi.stubGlobal("window", { electronAPI: api });
             resetIPCService();
             const service = getIPCService();
             const project = createProject();
@@ -392,7 +392,7 @@ describe("ipcService", () => {
 
         it("delegates subscription IPC methods and returns unsubscriber", () => {
             const { api, unsubscribers } = createElectronApiMock();
-            (globalThis as any).window = { electronAPI: api };
+            vi.stubGlobal("window", { electronAPI: api });
             resetIPCService();
             const service = getIPCService();
 

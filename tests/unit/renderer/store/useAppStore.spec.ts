@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
+import type { ProjectFile } from "@/shared/types/ProjectFile";
 import {
     UNIT_FACTOR_DEFAULT,
     UNIT_FACTOR_MIN,
@@ -371,7 +372,7 @@ describe("useAppStore", () => {
             const projectData = {
                 version: "1.0.0",
                 window: { width: 800, height: 600, x: 0, y: 0, color: "#123456" },
-                settings: { unitFactor: 1.5, unit: undefined as any },
+                settings: { unitFactor: 1.5, unit: undefined },
                 images: [
                     {
                         id: "img1",
@@ -382,10 +383,10 @@ describe("useAppStore", () => {
                         currentAnchorPos: null,
                     },
                 ],
-                dimensionLines: undefined as any,
-            };
+                dimensionLines: undefined,
+            } as unknown as ProjectFile<ImageSet>;
 
-            useAppStore.getState().loadProjectData(projectData as any);
+            useAppStore.getState().loadProjectData(projectData);
 
             const state = useAppStore.getState();
             expect(state.imageSets[0]?.sourceType).toBe("file");

@@ -10,7 +10,7 @@ import type {
     E2EResolvedScene,
 } from "@/shared/types/E2EControl";
 import { registerE2EControlHandlers } from "@/main/ipc/e2eControl";
-import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
+import { invokeIpcHandler } from "../../../support/helpers/ipcTestHelper";
 
 const { mockCaptureWindowAreaAndSave } = vi.hoisted(() => ({
     mockCaptureWindowAreaAndSave: vi.fn(),
@@ -333,4 +333,5 @@ describe("e2e control ipc handlers", () => {
         );
     });
 });
+
 

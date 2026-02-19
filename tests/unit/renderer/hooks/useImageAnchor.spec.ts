@@ -1,46 +1,60 @@
 // @vitest-environment happy-dom
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
+import type Konva from "konva";
+import type { RefObject } from "react";
+import { describe, expect, it, vi } from "vitest";
+
 import { useImageAnchor } from "@/renderer/hooks/useImageAnchor";
-import { describe, it, expect, vi } from "vitest";
-import { ImageSet } from "@/renderer/../shared/types/ImageSet";
-import Konva from "konva";
+import type { ImageSet } from "@/shared/types/ImageSet";
+
+const createImageSet = (overrides: Partial<ImageSet> = {}): ImageSet => ({
+    id: "img-1",
+    path: "local-file://C:/tmp/sample.png",
+    sourceType: "file",
+    transparency: 0,
+    rotation: 0,
+    initAnchorPos: null,
+    currentAnchorPos: null,
+    ...overrides,
+});
+
+const createDragEvent = (x: number, y: number): Konva.KonvaEventObject<DragEvent> =>
+    ({
+        target: {
+            x: vi.fn((value?: number) => (value === undefined ? x : undefined)),
+            y: vi.fn((value?: number) => (value === undefined ? y : undefined)),
+        },
+    }) as unknown as Konva.KonvaEventObject<DragEvent>;
+
+const createCircleRef = (
+    x: number,
+    y: number
+): RefObject<Konva.Circle | null> =>
+    ({
+        current: {
+            x: vi.fn(() => x),
+            y: vi.fn(() => y),
+        } as unknown as Konva.Circle,
+    }) as RefObject<Konva.Circle | null>;
 
 describe("useImageAnchor", () => {
     it("should handle drag start and end", () => {
-        const imageSet = {
+        const imageSet = createImageSet({
             currentAnchorPos: {
                 lt: { x: 0, y: 0 },
                 rt: { x: 100, y: 0 },
                 lb: { x: 0, y: 100 },
                 rb: { x: 100, y: 100 },
             },
-        } as unknown as ImageSet;
+        });
         const onUpdateAnchor = vi.fn();
 
         const { result } = renderHook(() =>
             useImageAnchor({ imageSet, onUpdateAnchor })
         );
 
-        // Mock Drag Events
-        const dragStartEvent = {
-            target: { x: () => 10, y: () => 10 },
-        } as unknown as Konva.KonvaEventObject<DragEvent>;
-
-        const xMock = vi.fn((val?: number) => {
-            if (val !== undefined) return;
-            return 20;
-        });
-        const yMock = vi.fn((val?: number) => {
-            if (val !== undefined) return;
-            return 20;
-        });
-
-        const dragEndEvent = {
-            target: {
-                x: xMock,
-                y: yMock,
-            },
-        } as unknown as Konva.KonvaEventObject<DragEvent>;
+        const dragStartEvent = createDragEvent(10, 10);
+        const dragEndEvent = createDragEvent(20, 20);
 
         act(() => {
             result.current.onDragStart(dragStartEvent);
@@ -50,7 +64,6 @@ describe("useImageAnchor", () => {
             result.current.onDragEnd(dragEndEvent);
         });
 
-        // Verify update
         expect(onUpdateAnchor).toHaveBeenCalledWith({
             lt: { x: 10, y: 10 },
             rt: { x: 110, y: 10 },
@@ -58,29 +71,21 @@ describe("useImageAnchor", () => {
             rb: { x: 110, y: 110 },
         });
 
-        // Verify position reset
-        expect(xMock).toHaveBeenCalledWith(0);
-        expect(yMock).toHaveBeenCalledWith(0);
+        expect(dragEndEvent.target.x).toHaveBeenCalledWith(0);
+        expect(dragEndEvent.target.y).toHaveBeenCalledWith(0);
     });
 
     it("should handle circle drag end", () => {
-        const imageSet = { id: "1" } as any;
+        const imageSet = createImageSet();
         const onUpdateAnchor = vi.fn();
         const { result } = renderHook(() =>
             useImageAnchor({ imageSet, onUpdateAnchor })
         );
 
-        const createMockCircle = (x: number, y: number) => ({
-            current: {
-                x: vi.fn().mockReturnValue(x),
-                y: vi.fn().mockReturnValue(y),
-            },
-        });
-
-        const ltRef = createMockCircle(10, 10) as any;
-        const lbRef = createMockCircle(10, 110) as any;
-        const rtRef = createMockCircle(110, 10) as any;
-        const rbRef = createMockCircle(110, 110) as any;
+        const ltRef = createCircleRef(10, 10);
+        const lbRef = createCircleRef(10, 110);
+        const rtRef = createCircleRef(110, 10);
+        const rbRef = createCircleRef(110, 110);
 
         const handler = result.current.onCircleDragEnd(
             ltRef,
@@ -101,5 +106,3 @@ describe("useImageAnchor", () => {
         });
     });
 });
-
-

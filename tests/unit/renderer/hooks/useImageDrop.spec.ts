@@ -235,7 +235,7 @@ describe("useImageDrop", () => {
             host = "";
             pathname = "";
         }
-        vi.stubGlobal("URL", EmptyPathUrlMock as any);
+        vi.stubGlobal("URL", EmptyPathUrlMock as unknown as typeof URL);
 
         const mockService = new MockIPCService();
         mockService.getPathForFile = vi.fn(() => {

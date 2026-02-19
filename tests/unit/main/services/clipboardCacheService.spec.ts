@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import fs from "fs/promises";
 import crypto from "crypto";
 import path from "path";
+import type { Stats } from "fs";
 import { app } from "electron";
+import type { NativeImage } from "electron";
+
 import {
     cleanupClipboardCache,
     deleteClipboardCacheFileIfManaged,
@@ -32,6 +35,22 @@ vi.mock("@/main/logger", () => ({
     },
 }));
 
+const asNativeImage = (image: {
+    isEmpty: () => boolean;
+    toPNG: () => Buffer;
+}): NativeImage => image as unknown as NativeImage;
+
+const createDirent = (name: string, isFile: boolean) => ({
+    name,
+    isFile: () => isFile,
+});
+
+const createStats = (size: number, mtimeMs: number): Stats =>
+    ({
+        size,
+        mtimeMs,
+    }) as unknown as Stats;
+
 describe("clipboardCacheService", () => {
     const userDataDir = path.join("C:", "Users", "tester", "AppData", "Roaming");
     const cacheDir = path.join(userDataDir, "clipboard-cache");
@@ -42,7 +61,7 @@ describe("clipboardCacheService", () => {
     });
 
     it("ensureClipboardCacheDirectory creates cache directory and returns path", async () => {
-        vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
+        vi.mocked(fs.mkdir).mockResolvedValue(undefined);
 
         const result = await ensureClipboardCacheDirectory();
 
@@ -52,9 +71,12 @@ describe("clipboardCacheService", () => {
 
     it("saveClipboardImageToCache throws when clipboard image is empty", async () => {
         await expect(
-            saveClipboardImageToCache({
-                isEmpty: () => true,
-            } as any)
+            saveClipboardImageToCache(
+                asNativeImage({
+                    isEmpty: () => true,
+                    toPNG: () => Buffer.from(""),
+                })
+            )
         ).rejects.toThrow("Clipboard image is empty");
     });
 
@@ -63,14 +85,16 @@ describe("clipboardCacheService", () => {
         vi.spyOn(crypto, "randomUUID").mockReturnValue(
             "00000000-0000-4000-8000-000000000001"
         );
-        vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
-        vi.mocked(fs.writeFile).mockResolvedValue(undefined as any);
+        vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+        vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
         const pngBuffer = Buffer.from("png");
-        const result = await saveClipboardImageToCache({
-            isEmpty: () => false,
-            toPNG: () => pngBuffer,
-        } as any);
+        const result = await saveClipboardImageToCache(
+            asNativeImage({
+                isEmpty: () => false,
+                toPNG: () => pngBuffer,
+            })
+        );
 
         const expectedPath = path.join(
             cacheDir,
@@ -90,7 +114,9 @@ describe("clipboardCacheService", () => {
     });
 
     it("deleteClipboardCacheFileIfManaged ignores unmanaged path", async () => {
-        await deleteClipboardCacheFileIfManaged(path.join(userDataDir, "other", "a.png"));
+        await deleteClipboardCacheFileIfManaged(
+            path.join(userDataDir, "other", "a.png")
+        );
 
         expect(fs.access).not.toHaveBeenCalled();
         expect(fs.unlink).not.toHaveBeenCalled();
@@ -106,7 +132,7 @@ describe("clipboardCacheService", () => {
 
     it("deleteClipboardCacheFileIfManaged deletes existing managed file", async () => {
         vi.mocked(fs.access).mockResolvedValue(undefined);
-        vi.mocked(fs.unlink).mockResolvedValue(undefined as any);
+        vi.mocked(fs.unlink).mockResolvedValue(undefined);
         const filePath = path.join(cacheDir, "present.png");
 
         await deleteClipboardCacheFileIfManaged(filePath);
@@ -152,55 +178,40 @@ describe("clipboardCacheService", () => {
         vi.spyOn(Date, "now").mockReturnValue(now);
         vi.mocked(fs.access).mockResolvedValue(undefined);
         vi.mocked(fs.readdir).mockResolvedValue([
-            { name: "expired.png", isFile: () => true },
-            { name: "recent-a.png", isFile: () => true },
-            { name: "recent-b.png", isFile: () => true },
-            { name: "recent-c.png", isFile: () => true },
-            { name: "subdir", isFile: () => false },
-        ] as any);
-        vi.mocked(fs.stat).mockImplementation(async (targetPath: any) => {
-            const p = String(targetPath);
-            if (p.endsWith("expired.png")) {
-                return {
-                    size: 10,
-                    mtimeMs: now - 7 * 24 * 60 * 60 * 1000 - 1,
-                } as any;
+            createDirent("expired.png", true),
+            createDirent("recent-a.png", true),
+            createDirent("recent-b.png", true),
+            createDirent("recent-c.png", true),
+            createDirent("subdir", false),
+        ] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
+        vi.mocked(fs.stat).mockImplementation(async (targetPath) => {
+            const filePath = String(targetPath);
+            if (filePath.endsWith("expired.png")) {
+                return createStats(10, now - 7 * 24 * 60 * 60 * 1000 - 1);
             }
-            if (p.endsWith("recent-a.png")) {
-                return {
-                    size: 300 * 1024 * 1024,
-                    mtimeMs: now - 1000,
-                } as any;
+            if (filePath.endsWith("recent-a.png")) {
+                return createStats(300 * 1024 * 1024, now - 1000);
             }
-            if (p.endsWith("recent-b.png")) {
-                return {
-                    size: 300 * 1024 * 1024,
-                    mtimeMs: now - 2000,
-                } as any;
+            if (filePath.endsWith("recent-b.png")) {
+                return createStats(300 * 1024 * 1024, now - 2000);
             }
-            return {
-                size: 300 * 1024 * 1024,
-                mtimeMs: now - 3000,
-            } as any;
+            return createStats(300 * 1024 * 1024, now - 3000);
         });
-        vi.mocked(fs.unlink).mockResolvedValue(undefined as any);
+        vi.mocked(fs.unlink).mockResolvedValue(undefined);
 
         await cleanupClipboardCache();
 
-        const deletedPaths = vi.mocked(fs.unlink).mock.calls.map((call) =>
-            String(call[0])
-        );
-        expect(deletedPaths).toHaveLength(3);
-        expect(deletedPaths.some((p) => p.endsWith("expired.png"))).toBe(true);
-        expect(deletedPaths.some((p) => p.endsWith("recent-c.png"))).toBe(true);
-        expect(deletedPaths.some((p) => p.endsWith("recent-b.png"))).toBe(true);
+        expect(fs.unlink).toHaveBeenCalledTimes(3);
+        expect(fs.unlink).toHaveBeenCalledWith(path.join(cacheDir, "expired.png"));
+        expect(fs.unlink).toHaveBeenCalledWith(path.join(cacheDir, "recent-c.png"));
+        expect(fs.unlink).toHaveBeenCalledWith(path.join(cacheDir, "recent-b.png"));
     });
 
     it("cleanupClipboardCache logs stat failures and continues", async () => {
         vi.mocked(fs.access).mockResolvedValue(undefined);
         vi.mocked(fs.readdir).mockResolvedValue([
-            { name: "broken.png", isFile: () => true },
-        ] as any);
+            createDirent("broken.png", true),
+        ] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
         vi.mocked(fs.stat).mockRejectedValue(new Error("stat failed"));
 
         await cleanupClipboardCache();

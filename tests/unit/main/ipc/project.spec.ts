@@ -3,7 +3,7 @@ import { dialog, BrowserWindow } from "electron";
 import { registerProjectHandlers } from "@/main/ipc/project";
 import { MockProjectRepository } from "../../support/mocks/repositories/MockProjectRepository";
 import { ProjectFile } from "@/shared/types/ProjectFile";
-import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
+import { invokeIpcHandler } from "../../../support/helpers/ipcTestHelper";
 
 const { mockMaterializeCacheImages, mockDeleteManagedClipboardCacheFiles } =
     vi.hoisted(() => ({
@@ -430,4 +430,5 @@ describe("IPC Project Handlers", () => {
         });
     });
 });
+
 

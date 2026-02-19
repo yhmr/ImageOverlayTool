@@ -37,7 +37,7 @@ describe("mainI18n", () => {
         vi.clearAllMocks();
 
         mockInstance.language = "en";
-        mockCreateInstance.mockReturnValue(mockInstance as any);
+        mockCreateInstance.mockReturnValue(mockInstance);
         mockInit.mockImplementation(async (options?: { lng?: string }) => {
             mockInstance.language = options?.lng ?? "en";
             return undefined;

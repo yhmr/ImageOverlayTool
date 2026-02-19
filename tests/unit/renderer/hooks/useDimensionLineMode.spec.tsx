@@ -1,27 +1,61 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
+import type Konva from "konva";
+import type { KonvaEventObject } from "konva/lib/Node";
+import type { RefObject } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { useDimensionLineMode } from "@/renderer/hooks/useDimensionLineMode";
 import { useAppStore } from "@/renderer/store/useAppStore";
-import { RefObject } from "react";
-import Konva from "konva";
 
-// Mock Konva Stage
-const mockStage = {
-    getPointerPosition: vi.fn().mockReturnValue({ x: 50, y: 50 }),
-    getAbsoluteTransform: vi.fn().mockReturnValue({
-        copy: vi.fn().mockReturnValue({
+type StagePoint = { x: number; y: number };
+
+type TransformStub = {
+    invert: () => void;
+    point: (value: StagePoint) => StagePoint;
+};
+
+type StageStub = {
+    getPointerPosition: () => StagePoint | null;
+    getAbsoluteTransform: () => {
+        copy: () => TransformStub;
+    };
+};
+
+const mockPoint = vi
+    .fn<(value: StagePoint) => StagePoint>()
+    .mockReturnValue({ x: 100, y: 100 });
+
+const createStageStub = (
+    pointerPosition: StagePoint | null = { x: 50, y: 50 }
+): StageStub => ({
+    getPointerPosition: vi.fn(() => pointerPosition),
+    getAbsoluteTransform: vi.fn(() => ({
+        copy: vi.fn(() => ({
             invert: vi.fn(),
-            point: vi.fn().mockReturnValue({ x: 100, y: 100 }),
-        }),
-    }),
-} as unknown as Konva.Stage;
+            point: mockPoint,
+        })),
+    })),
+});
 
-const stageRef = { current: mockStage } as RefObject<Konva.Stage>;
+const createStageRef = (
+    stage: StageStub | null
+): RefObject<Konva.Stage | null> =>
+    ({ current: stage as unknown as Konva.Stage | null }) as RefObject<
+        Konva.Stage | null
+    >;
 
-// Mock IPCService
+const createStageMouseDownEvent = (
+    button = 0,
+    targetType = "Stage"
+): KonvaEventObject<MouseEvent | TouchEvent> =>
+    ({
+        evt: { button } as MouseEvent,
+        target: { getType: () => targetType },
+    }) as unknown as KonvaEventObject<MouseEvent | TouchEvent>;
+
 const mockIPC = vi.hoisted(() => ({
     updateImageSets: vi.fn(),
     updateUnitFactor: vi.fn(),
@@ -35,26 +69,25 @@ vi.mock("@/renderer/services/ipcService", () => ({
 }));
 
 describe("useDimensionLineMode", () => {
-    const createStageMouseDownEvent = () =>
-        ({
-            evt: { button: 0 },
-            target: { getType: () => "Stage" },
-        }) as any;
-
     beforeEach(() => {
         useAppStore.getState().resetAll();
         vi.clearAllMocks();
+        mockPoint.mockReturnValue({ x: 100, y: 100 });
     });
 
     it("should initialize with default values", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
         expect(result.current.isDimensionMode).toBe(false);
         expect(result.current.dimensionLines).toEqual([]);
         expect(result.current.unitFactor).toBe(1.0);
     });
 
     it("should toggle dimension mode", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
 
         act(() => {
             result.current.setDimensionModeEnabled(true);
@@ -70,21 +103,19 @@ describe("useDimensionLineMode", () => {
     });
 
     it("should commit dimension line on mouse up when in mode", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
-        const mockPoint = mockStage.getAbsoluteTransform().copy().point as any;
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
 
         act(() => {
             result.current.setDimensionModeEnabled(true);
         });
 
-        const mockEvent = createStageMouseDownEvent();
         mockPoint.mockReturnValue({ x: 100, y: 100 });
-
         act(() => {
-            result.current.onMouseDown(mockEvent);
+            result.current.onMouseDown(createStageMouseDownEvent());
         });
 
-        // Draft only: no commit before mouse up
         expect(useAppStore.getState().dimensionLines).toHaveLength(0);
 
         mockPoint.mockReturnValue({ x: 200, y: 200 });
@@ -103,14 +134,14 @@ describe("useDimensionLineMode", () => {
     });
 
     it("should update line on mouse move and handle mouse up", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
-        const mockPoint = mockStage.getAbsoluteTransform().copy().point as any;
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
 
         act(() => {
             result.current.setDimensionModeEnabled(true);
         });
 
-        // 1. Long line (should persist)
         mockPoint.mockReturnValue({ x: 100, y: 100 });
         act(() => {
             result.current.onMouseDown(createStageMouseDownEvent());
@@ -127,7 +158,6 @@ describe("useDimensionLineMode", () => {
 
         expect(useAppStore.getState().dimensionLines).toHaveLength(1);
 
-        // 2. Short line (should be removed)
         act(() => {
             result.current.setDimensionModeEnabled(true);
         });
@@ -136,7 +166,6 @@ describe("useDimensionLineMode", () => {
             result.current.onMouseDown(createStageMouseDownEvent());
         });
 
-        // Distance = 1 (< MIN_DIMENSION_LINE_DISTANCE = 2)
         mockPoint.mockReturnValue({ x: 301, y: 300 });
         act(() => {
             result.current.onMouseMove();
@@ -146,14 +175,14 @@ describe("useDimensionLineMode", () => {
             result.current.onMouseUp();
         });
 
-        // Only the first long line should remain
         expect(useAppStore.getState().dimensionLines).toHaveLength(1);
         expect(useAppStore.getState().interactionMode).toBe("dimension_add");
     });
 
     it("should push undo history only when line is fixed", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
-        const mockPoint = mockStage.getAbsoluteTransform().copy().point as any;
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
 
         useAppStore.temporal.getState().clear();
 
@@ -180,29 +209,27 @@ describe("useDimensionLineMode", () => {
     });
 
     it("should no-op on mousedown for non-stage target and non-left click", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
         act(() => {
             result.current.setDimensionModeEnabled(true);
         });
 
         act(() => {
-            result.current.onMouseDown({
-                evt: { button: 0 },
-                target: { getType: () => "Rect" },
-            } as any);
+            result.current.onMouseDown(createStageMouseDownEvent(0, "Rect"));
         });
         act(() => {
-            result.current.onMouseDown({
-                evt: { button: 1 },
-                target: { getType: () => "Stage" },
-            } as any);
+            result.current.onMouseDown(createStageMouseDownEvent(1, "Stage"));
         });
 
         expect(useAppStore.getState().dimensionLines).toHaveLength(0);
     });
 
     it("should clear selected dimension id when clicking stage in select mode", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
         act(() => {
             useAppStore.getState().setInteractionMode("dimension_select");
             useAppStore.getState().setSelectedDimensionLineId("line-1");
@@ -217,7 +244,9 @@ describe("useDimensionLineMode", () => {
     });
 
     it("should ignore stage click when not in add/select mode", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
         act(() => {
             useAppStore.getState().setInteractionMode("default");
         });
@@ -231,19 +260,8 @@ describe("useDimensionLineMode", () => {
     });
 
     it("should no-op when stage or pointer position is unavailable", () => {
-        const nullStageRef = {
-            current: null,
-        } as unknown as RefObject<Konva.Stage>;
-        const pointerNullStage = {
-            getPointerPosition: vi.fn().mockReturnValue(null),
-            getAbsoluteTransform: vi.fn().mockReturnValue({
-                copy: vi.fn().mockReturnValue({
-                    invert: vi.fn(),
-                    point: vi.fn().mockReturnValue({ x: 0, y: 0 }),
-                }),
-            }),
-        } as unknown as Konva.Stage;
-        const pointerNullRef = { current: pointerNullStage } as RefObject<Konva.Stage>;
+        const nullStageRef = createStageRef(null);
+        const pointerNullRef = createStageRef(createStageStub(null));
 
         const { result: nullStageResult } = renderHook(() =>
             useDimensionLineMode(nullStageRef)
@@ -269,7 +287,9 @@ describe("useDimensionLineMode", () => {
     });
 
     it("should keep draft untouched when moving without an active draft line", () => {
-        const { result } = renderHook(() => useDimensionLineMode(stageRef));
+        const { result } = renderHook(() =>
+            useDimensionLineMode(createStageRef(createStageStub()))
+        );
 
         act(() => {
             result.current.onMouseMove();
@@ -279,4 +299,3 @@ describe("useDimensionLineMode", () => {
         expect(useAppStore.getState().dimensionLines).toHaveLength(0);
     });
 });
-

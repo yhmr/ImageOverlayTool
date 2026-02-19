@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { dialog, crashReporter, app } from "electron";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { app, crashReporter, dialog } from "electron";
+
 import { registerProcessErrorHandlers } from "@/main/bootstrap/lifecycle";
 
-// Electronのモック
 vi.mock("electron", () => ({
     app: {
         on: vi.fn(),
@@ -16,7 +16,6 @@ vi.mock("electron", () => ({
     },
 }));
 
-// loggerのモック
 vi.mock("@/main/logger", () => ({
     default: {
         error: vi.fn(),
@@ -25,23 +24,30 @@ vi.mock("@/main/logger", () => ({
 }));
 
 describe("lifecycle", () => {
-    let processOnSpy: any;
-    let uncaughtExceptionCallback: (error: Error) => void;
-    let unhandledRejectionCallback: (reason: any) => void;
+    let processOnSpy: ReturnType<typeof vi.spyOn>;
+    let uncaughtExceptionCallback: ((error: Error) => void) | null;
+    let unhandledRejectionCallback: ((reason: unknown) => void) | null;
 
     beforeEach(() => {
         vi.clearAllMocks();
+        uncaughtExceptionCallback = null;
+        unhandledRejectionCallback = null;
 
-        // process.on をスパイしてコールバックをキャプチャする
-        processOnSpy = vi.spyOn(process, "on").mockImplementation((event, listener) => {
-            if (event === "uncaughtException") {
-                uncaughtExceptionCallback = listener as any;
-            }
-            if (event === "unhandledRejection") {
-                unhandledRejectionCallback = listener as any;
-            }
-            return process;
-        });
+        processOnSpy = vi
+            .spyOn(process, "on")
+            .mockImplementation(
+                ((event: string | symbol, listener: (...args: unknown[]) => void) => {
+                    if (event === "uncaughtException") {
+                        uncaughtExceptionCallback = listener as (error: Error) => void;
+                    }
+                    if (event === "unhandledRejection") {
+                        unhandledRejectionCallback = listener as (
+                            reason: unknown
+                        ) => void;
+                    }
+                    return process;
+                }) as typeof process.on
+            );
     });
 
     afterEach(() => {
@@ -52,20 +58,29 @@ describe("lifecycle", () => {
         registerProcessErrorHandlers();
 
         expect(crashReporter.start).toHaveBeenCalled();
-        expect(process.on).toHaveBeenCalledWith("uncaughtException", expect.any(Function));
-        expect(process.on).toHaveBeenCalledWith("unhandledRejection", expect.any(Function));
-        expect(app.on).toHaveBeenCalledWith("render-process-gone", expect.any(Function));
-        expect(app.on).toHaveBeenCalledWith("child-process-gone", expect.any(Function));
+        expect(process.on).toHaveBeenCalledWith(
+            "uncaughtException",
+            expect.any(Function)
+        );
+        expect(process.on).toHaveBeenCalledWith(
+            "unhandledRejection",
+            expect.any(Function)
+        );
+        expect(app.on).toHaveBeenCalledWith(
+            "render-process-gone",
+            expect.any(Function)
+        );
+        expect(app.on).toHaveBeenCalledWith(
+            "child-process-gone",
+            expect.any(Function)
+        );
     });
 
     it("should show error dialog on uncaughtException", () => {
         registerProcessErrorHandlers();
 
         const error = new Error("Test Error");
-        // キャプチャしたコールバックを実行
-        if (uncaughtExceptionCallback) {
-            uncaughtExceptionCallback(error);
-        }
+        uncaughtExceptionCallback?.(error);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "An unexpected error occurred",
@@ -77,10 +92,7 @@ describe("lifecycle", () => {
         registerProcessErrorHandlers();
 
         const reason = "Test Rejection Reason";
-        // キャプチャしたコールバックを実行
-        if (unhandledRejectionCallback) {
-            unhandledRejectionCallback(reason);
-        }
+        unhandledRejectionCallback?.(reason);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "An unexpected error occurred",

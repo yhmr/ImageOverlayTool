@@ -3,6 +3,7 @@
  */
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ChangeEvent } from "react";
 import type { ImageSet } from "@/shared/types/ImageSet";
 import { useImageListItemActions } from "@/renderer/image-settings/hooks/useImageListItemActions";
 import { useAppStore } from "@/renderer/store/useAppStore";
@@ -131,12 +132,10 @@ describe("useImageListItemActions", () => {
         );
     });
 
-    it("openFile relink path handles failures and alert exceptions", async () => {
+    it("openFile logs warning when relink fails for missing image", async () => {
         ipcService.loadImage.mockResolvedValue("C:\\new\\img.png");
         ipcService.getImageInfo.mockRejectedValue(new Error("broken"));
-        vi.stubGlobal("alert", vi.fn(() => {
-            throw new Error("alert failed");
-        }));
+        vi.stubGlobal("alert", vi.fn());
 
         const { result } = renderActions({ isMissing: true });
         await act(async () => {
@@ -149,7 +148,36 @@ describe("useImageListItemActions", () => {
         );
     });
 
-    it("guards transparency/rotation/scale/input/reset for invalid conditions", () => {
+    it("openFile swallows alert exceptions when relink fails", async () => {
+        ipcService.loadImage.mockResolvedValue("C:\\new\\img.png");
+        ipcService.getImageInfo.mockRejectedValue(new Error("broken"));
+        vi.stubGlobal(
+            "alert",
+            vi.fn(() => {
+                throw new Error("alert failed");
+            })
+        );
+
+        const { result } = renderActions({ isMissing: true });
+
+        await expect(
+            act(async () => {
+                await result.current.openFile();
+            })
+        ).resolves.toBeUndefined();
+    });
+
+    it("changeTransparency ignores non-finite value", () => {
+        const { result } = renderActions();
+
+        act(() => {
+            result.current.changeTransparency([Number.NaN]);
+        });
+
+        expect(useAppStore.getState().imageSets[0].transparency).toBe(10);
+    });
+
+    it("changeRotation is no-op when currentAnchorPos is missing", () => {
         const imageSet = createImageSet({
             currentAnchorPos: null,
             initAnchorPos: null,
@@ -157,20 +185,66 @@ describe("useImageListItemActions", () => {
         const { result } = renderActions({ imageSet });
 
         act(() => {
-            result.current.changeTransparency([Number.NaN]);
             result.current.changeRotation([40]);
+        });
+
+        expect(useAppStore.getState().imageSets[0].rotation).toBe(5);
+    });
+
+    it("changeScale is no-op when anchors are missing", () => {
+        const imageSet = createImageSet({
+            currentAnchorPos: null,
+            initAnchorPos: null,
+        });
+        const { result } = renderActions({ imageSet });
+
+        act(() => {
             result.current.changeScale([2]);
+        });
+
+        expect(useAppStore.getState().imageSets[0].currentAnchorPos).toBeNull();
+    });
+
+    it("changeRotationInput ignores non-numeric value", () => {
+        const { result } = renderActions();
+
+        act(() => {
             result.current.changeRotationInput({
                 target: { value: "not-number" },
-            } as any);
+            } as unknown as ChangeEvent<HTMLInputElement>);
+        });
+
+        expect(useAppStore.getState().imageSets[0].rotation).toBe(5);
+    });
+
+    it("changeRotationInput is no-op when currentAnchorPos is missing", () => {
+        const imageSet = createImageSet({
+            currentAnchorPos: null,
+            initAnchorPos: null,
+        });
+        const { result } = renderActions({ imageSet });
+
+        act(() => {
             result.current.changeRotationInput({
                 target: { value: "30" },
-            } as any);
+            } as unknown as ChangeEvent<HTMLInputElement>);
+        });
+
+        expect(useAppStore.getState().imageSets[0].rotation).toBe(5);
+    });
+
+    it("resetTransformation is no-op when anchors are missing", () => {
+        const imageSet = createImageSet({
+            currentAnchorPos: null,
+            initAnchorPos: null,
+        });
+        const { result } = renderActions({ imageSet });
+
+        act(() => {
             result.current.resetTransformation();
         });
 
         expect(useAppStore.getState().imageSets[0]).toMatchObject({
-            transparency: 10,
             rotation: 5,
             currentAnchorPos: null,
         });
@@ -198,16 +272,19 @@ describe("useImageListItemActions", () => {
         expect(useAppStore.getState().imageSets[0].visible).toBe(false);
     });
 
-    it("saveCacheImageAs handles non-cache/invalid/canceled/success paths", async () => {
+    it("saveCacheImageAs is no-op for non-cache image", async () => {
         const nonCache = renderActions({
             imageSet: createImageSet({ sourceType: "file" }),
         });
         await act(async () => {
             await nonCache.result.current.saveCacheImageAs();
         });
+
         expect(ipcService.saveCacheImageAs).not.toHaveBeenCalled();
         nonCache.unmount();
+    });
 
+    it("saveCacheImageAs is no-op for invalid local-file path", async () => {
         const invalidPath = renderActions({
             imageSet: createImageSet({
                 sourceType: "cache",
@@ -217,9 +294,12 @@ describe("useImageListItemActions", () => {
         await act(async () => {
             await invalidPath.result.current.saveCacheImageAs();
         });
+
         expect(ipcService.saveCacheImageAs).not.toHaveBeenCalled();
         invalidPath.unmount();
+    });
 
+    it("saveCacheImageAs keeps sourceType cache when dialog is canceled", async () => {
         ipcService.saveCacheImageAs.mockResolvedValueOnce(null);
         const canceled = renderActions({
             imageSet: createImageSet({
@@ -232,7 +312,9 @@ describe("useImageListItemActions", () => {
         });
         expect(useAppStore.getState().imageSets[0].sourceType).toBe("cache");
         canceled.unmount();
+    });
 
+    it("saveCacheImageAs updates path and sourceType on success", async () => {
         ipcService.saveCacheImageAs.mockResolvedValueOnce("C:\\saved\\img.png");
         const success = renderActions({
             imageSet: createImageSet({
@@ -250,15 +332,18 @@ describe("useImageListItemActions", () => {
         success.unmount();
     });
 
-    it("relinkMissingImage handles cancel and failure paths", async () => {
+    it("relinkMissingImage is no-op when loadImage is canceled", async () => {
         ipcService.loadImage.mockResolvedValueOnce(null);
         const canceled = renderActions({ isMissing: true });
         await act(async () => {
             await canceled.result.current.relinkMissingImage();
         });
+
         expect(ipcService.getImageInfo).not.toHaveBeenCalled();
         canceled.unmount();
+    });
 
+    it("relinkMissingImage logs warning when relink fails", async () => {
         ipcService.loadImage.mockResolvedValueOnce("C:\\new\\img.png");
         ipcService.getImageInfo.mockRejectedValueOnce(new Error("relink failed"));
         vi.stubGlobal("alert", vi.fn());

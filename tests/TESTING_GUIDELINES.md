@@ -37,9 +37,10 @@
 ## テスト補助コード配置ルール
 
 1. 単一ファイルでしか使わない helper/mock は、その `*.spec.ts(x)` 内に置く。
-2. 複数ファイルで再利用する helper/mock は `tests/unit/support/` に配置する。
-3. `tests/unit/support/helpers/` は実行補助、`tests/unit/support/mocks/` はテストダブルを置く。
-4. `tests/unit/support/` 配下に `*.spec.ts(x)` は置かない。
+2. unit/integration をまたいで再利用する helper/mock は `tests/support/` に配置する。
+3. unit 内だけで再利用する helper/mock は `tests/unit/support/` に配置する。
+4. `tests/support/helpers/` は実行補助、`tests/unit/support/mocks/` は unit テストダブルを置く。
+5. `tests/support/` と `tests/unit/support/` 配下に `*.spec.ts(x)` は置かない。
 
 ## レビューチェックリスト
 

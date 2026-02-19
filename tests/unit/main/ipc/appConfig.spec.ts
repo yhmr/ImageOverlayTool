@@ -4,7 +4,7 @@ import { registerAppConfigHandlers } from "@/main/ipc/appConfig";
 import { MockSettingsRepository } from "../../support/mocks/repositories/MockSettingsRepository";
 import { MockWindowRepository } from "../../support/mocks/repositories/MockWindowRepository";
 import { SettingType } from "@/shared/types/AppConfig";
-import { invokeIpcHandler } from "../../support/helpers/ipcTestHelper";
+import { invokeIpcHandler } from "../../../support/helpers/ipcTestHelper";
 import { setLogLevel } from "@/main/logger";
 import { initializeMainI18n } from "@/i18n/mainI18n";
 import { IPC_EVENTS } from "@/shared/ipc/channels";
@@ -291,4 +291,5 @@ describe("IPC AppConfig Handlers", () => {
         });
     });
 });
+
 
