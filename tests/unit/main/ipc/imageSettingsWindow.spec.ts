@@ -59,7 +59,7 @@ describe("imageSettingsWindow IPC handlers", () => {
     const windowManagerMock = {
         toggleImageSettingsWindow: vi.fn(() => true),
         toggleDimensionSettingsWindow: vi.fn(() => true),
-        getAllWindows: vi.fn(() => []),
+        getAllWindows: vi.fn((): any[] => []),
         setProjectDirty: vi.fn(),
     };
 
@@ -431,7 +431,7 @@ describe("imageSettingsWindow IPC handlers", () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: true,
-            filePath: undefined,
+            filePath: "",
         });
 
         const result = await invokeIpcHandler(
@@ -448,7 +448,7 @@ describe("imageSettingsWindow IPC handlers", () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: false,
-            filePath: undefined,
+            filePath: "",
         });
 
         const result = await invokeIpcHandler(
@@ -517,7 +517,7 @@ describe("imageSettingsWindow IPC handlers", () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
             canceled: true,
-            filePath: undefined,
+            filePath: "",
         });
 
         await invokeIpcHandler(

@@ -497,11 +497,11 @@ describe("WindowManager", () => {
             throw new Error("registeredCallback should be set");
         }
 
-        registeredCallback();
+        (registeredCallback as () => void)();
 
         const mainWindow = windowManager.createMainWindow() as any;
         mainWindow.__setDestroyed(true);
-        registeredCallback();
+        (registeredCallback as () => void)();
 
         expect(mainWindow.webContents.send).not.toHaveBeenCalled();
     });

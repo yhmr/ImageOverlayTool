@@ -210,7 +210,7 @@ describe("IPC AppConfig Handlers", () => {
         it("should return null when export dialog is canceled", async () => {
             showSaveDialog.mockResolvedValueOnce({
                 canceled: true,
-                filePath: undefined,
+                filePath: "",
             });
 
             const result = await invokeIpcHandler("setting:export", {
@@ -269,13 +269,14 @@ describe("IPC AppConfig Handlers", () => {
             );
             vi.spyOn(mockSettingsRepo, "loadSettings").mockResolvedValueOnce({
                 language: "ja",
+                logLevel: "",
             });
 
             const loaded = await invokeIpcHandler("setting:import", {
                 sender: {},
             });
 
-            expect(loaded).toEqual({ language: "ja" });
+            expect(loaded).toEqual({ language: "ja", logLevel: "" });
             expect(setLogLevel).not.toHaveBeenCalled();
             expect(initializeMainI18n).toHaveBeenCalledWith("ja");
         });

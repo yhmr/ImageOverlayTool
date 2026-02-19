@@ -231,7 +231,9 @@ describe("useDimensionLineMode", () => {
     });
 
     it("should no-op when stage or pointer position is unavailable", () => {
-        const nullStageRef = { current: null } as RefObject<Konva.Stage>;
+        const nullStageRef = {
+            current: null,
+        } as unknown as RefObject<Konva.Stage>;
         const pointerNullStage = {
             getPointerPosition: vi.fn().mockReturnValue(null),
             getAbsoluteTransform: vi.fn().mockReturnValue({

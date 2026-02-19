@@ -156,6 +156,7 @@ describe("captureService", () => {
             { display_id: "1", thumbnail },
         ] as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: false,
             filePath: "C:/tmp/out.png",
         });
 
@@ -221,6 +222,7 @@ describe("captureService", () => {
             },
         ] as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: false,
             filePath: "C:/tmp/out.jpg",
         });
 
@@ -284,6 +286,7 @@ describe("captureService", () => {
             { display_id: "10", thumbnail },
         ] as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: false,
             filePath: "C:/tmp/out.png",
         });
 
@@ -323,6 +326,7 @@ describe("captureService", () => {
             },
         ] as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: false,
             filePath: "C:/tmp/out.png",
         });
 
@@ -365,7 +369,8 @@ describe("captureService", () => {
             },
         ] as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
-            filePath: undefined,
+            canceled: true,
+            filePath: "",
         });
 
         const capturePromise = captureWindowAreaAndSave(
@@ -438,7 +443,8 @@ describe("captureService", () => {
     it("saveDataUrlImage returns null when user cancels save dialog", async () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
-            filePath: undefined,
+            canceled: true,
+            filePath: "",
         });
 
         const result = await saveDataUrlImage(
@@ -454,6 +460,7 @@ describe("captureService", () => {
         const jpegBuffer = Buffer.from("jpeg");
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(ownerWindow as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: false,
             filePath: "C:/tmp/output.jpeg",
         });
         vi.mocked(nativeImage.createFromDataURL).mockReturnValue({
@@ -478,6 +485,7 @@ describe("captureService", () => {
         const pngBuffer = Buffer.from("png");
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue({} as any);
         vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: false,
             filePath: "C:/tmp/output.png",
         });
         vi.mocked(nativeImage.createFromDataURL).mockReturnValue({

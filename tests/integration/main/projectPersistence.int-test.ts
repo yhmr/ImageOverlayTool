@@ -97,7 +97,9 @@ describe("Main integration: project persistence", () => {
         };
 
         await repository.saveProject(projectFilePath, project);
-        const loaded = await repository.loadProject(projectFilePath);
+        const loaded = (await repository.loadProject(
+            projectFilePath
+        )) as ProjectFile<ImageSet>;
 
         expect(loaded).toEqual(project);
     });
@@ -147,7 +149,9 @@ describe("Main integration: project persistence", () => {
             "utf-8"
         );
 
-        const loaded = await repository.loadProject(projectFilePath);
+        const loaded = (await repository.loadProject(
+            projectFilePath
+        )) as ProjectFile<ImageSet>;
 
         expect(loaded.version).toBe("1.0.0");
         expect(loaded.window).toEqual({

@@ -86,12 +86,12 @@ describe("mainI18n", () => {
     });
 
     it("reuses single initPromise for concurrent initialization calls", async () => {
-        let resolveInit: (() => void) | null = null;
+        let resolveInit: () => void = () => {};
         mockInit.mockImplementation(
             (options?: { lng?: string }) =>
                 new Promise<void>((resolve) => {
                     mockInstance.language = options?.lng ?? "en";
-                    resolveInit = resolve;
+                    resolveInit = () => resolve();
                 })
         );
 
@@ -100,7 +100,7 @@ describe("mainI18n", () => {
         const p2 = initializeMainI18n("ja");
 
         expect(mockInit).toHaveBeenCalledTimes(1);
-        resolveInit?.();
+        resolveInit();
         await Promise.all([p1, p2]);
 
         expect(mockChangeLanguage).toHaveBeenCalledWith("ja");

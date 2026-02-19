@@ -60,7 +60,9 @@ describe("clipboardCacheService", () => {
 
     it("saveClipboardImageToCache stores image as png with deterministic name", async () => {
         vi.spyOn(Date, "now").mockReturnValue(1700000000000);
-        vi.spyOn(crypto, "randomUUID").mockReturnValue("uuid-1");
+        vi.spyOn(crypto, "randomUUID").mockReturnValue(
+            "00000000-0000-4000-8000-000000000001"
+        );
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
         vi.mocked(fs.writeFile).mockResolvedValue(undefined as any);
 
@@ -72,7 +74,7 @@ describe("clipboardCacheService", () => {
 
         const expectedPath = path.join(
             cacheDir,
-            "clipboard-1700000000000-uuid-1.png"
+            "clipboard-1700000000000-00000000-0000-4000-8000-000000000001.png"
         );
         expect(fs.writeFile).toHaveBeenCalledWith(expectedPath, pngBuffer);
         expect(result).toBe(expectedPath);
