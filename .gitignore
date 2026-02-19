@@ -60,7 +60,6 @@ patches/mtime-cache.json
 
 spec/fixtures/logo.png
 
-coverage/
 test-results/
 
 # Hugo

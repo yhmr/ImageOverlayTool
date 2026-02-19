@@ -31,9 +31,9 @@ export default defineConfig({
         exclude: ['**/node_modules/**'],
         coverage: {
             provider: 'v8',
-            enabled: true,
+            enabled: false,
             reporter: ['text', 'json', 'html'],
-            reportsDirectory: './coverage',
+            reportsDirectory: './test-results/coverage-unit',
             exclude: ['**/node_modules/**', '**/dist/**', '**/out/**', '**/*.d.ts', '**/tests/**'],
         },
     },

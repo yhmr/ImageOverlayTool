@@ -35,7 +35,7 @@ export default defineConfig({
             provider: 'v8',
             enabled: true,
             reporter: ['text', 'json', 'html'],
-            reportsDirectory: './coverage',
+            reportsDirectory: './test-results/coverage',
             exclude: ['**/node_modules/**', '**/dist/**', '**/out/**', '**/*.d.ts', '**/tests/**'],
         },
     },
