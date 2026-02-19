@@ -63,7 +63,7 @@ vi.mock("@/renderer/services/ipcService", () => ({
     setIPCService: vi.fn(),
 }));
 
-describe("Renderer integration: image add -> settings change -> save", () => {
+describe("Renderer workflow: image add -> settings change -> save", () => {
     beforeEach(() => {
         useAppStore.getState().resetAll();
         vi.clearAllMocks();
