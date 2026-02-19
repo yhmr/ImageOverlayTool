@@ -24,7 +24,7 @@ To reduce turnaround time, include:
 
 ## How to Export Logs
 
-Use the app's log export function and attach the exported file when reporting issues.
+Use "Export Logs" from the menu (shortcut: `Ctrl+Shift+L`) to export log files, and attach them when reporting issues.
 
 ## Issue Categories
 

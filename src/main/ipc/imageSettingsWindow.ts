@@ -25,6 +25,7 @@ import {
     isManagedClipboardCachePath,
     saveClipboardImageToCache,
 } from "../services/clipboardCacheService";
+import { fromLocalFileUrl } from "../../shared/utils/localFileUrl";
 
 const resolveLocalFilePath = (value: string): string | null => {
     const isAbsoluteFilesystemPath = (targetPath: string): boolean =>
@@ -35,24 +36,12 @@ const resolveLocalFilePath = (value: string): string | null => {
     }
 
     if (value.startsWith("local-file://")) {
-        try {
-            const url = new URL(value);
-            let resolvedPath = decodeURIComponent(`${url.host}${url.pathname}`);
-            if (/^\/[a-zA-Z]:\//.test(resolvedPath)) {
-                resolvedPath = resolvedPath.slice(1);
-            } else if (/^[a-zA-Z]\//.test(resolvedPath)) {
-                resolvedPath =
-                    resolvedPath.charAt(0).toUpperCase() +
-                    ":" +
-                    resolvedPath.slice(1);
-            }
-            const normalizedPath = path.normalize(resolvedPath);
-            return isAbsoluteFilesystemPath(normalizedPath)
-                ? normalizedPath
-                : null;
-        } catch {
+        const parsed = fromLocalFileUrl(value);
+        if (!parsed) {
             return null;
         }
+        const normalizedPath = path.normalize(parsed);
+        return isAbsoluteFilesystemPath(normalizedPath) ? normalizedPath : null;
     }
 
     const normalizedPath = path.normalize(value);
@@ -317,10 +306,11 @@ export const registerImageSettingsWindowHandlers = (
             }
 
             const ownerWindow = BrowserWindow.fromWebContents(event.sender);
-            const extension = path.win32.extname(cacheFilePath) || ".png";
+            const extension = path.extname(cacheFilePath) || ".png";
             const fallbackName = `pasted-image${extension}`;
+            const baseName = path.basename(cacheFilePath);
             const defaultName =
-                path.win32.basename(cacheFilePath) || fallbackName;
+                baseName && path.extname(baseName) ? baseName : fallbackName;
 
             const options = {
                 title: "Save Image",

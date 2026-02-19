@@ -7,7 +7,6 @@
         "menu": "メニュー",
         "close": "閉じる"
     },
-    "main": {},
     "render": {
         "menu": {
             "group_project": "プロジェクト",

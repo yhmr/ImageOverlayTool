@@ -68,6 +68,8 @@ export const useProjectSync = () => {
             const currentUnit = useAppStore.getState().unit;
             const currentInteractionMode =
                 useAppStore.getState().interactionMode;
+            const currentSelectedImageId =
+                useAppStore.getState().selectedImageId;
             const currentSelectedDimensionLineId =
                 useAppStore.getState().selectedDimensionLineId;
 
@@ -76,6 +78,7 @@ export const useProjectSync = () => {
             ipcService.updateUnitFactor(currentUnitFactor);
             ipcService.updateUnit(currentUnit);
             ipcService.updateInteractionMode(currentInteractionMode);
+            ipcService.updateSelectedImageId(currentSelectedImageId);
             ipcService.updateSelectedDimensionLineId(
                 currentSelectedDimensionLineId
             );

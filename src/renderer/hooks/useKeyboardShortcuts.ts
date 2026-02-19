@@ -74,6 +74,9 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
         const isCtrlOrMeta = (event: KeyboardEvent): boolean =>
             event.ctrlKey || event.metaKey;
 
+        // NOTE: event.key.toLowerCase() はShift+アルファベットでは正しく動作するが、
+        // Shift+記号キーでは event.key の値が変わる（例: Shift+"," → "<"）。
+        // 将来 Shift+記号系のショートカットを追加する場合は event.code ベースへの変更を検討すること。
         const matchesShortcut = (
             event: KeyboardEvent,
             config: {

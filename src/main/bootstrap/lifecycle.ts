@@ -3,6 +3,13 @@ import { app, crashReporter, dialog } from "electron";
 import log from "../logger";
 import type { WindowManager } from "../windows/windowManager";
 
+/**
+ * プロセスレベルのエラーハンドラを登録する。
+ *
+ * このハンドラは i18n 初期化より先に登録されるため、
+ * 翻訳には依存せずハードコードの英語テキストを使用する。
+ * 起動直後のクラッシュでもユーザーに意味のあるメッセージを表示するための設計判断。
+ */
 export const registerProcessErrorHandlers = (): void => {
     crashReporter.start({
         productName: "ImageOverlayTool",
@@ -16,7 +23,7 @@ export const registerProcessErrorHandlers = (): void => {
         log.error("Uncaught Exception:", error);
         dialog.showErrorBox(
             "An unexpected error occurred",
-            `A critical error occurred in the main process:\n\n${error.message}\n\nplease copy this message and report it to the developer.`
+            `A critical error occurred in the main process:\n\n${error.message}\n\nPlease copy this message and report it to the developer.`
         );
     });
 
@@ -24,7 +31,9 @@ export const registerProcessErrorHandlers = (): void => {
         log.error("Unhandled Rejection:", reason);
         dialog.showErrorBox(
             "An unexpected error occurred",
-            `An unhandled rejection occurred in the main process:\n\n${reason}\n\nplease copy this message and report it to the developer.`
+            `An unhandled rejection occurred in the main process:\n\n${String(
+                reason
+            )}\n\nPlease copy this message and report it to the developer.`
         );
     });
 

@@ -7,7 +7,6 @@
         "menu": "Menu",
         "close": "Close"
     },
-    "main": {},
     "render": {
         "menu": {
             "group_project": "Project",

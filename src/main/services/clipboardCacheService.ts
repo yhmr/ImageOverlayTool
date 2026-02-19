@@ -126,18 +126,22 @@ export const cleanupClipboardCache = async (): Promise<void> => {
         }
     }
 
-    for (const file of files) {
-        if (now - file.mtimeMs <= MAX_CACHE_AGE_MS) {
-            continue;
-        }
-        await deleteClipboardCacheFileIfManaged(file.filePath);
-    }
+    // 期限切れファイルを並列削除
+    const expiredFiles = files.filter(
+        (file) => now - file.mtimeMs > MAX_CACHE_AGE_MS
+    );
+    await Promise.allSettled(
+        expiredFiles.map((file) =>
+            deleteClipboardCacheFileIfManaged(file.filePath)
+        )
+    );
 
     const remainingFiles = files
         .filter((file) => now - file.mtimeMs <= MAX_CACHE_AGE_MS)
         .sort((a, b) => a.mtimeMs - b.mtimeMs);
     let totalBytes = remainingFiles.reduce((sum, file) => sum + file.size, 0);
 
+    // サイズ超過分は古い順に削除（順序依存のため直列）
     for (const file of remainingFiles) {
         if (totalBytes <= MAX_CACHE_SIZE_BYTES) {
             break;

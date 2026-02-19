@@ -73,6 +73,7 @@ const mockIPC = vi.hoisted(() => ({
     updateUnitFactor: vi.fn(),
     updateUnit: vi.fn(),
     updateInteractionMode: vi.fn(),
+    updateSelectedImageId: vi.fn(),
     updateSelectedDimensionLineId: vi.fn(),
 }));
 
@@ -196,6 +197,7 @@ describe("useProjectSync", () => {
                 unitFactor: 3.2,
                 unit: "mm",
                 interactionMode: "dimension_select",
+                selectedImageId: "img-1",
                 selectedDimensionLineId: "line-1",
             });
         });
@@ -220,6 +222,7 @@ describe("useProjectSync", () => {
         expect(mockIPC.updateInteractionMode).toHaveBeenCalledWith(
             "dimension_select"
         );
+        expect(mockIPC.updateSelectedImageId).toHaveBeenCalledWith("img-1");
         expect(mockIPC.updateSelectedDimensionLineId).toHaveBeenCalledWith(
             "line-1"
         );

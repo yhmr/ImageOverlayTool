@@ -2,6 +2,11 @@ import UUID from "uuidjs";
 
 import type { AnchorPos } from "../../shared/types/AnchorPos";
 import type { ImageSet } from "../../shared/types/ImageSet";
+export {
+    toLocalFileUrl,
+    fromLocalFileUrl,
+} from "../../shared/utils/localFileUrl";
+import { toLocalFileUrl } from "../../shared/utils/localFileUrl";
 
 type ImageSetFactoryOptions = {
     id?: string;
@@ -14,31 +19,6 @@ type ImageSetFactoryOptions = {
     locked?: boolean;
     visible?: boolean;
     filters?: ImageSet["filters"];
-};
-
-export const toLocalFileUrl = (filePath: string): string =>
-    `local-file://${filePath.replace(/\\/g, "/")}`;
-
-export const fromLocalFileUrl = (value: string): string | null => {
-    if (!value || typeof value !== "string") {
-        return null;
-    }
-    if (!value.startsWith("local-file://")) {
-        return null;
-    }
-
-    try {
-        const url = new URL(value);
-        let resolvedPath = decodeURIComponent(`${url.host}${url.pathname}`);
-        if (/^\/[a-zA-Z]:\//.test(resolvedPath)) {
-            resolvedPath = resolvedPath.slice(1);
-        } else if (/^[a-zA-Z]\//.test(resolvedPath)) {
-            resolvedPath = resolvedPath.charAt(0) + ":" + resolvedPath.slice(1);
-        }
-        return resolvedPath;
-    } catch {
-        return null;
-    }
 };
 
 export const createImageSet = (
