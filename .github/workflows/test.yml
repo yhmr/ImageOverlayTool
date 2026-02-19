@@ -31,3 +31,13 @@ jobs:
 
       - name: Run tests
         run: pnpm run test
+
+      - name: Run benchmark compare
+        run: pnpm run bench:compare
+
+      - name: Upload benchmark latest result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-latest
+          path: test-results/bench/latest.json

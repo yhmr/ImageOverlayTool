@@ -70,6 +70,13 @@ pnpm run test:unit
 # 結合テストのみ
 pnpm run test:integration
 
+# パフォーマンスベンチ（Vitest bench）
+pnpm run bench
+pnpm run bench:renderer
+pnpm run bench:main
+pnpm run bench:baseline
+pnpm run bench:compare
+
 # E2Eテスト
 pnpm run test:e2e
 
@@ -78,6 +85,16 @@ pnpm run test:e2e:screenshots
 ```
 
 - テスト作法の基準は `tests/TESTING_GUIDELINES.md` を参照
+
+### ベンチ運用フロー
+
+- bench:compare（baselineとの比較）のタイミング
+  - PR作成前など
+  - CI（`main` への push / PR）
+  - 最適化作業中
+- bench:baseline（baseline更新）のタイミング
+  - 最適化を意図して性能が変わったとき
+  - 仕様変更により計測対象の処理量そのものが変わったとき
 
 ### テストセレクタ（data-testid）規約
 
@@ -147,6 +164,7 @@ electron-vite の標準的な構成に基づき、コードの分離を行って
 │   └── i18n/           # 多言語対応リソース
 │
 ├── tests/          # テストコード（Vitest）
+│   ├── bench/          # パフォーマンスベンチ（*.bench.ts / *.bench.tsx）
 │   ├── unit/           # 単体テスト（*.spec.ts / *.spec.tsx）
 │   │   ├── main/
 │   │   └── renderer/
