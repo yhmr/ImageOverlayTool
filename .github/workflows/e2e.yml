@@ -16,23 +16,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Browsers
-        run: npx playwright install
+        run: pnpm exec playwright install
 
       - name: Build Application
-        run: npm run build
+        run: pnpm run build
 
       - name: Run Playwright smoke tests
-        run: npm run test:e2e:smoke
+        run: pnpm run test:e2e:smoke
 
       - name: Upload Playwright artifacts (windows-smoke)
         if: failure()
@@ -52,23 +55,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
 
       - name: Build Application
-        run: npm run build
+        run: pnpm run build
 
       - name: Run Playwright smoke tests
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e:smoke
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- pnpm run test:e2e:smoke
 
       - name: Upload Playwright artifacts (smoke)
         if: failure()
@@ -88,23 +94,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Browsers
-        run: npx playwright install
+        run: pnpm exec playwright install
 
       - name: Build Application
-        run: npm run build
+        run: pnpm run build
 
       - name: Run Playwright full suite
-        run: npm run test:e2e
+        run: pnpm run test:e2e
 
       - name: Upload Playwright artifacts (full)
         if: failure()

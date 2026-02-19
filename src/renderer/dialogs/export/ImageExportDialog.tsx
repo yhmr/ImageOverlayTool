@@ -1,0 +1,86 @@
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/renderer/components/ui/dialog";
+import { Button } from "@/renderer/components/ui/button";
+import { useTranslation } from "react-i18next";
+import { Label } from "@/renderer/components/ui/label";
+import { Switch } from "@/renderer/components/ui/switch";
+import { useState } from "react";
+
+interface ImageExportDialogProps {
+    open: boolean;
+    onClose: () => void;
+    onExport: (includeBackground: boolean) => void;
+}
+
+export function ImageExportDialog({
+    open,
+    onClose,
+    onExport,
+}: ImageExportDialogProps) {
+    const { t } = useTranslation();
+    const [includeBackground, setIncludeBackground] = useState(false);
+
+    const exportAndClose = () => {
+        onExport(includeBackground);
+        onClose();
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>{t("render.export_dialog.title")}</DialogTitle>
+                    <DialogDescription>
+                        {t("render.export_dialog.description")}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="flex items-center justify-between space-x-2">
+                        <Label
+                            htmlFor="include-background"
+                            className="flex flex-col space-y-1"
+                        >
+                            <span>
+                                {t(
+                                    "render.export_dialog.option.include_background"
+                                )}
+                            </span>
+                            <span className="font-normal text-xs text-muted-foreground">
+                                {t(
+                                    "render.export_dialog.option.include_background_desc"
+                                )}
+                            </span>
+                        </Label>
+                        <Switch
+                            id="include-background"
+                            checked={includeBackground}
+                            onCheckedChange={setIncludeBackground}
+                            data-testid="main.export.include-background"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button
+                        variant="outline"
+                        onClick={onClose}
+                        data-testid="main.export.cancel"
+                    >
+                        {t("common.cancel")}
+                    </Button>
+                    <Button
+                        onClick={exportAndClose}
+                        data-testid="main.export.save"
+                    >
+                        {t("common.save")}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}

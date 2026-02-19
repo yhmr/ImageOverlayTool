@@ -1,9 +1,12 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type { SettingType } from "../shared/types/AppConfig";
 
 import type { ProjectFile } from "../shared/types/ProjectFile";
 import type { ImageSet } from "../shared/types/ImageSet";
+import type { ImageInfoResult } from "../shared/types/ImageInfo";
+import type { DimensionLine } from "../shared/types/DimensionLine";
 import { IPC_CHANNELS, IPC_EVENTS } from "../shared/ipc/channels";
+import type { InteractionMode } from "../shared/types/InteractionMode";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -47,6 +50,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
         width: number;
         height: number;
     }) => ipcRenderer.invoke(IPC_CHANNELS.window.setRect, rect),
+    setIgnoreMouseEvents: (ignore: boolean) =>
+        ipcRenderer.invoke(IPC_CHANNELS.window.setIgnoreMouseEvents, ignore),
+    setAlwaysOnTop: (enabled: boolean) =>
+        ipcRenderer.invoke(IPC_CHANNELS.window.setAlwaysOnTop, enabled),
     closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.window.close),
     // Setting
     loadSetting: () => ipcRenderer.invoke(IPC_CHANNELS.setting.load),
@@ -64,6 +71,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
                 subscription
             );
     },
+    onClickThroughShortcutTriggered: (callback: () => void) => {
+        const subscription = () => callback();
+        ipcRenderer.on(IPC_EVENTS.clickThroughShortcutTriggered, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.clickThroughShortcutTriggered,
+                subscription
+            );
+    },
     // Window Color
     loadWindowColor: () =>
         ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorLoad),
@@ -72,16 +88,49 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Project
     saveProjectAs: (project: ProjectFile) =>
         ipcRenderer.invoke(IPC_CHANNELS.project.saveAs, project),
-    saveProject: (filePath: string, project: ProjectFile) =>
-        ipcRenderer.invoke(IPC_CHANNELS.project.save, { filePath, project }),
+    saveProject: (
+        filePath: string,
+        project: ProjectFile,
+        cacheImagePathsToDelete?: string[]
+    ) =>
+        ipcRenderer.invoke(IPC_CHANNELS.project.save, {
+            filePath,
+            project,
+            cacheImagePathsToDelete,
+        }),
+    pickProjectSavePath: () =>
+        ipcRenderer.invoke(IPC_CHANNELS.project.pickSavePath),
+    materializeCacheImages: (
+        projectFilePath: string,
+        cacheImagePaths: string[]
+    ): Promise<Record<string, string>> =>
+        ipcRenderer.invoke(IPC_CHANNELS.project.materializeCacheImages, {
+            projectFilePath,
+            cacheImagePaths,
+        }),
     loadProject: () => ipcRenderer.invoke(IPC_CHANNELS.project.load),
     loadProjectFromPath: (filePath: string) =>
         ipcRenderer.invoke(IPC_CHANNELS.project.loadFromPath, filePath),
     // Image Settings Window
     loadImage: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.loadImage),
+    getImageInfo: (imagePath: string): Promise<ImageInfoResult> =>
+        ipcRenderer.invoke(
+            IPC_CHANNELS.imageSettingsWindow.getImageInfo,
+            imagePath
+        ),
+    pasteImage: (): Promise<string | null> =>
+        ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.pasteImage),
+    saveCacheImageAs: (cacheFilePath: string): Promise<string | null> =>
+        ipcRenderer.invoke(
+            IPC_CHANNELS.imageSettingsWindow.saveCacheImageAs,
+            cacheFilePath
+        ),
+    getPathForFile: (file: File) => webUtils.getPathForFile(file),
     toggleImageSettingsWindow: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.toggle),
+    toggleDimensionSettingsWindow: () =>
+        ipcRenderer.invoke(IPC_CHANNELS.dimensionSettingsWindow.toggle),
     // ImageSets Sync
     updateImageSets: (imageSets: ImageSet[]) =>
         ipcRenderer.invoke(IPC_CHANNELS.sync.updateImageSets, imageSets),
@@ -95,6 +144,26 @@ contextBridge.exposeInMainWorld("electronAPI", {
                 subscription
             );
     },
+    // DimensionLines Sync
+    updateDimensionLines: (dimensionLines: DimensionLine[]) =>
+        ipcRenderer.invoke(
+            IPC_CHANNELS.sync.updateDimensionLines,
+            dimensionLines
+        ),
+    onDimensionLinesUpdated: (
+        callback: (dimensionLines: DimensionLine[]) => void
+    ) => {
+        const subscription = (
+            _event: unknown,
+            dimensionLines: DimensionLine[]
+        ) => callback(dimensionLines);
+        ipcRenderer.on(IPC_EVENTS.dimensionLinesUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.dimensionLinesUpdated,
+                subscription
+            );
+    },
     // Unit sync
     updateUnit: (unit: "nm" | "um" | "mm") =>
         ipcRenderer.invoke(IPC_CHANNELS.sync.updateUnit, unit),
@@ -104,6 +173,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.on(IPC_EVENTS.unitUpdated, subscription);
         return () =>
             ipcRenderer.removeListener(IPC_EVENTS.unitUpdated, subscription);
+    },
+    // Interaction Mode sync
+    updateInteractionMode: (mode: InteractionMode) =>
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateInteractionMode, mode),
+    onInteractionModeUpdated: (callback: (mode: InteractionMode) => void) => {
+        const subscription = (_event: unknown, mode: InteractionMode) =>
+            callback(mode);
+        ipcRenderer.on(IPC_EVENTS.interactionModeUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.interactionModeUpdated,
+                subscription
+            );
     },
     // Unit Factor Sync
     updateUnitFactor: (unitFactor: number) =>
@@ -128,6 +210,20 @@ contextBridge.exposeInMainWorld("electronAPI", {
         return () =>
             ipcRenderer.removeListener(
                 IPC_EVENTS.selectedImageIdUpdated,
+                subscription
+            );
+    },
+    updateSelectedDimensionLineId: (id: string | null) =>
+        ipcRenderer.invoke(IPC_CHANNELS.sync.updateSelectedDimensionLineId, id),
+    onSelectedDimensionLineIdUpdated: (
+        callback: (id: string | null) => void
+    ) => {
+        const subscription = (_event: unknown, id: string | null) =>
+            callback(id);
+        ipcRenderer.on(IPC_EVENTS.selectedDimensionLineIdUpdated, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.selectedDimensionLineIdUpdated,
                 subscription
             );
     },

@@ -9,6 +9,8 @@ export interface ImageSet {
     id: string;
     /** 画像ファイルパス */
     path: string;
+    /** 画像ソース種別（未定義は通常ファイル扱い） */
+    sourceType?: "file" | "cache";
     /** 透過度 (0-100) */
     transparency: number;
     /** 回転角度 (度) */

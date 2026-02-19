@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Settings2,
-    Scaling,
+    Ruler,
     Camera,
     Save,
     Droplets,
+    Ghost,
     Plus,
     X,
 } from "lucide-react";
@@ -18,45 +19,26 @@ import {
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
 import { cn } from "@/renderer/lib/utils";
-import { useCapture } from "../../hooks/useCapture";
-import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
-import { ColorPicker } from "./ColorPicker";
+import type { MainWindowActions } from "../hooks/useMainWindowActions";
 
 interface ControlButtonProps {
-    isDimensionMode: boolean;
-    onToggleDimensionMode: () => void;
-    onOpenExportDialog: () => void;
+    onOpenImageExportDialog: () => void;
+    onOpenWindowColorPicker: () => void;
+    mainWindowActions: MainWindowActions;
 }
 
 export function ControlButton(props: ControlButtonProps) {
-    const { isDimensionMode, onToggleDimensionMode, onOpenExportDialog } =
-        props;
+    const {
+        onOpenImageExportDialog,
+        onOpenWindowColorPicker,
+        mainWindowActions,
+    } = props;
     const { t } = useTranslation();
-    const { captureBackground } = useCapture();
-    const { isUIHidden, windowColor, setWindowColor } = useAppStore();
-    const ipcService = useIpcService();
-    const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
+    const isUIHidden = useAppStore((state) => state.isUIHidden);
+    const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
 
-    const toggleMenu = () => setIsOpen((prev) => !prev);
-
-    // 画像設定ウィンドウを開く
-    const openImageSettings = async () => {
-        await ipcService.toggleImageSettingsWindow();
-    };
-
-    const openWindowColorPicker = () => {
-        setIsColorPickerOpen(true);
-    };
-
-    const saveWindowColor = () => {
-        void ipcService.saveWindowColor(windowColor);
-    };
-
-    const changeWindowColor = (color: string) => {
-        setWindowColor(color);
-    };
+    const toggleFabMenu = () => setIsFabMenuOpen((prev) => !prev);
 
     if (isUIHidden) return null;
 
@@ -64,69 +46,67 @@ export function ControlButton(props: ControlButtonProps) {
     const menuItems = [
         // Group A: 表示・設定系
         {
-            id: "scaling",
-            icon: Scaling,
+            id: "dimension-settings",
+            icon: Ruler,
             label: t("render.control_button.tooltip.dimension_line"),
-            onClick: onToggleDimensionMode,
-            isActive: isDimensionMode,
-            activeClass:
-                "bg-primary text-primary-foreground hover:bg-primary/90",
+            onClick: mainWindowActions.openDimensionSettingsWindow,
         },
         {
             id: "image-settings",
             icon: Settings2,
-            label: t(
-                "render.control_button.tooltip.image_settings",
-                "画像設定 (Ctrl+I)"
-            ),
-            onClick: openImageSettings,
+            label: t("render.control_button.tooltip.image_settings"),
+            onClick: mainWindowActions.openImageSettingsWindow,
         },
         {
             id: "background-style",
             icon: Droplets,
-            label: t(
-                "render.control_button.tooltip.background_style",
-                "背景色/透過度"
-            ),
-            onClick: openWindowColorPicker,
+            label: t("render.control_button.tooltip.background_style"),
+            onClick: onOpenWindowColorPicker,
+        },
+        {
+            id: "click-through-mode",
+            icon: Ghost,
+            label: t("render.control_button.tooltip.click_through_mode"),
+            onClick: mainWindowActions.toggleClickThroughMode,
+            isActive: mainWindowActions.isClickThroughMode,
+            activeClass:
+                "bg-primary text-primary-foreground hover:bg-primary/90",
         },
         // Group B: アクション・保存系
         {
             id: "capture",
             icon: Camera,
-            label: t(
-                "render.control_button.tooltip.capture",
-                "背景をキャプチャ"
-            ),
-            onClick: captureBackground,
+            label: t("render.control_button.tooltip.capture"),
+            onClick: mainWindowActions.captureBackground,
             separatorBefore: true, // 区切り線用フラグ
         },
         {
             id: "export",
             icon: Save,
-            label: t("render.control_button.tooltip.save", "画像を保存"),
-            onClick: onOpenExportDialog,
+            label: t("render.control_button.tooltip.save"),
+            onClick: onOpenImageExportDialog,
         },
     ];
 
     return (
         <TooltipProvider>
-            <div className="contents">
+            <div className="contents" data-clickthrough-allow>
                 {/* メニュー展開ボタン */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
                             variant="secondary"
-                            onClick={toggleMenu}
+                            onClick={toggleFabMenu}
                             className={cn(
                                 "absolute bottom-9 right-4 h-12 w-12 rounded-full shadow-lg transition-all duration-300 z-50",
-                                isOpen
+                                isFabMenuOpen
                                     ? "bg-muted rotate-90"
                                     : "bg-background/80 hover:bg-background/90 backdrop-blur-sm"
                             )}
                             data-testid="main.fab.menu-toggle"
+                            data-clickthrough-allow
                         >
-                            {isOpen ? (
+                            {isFabMenuOpen ? (
                                 <X className="h-6 w-6" />
                             ) : (
                                 <Plus className="h-6 w-6" />
@@ -135,9 +115,9 @@ export function ControlButton(props: ControlButtonProps) {
                     </TooltipTrigger>
                     <TooltipContent side="top">
                         <p>
-                            {isOpen
-                                ? t("common.close", "閉じる")
-                                : t("common.menu", "メニュー")}
+                            {isFabMenuOpen
+                                ? t("common.close")
+                                : t("common.menu")}
                         </p>
                     </TooltipContent>
                 </Tooltip>
@@ -156,13 +136,13 @@ export function ControlButton(props: ControlButtonProps) {
                             key={item.id}
                             className={cn(
                                 "absolute bottom-9 transition-all duration-300 ease-out flex items-center justify-center z-50", // justify-centerを追加
-                                isOpen
+                                isFabMenuOpen
                                     ? "opacity-100 scale-100 translate-x-0"
                                     : "opacity-0 scale-75 translate-x-12 pointer-events-none"
                             )}
                             style={{
                                 right: `${rightPos * 0.25}rem`,
-                                transitionDelay: isOpen
+                                transitionDelay: isFabMenuOpen
                                     ? `${index * 50}ms`
                                     : "0ms",
                             }}
@@ -187,6 +167,7 @@ export function ControlButton(props: ControlButtonProps) {
                                             item.isActive && item.activeClass
                                         )}
                                         data-testid={`main.fab.${item.id}`}
+                                        data-clickthrough-allow
                                     >
                                         <item.icon className="h-6 w-6" />
                                     </Button>
@@ -199,15 +180,6 @@ export function ControlButton(props: ControlButtonProps) {
                     );
                 })}
             </div>
-
-            <ColorPicker
-                isOpen={isColorPickerOpen}
-                onOpenChange={setIsColorPickerOpen}
-                color={windowColor}
-                onColorChange={changeWindowColor}
-                onColorChangeComplete={saveWindowColor}
-                centerOnScreen
-            />
         </TooltipProvider>
     );
 }

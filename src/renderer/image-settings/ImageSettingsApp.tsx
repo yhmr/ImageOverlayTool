@@ -11,6 +11,7 @@ import "./ImageSettingsApp.css";
 import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
 import { useProjectSync } from "../hooks/useProjectSync";
 import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
+import { useImageDrop } from "../hooks/useImageDrop";
 import {
     IpcServiceProvider,
     useIpcService,
@@ -29,6 +30,8 @@ const ImageSettingsApp = () => {
     useProjectSync();
     // E2E制御ブリッジ
     useE2EControlBridge();
+    // D&D画像読み込み
+    const { onDragOver, onDrop } = useImageDrop();
 
     React.useEffect(() => {
         let isMounted = true;
@@ -95,6 +98,8 @@ const ImageSettingsApp = () => {
         <div
             className="settings-container bg-background text-foreground"
             data-testid="settings.app.root"
+            onDragOver={onDragOver}
+            onDrop={onDrop}
         >
             <SettingsMenuBar />
             <div className="settings-content">

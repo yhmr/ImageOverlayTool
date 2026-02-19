@@ -13,7 +13,7 @@ layout: 'page'
 
 ### ダウンロード
 
-[GitHub Releases](https://github.com/yhmr/ImageOverlayTool/releases) から最新版をダウンロードしてください。
+[Microsoft Store](https://apps.microsoft.com/store/detail/9PBQ7VPKTXQ1?cid=DevShareMCLPCS) から入手するか、[GitHub Releases](https://github.com/yhmr/ImageOverlayTool/releases) から最新版をダウンロードしてください。
 
 - **Windows**: `.exe` または `.zip` ファイル
 - **Linux**: `.AppImage` または `.deb` ファイル

@@ -33,6 +33,7 @@ compile_commands.json
 
 .npmrc
 .npm-cache/
+package-lock.json
 
 # Generated API definitions
 electron-api.json
@@ -59,7 +60,6 @@ patches/mtime-cache.json
 
 spec/fixtures/logo.png
 
-coverage/
 test-results/
 
 # Hugo

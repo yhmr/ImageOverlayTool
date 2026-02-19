@@ -1,6 +1,8 @@
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { ImageSet } from "../../shared/types/ImageSet";
 
+import i18n from "../../i18n/configs";
+import { fromLocalFileUrl, toLocalFileUrl } from "../factories/imageSetFactory";
 import type { IIPCService } from "./ipcService";
 
 type ProjectSnapshot = {
@@ -21,6 +23,7 @@ type ProjectMutations = {
     resetAll: () => void;
     setCurrentProjectFilePath: (filePath: string | null) => void;
     markProjectSaved: () => void;
+    replaceImageSetsAfterSave: (imageSets: ImageSet[]) => void;
 };
 
 interface ProjectCommandServiceDeps {
@@ -44,6 +47,12 @@ export interface ProjectCommandService {
     saveProjectAs: () => Promise<void>;
 }
 
+interface ResolvedProjectForSave {
+    project: ProjectFile<ImageSet>;
+    nextImageSets: ImageSet[] | null;
+    cacheImagePathsToDelete: string[];
+}
+
 const buildProjectFile = (
     snapshot: ProjectSnapshot
 ): ProjectFile<ImageSet> => ({
@@ -63,6 +72,12 @@ const buildProjectFile = (
     images: snapshot.imageSets,
     dimensionLines: snapshot.dimensionLines,
 });
+
+const getCacheImageLocalPaths = (imageSets: ImageSet[]): string[] =>
+    imageSets
+        .filter((imageSet) => (imageSet.sourceType ?? "file") === "cache")
+        .map((imageSet) => fromLocalFileUrl(imageSet.path))
+        .filter((value): value is string => Boolean(value));
 
 const applyProject = async (
     ipcService: IIPCService,
@@ -96,6 +111,72 @@ export const createProjectCommandService = ({
         return buildProjectFile(readSnapshot());
     };
 
+    const resolveProjectFileForSave = async (
+        targetProjectFilePath: string,
+        snapshot: ProjectSnapshot
+    ): Promise<ResolvedProjectForSave | null> => {
+        const cacheImagePaths = getCacheImageLocalPaths(snapshot.imageSets);
+        if (cacheImagePaths.length === 0) {
+            return {
+                project: buildProjectFile(snapshot),
+                nextImageSets: null,
+                cacheImagePathsToDelete: [],
+            };
+        }
+
+        const shouldMaterialize = window.confirm(
+            i18n.t("render.project_save.cache_warning.confirm_move")
+        );
+        if (!shouldMaterialize) {
+            await ipcService.toggleImageSettingsWindow();
+            return null;
+        }
+
+        const replacementMap = await ipcService.materializeCacheImages(
+            targetProjectFilePath,
+            cacheImagePaths
+        );
+        const missingPaths = cacheImagePaths.filter(
+            (path) => !replacementMap[path]
+        );
+        if (missingPaths.length > 0) {
+            throw new Error(
+                `Failed to materialize cache images: ${missingPaths.join(", ")}`
+            );
+        }
+
+        const nextImageSets = snapshot.imageSets.map((imageSet) => {
+            if ((imageSet.sourceType ?? "file") !== "cache") {
+                return imageSet;
+            }
+
+            const sourcePath = fromLocalFileUrl(imageSet.path);
+            if (!sourcePath) {
+                return imageSet;
+            }
+
+            const destinationPath = replacementMap[sourcePath];
+            if (!destinationPath) {
+                return imageSet;
+            }
+
+            return {
+                ...imageSet,
+                path: toLocalFileUrl(destinationPath),
+                sourceType: "file" as const,
+            };
+        });
+
+        return {
+            project: buildProjectFile({
+                ...snapshot,
+                imageSets: nextImageSets,
+            }),
+            nextImageSets,
+            cacheImagePathsToDelete: [...new Set(cacheImagePaths)],
+        };
+    };
+
     const newProject = async (): Promise<void> => {
         ipcService.log.info("New project requested");
         mutations.resetAll();
@@ -122,9 +203,43 @@ export const createProjectCommandService = ({
 
     const saveProjectAs = async (): Promise<void> => {
         ipcService.log.info("Save Project As requested");
+        const snapshot = readSnapshot();
+        const hasCacheImages =
+            getCacheImageLocalPaths(snapshot.imageSets).length > 0;
 
-        const savedPath = await ipcService.saveProjectAs(createProjectFile());
+        if (!hasCacheImages) {
+            const savedPath = await ipcService.saveProjectAs(
+                buildProjectFile(snapshot)
+            );
+            if (savedPath) {
+                mutations.setCurrentProjectFilePath(savedPath);
+                mutations.markProjectSaved();
+            }
+            return;
+        }
+
+        const savedPath = await ipcService.pickProjectSavePath();
         if (savedPath) {
+            const projectForSave = await resolveProjectFileForSave(
+                savedPath,
+                snapshot
+            );
+            if (!projectForSave) {
+                return;
+            }
+
+            await ipcService.saveProject(
+                savedPath,
+                projectForSave.project,
+                projectForSave.cacheImagePathsToDelete.length > 0
+                    ? projectForSave.cacheImagePathsToDelete
+                    : undefined
+            );
+            if (projectForSave.nextImageSets) {
+                mutations.replaceImageSetsAfterSave(
+                    projectForSave.nextImageSets
+                );
+            }
             mutations.setCurrentProjectFilePath(savedPath);
             mutations.markProjectSaved();
         }
@@ -137,11 +252,26 @@ export const createProjectCommandService = ({
             return;
         }
 
+        const snapshot = readSnapshot();
+        const projectForSave = await resolveProjectFileForSave(
+            currentProjectFilePath,
+            snapshot
+        );
+        if (!projectForSave) {
+            return;
+        }
+
         ipcService.log.info(`Saving project to: ${currentProjectFilePath}`);
         await ipcService.saveProject(
             currentProjectFilePath,
-            createProjectFile()
+            projectForSave.project,
+            projectForSave.cacheImagePathsToDelete.length > 0
+                ? projectForSave.cacheImagePathsToDelete
+                : undefined
         );
+        if (projectForSave.nextImageSets) {
+            mutations.replaceImageSetsAfterSave(projectForSave.nextImageSets);
+        }
         mutations.markProjectSaved();
     };
 

@@ -1,11 +1,12 @@
 import { StateCreator } from "zustand";
+import type { InteractionMode } from "../../../shared/types/InteractionMode";
 
 export interface InteractionSlice {
-    interactionMode: "default" | "dimension";
+    interactionMode: InteractionMode;
     selectedImageId: string | null;
     selectedDimensionLineId: string | null;
 
-    setInteractionMode: (mode: "default" | "dimension") => void;
+    setInteractionMode: (mode: InteractionMode) => void;
     setSelectedImageId: (id: string | null) => void;
     setSelectedDimensionLineId: (id: string | null) => void;
     clearSelection: () => void;
@@ -19,11 +20,26 @@ export const createInteractionSlice: StateCreator<InteractionSlice> = (
     selectedDimensionLineId: null,
 
     setInteractionMode: (mode) =>
-        set({
-            interactionMode: mode,
-            // モード切替時に選択状態をリセットする場合
-            selectedImageId: null,
-            selectedDimensionLineId: null,
+        set(() => {
+            if (mode === "default") {
+                return {
+                    interactionMode: mode,
+                    selectedDimensionLineId: null,
+                };
+            }
+
+            if (mode === "dimension_add") {
+                return {
+                    interactionMode: mode,
+                    selectedImageId: null,
+                    selectedDimensionLineId: null,
+                };
+            }
+
+            return {
+                interactionMode: mode,
+                selectedImageId: null,
+            };
         }),
 
     setSelectedImageId: (id) => {

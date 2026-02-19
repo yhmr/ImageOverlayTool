@@ -13,6 +13,7 @@ export interface AppConfig {
         color: string;
     };
     imageSettingsWindow: WindowConfig;
+    dimensionSettingsWindow: WindowConfig;
     setting: SettingType;
 }
 
@@ -49,4 +50,16 @@ export const DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE: Size = {
 export const MIN_IMAGE_SETTINGS_WINDOW_SIZE: Size = {
     width: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.width,
     height: DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE.height,
+};
+
+// 寸法線設定ウィンドウのデフォルトサイズ
+export const DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE: Size = {
+    width: 460,
+    height: 560,
+};
+
+// 寸法線設定ウィンドウの最小サイズ
+export const MIN_DIMENSION_SETTINGS_WINDOW_SIZE: Size = {
+    width: DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE.width,
+    height: DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE.height,
 };

@@ -1,10 +1,12 @@
-import { useCallback, RefObject, useState } from "react";
+import { useCallback, RefObject, useMemo, useState } from "react";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { useAppStore } from "../store/useAppStore";
 import { DimensionLine } from "../../shared/types/DimensionLine";
 import { MIN_DIMENSION_LINE_DISTANCE } from "../constants";
 import { useDimensionKeyboard } from "./useDimensionKeyboard";
+import { DIMENSION_LINE_COLOR_DEFAULT } from "../../shared/constants/dimensionLine";
+import { isDimensionInteractionMode } from "../../shared/types/InteractionMode";
 
 export const useDimensionLineMode = (
     stageRef: RefObject<Konva.Stage | null>
@@ -15,20 +17,21 @@ export const useDimensionLineMode = (
         unit,
         addDimensionLine,
         updateDimensionLine,
-        removeDimensionLine,
         interactionMode,
         setInteractionMode,
         selectedDimensionLineId,
         setSelectedDimensionLineId,
     } = useAppStore();
 
-    const [drawingLineId, setDrawingLineId] = useState<string | null>(null);
+    const [draftLine, setDraftLine] = useState<DimensionLine | null>(null);
 
-    const isDimensionMode = interactionMode === "dimension";
+    const isDimensionMode = isDimensionInteractionMode(interactionMode);
+    const isDimensionAddMode = interactionMode === "dimension_add";
+    const isDimensionSelectMode = interactionMode === "dimension_select";
 
     const setDimensionModeEnabled = useCallback(
         (enabled: boolean) => {
-            setInteractionMode(enabled ? "dimension" : "default");
+            setInteractionMode(enabled ? "dimension_add" : "default");
         },
         [setInteractionMode]
     );
@@ -44,80 +47,87 @@ export const useDimensionLineMode = (
     }, [stageRef]);
 
     const onStageMouseDown = useCallback(
-        (_e: KonvaEventObject<MouseEvent | TouchEvent>) => {
-            if (!isDimensionMode) return;
-            if ("button" in _e.evt && _e.evt.button === 0) {
-                const pos = getStagePointerPos();
-                if (pos) {
-                    const id = crypto.randomUUID();
-                    const newLine: DimensionLine = {
-                        id,
-                        start: pos,
-                        end: pos,
-                    };
-                    addDimensionLine(newLine);
-                    setDrawingLineId(id);
-                    setSelectedDimensionLineId(id);
-                }
+        (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+            if (e.target.getType() !== "Stage") return;
+            if (!("button" in e.evt) || e.evt.button !== 0) return;
+
+            if (isDimensionSelectMode) {
+                setSelectedDimensionLineId(null);
+                return;
             }
+
+            if (!isDimensionAddMode) return;
+
+            const pos = getStagePointerPos();
+            if (!pos) return;
+
+            const id = crypto.randomUUID();
+            setDraftLine({
+                id,
+                start: pos,
+                end: pos,
+                color: DIMENSION_LINE_COLOR_DEFAULT,
+                showUnitLabel: true,
+            });
+            setSelectedDimensionLineId(null);
         },
         [
-            isDimensionMode,
+            isDimensionAddMode,
+            isDimensionSelectMode,
             getStagePointerPos,
-            addDimensionLine,
             setSelectedDimensionLineId,
         ]
     );
 
     const onStageMouseMove = useCallback(() => {
-        if (drawingLineId) {
-            const pos = getStagePointerPos();
-            if (pos && dimensionLines) {
-                const line = dimensionLines.find((l) => l.id === drawingLineId);
-                if (line) {
-                    updateDimensionLine({ ...line, end: pos });
-                }
-            }
-        }
-    }, [
-        drawingLineId,
-        getStagePointerPos,
-        dimensionLines,
-        updateDimensionLine,
-    ]);
+        const pos = getStagePointerPos();
+        if (!pos) return;
+
+        setDraftLine((prev) => (prev ? { ...prev, end: pos } : prev));
+    }, [getStagePointerPos]);
 
     const onMouseUp = useCallback(() => {
-        if (drawingLineId) {
-            if (dimensionLines) {
-                const line = dimensionLines.find((l) => l.id === drawingLineId);
-                if (line) {
-                    const dx = line.end.x - line.start.x;
-                    const dy = line.end.y - line.start.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < MIN_DIMENSION_LINE_DISTANCE) {
-                        removeDimensionLine(drawingLineId);
-                        setSelectedDimensionLineId(null);
-                    }
-                }
-            }
-            setDrawingLineId(null);
+        if (!draftLine) return;
+
+        const dx = draftLine.end.x - draftLine.start.x;
+        const dy = draftLine.end.y - draftLine.start.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist >= MIN_DIMENSION_LINE_DISTANCE) {
+            addDimensionLine(draftLine);
+            setInteractionMode("dimension_select");
+            setSelectedDimensionLineId(draftLine.id);
+        } else {
+            setInteractionMode("dimension_add");
+            setSelectedDimensionLineId(null);
         }
+
+        setDraftLine(null);
     }, [
-        drawingLineId,
-        dimensionLines,
-        removeDimensionLine,
+        draftLine,
+        addDimensionLine,
+        setInteractionMode,
         setSelectedDimensionLineId,
     ]);
+
+    const renderedDimensionLines = useMemo(() => {
+        if (!draftLine) {
+            return dimensionLines;
+        }
+        return [...dimensionLines, draftLine];
+    }, [dimensionLines, draftLine]);
 
     // キーボードイベント処理は専用フックに委譲
     useDimensionKeyboard();
 
     return {
         isDimensionMode,
+        isDimensionAddMode,
+        isDimensionSelectMode,
         setDimensionModeEnabled,
         selectedDimensionLineId,
         setSelectedDimensionLineId,
-        dimensionLines,
+        dimensionLines: renderedDimensionLines,
         unitFactor,
         unit,
         updateDimensionLine,

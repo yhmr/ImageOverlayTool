@@ -38,6 +38,7 @@ export default defineConfig({
         input: {
           main: 'src/renderer/main-window/index.html',
           imageSettings: 'src/renderer/image-settings/index.html',
+          dimensionSettings: 'src/renderer/dimension-settings/index.html',
           splash: 'src/renderer/splash/index.html'
         }
       }

@@ -21,6 +21,8 @@ import {
 interface ImageItemHeaderProps {
     path: string;
     fileName: string;
+    sourceType?: "file" | "cache";
+    isMissing?: boolean;
     isLocked?: boolean;
     isVisible?: boolean;
     onFileOpen: () => void;
@@ -34,6 +36,8 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
     const {
         path,
         fileName,
+        sourceType = "file",
+        isMissing = false,
         isLocked,
         isVisible = true,
         onFileOpen,
@@ -56,11 +60,21 @@ export function ImageItemHeader(props: ImageItemHeaderProps) {
 
             {/* ファイル名 */}
             <div
-                className="flex-grow overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium"
+                className={`flex-grow overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium ${
+                    isMissing ? "text-destructive" : ""
+                }`}
                 title={path}
             >
                 {fileName}
             </div>
+            {sourceType === "cache" && (
+                <span
+                    className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 whitespace-nowrap"
+                    data-testid="settings.image-item.cache-badge"
+                >
+                    {t("render.image_settings.badge.cache_image")}
+                </span>
+            )}
 
             <TooltipProvider>
                 {/* 表示切り替えボタン */}

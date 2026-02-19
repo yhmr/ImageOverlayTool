@@ -1,13 +1,13 @@
 import { globalShortcut } from "electron";
 
 export interface IWindowShortcutManager {
-    registerToggleImageSettings(callback: () => void): void;
+    registerToggleClickThroughMode(callback: () => void): void;
     unregisterAll(): void;
 }
 
 export class ElectronWindowShortcutManager implements IWindowShortcutManager {
-    registerToggleImageSettings(callback: () => void): void {
-        globalShortcut.register("CommandOrControl+I", callback);
+    registerToggleClickThroughMode(callback: () => void): void {
+        globalShortcut.register("CommandOrControl+Shift+M", callback);
     }
 
     unregisterAll(): void {

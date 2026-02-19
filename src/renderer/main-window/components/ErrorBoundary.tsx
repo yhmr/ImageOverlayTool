@@ -5,6 +5,7 @@ import { Trans } from "react-i18next";
 
 interface Props extends WithTranslation {
     children: ReactNode;
+    onError?: (error: unknown, errorInfo?: ErrorInfo | null) => void;
 }
 
 interface State {
@@ -28,7 +29,7 @@ class ErrorBoundaryBase extends Component<Props, State> {
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error("Uncaught error:", error, errorInfo);
+        this.props.onError?.(error, errorInfo);
         this.setState({ errorInfo });
     }
 
@@ -40,7 +41,7 @@ class ErrorBoundaryBase extends Component<Props, State> {
         const { error, errorInfo } = this.state;
         const text = `Error: ${error?.message}\n\nStack:\n${error?.stack}\n\nComponent Stack:\n${errorInfo?.componentStack}`;
         navigator.clipboard.writeText(text).catch((err) => {
-            console.error("Failed to copy error details:", err);
+            this.props.onError?.(err, null);
         });
     };
     // ... (中略) ...

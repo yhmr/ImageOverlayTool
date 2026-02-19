@@ -1,8 +1,8 @@
-"use no memo";
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { Arrow, Group, Text, Circle } from "react-konva";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { KonvaEventObject } from "konva/lib/Node";
+import { sanitizeDimensionLineColor } from "../../../shared/constants/dimensionLine";
 
 interface DimensionLineLayerProps {
     dimensionLines: DimensionLine[];
@@ -11,12 +11,18 @@ interface DimensionLineLayerProps {
     isSelected: (id: string) => boolean;
     onSelect: (id: string | null) => void;
     onUpdate: (line: DimensionLine) => void;
-    isDimensionMode: boolean;
+    isDimensionEditMode: boolean;
 }
+
+type AnchorType = "start" | "end";
+type Point = { x: number; y: number };
+type EditingAnchorMap = Record<string, Partial<Record<AnchorType, Point>>>;
 
 export const DimensionLineLayer = memo(function DimensionLineLayer(
     props: DimensionLineLayerProps
 ) {
+    "use no memo";
+
     const {
         dimensionLines,
         unitFactor,
@@ -24,8 +30,27 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
         isSelected,
         onSelect,
         onUpdate,
-        isDimensionMode,
+        isDimensionEditMode,
     } = props;
+    const [editingAnchors, setEditingAnchors] = useState<EditingAnchorMap>({});
+
+    useEffect(() => {
+        const existingIds = new Set(dimensionLines.map((line) => line.id));
+        setEditingAnchors((prev) => {
+            const next: EditingAnchorMap = {};
+            let changed = false;
+
+            Object.entries(prev).forEach(([id, anchors]) => {
+                if (existingIds.has(id)) {
+                    next[id] = anchors;
+                } else {
+                    changed = true;
+                }
+            });
+
+            return changed ? next : prev;
+        });
+    }, [dimensionLines]);
 
     // ラベルの
     const getLabel = (
@@ -51,61 +76,78 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
     };
 
     const onAnchorDragEnd = useCallback(
-        (id: string, type: "start" | "end") =>
-            (e: KonvaEventObject<DragEvent>) => {
-                const line = dimensionLines.find((l) => l.id === id);
-                if (!line) return;
+        (id: string, type: AnchorType) => (e: KonvaEventObject<DragEvent>) => {
+            const line = dimensionLines.find((l) => l.id === id);
+            if (!line) {
+                setEditingAnchors((prev) => {
+                    if (!prev[id]) {
+                        return prev;
+                    }
+                    const next = { ...prev };
+                    delete next[id];
+                    return next;
+                });
+                return;
+            }
 
-                const newPos = { x: e.target.x(), y: e.target.y() };
-                const newLine = { ...line };
-                if (type === "start") {
-                    newLine.start = newPos;
-                } else {
-                    newLine.end = newPos;
+            const newPos = { x: e.target.x(), y: e.target.y() };
+            const newLine = { ...line };
+            if (type === "start") {
+                newLine.start = newPos;
+            } else {
+                newLine.end = newPos;
+            }
+            onUpdate(newLine);
+
+            setEditingAnchors((prev) => {
+                const lineAnchors = prev[id];
+                if (!lineAnchors) {
+                    return prev;
                 }
-                onUpdate(newLine);
-            },
+                const nextLineAnchors = { ...lineAnchors };
+                delete nextLineAnchors[type];
+                if (Object.keys(nextLineAnchors).length === 0) {
+                    const next = { ...prev };
+                    delete next[id];
+                    return next;
+                }
+                return { ...prev, [id]: nextLineAnchors };
+            });
+        },
         [dimensionLines, onUpdate]
     );
 
     const onAnchorDragMove = useCallback(
-        (id: string, type: "start" | "end") =>
-            (e: KonvaEventObject<DragEvent>) => {
-                // Optional: Implement if real-time line update during drag is needed via local state or throttle
-                // For now, react-konva might handle component updates if we don't update redux on every move.
-                // But since Arrow needs start and end props, we rely on dragEnd for persistence,
-                // but for visual feedback during drag, we might need to use the shape's internal state or force update.
-                // However, dragging a circle (anchor) doesn't automatically update the Arrow unless state changes.
-                // To keep it simple, let's update Redux on dragMove too (or use a local optimization wrapper).
-                // For this implementation, let's try updating on dragmove for smoothness, assuming low line count.
-
-                const line = dimensionLines.find((l) => l.id === id);
-                if (!line) return;
-
-                const newPos = { x: e.target.x(), y: e.target.y() };
-                const newLine = { ...line };
-                if (type === "start") {
-                    newLine.start = newPos;
-                } else {
-                    newLine.end = newPos;
-                }
-                onUpdate(newLine);
-            },
-        [dimensionLines, onUpdate]
+        (id: string, type: AnchorType) => (e: KonvaEventObject<DragEvent>) => {
+            const newPos = { x: e.target.x(), y: e.target.y() };
+            setEditingAnchors((prev) => ({
+                ...prev,
+                [id]: {
+                    ...(prev[id] ?? {}),
+                    [type]: newPos,
+                },
+            }));
+        },
+        []
     );
 
     return (
         <Group>
             {dimensionLines.map((line) => {
                 const selected = isSelected(line.id);
-                const mid = getMidPoint(line.start, line.end);
-                const label = getLabel(line.start, line.end);
+                const editing = editingAnchors[line.id];
+                const start = editing?.start ?? line.start;
+                const end = editing?.end ?? line.end;
+                const mid = getMidPoint(start, end);
+                const label = getLabel(start, end);
+                const lineColor = sanitizeDimensionLineColor(line.color);
+                const shouldShowUnitLabel = line.showUnitLabel !== false;
 
                 return (
                     <Group
                         key={line.id}
                         onClick={(e) => {
-                            if (isDimensionMode) {
+                            if (isDimensionEditMode) {
                                 onSelect(line.id);
                                 e.cancelBubble = true;
                             }
@@ -113,39 +155,36 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                     >
                         {/* 矢印 */}
                         <Arrow
-                            points={[
-                                line.start.x,
-                                line.start.y,
-                                line.end.x,
-                                line.end.y,
-                            ]}
-                            stroke={selected ? "red" : "blue"}
-                            fill={selected ? "red" : "blue"}
-                            strokeWidth={2}
+                            points={[start.x, start.y, end.x, end.y]}
+                            stroke={lineColor}
+                            fill={lineColor}
+                            strokeWidth={selected ? 3 : 2}
                             pointerLength={10}
                             pointerWidth={10}
                             pointerAtBeginning={true}
                         />
 
                         {/* ラベル */}
-                        <Text
-                            x={mid.x}
-                            y={mid.y}
-                            text={label}
-                            fontSize={16}
-                            fill="black"
-                            align="center"
-                            offset={{ x: label.length * 4, y: 20 }} // approximate centering
-                        />
+                        {shouldShowUnitLabel && (
+                            <Text
+                                x={mid.x}
+                                y={mid.y}
+                                text={label}
+                                fontSize={16}
+                                fill={lineColor}
+                                align="center"
+                                offset={{ x: label.length * 4, y: 20 }} // approximate centering
+                            />
+                        )}
 
                         {/* ラベルを編集するためのアンカー */}
-                        {selected && isDimensionMode && (
+                        {selected && isDimensionEditMode && (
                             <>
                                 <Circle
-                                    x={line.start.x}
-                                    y={line.start.y}
+                                    x={start.x}
+                                    y={start.y}
                                     radius={6}
-                                    fill="red"
+                                    fill={lineColor}
                                     draggable
                                     onDragMove={onAnchorDragMove(
                                         line.id,
@@ -157,10 +196,10 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
                                     )}
                                 />
                                 <Circle
-                                    x={line.end.x}
-                                    y={line.end.y}
+                                    x={end.x}
+                                    y={end.y}
                                     radius={6}
-                                    fill="red"
+                                    fill={lineColor}
                                     draggable
                                     onDragMove={onAnchorDragMove(
                                         line.id,

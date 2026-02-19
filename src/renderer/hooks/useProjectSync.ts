@@ -30,15 +30,32 @@ export const useProjectSync = () => {
             }
         );
 
+        const unsubscribeDimensionLines = ipcService.onDimensionLinesUpdated(
+            (dimensionLines) => {
+                useAppStore.getState().receiveDimensionLines(dimensionLines);
+            }
+        );
+
         // selectedImageIdの更新監視
-        // dimensionモード中はリモートからの選択変更を無視する
+        // 寸法線操作中はリモートからの選択変更を無視する
         // （setSelectedImageIdがselectedDimensionLineIdをクリアするため）
         const unsubscribeSelectedImageId = ipcService.onSelectedImageIdUpdated(
             (id) => {
                 const { interactionMode } = useAppStore.getState();
-                if (interactionMode !== "dimension") {
+                if (interactionMode === "default") {
                     useAppStore.getState().setSelectedImageId(id);
                 }
+            }
+        );
+
+        const unsubscribeSelectedDimensionLineId =
+            ipcService.onSelectedDimensionLineIdUpdated((id) => {
+                useAppStore.getState().setSelectedDimensionLineId(id);
+            });
+
+        const unsubscribeInteractionMode = ipcService.onInteractionModeUpdated(
+            (mode) => {
+                useAppStore.getState().setInteractionMode(mode);
             }
         );
 
@@ -46,19 +63,32 @@ export const useProjectSync = () => {
         const unsubscribeRequestSync = ipcService.onRequestStateSync(() => {
             // 現在の状態を送信
             const currentImageSets = useAppStore.getState().imageSets;
+            const currentDimensionLines = useAppStore.getState().dimensionLines;
             const currentUnitFactor = useAppStore.getState().unitFactor;
             const currentUnit = useAppStore.getState().unit;
+            const currentInteractionMode =
+                useAppStore.getState().interactionMode;
+            const currentSelectedDimensionLineId =
+                useAppStore.getState().selectedDimensionLineId;
 
             ipcService.updateImageSets(currentImageSets);
+            ipcService.updateDimensionLines(currentDimensionLines);
             ipcService.updateUnitFactor(currentUnitFactor);
             ipcService.updateUnit(currentUnit);
+            ipcService.updateInteractionMode(currentInteractionMode);
+            ipcService.updateSelectedDimensionLineId(
+                currentSelectedDimensionLineId
+            );
         });
 
         return () => {
             unsubscribeUnitFactor();
             unsubscribeUnit();
             unsubscribeImageSets();
+            unsubscribeDimensionLines();
             unsubscribeSelectedImageId();
+            unsubscribeSelectedDimensionLineId();
+            unsubscribeInteractionMode();
             unsubscribeRequestSync();
         };
     }, [ipcService]);

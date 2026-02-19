@@ -1,27 +1,40 @@
 import { useTranslation } from "react-i18next";
-import { Maximize, Minimize, X, Undo, Redo } from "lucide-react";
 import { useStore } from "zustand";
 import type { TemporalState } from "zundo";
 
-import { SettingDialog } from "./SettingDialog";
-import { AboutDialog } from "./AboutDialog";
+import { SettingDialog } from "../../dialogs/settings/SettingDialog";
 import { AppMenu } from "./AppMenu";
-import { useMenuState } from "../../hooks/useMenuState";
+import { MenuBarHistoryActions } from "./MenuBarHistoryActions";
+import { MenuBarWindowActions } from "./MenuBarWindowActions";
+import { useMainWindowDialogState } from "../../hooks/useMainWindowDialogState";
 import { useWindowOperations } from "../../hooks/useWindowOperations";
 import { useProjectOperations } from "../../hooks/useProjectOperations";
+import { useImageFileStatus } from "../../hooks/useImageFileStatus";
+import { useImagePaste } from "../../hooks/useImagePaste";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
+import { AboutDialog } from "../../dialogs/about/AboutDialog";
 import { Button } from "@/renderer/components/ui/button";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/renderer/components/ui/tooltip";
+import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
 import { useAppStore, type AppState } from "../../store/useAppStore";
+import type { MainWindowActions } from "../hooks/useMainWindowActions";
+import { useIpcService } from "../../providers/IpcServiceProvider";
 
-export function MenuBar() {
+interface MenuBarProps {
+    onOpenImageExportDialog: () => void;
+    onOpenWindowColorPicker: () => void;
+    mainWindowActions: MainWindowActions;
+}
+
+export function MenuBar({
+    onOpenImageExportDialog,
+    onOpenWindowColorPicker,
+    mainWindowActions,
+}: MenuBarProps) {
     const { t } = useTranslation();
-    const { isUIHidden } = useAppStore();
+    const { isUIHidden, imageSets } = useAppStore();
+    const { missingCount } = useImageFileStatus(imageSets);
+    const ipcService = useIpcService();
 
     // zundo temporal store
     const undo = useStore(
@@ -48,12 +61,33 @@ export function MenuBar() {
         isAboutDialogOpen,
         openAboutDialog,
         closeAboutDialog,
-    } = useMenuState();
+    } = useMainWindowDialogState();
 
     const { isMaximized, toggleMaximized, closeWindow } = useWindowOperations();
 
     const { newProject, openProject, saveProject, saveProjectAs } =
         useProjectOperations();
+    const { pasteImage } = useImagePaste();
+
+    const exportLogs = () => {
+        void ipcService.log.export();
+    };
+
+    useKeyboardShortcuts({
+        onNewProject: newProject,
+        onOpenProject: openProject,
+        onSaveProject: saveProject,
+        onSaveProjectAs: saveProjectAs,
+        onOpenImageSettings: mainWindowActions.openImageSettingsWindow,
+        onPasteImage: pasteImage,
+        onCaptureBackground: mainWindowActions.captureBackground,
+        onOpenImageExport: onOpenImageExportDialog,
+        onOpenDimensionSettings: mainWindowActions.openDimensionSettingsWindow,
+        onOpenBackgroundStyle: onOpenWindowColorPicker,
+        onOpenSettings: openSettingDialog,
+        onExportLogs: exportLogs,
+        onExit: closeWindow,
+    });
 
     return (
         <TooltipProvider>
@@ -65,123 +99,80 @@ export function MenuBar() {
                     transition: "opacity 0.2s",
                 }}
                 data-testid="main.menu.bar"
+                data-clickthrough-allow
             >
                 {/* メニューボタン */}
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="mr-2">
-                            <AppMenu
-                                openSettingDialog={openSettingDialog}
-                                openAboutDialog={openAboutDialog}
-                                closeWindow={closeWindow}
-                                newProject={newProject}
-                                openProject={openProject}
-                                saveProject={saveProject}
-                                saveProjectAs={saveProjectAs}
-                            />
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{t("render.menu_button.tooltip.menu")}</p>
-                    </TooltipContent>
-                </Tooltip>
+                <AppMenu
+                    openSettingDialog={openSettingDialog}
+                    openAboutDialog={openAboutDialog}
+                    openImageExportDialog={onOpenImageExportDialog}
+                    onOpenWindowColorPicker={onOpenWindowColorPicker}
+                    closeWindow={closeWindow}
+                    newProject={newProject}
+                    openProject={openProject}
+                    saveProject={saveProject}
+                    saveProjectAs={saveProjectAs}
+                    onExportLogs={exportLogs}
+                    mainWindowActions={mainWindowActions}
+                />
 
-                {/* Undo / Redo */}
-                <div className="flex items-center gap-1 app-region-no-drag">
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                    undo();
-                                    useAppStore.setState({
-                                        projectDataChangeOrigin: "local",
-                                    });
-                                }}
-                                disabled={pastStates.length === 0}
-                                className="h-8 w-8"
-                                data-testid="main.action.undo"
-                            >
-                                <Undo className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{t("common.undo", "Undo")}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                    redo();
-                                    useAppStore.setState({
-                                        projectDataChangeOrigin: "local",
-                                    });
-                                }}
-                                disabled={futureStates.length === 0}
-                                className="h-8 w-8"
-                                data-testid="main.action.redo"
-                            >
-                                <Redo className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{t("common.redo", "Redo")}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </div>
+                <MenuBarHistoryActions
+                    canUndo={pastStates.length > 0}
+                    canRedo={futureStates.length > 0}
+                    onUndo={() => {
+                        undo();
+                        useAppStore.setState({
+                            projectDataChangeOrigin: "local",
+                        });
+                    }}
+                    onRedo={() => {
+                        redo();
+                        useAppStore.setState({
+                            projectDataChangeOrigin: "local",
+                        });
+                    }}
+                />
 
                 {/* タイトル */}
                 <div className="flex-grow text-center text-lg font-medium app-region-drag pointer-events-none">
                     {t("render.menu_button.app_title")}
                 </div>
 
-                {/* 最大最小化 */}
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={toggleMaximized}
-                            className="app-region-no-drag"
-                            data-testid="main.action.window-toggle"
-                        >
-                            {isMaximized ? (
-                                <Minimize className="h-6 w-6" />
-                            ) : (
-                                <Maximize className="h-6 w-6" />
-                            )}
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>
-                            {isMaximized
-                                ? t("render.menu_button.tooltip.unmaximize")
-                                : t("render.menu_button.tooltip.maximize")}
-                        </p>
-                    </TooltipContent>
-                </Tooltip>
+                {missingCount > 0 && (
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={mainWindowActions.openImageSettingsWindow}
+                        className="mr-2 app-region-no-drag"
+                        data-testid="main.status.missing-images"
+                        data-clickthrough-allow
+                    >
+                        {t("render.image_status.missing_summary", {
+                            count: missingCount,
+                        })}
+                    </Button>
+                )}
 
-                {/* ウィンドウ閉じる */}
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={closeWindow}
-                            className="app-region-no-drag hover:bg-destructive hover:text-destructive-foreground"
-                            data-testid="main.action.window-close"
-                        >
-                            <X className="h-6 w-6" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{t("render.menu_button.tooltip.close")}</p>
-                    </TooltipContent>
-                </Tooltip>
+                {mainWindowActions.isClickThroughMode && (
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={mainWindowActions.disableClickThroughMode}
+                        className="mr-2 app-region-no-drag bg-amber-500/90 text-amber-950 hover:bg-amber-500"
+                        data-testid="main.status.click-through-mode"
+                        data-clickthrough-allow
+                    >
+                        {t(
+                            "render.menu_button.status.click_through_mode_active"
+                        )}
+                    </Button>
+                )}
+
+                <MenuBarWindowActions
+                    isMaximized={isMaximized}
+                    onToggleMaximized={toggleMaximized}
+                    onCloseWindow={closeWindow}
+                />
 
                 <SettingDialog
                     open={isSettingDialogOpen}

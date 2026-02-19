@@ -1,4 +1,3 @@
-"use no memo";
 import React, { memo, useCallback, useEffect, useRef } from "react";
 
 import { useAppStore } from "../../store/useAppStore";
@@ -10,18 +9,36 @@ import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
 import { OverlayControls } from "./OverlayControls";
 import { DimensionLineLayer } from "./DimensionLineLayer";
-import { ExportDialog } from "./ExportDialog";
+import { ImageExportDialog } from "../../dialogs/export/ImageExportDialog";
 import { bindStageDragEndDisable } from "./imageStageDragEnd";
 
 import { useStageControls } from "../../hooks/useStageControls";
 import { useDimensionLineMode } from "../../hooks/useDimensionLineMode";
 import { useImageSelection } from "../../hooks/useImageSelection";
-import { useMenuState } from "../../hooks/useMenuState";
+import { useClickThroughMode } from "../../hooks/useClickThroughMode";
 import { useStageExport } from "../hooks/useStageExport";
 import { useImageInitialization } from "../hooks/useImageInitialization";
 import { useStagePointerHandlers } from "../hooks/useStagePointerHandlers";
+import type { MainWindowActions } from "../hooks/useMainWindowActions";
 
-export const ImageStage = memo(function ImageStage() {
+interface ImageStageProps {
+    isImageExportDialogOpen: boolean;
+    onOpenImageExportDialog: () => void;
+    onCloseImageExportDialog: () => void;
+    onOpenWindowColorPicker: () => void;
+    mainWindowActions: MainWindowActions;
+}
+
+export const ImageStage = memo(function ImageStage(props: ImageStageProps) {
+    "use no memo";
+
+    const {
+        isImageExportDialogOpen,
+        onOpenImageExportDialog,
+        onCloseImageExportDialog,
+        onOpenWindowColorPicker,
+        mainWindowActions,
+    } = props;
     const {
         imageSets,
         updateImageSet,
@@ -32,9 +49,6 @@ export const ImageStage = memo(function ImageStage() {
     } = useAppStore();
 
     const stageRef = useRef<Konva.Stage>(null);
-
-    const { isExportDialogOpen, openExportDialog, closeExportDialog } =
-        useMenuState();
 
     const { exportImage } = useStageExport({ stageRef, setUIHidden });
 
@@ -49,7 +63,7 @@ export const ImageStage = memo(function ImageStage() {
 
     const {
         isDimensionMode,
-        setDimensionModeEnabled,
+        isDimensionSelectMode,
         selectedDimensionLineId,
         setSelectedDimensionLineId,
         dimensionLines,
@@ -80,6 +94,8 @@ export const ImageStage = memo(function ImageStage() {
             onMouseUpDimension,
             onUpdateStage,
         });
+
+    useClickThroughMode();
 
     useEffect(() => {
         const stage = stageRef.current;
@@ -147,25 +163,18 @@ export const ImageStage = memo(function ImageStage() {
                         isSelected={(id) => id === selectedDimensionLineId}
                         onSelect={setSelectedDimensionLineId}
                         onUpdate={updateDimensionLine}
-                        isDimensionMode={isDimensionMode}
+                        isDimensionEditMode={isDimensionSelectMode}
                     />
                 </Layer>
             </Stage>
             <ControlButton
-                isDimensionMode={isDimensionMode}
-                onToggleDimensionMode={() => {
-                    setDimensionModeEnabled(!isDimensionMode);
-                    if (!isDimensionMode) {
-                        setSelectedImageId(null);
-                    } else {
-                        setSelectedDimensionLineId(null);
-                    }
-                }}
-                onOpenExportDialog={openExportDialog}
+                onOpenImageExportDialog={onOpenImageExportDialog}
+                onOpenWindowColorPicker={onOpenWindowColorPicker}
+                mainWindowActions={mainWindowActions}
             />
-            <ExportDialog
-                open={isExportDialogOpen}
-                onClose={closeExportDialog}
+            <ImageExportDialog
+                open={isImageExportDialogOpen}
+                onClose={onCloseImageExportDialog}
                 onExport={exportImage}
             />
         </>

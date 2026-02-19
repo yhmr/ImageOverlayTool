@@ -32,6 +32,7 @@ import { ProjectRepositoryFactory } from "./repositories/ProjectRepositoryFactor
 import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFactory";
 import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory";
 import { WindowManager } from "./windows/windowManager";
+import { cleanupClipboardCache } from "./services/clipboardCacheService";
 
 const e2eConfig = resolveE2ERuntimeConfig();
 initializeRuntimeEnvironment(e2eConfig);
@@ -70,6 +71,9 @@ if (!gotTheLock) {
         await initializeMainI18n(settings.language);
 
         log.info("App ready, creating windows...");
+        void cleanupClipboardCache().catch((error) => {
+            log.warn("[clipboard-cache] Startup cleanup failed", error);
+        });
 
         // 1) protocol -> 2) ipc -> 3) window の順で組み立てる
         setupProtocolHandler();

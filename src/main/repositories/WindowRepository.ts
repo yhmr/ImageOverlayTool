@@ -4,7 +4,9 @@ import {
     AppConfig,
     DEFAULT_MAIN_WINDOW_SIZE,
     DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
+    DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE,
     MIN_IMAGE_SETTINGS_WINDOW_SIZE,
+    MIN_DIMENSION_SETTINGS_WINDOW_SIZE,
 } from "../../shared/types/AppConfig";
 import { calcCenterPosition } from "../utils/calcCenterPosition";
 import { Point } from "../../shared/types/Point";
@@ -25,6 +27,11 @@ export interface IWindowRepository {
     ): void;
     getImageSettingsWindowPositionAndSize(): { pos: Point; size: Size };
     saveImageSettingsWindowPositionAndSize(pos: number[], size: number[]): void;
+    getDimensionSettingsWindowPositionAndSize(): { pos: Point; size: Size };
+    saveDimensionSettingsWindowPositionAndSize(
+        pos: number[],
+        size: number[]
+    ): void;
 }
 
 export class WindowRepository implements IWindowRepository {
@@ -99,12 +106,49 @@ export class WindowRepository implements IWindowRepository {
         this.store.set("imageSettingsWindow.size", size);
     }
 
+    getDimensionSettingsWindowPositionAndSize(): { pos: Point; size: Size } {
+        const { pos, size } = this.getPositionAndSize(
+            "dimensionSettingsWindow.pos",
+            "dimensionSettingsWindow.size",
+            DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE,
+            { x: 40, y: 40 }
+        );
+
+        return {
+            pos,
+            size: {
+                width: Math.max(
+                    size.width,
+                    MIN_DIMENSION_SETTINGS_WINDOW_SIZE.width
+                ),
+                height: Math.max(
+                    size.height,
+                    MIN_DIMENSION_SETTINGS_WINDOW_SIZE.height
+                ),
+            },
+        };
+    }
+
+    saveDimensionSettingsWindowPositionAndSize(
+        pos: number[],
+        size: number[]
+    ): void {
+        this.store.set("dimensionSettingsWindow.pos", pos);
+        this.store.set("dimensionSettingsWindow.size", size);
+    }
+
     /**
      * ウィンドウの位置とサイズを取得するヘルパーメソッド
      */
     private getPositionAndSize(
-        posKey: "window.pos" | "imageSettingsWindow.pos",
-        sizeKey: "window.size" | "imageSettingsWindow.size",
+        posKey:
+            | "window.pos"
+            | "imageSettingsWindow.pos"
+            | "dimensionSettingsWindow.pos",
+        sizeKey:
+            | "window.size"
+            | "imageSettingsWindow.size"
+            | "dimensionSettingsWindow.size",
         defaultSize: Size,
         defaultPos: Point
     ): { pos: Point; size: Size } {

@@ -55,11 +55,11 @@ await applyFixtureScene(page, "scene04-filters.scene.json");
 シーンを順番に読み込み、説明用スクリーンショットを出力する専用E2E:
 
 ```bash
-npm run test:e2e:screenshots
+pnpm run test:e2e:screenshots
 ```
 
 - 出力先: `test-results/e2e-screenshots/`
-- このE2Eは通常の `npm run test:e2e` では実行されません。
+- このE2Eは通常の `pnpm run test:e2e` では実行されません。
 - 主要出力ファイル:
   - `scene01-home.png` / `scene01-home-menu.png`
   - `scene02-main.png` / `scene02-image-settings.png`

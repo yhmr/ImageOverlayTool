@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { isSupportedImageExtension } from "../../shared/constants/imageFormats";
 import { createImageSetFromLocalFile } from "../factories/imageSetFactory";
 import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
@@ -21,15 +22,7 @@ export const useFileHandler = () => {
             }
 
             // Image File
-            const imageExts = [
-                ".png",
-                ".jpg",
-                ".jpeg",
-                ".webp",
-                ".gif",
-                ".svg",
-            ];
-            if (imageExts.includes(ext.toLowerCase())) {
+            if (isSupportedImageExtension(ext)) {
                 const newImageSet = createImageSetFromLocalFile(filePath);
 
                 // If the first item is empty (default state), replace it.

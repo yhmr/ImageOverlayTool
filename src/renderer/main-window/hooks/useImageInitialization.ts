@@ -39,8 +39,8 @@ export const useImageInitialization = ({
                 const anchors = createInitialAnchors(image.width, image.height);
                 const newImageSet = {
                     ...current,
-                    initAnchorPos: anchors,
-                    currentAnchorPos: anchors,
+                    initAnchorPos: current.initAnchorPos ?? anchors,
+                    currentAnchorPos: current.currentAnchorPos ?? anchors,
                 };
 
                 const nextImageSets = [...imageSets];

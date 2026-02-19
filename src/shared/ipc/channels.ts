@@ -7,6 +7,8 @@ export const IPC_CHANNELS = {
         switchSize: "window:switchSize",
         close: "window:close",
         setRect: "window:setRect",
+        setIgnoreMouseEvents: "window:setIgnoreMouseEvents",
+        setAlwaysOnTop: "window:setAlwaysOnTop",
     },
     setting: {
         load: "setting:load",
@@ -21,16 +23,27 @@ export const IPC_CHANNELS = {
         save: "project:save",
         load: "project:load",
         loadFromPath: "project:loadFromPath",
+        pickSavePath: "project:pickSavePath",
+        materializeCacheImages: "project:materializeCacheImages",
     },
     imageSettingsWindow: {
         toggle: "imageSettingsWindow:toggle",
         loadImage: "image:load",
+        getImageInfo: "image:getInfo",
+        pasteImage: "imageSettingsWindow:pasteImage",
+        saveCacheImageAs: "imageSettingsWindow:saveCacheImageAs",
+    },
+    dimensionSettingsWindow: {
+        toggle: "dimensionSettingsWindow:toggle",
     },
     sync: {
         updateImageSets: "imageSets:update",
+        updateDimensionLines: "dimensionLines:update",
         updateUnitFactor: "unitFactor:update",
         updateUnit: "unit:update",
+        updateInteractionMode: "interactionMode:update",
         updateSelectedImageId: "selectedImageId:update",
+        updateSelectedDimensionLineId: "selectedDimensionLineId:update",
         updateProjectDirty: "project:dirty:update",
         requestInitialState: "state:requestInitial",
     },
@@ -54,10 +67,14 @@ export const IPC_CHANNELS = {
 
 export const IPC_EVENTS = {
     imageSetsUpdated: "imageSets:updated",
+    dimensionLinesUpdated: "dimensionLines:updated",
     unitFactorUpdated: "unitFactor:updated",
     unitUpdated: "unit:updated",
+    interactionModeUpdated: "interactionMode:updated",
     selectedImageIdUpdated: "selectedImageId:updated",
+    selectedDimensionLineIdUpdated: "selectedDimensionLineId:updated",
     languageUpdated: "language:updated",
+    clickThroughShortcutTriggered: "clickThrough:shortcutTriggered",
     requestStateSync: "state:requestSync",
     fileOpen: "file:open",
 } as const;

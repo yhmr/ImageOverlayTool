@@ -52,7 +52,11 @@ export function useCapture() {
                 ipcService.log.info("Background captured and added.");
             }
         } catch (error) {
-            console.error("Capture failed:", error);
+            try {
+                void ipcService.log.error("Capture failed", { error });
+            } catch {
+                // noop
+            }
         }
     };
 

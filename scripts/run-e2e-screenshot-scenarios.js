@@ -28,9 +28,9 @@ if (isCi && !forceInCi) {
 }
 
 console.log(
-    "[e2e:screenshots] Running `npm run build` before screenshot capture."
+    "[e2e:screenshots] Running `pnpm run build` before screenshot capture."
 );
-const buildStatus = run("npm", ["run", "build"]);
+const buildStatus = run("pnpm", ["run", "build"]);
 if (buildStatus !== 0) {
     process.exit(buildStatus);
 }

@@ -23,46 +23,57 @@ import {
     Save,
     SaveAll,
     Maximize2,
+    ClipboardPaste,
+    Ruler,
+    Camera,
+    Droplets,
+    Ghost,
 } from "lucide-react";
 
-import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useFitToScreen } from "../../hooks/useFitToScreen";
+import { useImagePaste } from "../../hooks/useImagePaste";
+import {
+    MAIN_WINDOW_SHORTCUT_LABELS,
+    type MainWindowShortcutLabelKey,
+} from "../../hooks/useKeyboardShortcuts";
+import type { MainWindowActions } from "../hooks/useMainWindowActions";
 
 interface AppMenuProps {
     openSettingDialog: () => void;
     openAboutDialog: () => void;
+    openImageExportDialog: () => void;
+    onOpenWindowColorPicker: () => void;
     closeWindow: () => void;
     newProject: () => void;
     openProject: () => void;
     saveProject: () => void;
     saveProjectAs: () => void;
+    onExportLogs: () => void;
+    mainWindowActions: MainWindowActions;
 }
 
 export function AppMenu(props: AppMenuProps) {
     const {
         openSettingDialog,
         openAboutDialog,
+        openImageExportDialog,
+        onOpenWindowColorPicker,
         closeWindow,
         newProject,
         openProject,
         saveProject,
         saveProjectAs,
+        onExportLogs,
+        mainWindowActions,
     } = props;
 
     const { t } = useTranslation();
-    const ipcService = useIpcService();
     const { fitToScreen } = useFitToScreen();
+    const { pasteImage } = useImagePaste();
+    const shortcut = (key: MainWindowShortcutLabelKey): string =>
+        MAIN_WINDOW_SHORTCUT_LABELS[key];
 
-    // 画像設定ウィンドウを開く
-    const openImageSettings = async () => {
-        await ipcService.toggleImageSettingsWindow();
-    };
-
-    const exportLogs = async () => {
-        await ipcService.log.export();
-    };
-
-    const openManual = () => {
+    const openUserGuide = () => {
         window.open("https://yhmr.github.io/ImageOverlayTool/guide/", "_blank");
     };
 
@@ -72,7 +83,7 @@ export function AppMenu(props: AppMenuProps) {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="app-region-no-drag"
+                    className="mr-2 app-region-no-drag"
                     data-testid="main.menu.trigger"
                 >
                     <MenuIcon className="h-6 w-6" />
@@ -94,6 +105,9 @@ export function AppMenu(props: AppMenuProps) {
                     >
                         <FilePlus className="mr-2 h-4 w-4" />
                         {t("render.menu.new_project")}
+                        <DropdownMenuShortcut>
+                            {shortcut("newProject")}
+                        </DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={openProject}
@@ -101,6 +115,9 @@ export function AppMenu(props: AppMenuProps) {
                     >
                         <FolderOpen className="mr-2 h-4 w-4" />
                         {t("render.menu.open_project")}
+                        <DropdownMenuShortcut>
+                            {shortcut("openProject")}
+                        </DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={saveProject}
@@ -108,6 +125,9 @@ export function AppMenu(props: AppMenuProps) {
                     >
                         <Save className="mr-2 h-4 w-4" />
                         {t("render.menu.save_project")}
+                        <DropdownMenuShortcut>
+                            {shortcut("saveProject")}
+                        </DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={saveProjectAs}
@@ -115,6 +135,9 @@ export function AppMenu(props: AppMenuProps) {
                     >
                         <SaveAll className="mr-2 h-4 w-4" />
                         {t("render.menu.save_project_as")}
+                        <DropdownMenuShortcut>
+                            {shortcut("saveProjectAs")}
+                        </DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
 
@@ -126,12 +149,14 @@ export function AppMenu(props: AppMenuProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuGroup>
                     <DropdownMenuItem
-                        onClick={openImageSettings}
+                        onClick={mainWindowActions.openImageSettingsWindow}
                         data-testid="main.menu.item.open-image-settings"
                     >
                         <Settings2 className="mr-2 h-4 w-4" />
-                        {t("render.menu.load_image")}
-                        <DropdownMenuShortcut>Ctrl+I</DropdownMenuShortcut>
+                        {t("render.menu.open_image_settings")}
+                        <DropdownMenuShortcut>
+                            {shortcut("openImageSettings")}
+                        </DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={fitToScreen}
@@ -139,15 +164,97 @@ export function AppMenu(props: AppMenuProps) {
                     >
                         <Maximize2 className="mr-2 h-4 w-4" />
                         {t("render.menu.fit_screen")}
-                        <DropdownMenuShortcut>Ctrl+F</DropdownMenuShortcut>
+                        <DropdownMenuShortcut>
+                            {shortcut("fitToScreen")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => void pasteImage()}
+                        data-testid="main.menu.item.paste-image"
+                    >
+                        <ClipboardPaste className="mr-2 h-4 w-4" />
+                        {t("render.menu.paste_image")}
+                        <DropdownMenuShortcut>
+                            {shortcut("pasteImage")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={mainWindowActions.captureBackground}
+                        data-testid="main.menu.item.capture-background"
+                    >
+                        <Camera className="mr-2 h-4 w-4" />
+                        {t("render.menu.capture_background")}
+                        <DropdownMenuShortcut>
+                            {shortcut("captureBackground")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={openImageExportDialog}
+                        data-testid="main.menu.item.export-image"
+                    >
+                        <Save className="mr-2 h-4 w-4" />
+                        {t("render.menu.export_image")}
+                        <DropdownMenuShortcut>
+                            {shortcut("exportImage")}
+                        </DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
 
                 <DropdownMenuSeparator />
 
-                {/* アプリケーション グループ */}
+                {/* 寸法線 グループ */}
                 <DropdownMenuLabel>
-                    {t("render.menu.group_app")}
+                    {t("render.menu.group_dimension")}
+                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                    <DropdownMenuItem
+                        onClick={mainWindowActions.openDimensionSettingsWindow}
+                        data-testid="main.menu.item.open-dimension-settings"
+                    >
+                        <Ruler className="mr-2 h-4 w-4" />
+                        {t("render.menu.open_dimension_settings")}
+                        <DropdownMenuShortcut>
+                            {shortcut("openDimensionSettings")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                {/* 表示 グループ */}
+                <DropdownMenuLabel>
+                    {t("render.menu.group_view")}
+                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                    <DropdownMenuItem
+                        onClick={onOpenWindowColorPicker}
+                        data-testid="main.menu.item.background-style"
+                    >
+                        <Droplets className="mr-2 h-4 w-4" />
+                        {t("render.menu.background_style")}
+                        <DropdownMenuShortcut>
+                            {shortcut("openBackgroundStyle")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={mainWindowActions.toggleClickThroughMode}
+                        data-testid="main.menu.item.click-through-mode"
+                    >
+                        <Ghost className="mr-2 h-4 w-4" />
+                        {mainWindowActions.isClickThroughMode
+                            ? t("render.menu.click_through_mode_disable")
+                            : t("render.menu.click_through_mode_enable")}
+                        <DropdownMenuShortcut>
+                            {shortcut("toggleClickThroughMode")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                {/* システム グループ */}
+                <DropdownMenuLabel>
+                    {t("render.menu.group_system")}
                 </DropdownMenuLabel>
                 <DropdownMenuGroup>
                     <DropdownMenuItem
@@ -156,9 +263,41 @@ export function AppMenu(props: AppMenuProps) {
                     >
                         <Settings className="mr-2 h-4 w-4" />
                         {t("render.menu.settings")}
+                        <DropdownMenuShortcut>
+                            {shortcut("openSettings")}
+                        </DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                        onClick={openManual}
+                        onClick={onExportLogs}
+                        data-testid="main.menu.item.export-logs"
+                    >
+                        <FileDown className="mr-2 h-4 w-4" />
+                        {t("render.menu.export_logs")}
+                        <DropdownMenuShortcut>
+                            {shortcut("exportLogs")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={closeWindow}
+                        data-testid="main.menu.item.exit"
+                    >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        {t("render.menu.exit")}
+                        <DropdownMenuShortcut>
+                            {shortcut("exit")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                {/* ヘルプ グループ */}
+                <DropdownMenuLabel>
+                    {t("render.menu.group_help")}
+                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                    <DropdownMenuItem
+                        onClick={openUserGuide}
                         data-testid="main.menu.item.help-manual"
                     >
                         <BookOpen className="mr-2 h-4 w-4" />
@@ -171,24 +310,7 @@ export function AppMenu(props: AppMenuProps) {
                         <Info className="mr-2 h-4 w-4" />
                         {t("render.menu.about")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={exportLogs}
-                        data-testid="main.menu.item.export-logs"
-                    >
-                        <FileDown className="mr-2 h-4 w-4" />
-                        {t("render.menu.export_logs")}
-                    </DropdownMenuItem>
                 </DropdownMenuGroup>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem
-                    onClick={closeWindow}
-                    data-testid="main.menu.item.exit"
-                >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {t("render.menu.exit")}
-                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );

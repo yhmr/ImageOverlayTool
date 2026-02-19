@@ -1,9 +1,10 @@
 import type { AnchorPos } from "./AnchorPos";
 import type { DimensionLine } from "./DimensionLine";
 import type { ImageSet } from "./ImageSet";
+import type { InteractionMode } from "./InteractionMode";
 
 export type E2EUnit = "nm" | "um" | "mm";
-export type E2EInteractionMode = "default" | "dimension";
+export type E2EInteractionMode = InteractionMode;
 export type E2ECaptureMode = "window" | "screen";
 
 export interface E2ESceneImageInput {

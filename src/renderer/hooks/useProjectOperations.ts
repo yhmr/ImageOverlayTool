@@ -16,6 +16,9 @@ export const useProjectOperations = () => {
         (state) => state.setCurrentProjectFilePath
     );
     const markProjectSaved = useAppStore((state) => state.markProjectSaved);
+    const replaceImageSetsAfterSave = useAppStore(
+        (state) => state.replaceImageSetsAfterSave
+    );
 
     const ipcService = useIpcService();
 
@@ -49,6 +52,7 @@ export const useProjectOperations = () => {
                     resetAll,
                     setCurrentProjectFilePath,
                     markProjectSaved,
+                    replaceImageSetsAfterSave,
                 },
             }),
         [
@@ -57,6 +61,7 @@ export const useProjectOperations = () => {
             resetAll,
             setCurrentProjectFilePath,
             markProjectSaved,
+            replaceImageSetsAfterSave,
         ]
     );
 

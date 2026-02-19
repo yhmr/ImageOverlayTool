@@ -7,7 +7,10 @@ import {
     sanitizeUnitFactor,
     UNIT_FACTOR_DEFAULT,
 } from "../../../shared/constants/unitFactor";
-import { createEmptyImageSet } from "../../factories/imageSetFactory";
+import {
+    createEmptyImageSet,
+    createImageSetFromLocalFile,
+} from "../../factories/imageSetFactory";
 import {
     runAsSystemMutation,
     type TemporalStoreAccessor,
@@ -25,8 +28,13 @@ export interface ProjectDataSlice {
 
     // Actions
     markProjectSaved: () => void;
+    replaceImageSetsAfterSave: (imageSets: ImageSet[]) => void;
 
     setImageSets: (imageSets: ImageSet[]) => void;
+    addImageSetWithPath: (
+        path: string,
+        options?: { sourceType?: ImageSet["sourceType"] }
+    ) => void;
     updateImageSet: (payload: {
         index?: number;
         id?: string;
@@ -36,6 +44,7 @@ export interface ProjectDataSlice {
     receiveImageSets: (imageSets: ImageSet[]) => void;
 
     setDimensionLines: (lines: DimensionLine[]) => void;
+    receiveDimensionLines: (lines: DimensionLine[]) => void;
     addDimensionLine: (line: DimensionLine) => void;
     updateDimensionLine: (line: DimensionLine) => void;
     removeDimensionLine: (id: string) => void;
@@ -74,12 +83,47 @@ export const createProjectDataSlice = (
             });
         },
 
+        replaceImageSetsAfterSave: (imageSets) => {
+            runAsSystemMutation(getTemporal, () => {
+                set({
+                    imageSets,
+                    projectDataChangeOrigin: "local",
+                    hasUnsavedChanges: false,
+                });
+            });
+        },
+
         // --- Image Sets ---
         setImageSets: (imageSets) => {
             set({
                 imageSets,
                 projectDataChangeOrigin: "local",
                 hasUnsavedChanges: true,
+            });
+        },
+
+        addImageSetWithPath: (path, options) => {
+            if (!path) {
+                return;
+            }
+
+            set((state) => {
+                const nextImageSet = createImageSetFromLocalFile(path, {
+                    sourceType: options?.sourceType ?? "file",
+                });
+                const nextImageSets = [...state.imageSets];
+
+                if (nextImageSets.length === 1 && !nextImageSets[0].path) {
+                    nextImageSets[0] = nextImageSet;
+                } else {
+                    nextImageSets.push(nextImageSet);
+                }
+
+                return {
+                    imageSets: nextImageSets,
+                    projectDataChangeOrigin: "local",
+                    hasUnsavedChanges: true,
+                };
             });
         },
 
@@ -129,6 +173,13 @@ export const createProjectDataSlice = (
             set({
                 dimensionLines: lines,
                 projectDataChangeOrigin: "local",
+                hasUnsavedChanges: true,
+            }),
+
+        receiveDimensionLines: (lines) =>
+            set({
+                dimensionLines: lines,
+                projectDataChangeOrigin: "remote",
                 hasUnsavedChanges: true,
             }),
 
@@ -210,7 +261,10 @@ export const createProjectDataSlice = (
 
         // --- Bulk Actions ---
         loadProjectData: (project) => {
-            const newImageSets = project.images;
+            const newImageSets = project.images.map((imageSet) => ({
+                ...imageSet,
+                sourceType: imageSet.sourceType ?? "file",
+            }));
             const newDimensionLines = project.dimensionLines || [];
             const newUnitFactor = sanitizeUnitFactor(
                 project.settings.unitFactor

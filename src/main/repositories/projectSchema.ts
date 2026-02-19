@@ -1,6 +1,7 @@
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { ImageSet } from "../../shared/types/ImageSet";
 import { sanitizeUnitFactor } from "../../shared/constants/unitFactor";
+import { sanitizeDimensionLineColor } from "../../shared/constants/dimensionLine";
 
 const CURRENT_PROJECT_VERSION = "1.0.0";
 const DEFAULT_WINDOW = {
@@ -119,6 +120,7 @@ const normalizeImage = (value: unknown, index: number): ImageSet => {
     return {
         id,
         path,
+        sourceType: value.sourceType === "cache" ? "cache" : "file",
         transparency: Math.max(
             0,
             Math.min(100, toFiniteNumber(value.transparency, 0))
@@ -211,10 +213,25 @@ const normalizeDimensionLines = (
                 ? line.id
                 : `migrated-line-${index}`;
 
-        return {
+        const color =
+            typeof line.color === "string"
+                ? sanitizeDimensionLineColor(line.color)
+                : undefined;
+        const showUnitLabel =
+            typeof line.showUnitLabel === "boolean"
+                ? line.showUnitLabel
+                : undefined;
+
+        const normalizedLine = {
             id,
             start: normalizePoint(line.start, `dimensionLines[${index}].start`),
             end: normalizePoint(line.end, `dimensionLines[${index}].end`),
+        };
+
+        return {
+            ...normalizedLine,
+            ...(color ? { color } : {}),
+            ...(showUnitLabel !== undefined ? { showUnitLabel } : {}),
         };
     });
 };

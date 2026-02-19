@@ -1,15 +1,24 @@
 {
     "common": {
         "save": "Save",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "undo": "Undo",
+        "redo": "Redo",
+        "menu": "Menu",
+        "close": "Close"
     },
     "main": {},
     "render": {
         "menu": {
             "group_project": "Project",
             "group_image": "Image",
+            "group_dimension": "Dimension",
             "group_app": "Application",
-            "load_image": "Image Settings",
+            "group_view": "View",
+            "group_system": "System",
+            "group_help": "Help",
+            "open_image_settings": "Image Settings",
+            "open_dimension_settings": "Dimension Line Settings",
             "new_project": "New Project",
             "open_project": "Open Project",
             "save_project": "Save Project",
@@ -19,12 +28,20 @@
             "help_manual": "Help / Manual",
             "export_logs": "Export Logs",
             "exit": "Exit",
-            "fit_screen": "Fit to Screen"
+            "fit_screen": "Fit to Screen",
+            "paste_image": "Paste Image",
+            "capture_background": "Capture Background",
+            "export_image": "Save Image",
+            "background_style": "Background Color/Opacity",
+            "click_through_mode_enable": "Enable Click-through Mode",
+            "click_through_mode_disable": "Disable Click-through Mode"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
+            "status": {
+                "click_through_mode_active": "Click-through mode (always on top, click to disable)"
+            },
             "tooltip": {
-                "menu": "Menu",
                 "maximize": "Maximize Window",
                 "unmaximize": "Restore Window",
                 "close": "Close"
@@ -33,10 +50,11 @@
         "control_button": {
             "tooltip": {
                 "background_style": "Background Color/Opacity",
-                "dimension_line": "Draw Dimension Line",
+                "dimension_line": "Dimension Line Settings",
                 "save": "Save Image",
                 "capture": "Capture Background",
-                "image_settings": "Image Settings"
+                "image_settings": "Image Settings",
+                "click_through_mode": "Click-through mode (Ctrl+Shift+M)"
             }
         },
         "export_dialog": {
@@ -55,6 +73,9 @@
             "scale": "Scale",
             "rotation": "Rotation",
             "no_image": "No Image Selected",
+            "missing_file": "Image file is missing",
+            "relink": "Relink Image",
+            "relink_failed": "Failed to relink image",
             "reset_transformation": "Reset Transformation",
             "filters": "Image Filters",
             "binarization": "Binarization",
@@ -65,6 +86,7 @@
             "value": "Value",
             "tooltip": {
                 "load_image": "Load Image",
+                "save_cache_image_as": "Save As...",
                 "delete_image": "Delete Image",
                 "visible": "Toggle Visibility",
                 "reset_transformation": "Reset Transformation",
@@ -73,6 +95,17 @@
                 "add": "Add",
                 "capture": "Capture Background",
                 "close": "Close"
+            },
+            "badge": {
+                "cache_image": "Cache"
+            }
+        },
+        "image_status": {
+            "missing_summary": "{{count}} image(s) are missing"
+        },
+        "project_save": {
+            "cache_warning": {
+                "confirm_move": "This project contains cached images. Move them into an assets folder next to the project file and continue saving?\nCancel will reject save and open Image Settings."
             }
         },
         "setting_dlg": {
@@ -97,7 +130,35 @@
                 "silly": "All"
             }
         },
+        "dimension_line_settings": {
+            "title": "Dimension Line Settings",
+            "description": "Configure dimension line drawing and display.",
+            "draw_mode": "Dimension Draw Mode",
+            "operation": "Add and Edit Dimension Lines",
+            "add_button": "Add Dimension Line",
+            "unitFactor": "Resolution Factor",
+            "unit": "Unit",
+            "done": "Done",
+            "mode": {
+                "default": "Mode: Normal",
+                "add": "Mode: Add Pending",
+                "select": "Mode: Edit Dimension Line"
+            },
+            "helper": {
+                "draw_mode": "When enabled, drag with left click to draw lines",
+                "add_mode": "After clicking Add, drag on the main window to create one line",
+                "add_mode_waiting": "Drag on the main window to add a dimension line",
+                "unitFactor": "Converts px distance into real-world values"
+            },
+            "list": {
+                "title": "Dimension Line List",
+                "empty": "No dimension lines yet.",
+                "line_name": "Line {{index}}",
+                "show_unit_label": "Unit Label"
+            }
+        },
         "about_dlg": {
+            "title": "About",
             "version": "Version",
             "licenses": "Open Source Licenses",
             "done": "Close"

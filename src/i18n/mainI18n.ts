@@ -21,6 +21,8 @@ export const initializeMainI18n = async (language?: string): Promise<void> => {
                 resources: I18N_RESOURCES,
                 lng: resolvedLanguage,
                 fallbackLng: DEFAULT_LANGUAGE,
+                returnEmptyString: false,
+                parseMissingKeyHandler: (key) => `[missing] ${key}`,
                 interpolation: {
                     escapeValue: false,
                 },

@@ -6,6 +6,8 @@ i18n.use(initReactI18next) // passes i18n down to react-i18next
     .init({
         resources: I18N_RESOURCES,
         lng: DEFAULT_LANGUAGE,
+        returnEmptyString: false,
+        parseMissingKeyHandler: (key) => `[missing] ${key}`,
         interpolation: {
             escapeValue: false, // react already safes from xss
         },

@@ -34,7 +34,10 @@ theme = 'PaperMod'
         name = "使い方ガイド"
         url = "guide"
       [[languages.ja.params.profileMode.buttons]]
-        name = "ダウンロード"
+        name = "Microsoft Store"
+        url = "https://apps.microsoft.com/store/detail/9PBQ7VPKTXQ1?cid=DevShareMCLPCS"
+      [[languages.ja.params.profileMode.buttons]]
+        name = "GitHub Releases"
         url = "https://github.com/yhmr/ImageOverlayTool/releases"
 
     [languages.ja.menu]
@@ -82,7 +85,10 @@ theme = 'PaperMod'
         name = "User Guide"
         url = "guide"
       [[languages.en.params.profileMode.buttons]]
-        name = "Download"
+        name = "Microsoft Store"
+        url = "https://apps.microsoft.com/store/detail/9PBQ7VPKTXQ1?cid=DevShareMCLPCS"
+      [[languages.en.params.profileMode.buttons]]
+        name = "GitHub Releases"
         url = "https://github.com/yhmr/ImageOverlayTool/releases"
 
     [languages.en.menu]

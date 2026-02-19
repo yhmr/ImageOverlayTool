@@ -4,10 +4,13 @@
  */
 
 import type { ImageSet } from "../../shared/types/ImageSet";
+import type { ImageInfoResult } from "../../shared/types/ImageInfo";
+import type { DimensionLine } from "../../shared/types/DimensionLine";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { SettingType } from "../../shared/types/AppConfig";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../../shared/types/LicenseInfo";
+import type { InteractionMode } from "../../shared/types/InteractionMode";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -41,6 +44,8 @@ export interface IWindowIPCService {
         width: number;
         height: number;
     }) => Promise<void>;
+    setIgnoreMouseEvents: (ignore: boolean) => Promise<void>;
+    setAlwaysOnTop: (enabled: boolean) => Promise<void>;
     closeWindow: () => Promise<void>;
 }
 
@@ -56,9 +61,15 @@ export interface ISettingsIPCService {
 
 export interface IProjectIPCService {
     saveProjectAs: (project: ProjectFile<ImageSet>) => Promise<string | null>;
+    pickProjectSavePath: () => Promise<string | null>;
+    materializeCacheImages: (
+        projectFilePath: string,
+        cacheImagePaths: string[]
+    ) => Promise<Record<string, string>>;
     saveProject: (
         filePath: string,
-        project: ProjectFile<ImageSet>
+        project: ProjectFile<ImageSet>,
+        cacheImagePathsToDelete?: string[]
     ) => Promise<boolean>;
     loadProject: () => Promise<{
         project: ProjectFile<ImageSet>;
@@ -71,13 +82,25 @@ export interface IProjectIPCService {
 
 export interface IImageSettingsWindowIPCService {
     loadImage: () => Promise<string | null>;
+    getImageInfo: (imagePath: string) => Promise<ImageInfoResult>;
+    pasteImage: () => Promise<string | null>;
+    saveCacheImageAs: (cacheFilePath: string) => Promise<string | null>;
+    getPathForFile: (file: File) => string;
     toggleImageSettingsWindow: () => Promise<boolean>;
+    toggleDimensionSettingsWindow: () => Promise<boolean>;
 }
 
 export interface IImageSyncIPCService {
     updateImageSets(imageSets: ImageSet[]): Promise<void>;
     onImageSetsUpdated: (
         callback: (imageSets: ImageSet[]) => void
+    ) => () => void;
+}
+
+export interface IDimensionLineSyncIPCService {
+    updateDimensionLines(dimensionLines: DimensionLine[]): Promise<void>;
+    onDimensionLinesUpdated: (
+        callback: (dimensionLines: DimensionLine[]) => void
     ) => () => void;
 }
 
@@ -89,9 +112,17 @@ export interface IUnitSyncIPCService {
     onUnitUpdated: (callback: (unit: Unit) => void) => () => void;
 }
 
+export interface IInteractionModeSyncIPCService {
+    updateInteractionMode(mode: InteractionMode): Promise<void>;
+    onInteractionModeUpdated: (
+        callback: (mode: InteractionMode) => void
+    ) => () => void;
+}
+
 export interface IStateSyncIPCService {
     requestInitialState: () => Promise<void>;
     onRequestStateSync: (callback: () => void) => () => void;
+    onClickThroughShortcutTriggered: (callback: () => void) => () => void;
     onFileOpen: (
         callback: (filePath: string, ext: string) => void
     ) => () => void;
@@ -115,6 +146,13 @@ export interface ISelectedImageSyncIPCService {
     ) => () => void;
 }
 
+export interface ISelectedDimensionLineSyncIPCService {
+    updateSelectedDimensionLineId(id: string | null): Promise<void>;
+    onSelectedDimensionLineIdUpdated: (
+        callback: (id: string | null) => void
+    ) => () => void;
+}
+
 export interface IProjectDirtySyncIPCService {
     updateProjectDirty(isDirty: boolean): Promise<void>;
 }
@@ -131,6 +169,7 @@ export interface IE2EIPCService {
 
 export interface IProjectDataSyncIPCService {
     updateImageSets(imageSets: ImageSet[]): Promise<void>;
+    updateDimensionLines(dimensionLines: DimensionLine[]): Promise<void>;
     updateUnitFactor(factor: number): Promise<void>;
     updateUnit(unit: Unit): Promise<void>;
 }
@@ -145,11 +184,14 @@ export interface IIPCService
         IProjectIPCService,
         IImageSettingsWindowIPCService,
         IImageSyncIPCService,
+        IDimensionLineSyncIPCService,
         IUnitSyncIPCService,
+        IInteractionModeSyncIPCService,
         IStateSyncIPCService,
         ILicenseIPCService,
         ICaptureIPCService,
         ISelectedImageSyncIPCService,
+        ISelectedDimensionLineSyncIPCService,
         IProjectDirtySyncIPCService,
         IE2EIPCService {}
 /**
@@ -179,6 +221,14 @@ class IPCService implements IIPCService {
         height: number;
     }): Promise<void> {
         await window.electronAPI.setWindowRect(rect);
+    }
+
+    async setIgnoreMouseEvents(ignore: boolean): Promise<void> {
+        await window.electronAPI.setIgnoreMouseEvents(ignore);
+    }
+
+    async setAlwaysOnTop(enabled: boolean): Promise<void> {
+        await window.electronAPI.setAlwaysOnTop(enabled);
     }
 
     async closeWindow(): Promise<void> {
@@ -219,11 +269,30 @@ class IPCService implements IIPCService {
         return await window.electronAPI.saveProjectAs(project);
     }
 
+    async pickProjectSavePath(): Promise<string | null> {
+        return await window.electronAPI.pickProjectSavePath();
+    }
+
+    async materializeCacheImages(
+        projectFilePath: string,
+        cacheImagePaths: string[]
+    ): Promise<Record<string, string>> {
+        return await window.electronAPI.materializeCacheImages(
+            projectFilePath,
+            cacheImagePaths
+        );
+    }
+
     async saveProject(
         filePath: string,
-        project: ProjectFile<ImageSet>
+        project: ProjectFile<ImageSet>,
+        cacheImagePathsToDelete?: string[]
     ): Promise<boolean> {
-        return await window.electronAPI.saveProject(filePath, project);
+        return await window.electronAPI.saveProject(
+            filePath,
+            project,
+            cacheImagePathsToDelete
+        );
     }
 
     async loadProject(): Promise<{
@@ -243,8 +312,28 @@ class IPCService implements IIPCService {
         return await window.electronAPI.loadImage();
     }
 
+    async getImageInfo(imagePath: string): Promise<ImageInfoResult> {
+        return await window.electronAPI.getImageInfo(imagePath);
+    }
+
+    async pasteImage(): Promise<string | null> {
+        return await window.electronAPI.pasteImage();
+    }
+
+    async saveCacheImageAs(cacheFilePath: string): Promise<string | null> {
+        return await window.electronAPI.saveCacheImageAs(cacheFilePath);
+    }
+
+    getPathForFile(file: File): string {
+        return window.electronAPI.getPathForFile(file);
+    }
+
     async toggleImageSettingsWindow(): Promise<boolean> {
         return await window.electronAPI.toggleImageSettingsWindow();
+    }
+
+    async toggleDimensionSettingsWindow(): Promise<boolean> {
+        return await window.electronAPI.toggleDimensionSettingsWindow();
     }
 
     async updateImageSets(imageSets: ImageSet[]): Promise<void> {
@@ -253,6 +342,16 @@ class IPCService implements IIPCService {
 
     onImageSetsUpdated(callback: (imageSets: ImageSet[]) => void): () => void {
         return window.electronAPI.onImageSetsUpdated(callback);
+    }
+
+    async updateDimensionLines(dimensionLines: DimensionLine[]): Promise<void> {
+        await window.electronAPI.updateDimensionLines(dimensionLines);
+    }
+
+    onDimensionLinesUpdated(
+        callback: (dimensionLines: DimensionLine[]) => void
+    ): () => void {
+        return window.electronAPI.onDimensionLinesUpdated(callback);
     }
 
     async updateUnitFactor(factor: number): Promise<void> {
@@ -271,12 +370,26 @@ class IPCService implements IIPCService {
         return window.electronAPI.onUnitUpdated(callback);
     }
 
+    async updateInteractionMode(mode: InteractionMode): Promise<void> {
+        await window.electronAPI.updateInteractionMode(mode);
+    }
+
+    onInteractionModeUpdated(
+        callback: (mode: InteractionMode) => void
+    ): () => void {
+        return window.electronAPI.onInteractionModeUpdated(callback);
+    }
+
     async requestInitialState(): Promise<void> {
         await window.electronAPI.requestInitialState();
     }
 
     onRequestStateSync(callback: () => void): () => void {
         return window.electronAPI.onRequestStateSync(callback);
+    }
+
+    onClickThroughShortcutTriggered(callback: () => void): () => void {
+        return window.electronAPI.onClickThroughShortcutTriggered(callback);
     }
 
     onFileOpen(callback: (filePath: string, ext: string) => void): () => void {
@@ -311,6 +424,16 @@ class IPCService implements IIPCService {
         callback: (id: string | null) => void
     ): () => void {
         return window.electronAPI.onSelectedImageIdUpdated(callback);
+    }
+
+    async updateSelectedDimensionLineId(id: string | null): Promise<void> {
+        await window.electronAPI.updateSelectedDimensionLineId(id);
+    }
+
+    onSelectedDimensionLineIdUpdated(
+        callback: (id: string | null) => void
+    ): () => void {
+        return window.electronAPI.onSelectedDimensionLineIdUpdated(callback);
     }
 
     async updateProjectDirty(isDirty: boolean): Promise<void> {

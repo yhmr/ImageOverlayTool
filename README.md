@@ -1,6 +1,7 @@
 # ImageOverlayTool
 
 ![Version](https://img.shields.io/github/package-json/v/yhmr/ImageOverlayTool?color=blue&label=version)
+[![Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-0078D7?style=flat&logo=microsoft&logoColor=white)](https://apps.microsoft.com/store/detail/9PBQ7VPKTXQ1?cid=DevShareMCLPCS)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)
 
 **ImageOverlayTool** は、Electron と React で構築された、画像の重ね合わせ調整用デスクトップアプリケーションです。
@@ -37,37 +38,63 @@
 
 ### 前提条件
 - Node.js v20.0.0 以上
+- pnpm v10 以上
 
 ### インストール
 ```bash
 # 依存関係のインストール
-npm install
+pnpm install
 ```
 
 ## 💻 開発・ビルド
 
 ```bash
 # 開発モード（Main/Renderer 双方の監視とHMRを有効化）
-npm run dev
+pnpm run dev
 
 # 本番用ビルド（out フォルダに成果物を生成）
-npm run build
+pnpm run build
 
 # Windows 向けパッケージング (.exe / .zip)
-npm run build:win
+pnpm run build:win
 
 # Linux 向けパッケージング (.AppImage / .deb)
-npm run build:linux
+pnpm run build:linux
 
 # テスト実行
-npm test
+pnpm test
+
+# 単体テストのみ
+pnpm run test:unit
+
+# 結合テストのみ
+pnpm run test:integration
+
+# パフォーマンスベンチ（Vitest bench）
+pnpm run bench
+pnpm run bench:renderer
+pnpm run bench:main
+pnpm run bench:baseline
+pnpm run bench:compare
 
 # E2Eテスト
-npm run test:e2e
+pnpm run test:e2e
 
 # シナリオ別スクリーンショット撮影（通常のtest:e2e/CIでは自動実行されない）
-npm run test:e2e:screenshots
+pnpm run test:e2e:screenshots
 ```
+
+- テスト作法の基準は `tests/TESTING_GUIDELINES.md` を参照
+
+### ベンチ運用フロー
+
+- bench:compare（baselineとの比較）のタイミング
+  - PR作成前など
+  - CI（`main` への push / PR）
+  - 最適化作業中
+- bench:baseline（baseline更新）のタイミング
+  - 最適化を意図して性能が変わったとき
+  - 仕様変更により計測対象の処理量そのものが変わったとき
 
 ### テストセレクタ（data-testid）規約
 
@@ -75,7 +102,7 @@ E2E/統合テストで使用する `data-testid` は、以下の形式で命名�
 
 - 形式: `<screen>.<area>.<action>`
 - 例: `main.menu.item.save-project`, `settings.image-list.add`
-- 主要操作UIには `data-testid` を必須化し、`eslint` の `require-data-testid` / `require-component-testid` ルールで検知します（`npm run lint`）。
+- 主要操作UIには `data-testid` を必須化し、`eslint` の `require-data-testid` / `require-component-testid` ルールで検知します（`pnpm run lint`）。
 
 原則として、文言や表示順に依存するセレクタは使わず、主要操作は `data-testid` で参照します。
 
@@ -90,9 +117,9 @@ E2E/統合テストで使用する `data-testid` は、以下の形式で命名�
 
 シナリオ撮影用の `e2e/screenshot-scenarios.spec.ts` は、
 `IOT_E2E_SCREENSHOT_SCENARIOS=1` のときのみ有効になります。
-通常の `npm run test:e2e` / CI実行では除外されます。
+通常の `pnpm run test:e2e` / CI実行では除外されます。
 
-`npm run test:e2e:screenshots` は、毎回 `npm run build` を先に実行し、ビルド成功時のみ撮影を実行します。
+`pnpm run test:e2e:screenshots` は、毎回 `pnpm run build` を先に実行し、ビルド成功時のみ撮影を実行します。
 CI上で明示実行された場合も既定ではスキップし、必要時のみ `IOT_E2E_SCREENSHOT_FORCE_IN_CI=1` で強制実行します。
 
 fixture解決ルール:
@@ -137,8 +164,11 @@ electron-vite の標準的な構成に基づき、コードの分離を行って
 │   └── i18n/           # 多言語対応リソース
 │
 ├── tests/          # テストコード（Vitest）
-│   ├── main/           # メインプロセスのユニットテスト
-│   └── renderer/       # レンダラープロセスのユニットテスト
+│   ├── bench/          # パフォーマンスベンチ（*.bench.ts / *.bench.tsx）
+│   ├── unit/           # 単体テスト（*.spec.ts / *.spec.tsx）
+│   │   ├── main/
+│   │   └── renderer/
+│   └── integration/    # 結合テスト（*.int-test.ts / *.int-test.tsx）
 │
 └── scripts/        # ビルド・補助スクリプト
 ```

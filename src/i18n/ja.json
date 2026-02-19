@@ -1,15 +1,24 @@
 {
     "common": {
         "save": "保存",
-        "cancel": "キャンセル"
+        "cancel": "キャンセル",
+        "undo": "元に戻す",
+        "redo": "やり直し",
+        "menu": "メニュー",
+        "close": "閉じる"
     },
     "main": {},
     "render": {
         "menu": {
             "group_project": "プロジェクト",
             "group_image": "画像",
+            "group_dimension": "寸法線",
             "group_app": "アプリケーション",
-            "load_image": "画像設定",
+            "group_view": "表示",
+            "group_system": "システム",
+            "group_help": "ヘルプ",
+            "open_image_settings": "画像設定",
+            "open_dimension_settings": "寸法線設定",
             "new_project": "新規作成",
             "open_project": "プロジェクトを開く",
             "save_project": "プロジェクトを保存",
@@ -19,12 +28,20 @@
             "help_manual": "ヘルプ/マニュアル",
             "export_logs": "ログをエクスポート",
             "exit": "終了",
-            "fit_screen": "画面をフィッティング"
+            "fit_screen": "画面をフィッティング",
+            "paste_image": "画像を貼り付け",
+            "capture_background": "背景をキャプチャ",
+            "export_image": "画像を保存",
+            "background_style": "背景色/透過度",
+            "click_through_mode_enable": "クリック透過モードを有効化",
+            "click_through_mode_disable": "クリック透過モードを無効化"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
+            "status": {
+                "click_through_mode_active": "透過モード中（最前面固定・クリックで解除）"
+            },
             "tooltip": {
-                "menu": "メニュー",
                 "maximize": "ウィンドウ最大化",
                 "unmaximize": "ウィンドウを戻す（縮小）",
                 "close": "閉じる"
@@ -33,10 +50,11 @@
         "control_button": {
             "tooltip": {
                 "background_style": "背景色/透過度",
-                "dimension_line": "寸法線の描画",
+                "dimension_line": "寸法線設定",
                 "save": "画像を保存",
                 "capture": "背景をキャプチャ",
-                "image_settings": "画像設定"
+                "image_settings": "画像設定",
+                "click_through_mode": "クリック透過モード (Ctrl+Shift+M)"
             }
         },
         "export_dialog": {
@@ -55,6 +73,9 @@
             "scale": "拡大/縮小",
             "rotation": "回転",
             "no_image": "画像未選択",
+            "missing_file": "画像ファイルが見つかりません",
+            "relink": "画像を再割り当て",
+            "relink_failed": "画像の再割り当てに失敗しました",
             "reset_transformation": "変形解除",
             "filters": "画像処理",
             "binarization": "2値化",
@@ -65,6 +86,7 @@
             "value": "明度",
             "tooltip": {
                 "load_image": "画像の読み込み",
+                "save_cache_image_as": "保存先を選んで保存",
                 "delete_image": "削除",
                 "visible": "表示/非表示",
                 "reset_transformation": "変形解除",
@@ -73,6 +95,17 @@
                 "add": "新規追加",
                 "capture": "背景をキャプチャ",
                 "close": "閉じる"
+            },
+            "badge": {
+                "cache_image": "キャッシュ"
+            }
+        },
+        "image_status": {
+            "missing_summary": "画像が{{count}}件見つかりません"
+        },
+        "project_save": {
+            "cache_warning": {
+                "confirm_move": "キャッシュ画像が含まれています。プロジェクトと同じフォルダの assets に移動して保存しますか？\nキャンセルすると保存を中止し、画像設定を開きます。"
             }
         },
         "setting_dlg": {
@@ -97,7 +130,35 @@
                 "silly": "全て"
             }
         },
+        "dimension_line_settings": {
+            "title": "寸法線設定",
+            "description": "寸法線の描画と表示設定を変更できます。",
+            "draw_mode": "寸法線の描画モード",
+            "operation": "寸法線の追加と編集",
+            "add_button": "寸法線を追加",
+            "unitFactor": "解像度係数",
+            "unit": "単位",
+            "done": "完了",
+            "mode": {
+                "default": "モード: 通常",
+                "add": "モード: 追加待機",
+                "select": "モード: 寸法線編集"
+            },
+            "helper": {
+                "draw_mode": "ON中は左ドラッグで寸法線を作成できます",
+                "add_mode": "追加後、メイン画面で左ドラッグすると1本だけ作成します",
+                "add_mode_waiting": "メイン画面で左ドラッグして寸法線を追加します",
+                "unitFactor": "px距離を実距離に換算する係数です"
+            },
+            "list": {
+                "title": "寸法線リスト",
+                "empty": "寸法線はまだありません。",
+                "line_name": "寸法線 {{index}}",
+                "show_unit_label": "単位表示"
+            }
+        },
         "about_dlg": {
+            "title": "このアプリについて",
             "version": "バージョン",
             "licenses": "オープンソースライセンス",
             "done": "閉じる"

@@ -9,20 +9,23 @@ import { useAppStore } from "../store/useAppStore";
 export const useProjectDataSyncBridge = () => {
     const {
         imageSets,
+        dimensionLines,
         unitFactor,
         unit,
         projectDataChangeOrigin,
+        interactionMode,
         selectedImageId,
+        selectedDimensionLineId,
     } = useAppStore();
     const ipcService = useIpcService();
 
     const isInitializedRef = useRef(false);
-    const prevRef = useRef({ imageSets, unitFactor, unit });
+    const prevRef = useRef({ imageSets, dimensionLines, unitFactor, unit });
 
     useEffect(() => {
         if (!isInitializedRef.current) {
             isInitializedRef.current = true;
-            prevRef.current = { imageSets, unitFactor, unit };
+            prevRef.current = { imageSets, dimensionLines, unitFactor, unit };
             return;
         }
 
@@ -32,6 +35,9 @@ export const useProjectDataSyncBridge = () => {
             if (prev.imageSets !== imageSets) {
                 void ipcService.updateImageSets(imageSets);
             }
+            if (prev.dimensionLines !== dimensionLines) {
+                void ipcService.updateDimensionLines(dimensionLines);
+            }
             if (prev.unitFactor !== unitFactor) {
                 void ipcService.updateUnitFactor(unitFactor);
             }
@@ -40,8 +46,15 @@ export const useProjectDataSyncBridge = () => {
             }
         }
 
-        prevRef.current = { imageSets, unitFactor, unit };
-    }, [imageSets, unitFactor, unit, projectDataChangeOrigin, ipcService]);
+        prevRef.current = { imageSets, dimensionLines, unitFactor, unit };
+    }, [
+        imageSets,
+        dimensionLines,
+        unitFactor,
+        unit,
+        projectDataChangeOrigin,
+        ipcService,
+    ]);
 
     // selectedImageIdの同期（undo対象外なので別のeffectで管理）
     const prevSelectedImageIdRef = useRef(selectedImageId);
@@ -51,4 +64,26 @@ export const useProjectDataSyncBridge = () => {
             prevSelectedImageIdRef.current = selectedImageId;
         }
     }, [selectedImageId, ipcService]);
+
+    // selectedDimensionLineIdの同期（undo対象外なので別のeffectで管理）
+    const prevSelectedDimensionLineIdRef = useRef(selectedDimensionLineId);
+    useEffect(() => {
+        if (
+            prevSelectedDimensionLineIdRef.current !== selectedDimensionLineId
+        ) {
+            void ipcService.updateSelectedDimensionLineId(
+                selectedDimensionLineId
+            );
+            prevSelectedDimensionLineIdRef.current = selectedDimensionLineId;
+        }
+    }, [selectedDimensionLineId, ipcService]);
+
+    // interactionModeの同期（undo対象外なので別のeffectで管理）
+    const prevInteractionModeRef = useRef(interactionMode);
+    useEffect(() => {
+        if (prevInteractionModeRef.current !== interactionMode) {
+            void ipcService.updateInteractionMode(interactionMode);
+            prevInteractionModeRef.current = interactionMode;
+        }
+    }, [interactionMode, ipcService]);
 };

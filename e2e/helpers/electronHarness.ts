@@ -48,7 +48,7 @@ type FixtureAppConfig = {
 const assertBuildOutput = (): void => {
     if (!fs.existsSync(OUT_MAIN_PATH)) {
         throw new Error(
-            `Missing build output: ${OUT_MAIN_PATH}. Run \"npm run build\" before e2e.`
+            `Missing build output: ${OUT_MAIN_PATH}. Run \"pnpm run build\" before e2e.`
         );
     }
 };
