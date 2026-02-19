@@ -46,7 +46,7 @@ jobs:
       - name: Run smoke e2e
         run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- pnpm run test:e2e:smoke
 
-  store-license-terms:
+  store-submission-files:
     needs: quality-gate
     runs-on: ubuntu-22.04
 
@@ -69,11 +69,13 @@ jobs:
       - name: Generate release metadata
         run: pnpm run prepare-release-assets
 
-      - name: Upload store license terms artifact
+      - name: Upload store submission files artifact
         uses: actions/upload-artifact@v4
         with:
-          name: store-license-terms
-          path: STORE_LICENSE_TERMS.txt
+          name: store-submission-files
+          path: |
+            STORE_LICENSE_TERMS.txt
+            SOURCE_CODE_URL.txt
           if-no-files-found: error
           retention-days: 1
 
@@ -155,7 +157,7 @@ jobs:
           retention-days: 1
 
   release:
-    needs: [build, store-license-terms]
+    needs: [build, store-submission-files]
     runs-on: ubuntu-latest
 
     steps:
