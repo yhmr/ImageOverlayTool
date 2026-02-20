@@ -1,6 +1,9 @@
 import fs from "fs/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { SettingsSnapshot } from "@/shared/types/AppConfig";
+import {
+    type SettingsSnapshot,
+    DEFAULT_WINDOW_COLOR_PRESETS,
+} from "@/shared/types/AppConfig";
 import "./appConfigTestDoubles";
 import { invokeIpcHandler } from "../../../support/helpers/ipcTestHelper";
 import {
@@ -41,6 +44,7 @@ describe("Main integration: appConfig export", () => {
         });
         expect(exported.window).toEqual({
             color: "#11223344",
+            colorPresets: [...DEFAULT_WINDOW_COLOR_PRESETS],
         });
     });
 

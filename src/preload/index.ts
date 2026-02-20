@@ -94,6 +94,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorLoad),
     saveWindowColor: (color: string) =>
         ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorSave, color),
+    loadWindowColorPresets: () =>
+        ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorPresetsLoad),
+    saveWindowColorPresets: (presets: string[]) =>
+        ipcRenderer.invoke(
+            IPC_CHANNELS.setting.windowColorPresetsSave,
+            presets
+        ),
     // Project
     saveProjectAs: (project: ProjectFile) =>
         ipcRenderer.invoke(IPC_CHANNELS.project.saveAs, project),

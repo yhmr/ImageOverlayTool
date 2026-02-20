@@ -2,6 +2,7 @@ import {
     DEFAULT_MAIN_WINDOW_SIZE,
     DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
     DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE,
+    DEFAULT_WINDOW_COLOR_PRESETS,
 } from "@/shared/types/AppConfig";
 import { Point } from "@/shared/types/Point";
 import { Size } from "@/shared/types/Size";
@@ -9,6 +10,7 @@ import { IWindowRepository } from "@/main/repositories/WindowRepository";
 
 export class MockWindowRepository implements IWindowRepository {
     private windowColor = "#FF000055"; // テストだと分かりやすいように赤にしておく
+    private windowColorPresets: string[] = [...DEFAULT_WINDOW_COLOR_PRESETS];
     private windowPos: Point = { x: 100, y: 100 };
     private windowSize: Size = {
         width: DEFAULT_MAIN_WINDOW_SIZE.width,
@@ -32,6 +34,14 @@ export class MockWindowRepository implements IWindowRepository {
 
     async saveWindowColor(color: string): Promise<void> {
         this.windowColor = color;
+    }
+
+    async loadWindowColorPresets(): Promise<string[]> {
+        return this.windowColorPresets;
+    }
+
+    async saveWindowColorPresets(presets: string[]): Promise<void> {
+        this.windowColorPresets = presets;
     }
 
     getWindowPositionAndSize(): { pos: Point; size: Size; isMaximized: boolean } {

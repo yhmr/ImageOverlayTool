@@ -52,6 +52,8 @@ export interface IElectronAPI {
     // Window Color
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;
+    loadWindowColorPresets: () => Promise<string[]>;
+    saveWindowColorPresets: (presets: string[]) => Promise<void>;
     // Project
     loadProject: () => Promise<{
         project: ProjectFile<ImageSet>;

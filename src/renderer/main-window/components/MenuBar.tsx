@@ -23,12 +23,14 @@ import { useIpcService } from "../../providers/IpcServiceProvider";
 interface MenuBarProps {
     onOpenImageExportDialog: () => void;
     onOpenWindowColorPicker: () => void;
+    onApplyPresetColor?: (index: number) => void;
     mainWindowActions: MainWindowActions;
 }
 
 export function MenuBar({
     onOpenImageExportDialog,
     onOpenWindowColorPicker,
+    onApplyPresetColor,
     mainWindowActions,
 }: MenuBarProps) {
     const { t } = useTranslation();
@@ -87,6 +89,7 @@ export function MenuBar({
         onOpenSettings: openSettingDialog,
         onExportLogs: exportLogs,
         onExit: closeWindow,
+        onApplyPresetColor: onApplyPresetColor,
     });
 
     return (

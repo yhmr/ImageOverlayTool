@@ -17,6 +17,8 @@ export const IPC_CHANNELS = {
         import: "setting:import",
         windowColorLoad: "window_color:load",
         windowColorSave: "window_color:save",
+        windowColorPresetsLoad: "window_color_presets:load",
+        windowColorPresetsSave: "window_color_presets:save",
     },
     project: {
         saveAs: "project:saveAs",

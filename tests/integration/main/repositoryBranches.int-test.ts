@@ -18,6 +18,8 @@ vi.mock("electron", () => ({
 import {
     DEFAULT_IMAGE_SETTINGS_WINDOW_SIZE,
     DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE,
+    DEFAULT_WINDOW_COLOR,
+    DEFAULT_WINDOW_COLOR_PRESETS,
 } from "@/shared/types/AppConfig";
 import { WindowRepository } from "@/main/repositories/WindowRepository";
 import { SettingsRepository } from "@/main/repositories/SettingsRepository";
@@ -80,7 +82,8 @@ describe("Main integration: repository branches", () => {
             window: {
                 pos: { x: 0, y: 0 },
                 size: { width: 800, height: 600 },
-                color: "#FFFFFF55",
+                color: DEFAULT_WINDOW_COLOR,
+                colorPresets: [...DEFAULT_WINDOW_COLOR_PRESETS],
             },
             imageSettingsWindow: {
                 pos: { x: 0, y: 0 },
@@ -147,6 +150,26 @@ describe("Main integration: repository branches", () => {
         });
     });
 
+    it("WindowRepository applies default presets when appConfig has no presets", async () => {
+        store.set("window.colorPresets", undefined);
+
+        const loadedPresets = await windowRepository.loadWindowColorPresets();
+
+        expect(loadedPresets).toEqual([...DEFAULT_WINDOW_COLOR_PRESETS]);
+        expect(store.get("window.colorPresets")).toEqual([
+            ...DEFAULT_WINDOW_COLOR_PRESETS,
+        ]);
+    });
+
+    it("WindowRepository normalizes invalid color and writes back to store", async () => {
+        store.set("window.color", "invalid-color");
+
+        const loadedColor = await windowRepository.loadWindowColor();
+
+        expect(loadedColor).toBe(DEFAULT_WINDOW_COLOR);
+        expect(store.get("window.color")).toBe(DEFAULT_WINDOW_COLOR);
+    });
+
     it("SettingsRepository normalizes language on load", async () => {
         store.set("setting.language", "EN-us");
         store.set("setting.logLevel", "warn");
@@ -197,5 +220,14 @@ describe("Main integration: repository branches", () => {
             logLevel: "info",
         });
         expect(store.get("window.color")).toBe("#55667788");
+    });
+
+    it("SettingsRepository export normalizes corrupted presets and persists them", async () => {
+        store.set("window.colorPresets", ["#FFFFFF", "bad", "#ffffff", 123]);
+
+        const snapshot = await settingsRepository.exportSettingsSnapshot();
+
+        expect(snapshot.window.colorPresets).toEqual(["#FFFFFF"]);
+        expect(store.get("window.colorPresets")).toEqual(["#FFFFFF"]);
     });
 });

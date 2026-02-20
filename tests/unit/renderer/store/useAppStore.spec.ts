@@ -6,6 +6,7 @@ import { useAppStore } from "@/renderer/store/useAppStore";
 import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
 import type { ProjectFile } from "@/shared/types/ProjectFile";
+import { DEFAULT_WINDOW_COLOR_PRESETS } from "@/shared/types/AppConfig";
 import {
     UNIT_FACTOR_DEFAULT,
     UNIT_FACTOR_MIN,
@@ -14,6 +15,9 @@ import {
 describe("useAppStore", () => {
     beforeEach(() => {
         useAppStore.getState().resetAll();
+        useAppStore
+            .getState()
+            .setWindowColorPresets([...DEFAULT_WINDOW_COLOR_PRESETS]);
     });
 
     describe("ProjectDataSlice", () => {
@@ -267,6 +271,43 @@ describe("useAppStore", () => {
             expect(state.unitFactor).toBe(1.0);
             expect(state.interactionMode).toBe("default");
             expect(state.currentProjectFilePath).toBeNull();
+        });
+    });
+
+    describe("AppConfigSlice", () => {
+        it("should normalize and set window color presets", () => {
+            useAppStore.getState().setWindowColorPresets([
+                "#FFFFFF",
+                " #00000000 ",
+                "#ffffff",
+                "invalid",
+            ]);
+
+            expect(useAppStore.getState().windowColorPresets).toEqual([
+                "#FFFFFF",
+                "#00000000",
+            ]);
+        });
+
+        it("should fall back to default presets when all values are invalid", () => {
+            useAppStore.getState().setWindowColorPresets(["invalid", ""]);
+
+            expect(useAppStore.getState().windowColorPresets).toEqual([
+                ...DEFAULT_WINDOW_COLOR_PRESETS,
+            ]);
+        });
+
+        it("should keep presets after resetAll because presets are app config", () => {
+            useAppStore
+                .getState()
+                .setWindowColorPresets(["#11223344", "#AABBCC"]);
+
+            useAppStore.getState().resetAll();
+
+            expect(useAppStore.getState().windowColorPresets).toEqual([
+                "#11223344",
+                "#AABBCC",
+            ]);
         });
     });
 

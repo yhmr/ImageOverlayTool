@@ -178,6 +178,13 @@
             "confirm_exit": "You have unsaved changes. Exit without saving?",
             "button_cancel": "Cancel",
             "button_discard_exit": "Discard and Exit"
+        },
+        "windowColorManager": {
+            "title": "Background Colors",
+            "active": "Active",
+            "edit": "Edit",
+            "remove": "Remove",
+            "add": "Add Color"
         }
     }
 }

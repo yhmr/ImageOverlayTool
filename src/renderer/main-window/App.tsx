@@ -16,17 +16,20 @@ import {
     useIpcService,
 } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
-import { ColorPicker } from "./components/ColorPicker";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { WindowResizeHandles } from "./components/WindowResizeHandles";
 import { useMainWindowActions } from "./hooks/useMainWindowActions";
+import { ColorPicker } from "./components/ColorPicker";
 import { useWindowColorPickerController } from "./hooks/useWindowColorPickerController";
 
 const App = () => {
     // 設定の読み込み
     const setWindowColor = useAppStore((state) => state.setWindowColor);
+    const setWindowColorPresets = useAppStore(
+        (state) => state.setWindowColorPresets
+    );
     const windowColor = useAppStore((state) => state.windowColor);
     const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
     const ipcService = useIpcService();
@@ -48,6 +51,12 @@ const App = () => {
     useE2EControlBridge();
     // D&D画像読み込み
     const { onDragOver, onDrop } = useImageDrop();
+
+    const handleApplyPresetColor = (index: number) => {
+        if (windowColorPicker.presets.length > index) {
+            windowColorPicker.applyColor(windowColorPicker.presets[index]);
+        }
+    };
 
     // グローバルエラーハンドリング
     useEffect(() => {
@@ -81,14 +90,18 @@ const App = () => {
     useLayoutEffect(() => {
         // 設定を読み込み
         const loadColor = async () => {
-            const color = await ipcService.loadWindowColor();
+            const [color, presets] = await Promise.all([
+                ipcService.loadWindowColor(),
+                ipcService.loadWindowColorPresets(),
+            ]);
             setWindowColor(color);
+            setWindowColorPresets(presets);
             // 初期設定による変更なので履歴をクリアする
             useAppStore.temporal.getState().clear();
             useAppStore.getState().markProjectSaved();
         };
         void loadColor();
-    }, [setWindowColor, ipcService]);
+    }, [setWindowColor, setWindowColorPresets, ipcService]);
 
     useEffect(() => {
         void ipcService.updateProjectDirty(hasUnsavedChanges);
@@ -104,6 +117,7 @@ const App = () => {
             <MenuBar
                 onOpenImageExportDialog={openImageExportDialog}
                 onOpenWindowColorPicker={windowColorPicker.open}
+                onApplyPresetColor={handleApplyPresetColor}
                 mainWindowActions={mainWindowActions}
             />
             <div
@@ -129,12 +143,23 @@ const App = () => {
                 </div>
             </div>
             <ColorPicker
-                isOpen={windowColorPicker.isOpen}
-                onOpenChange={windowColorPicker.setOpen}
+                isOpen={windowColorPicker.isPickerOpen}
+                onOpenChange={windowColorPicker.setPickerOpen}
                 color={windowColorPicker.windowColor}
-                onColorChange={windowColorPicker.setWindowColor}
-                onColorChangeComplete={windowColorPicker.saveWindowColor}
+                onColorChange={(color) =>
+                    windowColorPicker.applyColor(color, false)
+                }
+                onColorChangeComplete={() =>
+                    windowColorPicker.applyColor(
+                        windowColorPicker.windowColor,
+                        true
+                    )
+                }
                 centerOnScreen
+                presets={windowColorPicker.presets}
+                onAddPreset={windowColorPicker.addPreset}
+                onRemovePreset={windowColorPicker.removePreset}
+                onUpdatePreset={windowColorPicker.updatePreset}
             />
             <WindowResizeHandles />
         </div>

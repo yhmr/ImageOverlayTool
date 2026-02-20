@@ -40,6 +40,7 @@ type KeyboardShortcutOptions = {
     onOpenSettings?: () => Promise<void> | void;
     onExportLogs?: () => Promise<void> | void;
     onExit?: () => Promise<void> | void;
+    onApplyPresetColor?: (index: number) => Promise<void> | void;
 };
 
 export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
@@ -58,6 +59,7 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
         onOpenSettings,
         onExportLogs,
         onExit,
+        onApplyPresetColor,
     } = options;
 
     // zundo temporal store
@@ -235,6 +237,20 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
                 e.preventDefault();
                 void onExit();
             }
+            // Apply Preset Color: Ctrl/Cmd + Alt + [1-9]
+            else if (
+                isCtrlOrMeta(e) &&
+                e.altKey &&
+                !e.shiftKey &&
+                /^[1-9]$/.test(e.key)
+            ) {
+                if (!onApplyPresetColor) {
+                    return;
+                }
+                e.preventDefault();
+                const index = parseInt(e.key, 10) - 1;
+                void onApplyPresetColor(index);
+            }
         };
 
         window.addEventListener("keydown", onKeyDown);
@@ -255,6 +271,7 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
         onSaveProject,
         onSaveProjectAs,
         onToggleClickThroughMode,
+        onApplyPresetColor,
         redo,
         undo,
     ]);

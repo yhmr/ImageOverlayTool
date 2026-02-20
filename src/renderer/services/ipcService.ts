@@ -57,6 +57,8 @@ export interface ISettingsIPCService {
     onLanguageUpdated: (callback: (language: string) => void) => () => void;
     loadWindowColor: () => Promise<string>;
     saveWindowColor: (color: string) => Promise<void>;
+    loadWindowColorPresets: () => Promise<string[]>;
+    saveWindowColorPresets: (presets: string[]) => Promise<void>;
 }
 
 export interface IProjectIPCService {
@@ -262,6 +264,14 @@ class IPCService implements IIPCService {
 
     async saveWindowColor(color: string): Promise<void> {
         await window.electronAPI.saveWindowColor(color);
+    }
+
+    async loadWindowColorPresets(): Promise<string[]> {
+        return await window.electronAPI.loadWindowColorPresets();
+    }
+
+    async saveWindowColorPresets(presets: string[]): Promise<void> {
+        await window.electronAPI.saveWindowColorPresets(presets);
     }
 
     async saveProjectAs(

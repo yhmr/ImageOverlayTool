@@ -3,6 +3,8 @@ import {
     AppConfig,
     SettingType,
     SettingsSnapshot,
+    normalizeWindowColor,
+    normalizeWindowColorPresets,
 } from "../../shared/types/AppConfig";
 import { DEFAULT_LANGUAGE, normalizeLanguage } from "../../i18n/languages";
 
@@ -42,6 +44,26 @@ export class SettingsRepository implements ISettingsRepository {
     }
 
     async exportSettingsSnapshot(): Promise<SettingsSnapshot> {
+        const rawWindowColor = this.store.get("window.color");
+        const windowColor = normalizeWindowColor(rawWindowColor);
+        if (rawWindowColor !== windowColor) {
+            this.store.set("window.color", windowColor);
+        }
+
+        const rawWindowColorPresets = this.store.get("window.colorPresets");
+        const windowColorPresets = normalizeWindowColorPresets(
+            rawWindowColorPresets
+        );
+        if (
+            !Array.isArray(rawWindowColorPresets) ||
+            rawWindowColorPresets.length !== windowColorPresets.length ||
+            rawWindowColorPresets.some(
+                (preset, index) => preset !== windowColorPresets[index]
+            )
+        ) {
+            this.store.set("window.colorPresets", windowColorPresets);
+        }
+
         return {
             version: 1,
             exportedAt: new Date().toISOString(),
@@ -52,7 +74,8 @@ export class SettingsRepository implements ISettingsRepository {
                 logLevel: this.store.get("setting.logLevel", "info"),
             },
             window: {
-                color: this.store.get("window.color", "#FFFFFF55"),
+                color: windowColor,
+                colorPresets: windowColorPresets,
             },
         };
     }
@@ -70,7 +93,16 @@ export class SettingsRepository implements ISettingsRepository {
             }
         }
         if (typeof snapshot.window?.color === "string") {
-            this.store.set("window.color", snapshot.window.color);
+            this.store.set(
+                "window.color",
+                normalizeWindowColor(snapshot.window.color)
+            );
+        }
+        if (Array.isArray(snapshot.window?.colorPresets)) {
+            this.store.set(
+                "window.colorPresets",
+                normalizeWindowColorPresets(snapshot.window.colorPresets)
+            );
         }
     }
 }

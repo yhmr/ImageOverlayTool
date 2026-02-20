@@ -4,7 +4,10 @@ import { DimensionLine } from "@/shared/types/DimensionLine";
 import type { ImageInfoResult } from "@/shared/types/ImageInfo";
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import { CaptureResult } from "@/shared/types/CaptureResult";
-import { SettingType } from "@/shared/types/AppConfig";
+import {
+    SettingType,
+    DEFAULT_WINDOW_COLOR_PRESETS,
+} from "@/shared/types/AppConfig";
 import { LicenseInfo } from "@/shared/types/LicenseInfo";
 import type {
     E2ECaptureRequest,
@@ -70,6 +73,12 @@ export class MockIPCService implements IIPCService {
     }
 
     async saveWindowColor(_color: string): Promise<void> { }
+
+    async loadWindowColorPresets(): Promise<string[]> {
+        return [...DEFAULT_WINDOW_COLOR_PRESETS];
+    }
+
+    async saveWindowColorPresets(_presets: string[]): Promise<void> { }
 
     async saveProjectAs(_project: ProjectFile<ImageSet>): Promise<string | null> {
         return "path/to/project.iot";

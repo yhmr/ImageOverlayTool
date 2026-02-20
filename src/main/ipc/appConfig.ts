@@ -75,6 +75,32 @@ export const registerAppConfigHandlers = (
         }
     );
 
+    ipcMain.handle(IPC_CHANNELS.setting.windowColorPresetsLoad, async () => {
+        log.debug("[IPC] window_color_presets:load called");
+        try {
+            const presets = await windowRepository.loadWindowColorPresets();
+            log.debug(`[IPC] window_color_presets:load completed`);
+            return presets;
+        } catch (error) {
+            log.error("[IPC] window_color_presets:load failed:", error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle(
+        IPC_CHANNELS.setting.windowColorPresetsSave,
+        async (event, presets: string[]) => {
+            log.debug(`[IPC] window_color_presets:save called`);
+            try {
+                await windowRepository.saveWindowColorPresets(presets);
+                log.info(`[IPC] window_color_presets:save completed`);
+            } catch (error) {
+                log.error("[IPC] window_color_presets:save failed:", error);
+                throw error;
+            }
+        }
+    );
+
     ipcMain.handle(IPC_CHANNELS.setting.export, async () => {
         log.debug("[IPC] setting:export called");
         try {
@@ -149,6 +175,11 @@ const isSettingsSnapshot = (value: unknown): value is SettingsSnapshot => {
         snapshot.version === 1 &&
         typeof snapshot.exportedAt === "string" &&
         typeof snapshot.setting?.language === "string" &&
-        typeof snapshot.window?.color === "string"
+        typeof snapshot.window?.color === "string" &&
+        (snapshot.window?.colorPresets === undefined ||
+            (Array.isArray(snapshot.window?.colorPresets) &&
+                snapshot.window.colorPresets.every(
+                    (preset) => typeof preset === "string"
+                )))
     );
 };

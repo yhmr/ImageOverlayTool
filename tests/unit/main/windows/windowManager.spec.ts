@@ -189,6 +189,7 @@ vi.mock("@/i18n/mainI18n", () => ({
 import { WindowManager } from "@/main/windows/windowManager";
 import { IWindowRepository } from "@/main/repositories/WindowRepository";
 import type { IWindowShortcutManager } from "@/main/windows/windowShortcutManager";
+import { DEFAULT_WINDOW_COLOR_PRESETS } from "@/shared/types/AppConfig";
 import type { BrowserWindow as ElectronBrowserWindow } from "electron";
 
 type Listener = (...args: unknown[]) => void;
@@ -257,6 +258,10 @@ describe("WindowManager", () => {
         mockWindowRepository = {
             loadWindowColor: vi.fn(),
             saveWindowColor: vi.fn(),
+            loadWindowColorPresets: vi
+                .fn()
+                .mockReturnValue([...DEFAULT_WINDOW_COLOR_PRESETS]),
+            saveWindowColorPresets: vi.fn(),
             getWindowPositionAndSize: vi.fn().mockReturnValue({
                 pos: { x: 0, y: 0 },
                 size: { width: 800, height: 600 },

@@ -178,6 +178,13 @@
             "confirm_exit": "未保存の変更があります。保存せずに終了しますか？",
             "button_cancel": "キャンセル",
             "button_discard_exit": "保存せず終了"
+        },
+        "windowColorManager": {
+            "title": "背景色",
+            "active": "適用中",
+            "edit": "編集",
+            "remove": "削除",
+            "add": "背景色を追加"
         }
     }
 }

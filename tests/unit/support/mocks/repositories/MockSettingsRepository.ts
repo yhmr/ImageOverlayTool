@@ -1,4 +1,8 @@
-import { SettingType, SettingsSnapshot } from "@/shared/types/AppConfig";
+import {
+    SettingType,
+    SettingsSnapshot,
+    DEFAULT_WINDOW_COLOR,
+} from "@/shared/types/AppConfig";
 import { ISettingsRepository } from "@/main/repositories/SettingsRepository";
 
 export class MockSettingsRepository implements ISettingsRepository {
@@ -6,7 +10,7 @@ export class MockSettingsRepository implements ISettingsRepository {
         language: "en",
         logLevel: "info",
     };
-    private windowColor = "#FFFFFF55";
+    private windowColor = DEFAULT_WINDOW_COLOR;
 
     async loadSettings(): Promise<SettingType> {
         return { ...this.settings };
