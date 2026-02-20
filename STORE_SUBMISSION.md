@@ -18,19 +18,20 @@ pnpm run generate-store-submission-files
 ### description
 
 ```
-ImageOverlayTool is a desktop app built around a transparent overlay window, so you can place reference images directly on top of other applications for accurate visual comparison.
-
-Instead of switching between windows, you can align and inspect images in context while your target app stays visible underneath. This is useful for design checks, UI matching, before/after verification, and measurement-oriented review workflows.
+ImageOverlayTool is a desktop app for precise image overlay and comparison.
+You can align reference images for design checks, UI matching, before/after verification, and measurement-oriented review workflows.
 
 Key capabilities:
-- Transparent overlay window for cross-application comparison
+- Load images from file picker, drag-and-drop, or clipboard paste (`Ctrl+V`)
 - Multi-layer image overlay with drag-and-drop reordering
 - Precise move, zoom, rotation, and perspective transform (corner anchors)
-- Per-layer controls: opacity, visibility, scale, and filters
+- Per-layer controls: opacity, visibility, lock, scale, rotation, and filters
 - Binarization and HSV adjustment for detailed visual analysis
-- Dimension line drawing for measurement workflows
+- Dimension line workflow with a dedicated settings window (unit/unit factor)
+- Missing-image relink support when opening existing projects
+- Click-through mode for checking overlays on top of other applications
 - Project save/load with `.iot` files
-- Export output with or without background
+- Export output with or without background, and background capture
 - Undo/Redo and persistent settings
 
 ImageOverlayTool is designed for local/offline use. Your images, projects, and settings are processed on your device unless you explicitly export or share them.
@@ -39,22 +40,23 @@ ImageOverlayTool is designed for local/offline use. Your images, projects, and s
 ### What's new
 
 ```
-- Initial Microsoft Store release (v1.0.0)
-- Added multi-layer overlay workflow with perspective transform
-- Added image settings window (opacity/scale/rotation/filter controls)
-- Added project save/load, export options, and undo/redo support
+- Added click-through mode (`Ctrl+Shift+M`) for overlay checks over other windows
+- Added image input via drag-and-drop and clipboard paste (`Ctrl+V`)
+- Added missing-image relink flow for moved or deleted source files
+- Enhanced dimension line workflow with dedicated settings and shortcut/menu integration
+- Expanded menu/FAB operations and improved startup/path handling stability
 ```
 
 ### Product features
 
 ```
 - Overlay multiple images and reorder layers
-- Precise alignment with move, zoom, and perspective transform
-- Per-image controls: opacity, scale, rotation, visibility
+- Precise alignment with move, zoom, rotation, and perspective transform
+- Per-image controls: opacity, visibility, lock, scale, rotation, and filters
 - Binarization and HSV filters for visual analysis
-- Dimension line drawing for measurement workflows
-- Save/open .iot projects and export final images
-- Transparent overlay window for cross-application visual alignment and comparison
+- Dedicated dimension line settings for measurement workflows
+- Save/open `.iot` projects, relink missing files, and export final images
+- Click-through mode for cross-application visual alignment
 ```
 
 ### Screenshots
@@ -67,11 +69,11 @@ ImageOverlayTool is designed for local/offline use. Your images, projects, and s
 - scene04-main.png
   - Apply visual filters such as binarization and HSV adjustment for detailed image comparison.
 - scene06-final.png
-  - Overlay images on other applications using a transparent window.
+  - Final overlay view with transparent-window workflow and export-ready composition.
 - scene03-perspective-a.png
-  - empty
+  - Perspective overlay example focused on structural alignment.
 - scene03-perspective-b.png
-  - empty
+  - A variation of the same perspective overlay workflow with different visibility balance.
 ```
 
 ### Other information
@@ -87,19 +89,20 @@ ImageOverlayTool is designed for local/offline use. Your images, projects, and s
 ### 説明
 
 ```
-ImageOverlayTool は、透過ウィンドウを中核機能として、他のアプリケーションの上に参照画像を直接重ねて比較できるデスクトップアプリです。
-
-ウィンドウを切り替えずに、対象アプリを表示したまま位置合わせや差分確認ができるため、UI検証、デザイン調整、ビフォー/アフター比較、計測を伴う確認作業を効率化できます。
+ImageOverlayTool は、画像の重ね合わせ比較と高精度な位置合わせを行うためのデスクトップアプリです。
+UI検証、デザイン調整、ビフォー/アフター比較、計測を伴う確認作業を効率化できます。
 
 主な機能:
-- 透過ウィンドウによる他アプリとの重ね合わせ比較
+- ファイル選択・ドラッグ＆ドロップ・クリップボード貼り付け（`Ctrl+V`）で画像を追加
 - 複数画像レイヤーの読み込みとドラッグ＆ドロップ並べ替え
 - 移動・ズーム・回転・四隅アンカーによる自由変形（パース補正）
-- レイヤーごとの透明度・表示/非表示・拡大縮小・フィルタ調整
+- レイヤーごとの透明度・表示/非表示・ロック・拡大縮小・回転・フィルタ調整
 - 二値化・HSV調整による詳細な可視比較
-- 寸法線描画による計測ワークフロー対応
+- 寸法線設定ウィンドウによる計測ワークフロー対応（単位・解像度係数）
+- 既存プロジェクト読込時の欠落画像再リンク
+- 他アプリとの重ね合わせ確認に使えるクリックスルーモード
 - .iot プロジェクトの保存/読み込み
-- 背景あり/なしの画像書き出し
+- 背景あり/なしの画像書き出し、背景キャプチャ
 - Undo/Redo と設定の永続化
 
 本アプリはローカル/オフライン利用を前提としており、画像・プロジェクト・設定は、ユーザーが明示的に共有しない限りデバイス内で処理されます。
@@ -108,21 +111,23 @@ ImageOverlayTool は、透過ウィンドウを中核機能として、他のア
 ### このバージョンの最新情報
 
 ```
-- Microsoft Store 初回リリース（v1.0.0）
-- 透過ウィンドウを使った複数画像の重ね合わせワークフローを実装
-- 画像設定ウィンドウ（透明度/拡大縮小/回転/フィルタ）を追加
-- プロジェクト保存/読み込み、書き出し、Undo/Redo に対応
+- クリックスルーモード（`Ctrl+Shift+M`）を追加
+- 画像追加方法を拡張（ドラッグ＆ドロップ、クリップボード貼り付け `Ctrl+V`）
+- 欠落画像の再リンク機能を追加
+- 寸法線ワークフローを強化（専用設定画面、メニュー/ショートカット連携）
+- メニュー/FAB操作を拡充し、起動時やパス処理の安定性を改善
 ```
 
 ### 製品の機能
 
 ```
-- 透過ウィンドウで他アプリ上に画像を重ねて比較
 - 複数画像レイヤーの重ね合わせと順序変更
-- 高精度な移動・ズーム・パース変形による位置合わせ
-- 透明度・拡大縮小・回転・表示切替の個別調整
+- 高精度な移動・ズーム・回転・パース変形による位置合わせ
+- 透明度・表示/非表示・ロック・拡大縮小・回転・フィルタの個別調整
 - 二値化・HSVフィルタによる画像解析
-- 寸法線描画、.iot 保存/読み込み、画像書き出し
+- 寸法線設定による計測ワークフロー対応
+- .iot 保存/読み込み、欠落画像再リンク、画像書き出し
+- クリックスルーモードによる他アプリとの重ね合わせ確認
 ```
 
 ### スクリーンショット
@@ -135,11 +140,11 @@ ImageOverlayTool は、透過ウィンドウを中核機能として、他のア
 - scene04-main.png
   - 二値化やHSV調整などのフィルタを適用し、差分や形状を視覚的に比較できます。
 - scene06-final.png
-  - 透過ウィンドウで他のアプリケーションと重ね合わせ表示し、そのまま目視確認できます。
+  - 透過ウィンドウを活用した、最終的な重ね合わせ確認イメージです。
 - scene03-perspective-a.png
-  - 空
+  - 構造の位置合わせを意識した、パース重ね合わせ例です。
 - scene03-perspective-b.png
-  - 空
+  - 同じパース重ね合わせワークフローで、見え方のバランスを変えた比較例です。
 ```
 
 ### その他の情報
