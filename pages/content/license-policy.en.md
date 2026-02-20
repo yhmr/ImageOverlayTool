@@ -38,10 +38,13 @@ Except where required by applicable licenses, no additional patent or trademark 
 Generate the final text with:
 
 ```bash
-pnpm run generate-store-license-terms
+pnpm run generate-store-submission-files
 ```
 
-Then copy `STORE_LICENSE_TERMS.txt` into Partner Center (`Applicable license terms`).
+This generates two files for different purposes:
+
+- `STORE_LICENSE_TERMS.txt`: paste into Partner Center (`Applicable license terms`)
+- `SOURCE_CODE_URL.txt`: source-code notice text bundled with the distributed package
 
 ```text
 ImageOverlayTool is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).
