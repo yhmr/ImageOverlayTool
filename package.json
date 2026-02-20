@@ -1,7 +1,7 @@
 {
   "name": "imageoverlaytool",
   "description": "image blend tool",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "yhmr",
@@ -28,6 +28,7 @@
     "generate:appx-assets": "node scripts/generate-appx-assets.js",
     "prepare-release-assets": "pnpm run generate-licenses && pnpm run generate-store-submission-files && pnpm run generate:appx-assets",
     "build:win": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win",
+    "build:win:local": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-win-local.ps1",
     "build:linux": "pnpm run prepare-release-assets && pnpm run build && electron-builder --linux",
     "build:all": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win --linux",
     "preview": "electron-vite preview",
@@ -70,6 +71,7 @@
     "array-move": "^4.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "conf": "^10.2.0",
     "electron-log": "^5.4.3",
     "electron-store": "^8.1.0",
     "i18next": "^24.0.0",

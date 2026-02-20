@@ -56,6 +56,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      conf:
+        specifier: ^10.2.0
+        version: 10.2.0
       electron-log:
         specifier: ^5.4.3
         version: 5.4.3
