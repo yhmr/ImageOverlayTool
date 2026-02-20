@@ -5,10 +5,14 @@ import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
 
 export interface MainWindowActions {
+    isAlwaysOnTopMode: boolean;
     isClickThroughMode: boolean;
+    canToggleClickThroughMode: boolean;
     openImageSettingsWindow: () => void;
     openDimensionSettingsWindow: () => void;
     captureBackground: () => void;
+    toggleAlwaysOnTopMode: () => void;
+    disableAlwaysOnTopMode: () => void;
     toggleClickThroughMode: () => void;
     disableClickThroughMode: () => void;
 }
@@ -17,7 +21,9 @@ export interface MainWindowActions {
 export function useMainWindowActions(): MainWindowActions {
     const ipcService = useIpcService();
     const { captureBackground } = useCapture();
+    const isAlwaysOnTopMode = useAppStore((state) => state.isAlwaysOnTopMode);
     const isClickThroughMode = useAppStore((state) => state.isClickThroughMode);
+    const setAlwaysOnTopMode = useAppStore((state) => state.setAlwaysOnTopMode);
     const setClickThroughMode = useAppStore(
         (state) => state.setClickThroughMode
     );
@@ -34,19 +40,34 @@ export function useMainWindowActions(): MainWindowActions {
         void captureBackground();
     }, [captureBackground]);
 
+    const toggleAlwaysOnTopMode = useCallback(() => {
+        setAlwaysOnTopMode(!isAlwaysOnTopMode);
+    }, [isAlwaysOnTopMode, setAlwaysOnTopMode]);
+
+    const disableAlwaysOnTopMode = useCallback(() => {
+        setAlwaysOnTopMode(false);
+    }, [setAlwaysOnTopMode]);
+
     const toggleClickThroughMode = useCallback(() => {
+        if (!isAlwaysOnTopMode) {
+            return;
+        }
         setClickThroughMode(!isClickThroughMode);
-    }, [isClickThroughMode, setClickThroughMode]);
+    }, [isAlwaysOnTopMode, isClickThroughMode, setClickThroughMode]);
 
     const disableClickThroughMode = useCallback(() => {
-        setClickThroughMode(false);
-    }, [setClickThroughMode]);
+        setAlwaysOnTopMode(false);
+    }, [setAlwaysOnTopMode]);
 
     return {
+        isAlwaysOnTopMode,
         isClickThroughMode,
+        canToggleClickThroughMode: isAlwaysOnTopMode,
         openImageSettingsWindow,
         openDimensionSettingsWindow,
         captureBackground: captureBackgroundAction,
+        toggleAlwaysOnTopMode,
+        disableAlwaysOnTopMode,
         toggleClickThroughMode,
         disableClickThroughMode,
     };

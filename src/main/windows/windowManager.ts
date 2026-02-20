@@ -59,6 +59,15 @@ export class WindowManager {
         );
     }
 
+    private notifyAlwaysOnTopShortcutTriggered(): void {
+        if (!this.mainWindow || this.mainWindow.isDestroyed()) {
+            return;
+        }
+        this.mainWindow.webContents.send(
+            IPC_EVENTS.alwaysOnTopShortcutTriggered
+        );
+    }
+
     private resetDimensionInteractionState(): void {
         const windows = this.getAllWindows();
         windows.forEach((win) => {
@@ -567,6 +576,9 @@ export class WindowManager {
      * グローバルショートカットを登録
      */
     registerShortcuts(): void {
+        this.shortcutManager.registerToggleAlwaysOnTopMode(() => {
+            this.notifyAlwaysOnTopShortcutTriggered();
+        });
         this.shortcutManager.registerToggleClickThroughMode(() => {
             this.notifyClickThroughShortcutTriggered();
         });

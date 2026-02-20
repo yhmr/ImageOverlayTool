@@ -32,12 +32,15 @@
             "capture_background": "背景をキャプチャ",
             "export_image": "画像を保存",
             "background_style": "背景色/透過度",
+            "always_on_top_enable": "常に手前に表示を有効化",
+            "always_on_top_disable": "常に手前に表示を無効化",
             "click_through_mode_enable": "クリック透過モードを有効化",
             "click_through_mode_disable": "クリック透過モードを無効化"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
             "status": {
+                "always_on_top_mode_active": "最前面固定中（クリックで解除）",
                 "click_through_mode_active": "透過モード中（最前面固定・クリックで解除）"
             },
             "tooltip": {
@@ -53,6 +56,7 @@
                 "save": "画像を保存",
                 "capture": "背景をキャプチャ",
                 "image_settings": "画像設定",
+                "always_on_top": "常に手前に表示 (Ctrl+Shift+T)",
                 "click_through_mode": "クリック透過モード (Ctrl+Shift+M)"
             }
         },

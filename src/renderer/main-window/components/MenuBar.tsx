@@ -168,6 +168,22 @@ export function MenuBar({
                     </Button>
                 )}
 
+                {mainWindowActions.isAlwaysOnTopMode &&
+                    !mainWindowActions.isClickThroughMode && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={mainWindowActions.disableAlwaysOnTopMode}
+                            className="mr-2 app-region-no-drag bg-cyan-500/90 text-cyan-950 hover:bg-cyan-500"
+                            data-testid="main.status.always-on-top-mode"
+                            data-clickthrough-allow
+                        >
+                            {t(
+                                "render.menu_button.status.always_on_top_mode_active"
+                            )}
+                        </Button>
+                    )}
+
                 <MenuBarWindowActions
                     isMaximized={isMaximized}
                     onToggleMaximized={toggleMaximized}

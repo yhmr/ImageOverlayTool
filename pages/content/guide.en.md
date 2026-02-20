@@ -138,9 +138,16 @@ Draw dimension lines on the canvas with resolution-factor-aware real dimension d
 
 Change the canvas background color from "Background Style" (`Ctrl+B`) in the menu or the FAB menu's background style button. Choose any color from the color picker.
 
+### Always on Top
+
+Toggle this from "Always on Top" in the menu or the FAB menu.
+Click-through mode can be controlled only while this mode is ON.
+
 ### Click-Through Mode
 
 Toggle via "Click-Through Mode" (`Ctrl+Shift+M`) in the menu or the FAB menu.
+It can be enabled only when "Always on Top" is ON.
+When using the global shortcut `Ctrl+Shift+M`, the app can enable "Always on Top" automatically and enter click-through mode in one step.
 When enabled, clicks on the canvas area pass through to the window below (the menu bar and FAB buttons remain interactive).
 A yellow indicator appears in the menu bar when active.
 
@@ -156,6 +163,7 @@ Click it to expand the following shortcut buttons:
 | Image Settings | Open Image Settings window |
 | Dimension Lines | Open Dimension Settings window |
 | Background Style | Change background color |
+| Always on Top | Toggle always-on-top mode |
 | Click-Through | Toggle click-through mode |
 | Capture | Background capture |
 | Export | Image export |
@@ -189,7 +197,8 @@ Window size, position, background color, language, and other settings are automa
 | `Ctrl+E` | Image Export |
 | `Ctrl+D` | Open Dimension Settings |
 | `Ctrl+B` | Background Style |
-| `Ctrl+Shift+M` | Toggle Click-Through Mode |
+| `Ctrl+Shift+T` | Toggle Always on Top |
+| `Ctrl+Shift+M` | Toggle Click-Through Mode (auto-enables Always on Top if needed) |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Shift+Z` / `Ctrl+Y` | Redo |
 | `Ctrl+,` | Open Settings |

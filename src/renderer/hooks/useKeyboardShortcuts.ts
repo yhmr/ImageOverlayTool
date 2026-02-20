@@ -16,6 +16,7 @@ export const MAIN_WINDOW_SHORTCUT_LABELS = {
     exportImage: "Ctrl+E",
     openDimensionSettings: "Ctrl+D",
     openBackgroundStyle: "Ctrl+B",
+    toggleAlwaysOnTopMode: "Ctrl+Shift+T",
     toggleClickThroughMode: "Ctrl+Shift+M",
     openSettings: "Ctrl+,",
     exportLogs: "Ctrl+Shift+L",

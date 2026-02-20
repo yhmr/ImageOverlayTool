@@ -18,25 +18,41 @@ const shouldIgnoreMouseEvents = (element: HTMLElement | null): boolean => {
 
 export const useClickThroughMode = (): void => {
     const ipcService = useIpcService();
+    const isAlwaysOnTopMode = useAppStore((state) => state.isAlwaysOnTopMode);
     const isClickThroughMode = useAppStore((state) => state.isClickThroughMode);
-    const setClickThroughMode = useAppStore(
-        (state) => state.setClickThroughMode
-    );
 
     useEffect(() => {
+        const unsubscribeAlwaysOnTop =
+            ipcService.onAlwaysOnTopShortcutTriggered(() => {
+                const state = useAppStore.getState();
+                state.setAlwaysOnTopMode(!state.isAlwaysOnTopMode);
+            });
+
         const unsubscribe = ipcService.onClickThroughShortcutTriggered(() => {
-            const current = useAppStore.getState().isClickThroughMode;
-            setClickThroughMode(!current);
+            const state = useAppStore.getState();
+            const nextClickThrough = !state.isClickThroughMode;
+            if (nextClickThrough && !state.isAlwaysOnTopMode) {
+                state.setAlwaysOnTopMode(true);
+            }
+            if (!nextClickThrough) {
+                state.setAlwaysOnTopMode(false);
+                return;
+            }
+            state.setClickThroughMode(true);
         });
-        return unsubscribe;
-    }, [ipcService, setClickThroughMode]);
+
+        return () => {
+            unsubscribeAlwaysOnTop();
+            unsubscribe();
+        };
+    }, [ipcService]);
 
     useEffect(() => {
-        void ipcService.setAlwaysOnTop(isClickThroughMode);
+        void ipcService.setAlwaysOnTop(isAlwaysOnTopMode);
         return () => {
             void ipcService.setAlwaysOnTop(false);
         };
-    }, [ipcService, isClickThroughMode]);
+    }, [ipcService, isAlwaysOnTopMode]);
 
     useEffect(() => {
         let lastIgnoreMouseEvents = false;

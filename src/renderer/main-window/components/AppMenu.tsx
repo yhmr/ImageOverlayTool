@@ -28,6 +28,7 @@ import {
     Camera,
     Droplets,
     Ghost,
+    Pin,
 } from "lucide-react";
 
 import { useFitToScreen } from "../../hooks/useFitToScreen";
@@ -237,7 +238,25 @@ export function AppMenu(props: AppMenuProps) {
                         </DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                        onClick={mainWindowActions.toggleClickThroughMode}
+                        onClick={mainWindowActions.toggleAlwaysOnTopMode}
+                        data-testid="main.menu.item.always-on-top"
+                    >
+                        <Pin className="mr-2 h-4 w-4" />
+                        {mainWindowActions.isAlwaysOnTopMode
+                            ? t("render.menu.always_on_top_disable")
+                            : t("render.menu.always_on_top_enable")}
+                        <DropdownMenuShortcut>
+                            {shortcut("toggleAlwaysOnTopMode")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => {
+                            if (!mainWindowActions.canToggleClickThroughMode) {
+                                return;
+                            }
+                            mainWindowActions.toggleClickThroughMode();
+                        }}
+                        disabled={!mainWindowActions.canToggleClickThroughMode}
                         data-testid="main.menu.item.click-through-mode"
                     >
                         <Ghost className="mr-2 h-4 w-4" />

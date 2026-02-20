@@ -80,6 +80,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
                 subscription
             );
     },
+    onAlwaysOnTopShortcutTriggered: (callback: () => void) => {
+        const subscription = () => callback();
+        ipcRenderer.on(IPC_EVENTS.alwaysOnTopShortcutTriggered, subscription);
+        return () =>
+            ipcRenderer.removeListener(
+                IPC_EVENTS.alwaysOnTopShortcutTriggered,
+                subscription
+            );
+    },
     // Window Color
     loadWindowColor: () =>
         ipcRenderer.invoke(IPC_CHANNELS.setting.windowColorLoad),

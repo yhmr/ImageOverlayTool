@@ -218,11 +218,15 @@ describe("useAppStore", () => {
         it("should reset view", () => {
             useAppStore.getState().setCanvasState({ x: 10, y: 20, scale: 2 });
             useAppStore.getState().setUIHidden(true);
+            useAppStore.getState().setAlwaysOnTopMode(true);
+            useAppStore.getState().setClickThroughMode(true);
 
             useAppStore.getState().resetView();
 
             expect(useAppStore.getState().canvas).toEqual({ x: 0, y: 0, scale: 1 });
             expect(useAppStore.getState().isUIHidden).toBe(false);
+            expect(useAppStore.getState().isAlwaysOnTopMode).toBe(false);
+            expect(useAppStore.getState().isClickThroughMode).toBe(false);
         });
 
         it("should toggle UI hidden state", () => {
@@ -231,6 +235,24 @@ describe("useAppStore", () => {
             expect(useAppStore.getState().isUIHidden).toBe(true);
             useAppStore.getState().setUIHidden(false);
             expect(useAppStore.getState().isUIHidden).toBe(false);
+        });
+
+        it("should not enable click-through when always-on-top is off", () => {
+            useAppStore.getState().setAlwaysOnTopMode(false);
+            useAppStore.getState().setClickThroughMode(true);
+
+            expect(useAppStore.getState().isClickThroughMode).toBe(false);
+        });
+
+        it("should disable click-through when always-on-top turns off", () => {
+            useAppStore.getState().setAlwaysOnTopMode(true);
+            useAppStore.getState().setClickThroughMode(true);
+            expect(useAppStore.getState().isClickThroughMode).toBe(true);
+
+            useAppStore.getState().setAlwaysOnTopMode(false);
+
+            expect(useAppStore.getState().isAlwaysOnTopMode).toBe(false);
+            expect(useAppStore.getState().isClickThroughMode).toBe(false);
         });
     });
 

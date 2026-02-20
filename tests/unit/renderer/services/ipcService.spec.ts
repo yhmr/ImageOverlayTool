@@ -105,6 +105,8 @@ describe("ipcService", () => {
             const unsubDimensionLines = vi.fn();
             const unsubInteractionMode = vi.fn();
             const unsubRequestState = vi.fn();
+            const unsubAlwaysOnTop = vi.fn();
+            const unsubClickThrough = vi.fn();
             const unsubFileOpen = vi.fn();
             const unsubSelectedImageId = vi.fn();
             const unsubSelectedDimensionLineId = vi.fn();
@@ -173,6 +175,12 @@ describe("ipcService", () => {
                     .mockReturnValue(unsubInteractionMode),
                 requestInitialState: vi.fn().mockResolvedValue(undefined),
                 onRequestStateSync: vi.fn().mockReturnValue(unsubRequestState),
+                onAlwaysOnTopShortcutTriggered: vi
+                    .fn()
+                    .mockReturnValue(unsubAlwaysOnTop),
+                onClickThroughShortcutTriggered: vi
+                    .fn()
+                    .mockReturnValue(unsubClickThrough),
                 onFileOpen: vi.fn().mockReturnValue(unsubFileOpen),
                 getLicenseInfo: vi.fn().mockResolvedValue([
                     {
@@ -230,6 +238,8 @@ describe("ipcService", () => {
                     unsubDimensionLines,
                     unsubInteractionMode,
                     unsubRequestState,
+                    unsubAlwaysOnTop,
+                    unsubClickThrough,
                     unsubFileOpen,
                     unsubSelectedImageId,
                     unsubSelectedDimensionLineId,
@@ -402,6 +412,8 @@ describe("ipcService", () => {
             const onDimensionLinesUpdated = vi.fn();
             const onInteractionModeUpdated = vi.fn();
             const onRequestStateSync = vi.fn();
+            const onAlwaysOnTopShortcutTriggered = vi.fn();
+            const onClickThroughShortcutTriggered = vi.fn();
             const onFileOpen = vi.fn();
             const onSelectedImageIdUpdated = vi.fn();
             const onSelectedDimensionLineIdUpdated = vi.fn();
@@ -425,6 +437,16 @@ describe("ipcService", () => {
             expect(service.onRequestStateSync(onRequestStateSync)).toBe(
                 unsubscribers.unsubRequestState
             );
+            expect(
+                service.onAlwaysOnTopShortcutTriggered(
+                    onAlwaysOnTopShortcutTriggered
+                )
+            ).toBe(unsubscribers.unsubAlwaysOnTop);
+            expect(
+                service.onClickThroughShortcutTriggered(
+                    onClickThroughShortcutTriggered
+                )
+            ).toBe(unsubscribers.unsubClickThrough);
             expect(service.onFileOpen(onFileOpen)).toBe(unsubscribers.unsubFileOpen);
             expect(service.onSelectedImageIdUpdated(onSelectedImageIdUpdated)).toBe(
                 unsubscribers.unsubSelectedImageId
@@ -448,6 +470,12 @@ describe("ipcService", () => {
                 onInteractionModeUpdated
             );
             expect(api.onRequestStateSync).toHaveBeenCalledWith(onRequestStateSync);
+            expect(api.onAlwaysOnTopShortcutTriggered).toHaveBeenCalledWith(
+                onAlwaysOnTopShortcutTriggered
+            );
+            expect(api.onClickThroughShortcutTriggered).toHaveBeenCalledWith(
+                onClickThroughShortcutTriggered
+            );
             expect(api.onFileOpen).toHaveBeenCalledWith(onFileOpen);
             expect(api.onSelectedImageIdUpdated).toHaveBeenCalledWith(
                 onSelectedImageIdUpdated

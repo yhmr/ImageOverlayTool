@@ -191,6 +191,10 @@ export class MockIPCService implements IIPCService {
         return () => { };
     }
 
+    onAlwaysOnTopShortcutTriggered(_callback: () => void): () => void {
+        return () => { };
+    }
+
     onClickThroughShortcutTriggered(_callback: () => void): () => void {
         return () => { };
     }

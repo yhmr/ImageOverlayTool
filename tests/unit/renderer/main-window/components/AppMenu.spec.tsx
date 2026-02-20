@@ -37,13 +37,18 @@ describe("AppMenu test ids", () => {
         const openImageSettingsWindow = vi.fn();
         const openDimensionSettingsWindow = vi.fn();
         const captureBackground = vi.fn();
+        const toggleAlwaysOnTopMode = vi.fn();
         const toggleClickThroughMode = vi.fn();
         const onOpenWindowColorPicker = vi.fn();
         const mainWindowActions: MainWindowActions = {
+            isAlwaysOnTopMode: true,
             isClickThroughMode: false,
+            canToggleClickThroughMode: true,
             openImageSettingsWindow,
             openDimensionSettingsWindow,
             captureBackground,
+            toggleAlwaysOnTopMode,
+            disableAlwaysOnTopMode: vi.fn(),
             toggleClickThroughMode,
             disableClickThroughMode: vi.fn(),
         };
@@ -104,6 +109,7 @@ describe("AppMenu test ids", () => {
         expect(
             screen.getByTestId("main.menu.item.click-through-mode")
         ).toBeTruthy();
+        expect(screen.getByTestId("main.menu.item.always-on-top")).toBeTruthy();
 
         fireEvent.click(screen.getByTestId("main.menu.item.capture-background"));
         expect(captureBackground).toHaveBeenCalledTimes(1);
@@ -111,6 +117,10 @@ describe("AppMenu test ids", () => {
         await ensureMenuOpen();
         fireEvent.click(screen.getByTestId("main.menu.item.background-style"));
         expect(onOpenWindowColorPicker).toHaveBeenCalledTimes(1);
+
+        await ensureMenuOpen();
+        fireEvent.click(screen.getByTestId("main.menu.item.always-on-top"));
+        expect(toggleAlwaysOnTopMode).toHaveBeenCalledTimes(1);
 
         await ensureMenuOpen();
         fireEvent.click(screen.getByTestId("main.menu.item.click-through-mode"));
@@ -144,10 +154,14 @@ describe("AppMenu test ids", () => {
                 saveProjectAs={vi.fn()}
                 onExportLogs={vi.fn()}
                 mainWindowActions={{
+                    isAlwaysOnTopMode: true,
                     isClickThroughMode: true,
+                    canToggleClickThroughMode: true,
                     openImageSettingsWindow: vi.fn(),
                     openDimensionSettingsWindow: vi.fn(),
                     captureBackground: vi.fn(),
+                    toggleAlwaysOnTopMode: vi.fn(),
+                    disableAlwaysOnTopMode: vi.fn(),
                     toggleClickThroughMode: vi.fn(),
                     disableClickThroughMode: vi.fn(),
                 }}
@@ -164,5 +178,51 @@ describe("AppMenu test ids", () => {
                 screen.getByText("render.menu.click_through_mode_disable")
             ).toBeTruthy();
         });
+    });
+
+    it("disables click-through menu item when always-on-top is off", async () => {
+        const toggleClickThroughMode = vi.fn();
+
+        render(
+            <AppMenu
+                openSettingDialog={vi.fn()}
+                openAboutDialog={vi.fn()}
+                openImageExportDialog={vi.fn()}
+                onOpenWindowColorPicker={vi.fn()}
+                closeWindow={vi.fn()}
+                newProject={vi.fn()}
+                openProject={vi.fn()}
+                saveProject={vi.fn()}
+                saveProjectAs={vi.fn()}
+                onExportLogs={vi.fn()}
+                mainWindowActions={{
+                    isAlwaysOnTopMode: false,
+                    isClickThroughMode: false,
+                    canToggleClickThroughMode: false,
+                    openImageSettingsWindow: vi.fn(),
+                    openDimensionSettingsWindow: vi.fn(),
+                    captureBackground: vi.fn(),
+                    toggleAlwaysOnTopMode: vi.fn(),
+                    disableAlwaysOnTopMode: vi.fn(),
+                    toggleClickThroughMode,
+                    disableClickThroughMode: vi.fn(),
+                }}
+            />
+        );
+
+        fireEvent.pointerDown(screen.getByTestId("main.menu.trigger"), {
+            button: 0,
+            ctrlKey: false,
+        });
+
+        await waitFor(() => {
+            const clickThroughItem = screen.getByTestId(
+                "main.menu.item.click-through-mode"
+            );
+            expect(clickThroughItem.getAttribute("data-disabled")).not.toBeNull();
+        });
+
+        fireEvent.click(screen.getByTestId("main.menu.item.click-through-mode"));
+        expect(toggleClickThroughMode).not.toHaveBeenCalled();
     });
 });

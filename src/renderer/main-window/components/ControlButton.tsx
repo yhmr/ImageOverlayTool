@@ -7,6 +7,7 @@ import {
     Save,
     Droplets,
     Ghost,
+    Pin,
     Plus,
     X,
 } from "lucide-react";
@@ -64,10 +65,20 @@ export function ControlButton(props: ControlButtonProps) {
             onClick: onOpenWindowColorPicker,
         },
         {
+            id: "always-on-top",
+            icon: Pin,
+            label: t("render.control_button.tooltip.always_on_top"),
+            onClick: mainWindowActions.toggleAlwaysOnTopMode,
+            isActive: mainWindowActions.isAlwaysOnTopMode,
+            activeClass:
+                "bg-primary text-primary-foreground hover:bg-primary/90",
+        },
+        {
             id: "click-through-mode",
             icon: Ghost,
             label: t("render.control_button.tooltip.click_through_mode"),
             onClick: mainWindowActions.toggleClickThroughMode,
+            disabled: !mainWindowActions.canToggleClickThroughMode,
             isActive: mainWindowActions.isClickThroughMode,
             activeClass:
                 "bg-primary text-primary-foreground hover:bg-primary/90",
@@ -166,6 +177,7 @@ export function ControlButton(props: ControlButtonProps) {
                                             "h-12 w-12 rounded-full shadow-lg bg-background/80 hover:bg-background/90 backdrop-blur-sm",
                                             item.isActive && item.activeClass
                                         )}
+                                        disabled={item.disabled}
                                         data-testid={`main.fab.${item.id}`}
                                         data-clickthrough-allow
                                     >

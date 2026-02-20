@@ -74,6 +74,7 @@ export const IPC_EVENTS = {
     selectedImageIdUpdated: "selectedImageId:updated",
     selectedDimensionLineIdUpdated: "selectedDimensionLineId:updated",
     languageUpdated: "language:updated",
+    alwaysOnTopShortcutTriggered: "alwaysOnTop:shortcutTriggered",
     clickThroughShortcutTriggered: "clickThrough:shortcutTriggered",
     requestStateSync: "state:requestSync",
     fileOpen: "file:open",

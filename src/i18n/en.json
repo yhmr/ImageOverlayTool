@@ -32,12 +32,15 @@
             "capture_background": "Capture Background",
             "export_image": "Save Image",
             "background_style": "Background Color/Opacity",
+            "always_on_top_enable": "Enable Always on Top",
+            "always_on_top_disable": "Disable Always on Top",
             "click_through_mode_enable": "Enable Click-through Mode",
             "click_through_mode_disable": "Disable Click-through Mode"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
             "status": {
+                "always_on_top_mode_active": "Always on top (click to disable)",
                 "click_through_mode_active": "Click-through mode (always on top, click to disable)"
             },
             "tooltip": {
@@ -53,6 +56,7 @@
                 "save": "Save Image",
                 "capture": "Capture Background",
                 "image_settings": "Image Settings",
+                "always_on_top": "Always on Top (Ctrl+Shift+T)",
                 "click_through_mode": "Click-through mode (Ctrl+Shift+M)"
             }
         },
