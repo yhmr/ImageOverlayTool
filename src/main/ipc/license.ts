@@ -5,6 +5,17 @@ import log from "../logger";
 import type { LicenseInfo } from "../../shared/types/LicenseInfo";
 import { IPC_CHANNELS } from "../../shared/ipc/channels";
 
+const getLicensePathCandidates = (): string[] => {
+    if (!app.isPackaged) {
+        return [path.join(app.getAppPath(), "licenses.json")];
+    }
+
+    return [
+        path.join(process.resourcesPath, "licenses.json"),
+        path.join(path.dirname(process.execPath), "licenses.json"),
+    ];
+};
+
 /**
  * ライセンス情報取得用IPCハンドラを登録
  */
@@ -17,17 +28,21 @@ export function registerLicenseIpc(): void {
         IPC_CHANNELS.license.get,
         async (): Promise<LicenseInfo[]> => {
             try {
-                const licensePath = app.isPackaged
-                    ? path.join(process.resourcesPath, "licenses.json")
-                    : path.join(app.getAppPath(), "licenses.json");
+                const candidates = getLicensePathCandidates();
+                const licensePath = candidates.find((candidate) =>
+                    fs.existsSync(candidate)
+                );
 
-                log.debug(`[main] Loading license info from: ${licensePath}`);
-
-                if (!fs.existsSync(licensePath)) {
-                    log.warn(`[main] License file not found: ${licensePath}`);
+                if (!licensePath) {
+                    log.warn(
+                        `[main] License file not found. checked=${candidates.join(
+                            ", "
+                        )}`
+                    );
                     return [];
                 }
 
+                log.debug(`[main] Loading license info from: ${licensePath}`);
                 const content = fs.readFileSync(licensePath, "utf-8");
                 const licenses: LicenseInfo[] = JSON.parse(content);
                 log.info(`[main] Loaded ${licenses.length} license entries`);
