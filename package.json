@@ -28,6 +28,7 @@
     "generate:appx-assets": "node scripts/generate-appx-assets.js",
     "prepare-release-assets": "pnpm run generate-licenses && pnpm run generate-store-submission-files && pnpm run generate:appx-assets",
     "build:win": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win",
+    "build:win:local": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-win-local.ps1",
     "build:linux": "pnpm run prepare-release-assets && pnpm run build && electron-builder --linux",
     "build:all": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win --linux",
     "preview": "electron-vite preview",

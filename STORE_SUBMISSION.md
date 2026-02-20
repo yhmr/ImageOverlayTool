@@ -11,7 +11,11 @@
 
 ```bash
 pnpm run generate-store-submission-files
+pnpm run build:win:local
 ```
+
+`build:win:local` is a local-only wrapper for Windows packaging checks.
+It delegates to `pnpm run build:win` (to avoid script drift) and only patches local `7za` resolution.
 
 ## Store Page
 
