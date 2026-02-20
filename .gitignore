@@ -70,3 +70,4 @@ pages/.hugo_build.lock
 # Generated store submission files
 STORE_LICENSE_TERMS.txt
 SOURCE_CODE_URL.txt
+licenses.json
