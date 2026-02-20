@@ -3,8 +3,11 @@ $ErrorActionPreference = "Stop"
 
 function Resolve-7zaPath {
     $sevenZipA = Get-Command "7za" -ErrorAction SilentlyContinue
-    if ($sevenZipA) {
+    if ($sevenZipA -and $sevenZipA.Path -notmatch "\\scoop\\shims\\") {
         return $null
+    }
+    if ($sevenZipA -and $sevenZipA.Path -match "\\scoop\\shims\\") {
+        Write-Warning "Ignoring scoop shim 7za at '$($sevenZipA.Path)' and searching for a real 7za binary."
     }
 
     $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
