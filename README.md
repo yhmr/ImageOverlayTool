@@ -25,8 +25,6 @@
 
 ## 🛠 技術スタック
 
-このプロジェクトは以下の技術スタックで構築されています：
-
 - **Core**: [Electron](https://www.electronjs.org/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/)
 - **State Management**: [Zustand](https://zustand.docs.pmnd.rs/)
 - **Canvas Rendering**: [Konva](https://konvajs.org/) / [react-konva](https://konvajs.org/docs/react/)
@@ -106,36 +104,7 @@ E2E/統合テストで使用する `data-testid` は、以下の形式で命名�
 
 原則として、文言や表示順に依存するセレクタは使わず、主要操作は `data-testid` で参照します。
 
-### E2E制御プレーン
-
-`--e2e` 起動時は、テスト用の制御APIが利用できます。
-
-- `window.__IOT_E2E__.setScene(scene)` : シーンJSONをストアへ注入
-- `window.__IOT_E2E__.loadFixtureImage(source)` : fixture画像を追加
-- `window.__IOT_E2E__.waitStable({ timeoutMs })` : 描画安定化待ち
-- `window.__IOT_E2E__.capture({ mode })` : E2E用キャプチャ保存
-
-シナリオ撮影用の `e2e/screenshot-scenarios.spec.ts` は、
-`IOT_E2E_SCREENSHOT_SCENARIOS=1` のときのみ有効になります。
-通常の `pnpm run test:e2e` / CI実行では除外されます。
-
-`pnpm run test:e2e:screenshots` は、毎回 `pnpm run build` を先に実行し、ビルド成功時のみ撮影を実行します。
-CI上で明示実行された場合も既定ではスキップし、必要時のみ `IOT_E2E_SCREENSHOT_FORCE_IN_CI=1` で強制実行します。
-
-fixture解決ルール:
-
-- `fixture:alias` は `e2e/fixtures/images/<alias>.(png|jpg|jpeg|webp|gif|svg)` を探索
-- 相対パスは `e2e/fixtures/` 基準で解決
-- 絶対パスはそのまま利用
-
-セキュリティ境界:
-
-- E2E制御は `--e2e` と `IOT_E2E_MODE=1` の両方が有効なときのみ動作
-- 通常起動/リリースビルドでは無効
-
 ## 📁 ディレクトリ構成
-
-electron-vite の標準的な構成に基づき、コードの分離を行っています。
 
 ```
 .
@@ -180,4 +149,5 @@ electron-vite の標準的な構成に基づき、コードの分離を行って
 
 ## 📄 ライセンス
 
-このプロジェクトは [AGPL-3.0](LICENSE) ライセンスの下で公開されています。
+このプロジェクトは [AGPL-3.0](LICENSE) ライセンスの下で公開されています。　　
+ソフトの利用や、機能に関する問い合わせなどは、メールなどで作者までお気軽にご連絡ください。
