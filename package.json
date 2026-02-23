@@ -31,6 +31,8 @@
     "build:win:local": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-win-local.ps1",
     "build:linux": "pnpm run prepare-release-assets && pnpm run build && electron-builder --linux",
     "build:all": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win --linux",
+    "verify:release-artifacts": "node scripts/verify-release-artifacts.js",
+    "smoke:packaged-startup": "node scripts/smoke-packaged-startup.js",
     "preview": "electron-vite preview",
     "lint": "eslint --cache --rulesdir eslint/rules src/",
     "lint:fix": "eslint --cache --fix --rulesdir eslint/rules src/ && prettier --write src/",
