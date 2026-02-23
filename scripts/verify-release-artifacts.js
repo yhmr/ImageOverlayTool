@@ -6,7 +6,7 @@ const path = require("path");
 const ROOT_DIR = path.resolve(__dirname, "..");
 const RELEASE_DIR = path.join(ROOT_DIR, "release");
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, "package.json");
-const ASAR_DLX = "@electron/asar@4.0.1";
+const ASAR_DLX = "@electron/asar@3.2.17";
 
 const WIN_EXTENSIONS = [
     ".zip",
