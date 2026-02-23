@@ -42,8 +42,12 @@ const getArgValue = (flag) => {
 };
 
 const run = (command, args, options = {}) => {
+    const executable =
+        process.platform === "win32" && command === "pnpm"
+            ? "pnpm.cmd"
+            : command;
     try {
-        return childProcess.execFileSync(command, args, {
+        return childProcess.execFileSync(executable, args, {
             encoding: "utf8",
             stdio: ["ignore", "pipe", "pipe"],
             maxBuffer: 1024 * 1024 * 20,
@@ -54,7 +58,7 @@ const run = (command, args, options = {}) => {
         const stdout = error.stdout ? String(error.stdout).trim() : "";
         const details = [stderr, stdout].filter(Boolean).join("\n");
         const suffix = details ? `\n${details}` : "";
-        throw new Error(`Command failed: ${command} ${args.join(" ")}${suffix}`);
+        throw new Error(`Command failed: ${executable} ${args.join(" ")}${suffix}`);
     }
 };
 

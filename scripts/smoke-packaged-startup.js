@@ -191,6 +191,13 @@ const evaluateOutcome = (target, outcome, failures) => {
         return;
     }
 
+    if (outcome.signal) {
+        failures.push(
+            `${target.name}: exited by signal=${outcome.signal} after ${outcome.elapsedMs}ms`
+        );
+        return;
+    }
+
     if (outcome.code && outcome.code !== 0) {
         failures.push(
             `${target.name}: exited with non-zero code=${outcome.code} after ${outcome.elapsedMs}ms`
