@@ -6,7 +6,10 @@ import { useAppStore } from "@/renderer/store/useAppStore";
 import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
 import type { ProjectFile } from "@/shared/types/ProjectFile";
-import { DEFAULT_WINDOW_COLOR_PRESETS } from "@/shared/types/AppConfig";
+import {
+    DEFAULT_SHOW_WINDOW_FRAME,
+    DEFAULT_WINDOW_COLOR_PRESETS,
+} from "@/shared/types/AppConfig";
 import {
     UNIT_FACTOR_DEFAULT,
     UNIT_FACTOR_MIN,
@@ -15,6 +18,9 @@ import {
 describe("useAppStore", () => {
     beforeEach(() => {
         useAppStore.getState().resetAll();
+        useAppStore
+            .getState()
+            .setWindowFrameVisible(DEFAULT_SHOW_WINDOW_FRAME);
         useAppStore
             .getState()
             .setWindowColorPresets([...DEFAULT_WINDOW_COLOR_PRESETS]);
@@ -308,6 +314,14 @@ describe("useAppStore", () => {
                 "#11223344",
                 "#AABBCC",
             ]);
+        });
+
+        it("should keep window frame visibility after resetAll because it is app config", () => {
+            useAppStore.getState().setWindowFrameVisible(true);
+
+            useAppStore.getState().resetAll();
+
+            expect(useAppStore.getState().isWindowFrameVisible).toBe(true);
         });
     });
 
