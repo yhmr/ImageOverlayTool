@@ -43,8 +43,8 @@ const getArgValue = (flag) => {
 
 const run = (command, args, options = {}) => {
     const executable =
-        process.platform === "win32" && command === "pnpm"
-            ? "pnpm.cmd"
+        process.platform === "win32" && (command === "pnpm" || command === "npx")
+            ? `${command}.cmd`
             : command;
     try {
         return childProcess.execFileSync(executable, args, {
@@ -73,20 +73,54 @@ const detectArtifactPlatform = (fileName) => {
     return "";
 };
 
-const parseArtifactVersion = (fileName) => {
-    const match =
-        /^ImageOverlayTool-(\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?)/.exec(
-            fileName
-        );
-    return match ? match[1] : "";
+const hasExpectedArtifactPrefix = (fileName, expectedVersion) => {
+    return fileName.startsWith(`ImageOverlayTool-${expectedVersion}`);
+};
+
+const extractAsarPackageJson = (asarPath, tempDir) => {
+    const npxError = (() => {
+        try {
+            run("npx", ["-y", ASAR_DLX, "extract-file", asarPath, "package.json"], {
+                cwd: tempDir,
+            });
+            return null;
+        } catch (error) {
+            return error;
+        }
+    })();
+
+    if (!npxError) {
+        return;
+    }
+
+    const pnpmError = (() => {
+        try {
+            run("pnpm", ["dlx", ASAR_DLX, "extract-file", asarPath, "package.json"], {
+                cwd: tempDir,
+            });
+            return null;
+        } catch (error) {
+            return error;
+        }
+    })();
+
+    if (!pnpmError) {
+        return;
+    }
+
+    throw new Error(
+        [
+            "All asar extraction methods failed.",
+            `- npx: ${npxError.message}`,
+            `- pnpm: ${pnpmError.message}`,
+        ].join("\n")
+    );
 };
 
 const readAsarPackageVersion = (asarPath) => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "iot-asar-verify-"));
     try {
-        run("pnpm", ["dlx", ASAR_DLX, "extract-file", asarPath, "package.json"], {
-            cwd: tempDir,
-        });
+        extractAsarPackageJson(asarPath, tempDir);
         const packageJsonPath = path.join(tempDir, "package.json");
         if (!fs.existsSync(packageJsonPath)) {
             throw new Error(`Extracted package.json not found from '${asarPath}'.`);
@@ -104,11 +138,6 @@ const verifyArtifactFileVersions = (expectedVersion, platform, failures) => {
         .filter((entry) => entry.isFile());
 
     for (const entry of entries) {
-        const version = parseArtifactVersion(entry.name);
-        if (!version) {
-            continue;
-        }
-
         const artifactPlatform = detectArtifactPlatform(entry.name);
         if (platform !== "all" && artifactPlatform !== platform) {
             continue;
@@ -118,9 +147,9 @@ const verifyArtifactFileVersions = (expectedVersion, platform, failures) => {
             continue;
         }
 
-        if (version !== expectedVersion) {
+        if (!hasExpectedArtifactPrefix(entry.name, expectedVersion)) {
             failures.push(
-                `release/${entry.name}: file version '${version}' does not match expected '${expectedVersion}'`
+                `release/${entry.name}: file name does not start with 'ImageOverlayTool-${expectedVersion}'`
             );
         }
     }
