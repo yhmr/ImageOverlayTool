@@ -35,7 +35,9 @@
             "always_on_top_enable": "Enable Always on Top",
             "always_on_top_disable": "Disable Always on Top",
             "click_through_mode_enable": "Enable Click-through Mode",
-            "click_through_mode_disable": "Disable Click-through Mode"
+            "click_through_mode_disable": "Disable Click-through Mode",
+            "window_frame_show": "Show Window Border Overlay",
+            "window_frame_hide": "Hide Window Border Overlay"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -122,9 +124,11 @@
             "unit": "Unit",
             "helper": {
                 "language": "Change the language used in the UI",
-                "unitFactor": "Used for drawing dimension lines"
+                "unitFactor": "Used for drawing dimension lines",
+                "window_frame": "Show visual border to make resizing easier"
             },
             "log_level": "Log Level",
+            "window_frame": "Window Border",
             "log_levels": {
                 "error": "Error only",
                 "warn": "Warning & above",

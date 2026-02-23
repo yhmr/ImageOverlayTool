@@ -23,11 +23,15 @@ export class SettingsRepository implements ISettingsRepository {
     }
 
     async loadSettings(): Promise<SettingType> {
+        const showWindowFrame = this.store.get("setting.showWindowFrame");
         return {
             language: normalizeLanguage(
                 this.store.get("setting.language", DEFAULT_LANGUAGE)
             ),
             logLevel: this.store.get("setting.logLevel", "info"),
+            ...(typeof showWindowFrame === "boolean"
+                ? { showWindowFrame }
+                : {}),
         };
     }
 
@@ -40,6 +44,9 @@ export class SettingsRepository implements ISettingsRepository {
         }
         if (settings.logLevel !== undefined) {
             this.store.set("setting.logLevel", settings.logLevel);
+        }
+        if (typeof settings.showWindowFrame === "boolean") {
+            this.store.set("setting.showWindowFrame", settings.showWindowFrame);
         }
     }
 
@@ -64,6 +71,8 @@ export class SettingsRepository implements ISettingsRepository {
             this.store.set("window.colorPresets", windowColorPresets);
         }
 
+        const showWindowFrame = this.store.get("setting.showWindowFrame");
+
         return {
             version: 1,
             exportedAt: new Date().toISOString(),
@@ -72,6 +81,9 @@ export class SettingsRepository implements ISettingsRepository {
                     this.store.get("setting.language", DEFAULT_LANGUAGE)
                 ),
                 logLevel: this.store.get("setting.logLevel", "info"),
+                ...(typeof showWindowFrame === "boolean"
+                    ? { showWindowFrame }
+                    : {}),
             },
             window: {
                 color: windowColor,
@@ -90,6 +102,12 @@ export class SettingsRepository implements ISettingsRepository {
             }
             if (typeof snapshot.setting.logLevel === "string") {
                 this.store.set("setting.logLevel", snapshot.setting.logLevel);
+            }
+            if (typeof snapshot.setting.showWindowFrame === "boolean") {
+                this.store.set(
+                    "setting.showWindowFrame",
+                    snapshot.setting.showWindowFrame
+                );
             }
         }
         if (typeof snapshot.window?.color === "string") {

@@ -35,7 +35,9 @@
             "always_on_top_enable": "常に手前に表示を有効化",
             "always_on_top_disable": "常に手前に表示を無効化",
             "click_through_mode_enable": "クリック透過モードを有効化",
-            "click_through_mode_disable": "クリック透過モードを無効化"
+            "click_through_mode_disable": "クリック透過モードを無効化",
+            "window_frame_show": "ウィンドウ補助枠を表示",
+            "window_frame_hide": "ウィンドウ補助枠を非表示"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
@@ -122,9 +124,11 @@
             "unit": "単位",
             "helper": {
                 "language": "UIで使用する言語を変更します",
-                "unitFactor": "寸法線の描画で利用します"
+                "unitFactor": "寸法線の描画で利用します",
+                "window_frame": "リサイズしやすいように補助枠を表示します"
             },
             "log_level": "ログレベル",
+            "window_frame": "ウィンドウ枠",
             "log_levels": {
                 "error": "エラーのみ",
                 "warn": "警告以上",

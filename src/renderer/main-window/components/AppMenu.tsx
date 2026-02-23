@@ -29,6 +29,7 @@ import {
     Droplets,
     Ghost,
     Pin,
+    Square,
 } from "lucide-react";
 
 import { useFitToScreen } from "../../hooks/useFitToScreen";
@@ -265,6 +266,18 @@ export function AppMenu(props: AppMenuProps) {
                             : t("render.menu.click_through_mode_enable")}
                         <DropdownMenuShortcut>
                             {shortcut("toggleClickThroughMode")}
+                        </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={mainWindowActions.toggleWindowFrameVisibility}
+                        data-testid="main.menu.item.window-frame"
+                    >
+                        <Square className="mr-2 h-4 w-4" />
+                        {mainWindowActions.isWindowFrameVisible
+                            ? t("render.menu.window_frame_hide")
+                            : t("render.menu.window_frame_show")}
+                        <DropdownMenuShortcut>
+                            {shortcut("toggleWindowFrame")}
                         </DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>

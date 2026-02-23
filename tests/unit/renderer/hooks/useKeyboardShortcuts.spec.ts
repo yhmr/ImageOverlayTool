@@ -101,6 +101,7 @@ describe("useKeyboardShortcuts", () => {
             onOpenDimensionSettings: vi.fn(),
             onOpenBackgroundStyle: vi.fn(),
             onToggleClickThroughMode: vi.fn(),
+            onToggleWindowFrame: vi.fn(),
             onOpenSettings: vi.fn(),
             onExportLogs: vi.fn(),
             onExit: vi.fn(),
@@ -144,6 +145,10 @@ describe("useKeyboardShortcuts", () => {
                 handler: handlers.onToggleClickThroughMode,
             },
             {
+                init: { key: "r", ctrlKey: true, shiftKey: true },
+                handler: handlers.onToggleWindowFrame,
+            },
+            {
                 init: { key: ",", ctrlKey: true },
                 handler: handlers.onOpenSettings,
             },
@@ -176,6 +181,7 @@ describe("useKeyboardShortcuts", () => {
             { key: "d", ctrlKey: true },
             { key: "b", ctrlKey: true },
             { key: "m", ctrlKey: true, shiftKey: true },
+            { key: "r", ctrlKey: true, shiftKey: true },
             { key: ",", ctrlKey: true },
             { key: "l", ctrlKey: true, shiftKey: true },
             { key: "q", ctrlKey: true },

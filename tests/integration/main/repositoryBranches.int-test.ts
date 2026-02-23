@@ -195,6 +195,34 @@ describe("Main integration: repository branches", () => {
         });
     });
 
+    it("SettingsRepository loads and saves window frame visibility", async () => {
+        await settingsRepository.saveSettings({
+            language: "ja",
+            logLevel: "info",
+            showWindowFrame: true,
+        });
+        let loadedSettings = await settingsRepository.loadSettings();
+
+        expect(loadedSettings).toEqual({
+            language: "ja",
+            logLevel: "info",
+            showWindowFrame: true,
+        });
+
+        await settingsRepository.saveSettings({
+            language: "ja",
+            logLevel: "info",
+            showWindowFrame: false,
+        });
+        loadedSettings = await settingsRepository.loadSettings();
+
+        expect(loadedSettings).toEqual({
+            language: "ja",
+            logLevel: "info",
+            showWindowFrame: false,
+        });
+    });
+
     it("SettingsRepository import ignores invalid optional fields and keeps existing values", async () => {
         store.set("setting.language", "en");
         store.set("setting.logLevel", "info");
@@ -229,5 +257,23 @@ describe("Main integration: repository branches", () => {
 
         expect(snapshot.window.colorPresets).toEqual(["#FFFFFF"]);
         expect(store.get("window.colorPresets")).toEqual(["#FFFFFF"]);
+    });
+
+    it("SettingsRepository export/import preserves window frame visibility", async () => {
+        store.set("setting.showWindowFrame", true);
+
+        const exported = await settingsRepository.exportSettingsSnapshot();
+        expect(exported.setting.showWindowFrame).toBe(true);
+
+        await settingsRepository.importSettingsSnapshot({
+            ...exported,
+            setting: {
+                ...exported.setting,
+                showWindowFrame: false,
+            },
+        });
+
+        const loaded = await settingsRepository.loadSettings();
+        expect(loaded.showWindowFrame).toBe(false);
     });
 });

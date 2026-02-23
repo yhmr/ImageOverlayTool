@@ -39,11 +39,13 @@ describe("AppMenu test ids", () => {
         const captureBackground = vi.fn();
         const toggleAlwaysOnTopMode = vi.fn();
         const toggleClickThroughMode = vi.fn();
+        const toggleWindowFrameVisibility = vi.fn();
         const onOpenWindowColorPicker = vi.fn();
         const mainWindowActions: MainWindowActions = {
             isAlwaysOnTopMode: true,
             isClickThroughMode: false,
             canToggleClickThroughMode: true,
+            isWindowFrameVisible: false,
             openImageSettingsWindow,
             openDimensionSettingsWindow,
             captureBackground,
@@ -51,6 +53,7 @@ describe("AppMenu test ids", () => {
             disableAlwaysOnTopMode: vi.fn(),
             toggleClickThroughMode,
             disableClickThroughMode: vi.fn(),
+            toggleWindowFrameVisibility,
         };
 
         render(
@@ -110,6 +113,7 @@ describe("AppMenu test ids", () => {
             screen.getByTestId("main.menu.item.click-through-mode")
         ).toBeTruthy();
         expect(screen.getByTestId("main.menu.item.always-on-top")).toBeTruthy();
+        expect(screen.getByTestId("main.menu.item.window-frame")).toBeTruthy();
 
         fireEvent.click(screen.getByTestId("main.menu.item.capture-background"));
         expect(captureBackground).toHaveBeenCalledTimes(1);
@@ -125,6 +129,10 @@ describe("AppMenu test ids", () => {
         await ensureMenuOpen();
         fireEvent.click(screen.getByTestId("main.menu.item.click-through-mode"));
         expect(toggleClickThroughMode).toHaveBeenCalledTimes(1);
+
+        await ensureMenuOpen();
+        fireEvent.click(screen.getByTestId("main.menu.item.window-frame"));
+        expect(toggleWindowFrameVisibility).toHaveBeenCalledTimes(1);
 
         await ensureMenuOpen();
         fireEvent.click(screen.getByTestId("main.menu.item.help-manual"));
@@ -157,6 +165,7 @@ describe("AppMenu test ids", () => {
                     isAlwaysOnTopMode: true,
                     isClickThroughMode: true,
                     canToggleClickThroughMode: true,
+                    isWindowFrameVisible: true,
                     openImageSettingsWindow: vi.fn(),
                     openDimensionSettingsWindow: vi.fn(),
                     captureBackground: vi.fn(),
@@ -164,6 +173,7 @@ describe("AppMenu test ids", () => {
                     disableAlwaysOnTopMode: vi.fn(),
                     toggleClickThroughMode: vi.fn(),
                     disableClickThroughMode: vi.fn(),
+                    toggleWindowFrameVisibility: vi.fn(),
                 }}
             />
         );
@@ -199,6 +209,7 @@ describe("AppMenu test ids", () => {
                     isAlwaysOnTopMode: false,
                     isClickThroughMode: false,
                     canToggleClickThroughMode: false,
+                    isWindowFrameVisible: false,
                     openImageSettingsWindow: vi.fn(),
                     openDimensionSettingsWindow: vi.fn(),
                     captureBackground: vi.fn(),
@@ -206,6 +217,7 @@ describe("AppMenu test ids", () => {
                     disableAlwaysOnTopMode: vi.fn(),
                     toggleClickThroughMode,
                     disableClickThroughMode: vi.fn(),
+                    toggleWindowFrameVisibility: vi.fn(),
                 }}
             />
         );

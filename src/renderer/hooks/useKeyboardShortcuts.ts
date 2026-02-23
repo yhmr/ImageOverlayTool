@@ -18,6 +18,7 @@ export const MAIN_WINDOW_SHORTCUT_LABELS = {
     openBackgroundStyle: "Ctrl+B",
     toggleAlwaysOnTopMode: "Ctrl+Shift+T",
     toggleClickThroughMode: "Ctrl+Shift+M",
+    toggleWindowFrame: "Ctrl+Shift+R",
     openSettings: "Ctrl+,",
     exportLogs: "Ctrl+Shift+L",
     exit: "Ctrl+Q",
@@ -37,6 +38,7 @@ type KeyboardShortcutOptions = {
     onOpenDimensionSettings?: () => Promise<void> | void;
     onOpenBackgroundStyle?: () => Promise<void> | void;
     onToggleClickThroughMode?: () => Promise<void> | void;
+    onToggleWindowFrame?: () => Promise<void> | void;
     onOpenSettings?: () => Promise<void> | void;
     onExportLogs?: () => Promise<void> | void;
     onExit?: () => Promise<void> | void;
@@ -56,6 +58,7 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
         onOpenDimensionSettings,
         onOpenBackgroundStyle,
         onToggleClickThroughMode,
+        onToggleWindowFrame,
         onOpenSettings,
         onExportLogs,
         onExit,
@@ -208,6 +211,14 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
                 e.preventDefault();
                 void onToggleClickThroughMode();
             }
+            // Toggle Window Frame Overlay: Ctrl/Cmd + Shift + R
+            else if (matchesShortcut(e, { key: "r", shift: true })) {
+                if (!onToggleWindowFrame) {
+                    return;
+                }
+                e.preventDefault();
+                void onToggleWindowFrame();
+            }
             // Open Settings: Ctrl/Cmd + ,
             else if (matchesShortcut(e, { key: "," })) {
                 if (!onOpenSettings) {
@@ -271,6 +282,7 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
         onSaveProject,
         onSaveProjectAs,
         onToggleClickThroughMode,
+        onToggleWindowFrame,
         onApplyPresetColor,
         redo,
         undo,

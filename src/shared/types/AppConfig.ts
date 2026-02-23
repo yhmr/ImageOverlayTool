@@ -23,6 +23,7 @@ export interface AppConfig {
 export interface SettingType {
     language: string;
     logLevel: string;
+    showWindowFrame?: boolean;
 }
 
 // 設定のインポート/エクスポートで扱うスナップショット
@@ -37,6 +38,7 @@ export interface SettingsSnapshot {
 }
 
 export const DEFAULT_WINDOW_COLOR = "#FFFFFF55";
+export const DEFAULT_SHOW_WINDOW_FRAME = false;
 export const DEFAULT_WINDOW_COLOR_PRESETS = [
     "#00000000",
     "#FFFFFF",

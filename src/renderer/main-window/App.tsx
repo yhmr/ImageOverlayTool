@@ -16,6 +16,7 @@ import {
     useIpcService,
 } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
+import { DEFAULT_SHOW_WINDOW_FRAME } from "../../shared/types/AppConfig";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -29,6 +30,12 @@ const App = () => {
     const setWindowColor = useAppStore((state) => state.setWindowColor);
     const setWindowColorPresets = useAppStore(
         (state) => state.setWindowColorPresets
+    );
+    const setWindowFrameVisible = useAppStore(
+        (state) => state.setWindowFrameVisible
+    );
+    const isWindowFrameVisible = useAppStore(
+        (state) => state.isWindowFrameVisible
     );
     const windowColor = useAppStore((state) => state.windowColor);
     const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
@@ -90,18 +97,27 @@ const App = () => {
     useLayoutEffect(() => {
         // 設定を読み込み
         const loadColor = async () => {
-            const [color, presets] = await Promise.all([
+            const [color, presets, setting] = await Promise.all([
                 ipcService.loadWindowColor(),
                 ipcService.loadWindowColorPresets(),
+                ipcService.loadSetting(),
             ]);
             setWindowColor(color);
             setWindowColorPresets(presets);
+            setWindowFrameVisible(
+                setting.showWindowFrame ?? DEFAULT_SHOW_WINDOW_FRAME
+            );
             // 初期設定による変更なので履歴をクリアする
             useAppStore.temporal.getState().clear();
             useAppStore.getState().markProjectSaved();
         };
         void loadColor();
-    }, [setWindowColor, setWindowColorPresets, ipcService]);
+    }, [
+        setWindowColor,
+        setWindowColorPresets,
+        setWindowFrameVisible,
+        ipcService,
+    ]);
 
     useEffect(() => {
         void ipcService.updateProjectDirty(hasUnsavedChanges);
@@ -161,7 +177,7 @@ const App = () => {
                 onRemovePreset={windowColorPicker.removePreset}
                 onUpdatePreset={windowColorPicker.updatePreset}
             />
-            <WindowResizeHandles />
+            <WindowResizeHandles showFrameBorder={isWindowFrameVisible} />
         </div>
     );
 };

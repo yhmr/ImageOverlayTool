@@ -86,6 +86,7 @@ export function MenuBar({
         onOpenImageExport: onOpenImageExportDialog,
         onOpenDimensionSettings: mainWindowActions.openDimensionSettingsWindow,
         onOpenBackgroundStyle: onOpenWindowColorPicker,
+        onToggleWindowFrame: mainWindowActions.toggleWindowFrameVisibility,
         onOpenSettings: openSettingDialog,
         onExportLogs: exportLogs,
         onExit: closeWindow,

@@ -175,6 +175,8 @@ const isSettingsSnapshot = (value: unknown): value is SettingsSnapshot => {
         snapshot.version === 1 &&
         typeof snapshot.exportedAt === "string" &&
         typeof snapshot.setting?.language === "string" &&
+        (snapshot.setting?.showWindowFrame === undefined ||
+            typeof snapshot.setting.showWindowFrame === "boolean") &&
         typeof snapshot.window?.color === "string" &&
         (snapshot.window?.colorPresets === undefined ||
             (Array.isArray(snapshot.window?.colorPresets) &&

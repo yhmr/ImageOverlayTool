@@ -45,6 +45,7 @@ export interface WindowResizeHandlesProps {
     testIdPrefix?: string;
     minWidth?: number;
     minHeight?: number;
+    showFrameBorder?: boolean;
 }
 
 export function WindowResizeHandles(props: WindowResizeHandlesProps = {}) {
@@ -52,6 +53,7 @@ export function WindowResizeHandles(props: WindowResizeHandlesProps = {}) {
         testIdPrefix = "main",
         minWidth = MIN_WIDTH,
         minHeight = MIN_HEIGHT,
+        showFrameBorder = false,
     } = props;
     const ipcService = useIpcService();
     const isWindows = useMemo(
@@ -131,6 +133,13 @@ export function WindowResizeHandles(props: WindowResizeHandlesProps = {}) {
             aria-hidden="true"
             data-clickthrough-allow
         >
+            {showFrameBorder && (
+                <div
+                    className="window-frame-visual"
+                    data-testid={`${testIdPrefix}.window.frame.border`}
+                    data-clickthrough-allow
+                />
+            )}
             {handles.map((direction) => (
                 <div
                     key={direction}
