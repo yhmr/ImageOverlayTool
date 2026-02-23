@@ -5,8 +5,12 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   main: {
+    ssr: {
+      noExternal: ['electron-store', 'conf', 'dot-prop']
+    },
     build: {
       sourcemap: true,
+      externalizeDeps: false
     }
   },
   preload: {
