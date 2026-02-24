@@ -149,6 +149,10 @@ describe("ipcService", () => {
                 loadProjectFromPath: vi
                     .fn()
                     .mockResolvedValue({ project: createProject(), filePath: "b.iot" }),
+                loadSceneFromPath: vi.fn().mockResolvedValue({
+                    version: "1.0.0",
+                    images: [],
+                }),
                 loadImage: vi.fn().mockResolvedValue("C:/tmp/image.png"),
                 getImageInfo: vi
                     .fn()
@@ -300,6 +304,12 @@ describe("ipcService", () => {
                 project,
                 filePath: "b.iot",
             });
+            await expect(
+                service.loadSceneFromPath("default.scene.json")
+            ).resolves.toEqual({
+                version: "1.0.0",
+                images: [],
+            });
             await expect(service.loadImage()).resolves.toBe("C:/tmp/image.png");
             await expect(service.getImageInfo("C:/tmp/image.png")).resolves.toEqual({
                 exists: true,
@@ -381,6 +391,9 @@ describe("ipcService", () => {
                 "C:/tmp/cache.png",
             ]);
             expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
+            expect(api.loadSceneFromPath).toHaveBeenCalledWith(
+                "default.scene.json"
+            );
             expect(api.getImageInfo).toHaveBeenCalledWith("C:/tmp/image.png");
             expect(api.pasteImage).toHaveBeenCalled();
             expect(api.saveCacheImageAs).toHaveBeenCalledWith("C:/tmp/paste.png");

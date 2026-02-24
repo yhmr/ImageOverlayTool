@@ -54,6 +54,9 @@ describe("ipc contract", () => {
         expectTypeOf<IIPCService["loadProjectFromPath"]>().toEqualTypeOf<
             IElectronAPI["loadProjectFromPath"]
         >();
+        expectTypeOf<IIPCService["loadSceneFromPath"]>().toEqualTypeOf<
+            IElectronAPI["loadSceneFromPath"]
+        >();
 
         expectTypeOf<IIPCService["requestInitialState"]>().toEqualTypeOf<
             IElectronAPI["requestInitialState"]

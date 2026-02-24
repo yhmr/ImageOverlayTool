@@ -6,6 +6,7 @@ import type { DimensionLine } from "../shared/types/DimensionLine";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../shared/types/LicenseInfo";
 import type { InteractionMode } from "../shared/types/InteractionMode";
+import type { ResolvedSceneFile } from "../shared/types/SceneFile";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -63,6 +64,7 @@ export interface IElectronAPI {
     loadProjectFromPath: (
         filePath: string
     ) => Promise<{ project: ProjectFile<ImageSet>; filePath: string } | null>;
+    loadSceneFromPath: (filePath: string) => Promise<ResolvedSceneFile>;
     saveProject: (
         filePath: string,
         project: ProjectFile<ImageSet>,

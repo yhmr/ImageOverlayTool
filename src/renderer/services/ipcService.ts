@@ -11,6 +11,7 @@ import type { SettingType } from "../../shared/types/AppConfig";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type { LicenseInfo } from "../../shared/types/LicenseInfo";
 import type { InteractionMode } from "../../shared/types/InteractionMode";
+import type { ResolvedSceneFile } from "../../shared/types/SceneFile";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -81,6 +82,7 @@ export interface IProjectIPCService {
     loadProjectFromPath: (
         filePath: string
     ) => Promise<{ project: ProjectFile<ImageSet>; filePath: string } | null>;
+    loadSceneFromPath: (filePath: string) => Promise<ResolvedSceneFile>;
 }
 
 export interface IImageSettingsWindowIPCService {
@@ -322,6 +324,10 @@ class IPCService implements IIPCService {
         filePath: string
     ): Promise<{ project: ProjectFile<ImageSet>; filePath: string } | null> {
         return await window.electronAPI.loadProjectFromPath(filePath);
+    }
+
+    async loadSceneFromPath(filePath: string): Promise<ResolvedSceneFile> {
+        return await window.electronAPI.loadSceneFromPath(filePath);
     }
 
     async loadImage(): Promise<string | null> {

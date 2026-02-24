@@ -5,38 +5,45 @@ import { createImageSetFromLocalFile } from "../factories/imageSetFactory";
 import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
 import { useProjectOperations } from "./useProjectOperations";
+import { isSceneFilePath, useSceneFileLoader } from "./useSceneFileLoader";
 
 export const useFileHandler = () => {
-    const { imageSets, setImageSets } = useAppStore();
     const { openProjectFromPath } = useProjectOperations();
     const ipcService = useIpcService();
+    const loadSceneFile = useSceneFileLoader();
 
     useEffect(() => {
         const unsubscribe = ipcService.onFileOpen((filePath, ext) => {
             ipcService.log.debug(`File received via IPC: ${filePath} (${ext})`);
 
+            // Scene File
+            if (isSceneFilePath(filePath)) {
+                void loadSceneFile(filePath);
+                return;
+            }
+
             // Project File
             if (ext === ".iot") {
-                openProjectFromPath(filePath);
+                void openProjectFromPath(filePath);
                 return;
             }
 
             // Image File
             if (isSupportedImageExtension(ext)) {
                 const newImageSet = createImageSetFromLocalFile(filePath);
+                const state = useAppStore.getState();
 
                 // If the first item is empty (default state), replace it.
                 // Otherwise append.
-                // Note: We access imageSets from closure, so this effect runs when imageSets changes.
-                const newImageSets = [...imageSets];
+                const newImageSets = [...state.imageSets];
                 if (newImageSets.length === 1 && !newImageSets[0].path) {
                     newImageSets[0] = newImageSet;
                 } else {
                     newImageSets.push(newImageSet);
                 }
-                setImageSets(newImageSets);
+                state.setImageSets(newImageSets);
             }
         });
         return unsubscribe;
-    }, [imageSets, ipcService, setImageSets, openProjectFromPath]);
+    }, [ipcService, loadSceneFile, openProjectFromPath]);
 };

@@ -29,6 +29,9 @@ export const IPC_CHANNELS = {
         pickSavePath: "project:pickSavePath",
         materializeCacheImages: "project:materializeCacheImages",
     },
+    scene: {
+        loadFromPath: "scene:loadFromPath",
+    },
     imageSettingsWindow: {
         toggle: "imageSettingsWindow:toggle",
         loadImage: "image:load",

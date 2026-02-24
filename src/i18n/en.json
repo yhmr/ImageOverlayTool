@@ -114,6 +114,9 @@
                 "confirm_move": "This project contains cached images. Move them into an assets folder next to the project file and continue saving?\nCancel will reject save and open Image Settings."
             }
         },
+        "scene_load": {
+            "failed": "Failed to load scene file.\n{{message}}"
+        },
         "setting_dlg": {
             "title": "Settings",
             "description": "Change application settings such as language.",

@@ -7,6 +7,7 @@ import type { ImageInfoResult } from "../shared/types/ImageInfo";
 import type { DimensionLine } from "../shared/types/DimensionLine";
 import { IPC_CHANNELS, IPC_EVENTS } from "../shared/ipc/channels";
 import type { InteractionMode } from "../shared/types/InteractionMode";
+import type { ResolvedSceneFile } from "../shared/types/SceneFile";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -128,6 +129,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     loadProject: () => ipcRenderer.invoke(IPC_CHANNELS.project.load),
     loadProjectFromPath: (filePath: string) =>
         ipcRenderer.invoke(IPC_CHANNELS.project.loadFromPath, filePath),
+    loadSceneFromPath: (filePath: string): Promise<ResolvedSceneFile> =>
+        ipcRenderer.invoke(IPC_CHANNELS.scene.loadFromPath, filePath),
     // Image Settings Window
     loadImage: () =>
         ipcRenderer.invoke(IPC_CHANNELS.imageSettingsWindow.loadImage),
