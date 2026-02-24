@@ -1,13 +1,10 @@
-const childProcess = require("child_process");
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
+const asar = require("@electron/asar");
 
 const ROOT_DIR = path.resolve(__dirname, "..");
 const RELEASE_DIR = path.join(ROOT_DIR, "release");
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, "package.json");
-const ASAR_DLX = "@electron/asar@3.2.10";
-
 const WIN_EXTENSIONS = [
     ".zip",
     ".exe",
@@ -41,27 +38,6 @@ const getArgValue = (flag) => {
     return String(process.argv[index + 1]).trim();
 };
 
-const run = (command, args, options = {}) => {
-    const executable =
-        process.platform === "win32" && (command === "pnpm" || command === "npx")
-            ? `${command}.cmd`
-            : command;
-    try {
-        return childProcess.execFileSync(executable, args, {
-            encoding: "utf8",
-            stdio: ["ignore", "pipe", "pipe"],
-            maxBuffer: 1024 * 1024 * 20,
-            ...options,
-        });
-    } catch (error) {
-        const stderr = error.stderr ? String(error.stderr).trim() : "";
-        const stdout = error.stdout ? String(error.stdout).trim() : "";
-        const details = [stderr, stdout].filter(Boolean).join("\n");
-        const suffix = details ? `\n${details}` : "";
-        throw new Error(`Command failed: ${executable} ${args.join(" ")}${suffix}`);
-    }
-};
-
 const detectArtifactPlatform = (fileName) => {
     const lower = fileName.toLowerCase();
     if (WIN_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
@@ -77,60 +53,19 @@ const hasExpectedArtifactPrefix = (fileName, expectedVersion) => {
     return fileName.startsWith(`ImageOverlayTool-${expectedVersion}`);
 };
 
-const getLocalAsarBinary = () => {
-    const binName = process.platform === "win32" ? "asar.cmd" : "asar";
-    const localPath = path.join(ROOT_DIR, "node_modules", ".bin", binName);
-    return fs.existsSync(localPath) ? localPath : "";
-};
-
-const extractAsarPackageJson = (asarPath, tempDir) => {
-    const errors = [];
-    const localAsar = getLocalAsarBinary();
-
-    if (localAsar) {
-        try {
-            run(localAsar, ["extract-file", asarPath, "package.json"], { cwd: tempDir });
-            return;
-        } catch (error) {
-            errors.push(`- local asar: ${error.message}`);
-        }
-    } else {
-        errors.push("- local asar: not found");
-    }
-
-    try {
-        run("npx", ["-y", ASAR_DLX, "extract-file", asarPath, "package.json"], {
-            cwd: tempDir,
-        });
-        return;
-    } catch (error) {
-        errors.push(`- npx: ${error.message}`);
-    }
-
-    try {
-        run("pnpm", ["dlx", ASAR_DLX, "extract-file", asarPath, "package.json"], {
-            cwd: tempDir,
-        });
-        return;
-    } catch (error) {
-        errors.push(`- pnpm: ${error.message}`);
-    }
-
-    throw new Error(["All asar extraction methods failed.", ...errors].join("\n"));
-};
-
 const readAsarPackageVersion = (asarPath) => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "iot-asar-verify-"));
     try {
-        extractAsarPackageJson(asarPath, tempDir);
-        const packageJsonPath = path.join(tempDir, "package.json");
-        if (!fs.existsSync(packageJsonPath)) {
-            throw new Error(`Extracted package.json not found from '${asarPath}'.`);
-        }
-        const parsed = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+        const packageJsonBuffer = asar.extractFile(asarPath, "package.json");
+        const parsed = JSON.parse(String(packageJsonBuffer));
         return String(parsed.version || "");
-    } finally {
-        fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch (error) {
+        const detail =
+            error instanceof Error && error.message
+                ? error.message
+                : String(error);
+        throw new Error(
+            `Failed to read package.json from asar '${asarPath}'. ${detail}`
+        );
     }
 };
 
