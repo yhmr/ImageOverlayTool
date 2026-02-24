@@ -303,6 +303,12 @@ describe("useAppStore", () => {
             ]);
         });
 
+        it("should preserve empty presets when explicitly set", () => {
+            useAppStore.getState().setWindowColorPresets([]);
+
+            expect(useAppStore.getState().windowColorPresets).toEqual([]);
+        });
+
         it("should keep presets after resetAll because presets are app config", () => {
             useAppStore
                 .getState()

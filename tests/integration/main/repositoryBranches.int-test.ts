@@ -161,6 +161,15 @@ describe("Main integration: repository branches", () => {
         ]);
     });
 
+    it("WindowRepository keeps explicit empty preset list", async () => {
+        store.set("window.colorPresets", []);
+
+        const loadedPresets = await windowRepository.loadWindowColorPresets();
+
+        expect(loadedPresets).toEqual([]);
+        expect(store.get("window.colorPresets")).toEqual([]);
+    });
+
     it("WindowRepository normalizes invalid color and writes back to store", async () => {
         store.set("window.color", "invalid-color");
 

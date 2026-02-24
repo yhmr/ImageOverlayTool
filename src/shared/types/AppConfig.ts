@@ -78,7 +78,7 @@ export const normalizeWindowColorPresets = (value: unknown): string[] => {
     }
 
     if (normalized.length === 0) {
-        return [...DEFAULT_WINDOW_COLOR_PRESETS];
+        return value.length === 0 ? [] : [...DEFAULT_WINDOW_COLOR_PRESETS];
     }
 
     return normalized;
