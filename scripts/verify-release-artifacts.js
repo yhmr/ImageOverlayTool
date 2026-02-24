@@ -78,44 +78,46 @@ const hasExpectedArtifactPrefix = (fileName, expectedVersion) => {
     return fileName.startsWith(`ImageOverlayTool-${expectedVersion}`);
 };
 
+const getLocalAsarBinary = () => {
+    const binName = process.platform === "win32" ? "asar.cmd" : "asar";
+    const localPath = path.join(ROOT_DIR, "node_modules", ".bin", binName);
+    return fs.existsSync(localPath) ? localPath : "";
+};
+
 const extractAsarPackageJson = (asarPath, tempDir) => {
-    const npxError = (() => {
-        try {
-            run("npx", ["-y", ASAR_DLX, "extract-file", asarPath, "package.json"], {
-                cwd: tempDir,
-            });
-            return null;
-        } catch (error) {
-            return error;
-        }
-    })();
+    const errors = [];
+    const localAsar = getLocalAsarBinary();
 
-    if (!npxError) {
-        return;
+    if (localAsar) {
+        try {
+            run(localAsar, ["extract-file", asarPath, "package.json"], { cwd: tempDir });
+            return;
+        } catch (error) {
+            errors.push(`- local asar: ${error.message}`);
+        }
+    } else {
+        errors.push("- local asar: not found");
     }
 
-    const pnpmError = (() => {
-        try {
-            run("pnpm", ["dlx", ASAR_DLX, "extract-file", asarPath, "package.json"], {
-                cwd: tempDir,
-            });
-            return null;
-        } catch (error) {
-            return error;
-        }
-    })();
-
-    if (!pnpmError) {
+    try {
+        run("npx", ["-y", ASAR_DLX, "extract-file", asarPath, "package.json"], {
+            cwd: tempDir,
+        });
         return;
+    } catch (error) {
+        errors.push(`- npx: ${error.message}`);
     }
 
-    throw new Error(
-        [
-            "All asar extraction methods failed.",
-            `- npx: ${npxError.message}`,
-            `- pnpm: ${pnpmError.message}`,
-        ].join("\n")
-    );
+    try {
+        run("pnpm", ["dlx", ASAR_DLX, "extract-file", asarPath, "package.json"], {
+            cwd: tempDir,
+        });
+        return;
+    } catch (error) {
+        errors.push(`- pnpm: ${error.message}`);
+    }
+
+    throw new Error(["All asar extraction methods failed.", ...errors].join("\n"));
 };
 
 const readAsarPackageVersion = (asarPath) => {
