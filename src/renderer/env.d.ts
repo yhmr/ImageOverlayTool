@@ -31,6 +31,7 @@ export interface IElectronAPI {
     getImageInfo: (imagePath: string) => Promise<ImageInfoResult>;
     getPathForFile: (file: File) => string;
     // Window
+    minimizeWindow: () => Promise<void>;
     switchWindowSize: () => Promise<boolean>;
     setWindowRect: (rect: {
         x: number;

@@ -3,6 +3,11 @@ import log from "../logger";
 import { IPC_CHANNELS } from "../../shared/ipc/channels";
 
 export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
+    ipcMain.handle(IPC_CHANNELS.window.minimize, async () => {
+        log.info("[IPC] window:minimize called");
+        mainWindow.minimize();
+    });
+
     ipcMain.handle(IPC_CHANNELS.window.switchSize, async () => {
         if (!mainWindow.isMaximized()) {
             log.debug("[IPC] window:switchSize -> maximizing");

@@ -37,6 +37,7 @@ export interface ILogIPCService {
 }
 
 export interface IWindowIPCService {
+    minimizeWindow: () => Promise<void>;
     switchWindowSize: () => Promise<boolean>;
     setWindowRect: (rect: {
         x: number;
@@ -212,6 +213,10 @@ class IPCService implements IIPCService {
             window.electronAPI.log.error(message, ...params),
         export: () => window.electronAPI.log.export(),
     };
+
+    async minimizeWindow(): Promise<void> {
+        await window.electronAPI.minimizeWindow();
+    }
 
     async switchWindowSize(): Promise<boolean> {
         return await window.electronAPI.switchWindowSize();

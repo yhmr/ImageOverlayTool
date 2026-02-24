@@ -120,6 +120,7 @@ describe("ipcService", () => {
                     error: vi.fn().mockResolvedValue(undefined),
                     export: vi.fn().mockResolvedValue("logs.txt"),
                 },
+                minimizeWindow: vi.fn().mockResolvedValue(undefined),
                 switchWindowSize: vi.fn().mockResolvedValue(true),
                 setWindowRect: vi.fn().mockResolvedValue(undefined),
                 setIgnoreMouseEvents: vi.fn().mockResolvedValue(undefined),
@@ -265,6 +266,7 @@ describe("ipcService", () => {
             expect(api.log.warn).toHaveBeenCalledWith("w", 3);
             expect(api.log.error).toHaveBeenCalledWith("e", 4);
 
+            await service.minimizeWindow();
             await expect(service.switchWindowSize()).resolves.toBe(true);
             await service.setWindowRect({ x: 1, y: 2, width: 3, height: 4 });
             await service.setIgnoreMouseEvents(true);
@@ -366,6 +368,7 @@ describe("ipcService", () => {
                 width: 3,
                 height: 4,
             });
+            expect(api.minimizeWindow).toHaveBeenCalledTimes(1);
             expect(api.setIgnoreMouseEvents).toHaveBeenCalledWith(true);
             expect(api.setAlwaysOnTop).toHaveBeenCalledWith(true);
             expect(api.saveProject).toHaveBeenCalledWith(

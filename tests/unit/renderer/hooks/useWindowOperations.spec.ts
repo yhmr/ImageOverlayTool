@@ -6,6 +6,7 @@ import { setIPCService } from "@/renderer/services/ipcService";
 
 // Mock IPCService
 const mockIPC = vi.hoisted(() => ({
+    minimizeWindow: vi.fn(),
     switchWindowSize: vi.fn(),
     closeWindow: vi.fn(),
     log: {
@@ -38,6 +39,16 @@ describe("useWindowOperations", () => {
 
         expect(mockIPC.switchWindowSize).toHaveBeenCalled();
         expect(result.current.isMaximized).toBe(true);
+    });
+
+    it("should minimize window", () => {
+        const { result } = renderHook(() => useWindowOperations());
+
+        act(() => {
+            result.current.minimizeWindow();
+        });
+
+        expect(mockIPC.minimizeWindow).toHaveBeenCalled();
     });
 
     it("should close window", () => {

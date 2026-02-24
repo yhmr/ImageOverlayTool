@@ -26,6 +26,7 @@ vi.mock("@/main/logger", () => ({
 type MainWindowMock = Pick<
     BrowserWindow,
     | "isMaximized"
+    | "minimize"
     | "maximize"
     | "unmaximize"
     | "close"
@@ -45,6 +46,7 @@ const asBrowserWindow = (value: Partial<BrowserWindow>): BrowserWindow =>
 
 const createMainWindowMock = (): MainWindowMock => ({
     isMaximized: vi.fn(() => false),
+    minimize: vi.fn(),
     maximize: vi.fn(),
     unmaximize: vi.fn(),
     close: vi.fn(),
@@ -78,6 +80,12 @@ describe("window IPC handlers", () => {
 
         expect(mainWindowMock.maximize).toHaveBeenCalledTimes(1);
         expect(result).toBe(true);
+    });
+
+    it("minimize delegates to mainWindow.minimize", async () => {
+        await invokeIpcHandler(IPC_CHANNELS.window.minimize);
+
+        expect(mainWindowMock.minimize).toHaveBeenCalledTimes(1);
     });
 
     it("switchSize unmaximizes and enables resize when current window is maximized", async () => {

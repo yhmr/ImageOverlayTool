@@ -65,7 +65,8 @@ export function MenuBar({
         closeAboutDialog,
     } = useMainWindowDialogState();
 
-    const { isMaximized, toggleMaximized, closeWindow } = useWindowOperations();
+    const { isMaximized, minimizeWindow, toggleMaximized, closeWindow } =
+        useWindowOperations();
 
     const { newProject, openProject, saveProject, saveProjectAs } =
         useProjectOperations();
@@ -190,6 +191,7 @@ export function MenuBar({
 
                 <MenuBarWindowActions
                     isMaximized={isMaximized}
+                    onMinimizeWindow={minimizeWindow}
                     onToggleMaximized={toggleMaximized}
                     onCloseWindow={closeWindow}
                 />

@@ -46,6 +46,7 @@
                 "click_through_mode_active": "透過モード中（最前面固定・クリックで解除）"
             },
             "tooltip": {
+                "minimize": "ウィンドウ最小化",
                 "maximize": "ウィンドウ最大化",
                 "unmaximize": "ウィンドウを戻す（縮小）",
                 "close": "閉じる"

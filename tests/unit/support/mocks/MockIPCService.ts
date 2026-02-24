@@ -33,6 +33,8 @@ export class MockIPCService implements IIPCService {
         export: async () => null,
     };
 
+    async minimizeWindow(): Promise<void> { }
+
     async switchWindowSize(): Promise<boolean> {
         return true;
     }

@@ -4,6 +4,7 @@ export const IPC_CHANNELS = {
         export: "log:export",
     },
     window: {
+        minimize: "window:minimize",
         switchSize: "window:switchSize",
         close: "window:close",
         setRect: "window:setRect",

@@ -46,6 +46,7 @@
                 "click_through_mode_active": "Click-through mode (always on top, click to disable)"
             },
             "tooltip": {
+                "minimize": "Minimize Window",
                 "maximize": "Maximize Window",
                 "unmaximize": "Restore Window",
                 "close": "Close"

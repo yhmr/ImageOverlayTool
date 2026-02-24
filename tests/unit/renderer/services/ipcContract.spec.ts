@@ -13,6 +13,9 @@ describe("ipc contract", () => {
     });
 
     it("keeps core IPC method signatures aligned", () => {
+        expectTypeOf<IIPCService["minimizeWindow"]>().toEqualTypeOf<
+            IElectronAPI["minimizeWindow"]
+        >();
         expectTypeOf<IIPCService["switchWindowSize"]>().toEqualTypeOf<
             IElectronAPI["switchWindowSize"]
         >();

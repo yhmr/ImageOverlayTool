@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         export: () => ipcRenderer.invoke(IPC_CHANNELS.log.export),
     },
     // Window
+    minimizeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.window.minimize),
     switchWindowSize: (): Promise<boolean> =>
         ipcRenderer.invoke(IPC_CHANNELS.window.switchSize),
     setWindowRect: (rect: {

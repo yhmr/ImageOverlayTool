@@ -7,6 +7,11 @@ export const useWindowOperations = () => {
     const [isMaximized, setIsMaximized] = useState(false);
     const ipcService = useIpcService();
 
+    const minimizeWindow = useCallback(() => {
+        ipcService.log.info("Minimize button clicked");
+        void ipcService.minimizeWindow();
+    }, [ipcService]);
+
     const toggleMaximized = useCallback(async () => {
         ipcService.log.debug("Toggling fullscreen mode");
         const res = await ipcService.switchWindowSize();
@@ -21,6 +26,7 @@ export const useWindowOperations = () => {
 
     return {
         isMaximized,
+        minimizeWindow,
         toggleMaximized,
         closeWindow,
     };
