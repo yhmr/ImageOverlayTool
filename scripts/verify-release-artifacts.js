@@ -6,7 +6,8 @@ const path = require("path");
 const ROOT_DIR = path.resolve(__dirname, "..");
 const RELEASE_DIR = path.join(ROOT_DIR, "release");
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, "package.json");
-const ASAR_DLX = "@electron/asar@4.0.1";
+// v4+ requires Node >=22.12; CI is on Node 20.
+const ASAR_DLX = "@electron/asar@3.2.10";
 
 const WIN_EXTENSIONS = [
     ".zip",
