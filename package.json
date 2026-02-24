@@ -1,7 +1,7 @@
 {
   "name": "imageoverlaytool",
   "description": "image blend tool",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "yhmr",
@@ -31,6 +31,8 @@
     "build:win:local": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-win-local.ps1",
     "build:linux": "pnpm run prepare-release-assets && pnpm run build && electron-builder --linux",
     "build:all": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win --linux",
+    "verify:release-artifacts": "node scripts/verify-release-artifacts.js",
+    "smoke:packaged-startup": "node scripts/smoke-packaged-startup.js",
     "preview": "electron-vite preview",
     "lint": "eslint --cache --rulesdir eslint/rules src/",
     "lint:fix": "eslint --cache --fix --rulesdir eslint/rules src/ && prettier --write src/",
@@ -102,6 +104,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.4.23",
     "babel-plugin-react-compiler": "^1.0.0",
+    "@electron/asar": "3.2.10",
     "electron": "^40.1.0",
     "electron-builder": "^23.3.3",
     "electron-devtools-installer": "^4.0.0",

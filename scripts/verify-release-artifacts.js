@@ -1,0 +1,152 @@
+const fs = require("fs");
+const path = require("path");
+const asar = require("@electron/asar");
+
+const ROOT_DIR = path.resolve(__dirname, "..");
+const RELEASE_DIR = path.join(ROOT_DIR, "release");
+const PACKAGE_JSON_PATH = path.join(ROOT_DIR, "package.json");
+const WIN_EXTENSIONS = [
+    ".zip",
+    ".exe",
+    ".appx",
+    ".appxbundle",
+    ".appxupload",
+    ".msix",
+    ".msixbundle",
+    ".msixupload",
+    ".blockmap",
+];
+
+const LINUX_EXTENSIONS = [".appimage", ".deb"];
+
+const EXPECTED_ASAR_PATHS = {
+    win: [
+        path.join("win-unpacked", "resources", "app.asar"),
+        path.join("win-arm64-unpacked", "resources", "app.asar"),
+    ],
+    linux: [
+        path.join("linux-unpacked", "resources", "app.asar"),
+        path.join("linux-arm64-unpacked", "resources", "app.asar"),
+    ],
+};
+
+const getArgValue = (flag) => {
+    const index = process.argv.indexOf(flag);
+    if (index === -1 || index + 1 >= process.argv.length) {
+        return "";
+    }
+    return String(process.argv[index + 1]).trim();
+};
+
+const detectArtifactPlatform = (fileName) => {
+    const lower = fileName.toLowerCase();
+    if (WIN_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
+        return "win";
+    }
+    if (LINUX_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
+        return "linux";
+    }
+    return "";
+};
+
+const hasExpectedArtifactPrefix = (fileName, expectedVersion) => {
+    return fileName.startsWith(`ImageOverlayTool-${expectedVersion}`);
+};
+
+const readAsarPackageVersion = (asarPath) => {
+    try {
+        const packageJsonBuffer = asar.extractFile(asarPath, "package.json");
+        const parsed = JSON.parse(String(packageJsonBuffer));
+        return String(parsed.version || "");
+    } catch (error) {
+        const detail =
+            error instanceof Error && error.message
+                ? error.message
+                : String(error);
+        throw new Error(
+            `Failed to read package.json from asar '${asarPath}'. ${detail}`
+        );
+    }
+};
+
+const verifyArtifactFileVersions = (expectedVersion, platform, failures) => {
+    const entries = fs
+        .readdirSync(RELEASE_DIR, { withFileTypes: true })
+        .filter((entry) => entry.isFile());
+
+    for (const entry of entries) {
+        const artifactPlatform = detectArtifactPlatform(entry.name);
+        if (platform !== "all" && artifactPlatform !== platform) {
+            continue;
+        }
+
+        if (!artifactPlatform) {
+            continue;
+        }
+
+        if (!hasExpectedArtifactPrefix(entry.name, expectedVersion)) {
+            failures.push(
+                `release/${entry.name}: file name does not start with 'ImageOverlayTool-${expectedVersion}'`
+            );
+        }
+    }
+};
+
+const verifyAsarVersions = (expectedVersion, platform, failures) => {
+    const platforms = platform === "all" ? ["win", "linux"] : [platform];
+    for (const targetPlatform of platforms) {
+        const asarRelativePaths = EXPECTED_ASAR_PATHS[targetPlatform] || [];
+        for (const relativePath of asarRelativePaths) {
+            const absolutePath = path.join(RELEASE_DIR, relativePath);
+            if (!fs.existsSync(absolutePath)) {
+                failures.push(
+                    `Missing packaged app: ${path.join("release", relativePath)}`
+                );
+                continue;
+            }
+
+            const packagedVersion = readAsarPackageVersion(absolutePath);
+            if (packagedVersion !== expectedVersion) {
+                failures.push(
+                    `${path.join("release", relativePath)}: asar version '${packagedVersion || "(empty)"}' does not match expected '${expectedVersion}'`
+                );
+            }
+        }
+    }
+};
+
+const main = () => {
+    const platformArg = getArgValue("--platform") || "all";
+    const platform = platformArg.toLowerCase();
+    if (!["all", "win", "linux"].includes(platform)) {
+        throw new Error(`Unknown --platform '${platformArg}'. Expected one of: all, win, linux.`);
+    }
+
+    if (!fs.existsSync(RELEASE_DIR)) {
+        throw new Error(`Release directory does not exist: ${RELEASE_DIR}`);
+    }
+
+    const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8"));
+    const expectedVersion = String(pkg.version || "").trim();
+    if (!expectedVersion) {
+        throw new Error("package.json version is empty.");
+    }
+
+    const failures = [];
+    verifyArtifactFileVersions(expectedVersion, platform, failures);
+    verifyAsarVersions(expectedVersion, platform, failures);
+
+    if (failures.length > 0) {
+        throw new Error(
+            `Release artifact verification failed (${platform}).\n${failures
+                .map((failure) => `- ${failure}`)
+                .join("\n")}`
+        );
+    }
+
+    console.log(
+        `[verify-release-artifacts] OK: platform=${platform}, expectedVersion=${expectedVersion}`
+    );
+};
+
+main();
