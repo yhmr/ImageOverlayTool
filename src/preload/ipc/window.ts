@@ -1,22 +1,18 @@
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
-import { invokeIpc } from "./client";
-
-type WindowRect = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
+import {
+    windowIpcContracts,
+    type WindowRect,
+} from "../../shared/ipc/contracts/window";
+import { invokeIpcContract } from "./client";
 
 export const createWindowApi = () => ({
-    minimizeWindow: () => invokeIpc(IPC_CHANNELS.window.minimize),
+    minimizeWindow: () => invokeIpcContract(windowIpcContracts.minimize),
     switchWindowSize: (): Promise<boolean> =>
-        invokeIpc(IPC_CHANNELS.window.switchSize),
+        invokeIpcContract(windowIpcContracts.switchSize),
     setWindowRect: (rect: WindowRect) =>
-        invokeIpc(IPC_CHANNELS.window.setRect, rect),
+        invokeIpcContract(windowIpcContracts.setRect, rect),
     setIgnoreMouseEvents: (ignore: boolean) =>
-        invokeIpc(IPC_CHANNELS.window.setIgnoreMouseEvents, ignore),
+        invokeIpcContract(windowIpcContracts.setIgnoreMouseEvents, ignore),
     setAlwaysOnTop: (enabled: boolean) =>
-        invokeIpc(IPC_CHANNELS.window.setAlwaysOnTop, enabled),
-    closeWindow: () => invokeIpc(IPC_CHANNELS.window.close),
+        invokeIpcContract(windowIpcContracts.setAlwaysOnTop, enabled),
+    closeWindow: () => invokeIpcContract(windowIpcContracts.close),
 });

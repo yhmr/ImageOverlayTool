@@ -1,4 +1,4 @@
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { e2eIpcContracts } from "../../shared/ipc/contracts";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -8,21 +8,21 @@ import type {
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "../../shared/types/E2EControl";
-import { invokeIpc } from "./client";
+import { invokeIpcContract } from "./client";
 
 export const createE2EApi = () => ({
     getE2EStatus: (): Promise<E2EControlStatus> =>
-        invokeIpc(IPC_CHANNELS.e2e.getStatus),
+        invokeIpcContract(e2eIpcContracts.getStatus),
     e2eSetSceneFromPath: (scenePath: string): Promise<E2EResolvedSceneFile> =>
-        invokeIpc(IPC_CHANNELS.e2e.setSceneFromPath, scenePath),
+        invokeIpcContract(e2eIpcContracts.setSceneFromPath, scenePath),
     e2eLoadFixtureImage: (
         request: E2ELoadFixtureImageRequest
     ): Promise<E2EResolvedFixtureImage> =>
-        invokeIpc(IPC_CHANNELS.e2e.loadFixtureImage, request),
+        invokeIpcContract(e2eIpcContracts.loadFixtureImage, request),
     e2eWaitStable: (
         request?: E2EWaitStableRequest
     ): Promise<E2EWaitStableResult> =>
-        invokeIpc(IPC_CHANNELS.e2e.waitStable, request),
+        invokeIpcContract(e2eIpcContracts.waitStable, request),
     e2eCapture: (request?: E2ECaptureRequest) =>
-        invokeIpc(IPC_CHANNELS.e2e.capture, request),
+        invokeIpcContract(e2eIpcContracts.capture, request),
 });

@@ -18,7 +18,13 @@ import { DimensionLine } from "../../shared/types/DimensionLine";
 import type { InteractionMode } from "../../shared/types/InteractionMode";
 import type { ImageInfoResult } from "../../shared/types/ImageInfo";
 import log from "../logger";
-import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
+import {
+    dimensionSettingsWindowIpcContracts,
+    imageSettingsWindowIpcContracts,
+    syncEventContracts,
+    syncIpcContracts,
+} from "../../shared/ipc/contracts";
+import type { Unit } from "../../shared/ipc/contracts/sync";
 import { IMAGE_FILTERS } from "../../shared/constants/imageFormats";
 import {
     deleteClipboardCacheFileIfManaged,
@@ -57,24 +63,27 @@ export const registerImageSettingsWindowHandlers = (
         IWindowCollectionProvider &
         IProjectDirtyStateController
 ) => {
-    ipcMain.handle(IPC_CHANNELS.imageSettingsWindow.toggle, async () => {
+    ipcMain.handle(imageSettingsWindowIpcContracts.toggle.channel, async () => {
         log.debug("[IPC] imageSettingsWindow:toggle called");
         const isVisible = windowManager.toggleImageSettingsWindow();
         log.info(`[IPC] imageSettingsWindow:toggle -> visible: ${isVisible}`);
         return isVisible;
     });
 
-    ipcMain.handle(IPC_CHANNELS.dimensionSettingsWindow.toggle, async () => {
-        log.debug("[IPC] dimensionSettingsWindow:toggle called");
-        const isVisible = windowManager.toggleDimensionSettingsWindow();
-        log.info(
-            `[IPC] dimensionSettingsWindow:toggle -> visible: ${isVisible}`
-        );
-        return isVisible;
-    });
+    ipcMain.handle(
+        dimensionSettingsWindowIpcContracts.toggle.channel,
+        async () => {
+            log.debug("[IPC] dimensionSettingsWindow:toggle called");
+            const isVisible = windowManager.toggleDimensionSettingsWindow();
+            log.info(
+                `[IPC] dimensionSettingsWindow:toggle -> visible: ${isVisible}`
+            );
+            return isVisible;
+        }
+    );
 
     ipcMain.handle(
-        IPC_CHANNELS.sync.updateImageSets,
+        syncIpcContracts.updateImageSets.channel,
         (event, imageSets: ImageSet[]) => {
             log.debug(
                 `[IPC] imageSets:update called with ${imageSets.length} images`
@@ -83,7 +92,7 @@ export const registerImageSettingsWindowHandlers = (
             windows.forEach((win) => {
                 if (win.webContents.id !== event.sender.id) {
                     win.webContents.send(
-                        IPC_EVENTS.imageSetsUpdated,
+                        syncEventContracts.imageSetsUpdated.event,
                         imageSets
                     );
                 }
@@ -92,7 +101,7 @@ export const registerImageSettingsWindowHandlers = (
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.sync.updateDimensionLines,
+        syncIpcContracts.updateDimensionLines.channel,
         (event, dimensionLines: DimensionLine[]) => {
             log.debug(
                 `[IPC] dimensionLines:update called with ${dimensionLines.length} lines`
@@ -101,7 +110,7 @@ export const registerImageSettingsWindowHandlers = (
             windows.forEach((win) => {
                 if (win.webContents.id !== event.sender.id) {
                     win.webContents.send(
-                        IPC_EVENTS.dimensionLinesUpdated,
+                        syncEventContracts.dimensionLinesUpdated.event,
                         dimensionLines
                     );
                 }
@@ -110,7 +119,7 @@ export const registerImageSettingsWindowHandlers = (
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.sync.updateUnitFactor,
+        syncIpcContracts.updateUnitFactor.channel,
         (event, unitFactor: number) => {
             log.debug(
                 `[IPC] unitFactor:update called with value: ${unitFactor}`
@@ -119,7 +128,7 @@ export const registerImageSettingsWindowHandlers = (
             windows.forEach((win) => {
                 if (win.webContents.id !== event.sender.id) {
                     win.webContents.send(
-                        IPC_EVENTS.unitFactorUpdated,
+                        syncEventContracts.unitFactorUpdated.event,
                         unitFactor
                     );
                 }
@@ -127,21 +136,21 @@ export const registerImageSettingsWindowHandlers = (
         }
     );
 
-    ipcMain.handle(
-        IPC_CHANNELS.sync.updateUnit,
-        (event, unit: "nm" | "um" | "mm") => {
-            log.debug(`[IPC] unit:update called with value: ${unit}`);
-            const windows = windowManager.getAllWindows();
-            windows.forEach((win) => {
-                if (win.webContents.id !== event.sender.id) {
-                    win.webContents.send(IPC_EVENTS.unitUpdated, unit);
-                }
-            });
-        }
-    );
+    ipcMain.handle(syncIpcContracts.updateUnit.channel, (event, unit: Unit) => {
+        log.debug(`[IPC] unit:update called with value: ${unit}`);
+        const windows = windowManager.getAllWindows();
+        windows.forEach((win) => {
+            if (win.webContents.id !== event.sender.id) {
+                win.webContents.send(
+                    syncEventContracts.unitUpdated.event,
+                    unit
+                );
+            }
+        });
+    });
 
     ipcMain.handle(
-        IPC_CHANNELS.sync.updateInteractionMode,
+        syncIpcContracts.updateInteractionMode.channel,
         (event, mode: InteractionMode) => {
             log.debug(
                 `[IPC] interactionMode:update called with value: ${mode}`
@@ -150,7 +159,7 @@ export const registerImageSettingsWindowHandlers = (
             windows.forEach((win) => {
                 if (win.webContents.id !== event.sender.id) {
                     win.webContents.send(
-                        IPC_EVENTS.interactionModeUpdated,
+                        syncEventContracts.interactionModeUpdated.event,
                         mode
                     );
                 }
@@ -159,20 +168,23 @@ export const registerImageSettingsWindowHandlers = (
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.sync.updateSelectedImageId,
+        syncIpcContracts.updateSelectedImageId.channel,
         (event, id: string | null) => {
             log.debug(`[IPC] selectedImageId:update called with value: ${id}`);
             const windows = windowManager.getAllWindows();
             windows.forEach((win) => {
                 if (win.webContents.id !== event.sender.id) {
-                    win.webContents.send(IPC_EVENTS.selectedImageIdUpdated, id);
+                    win.webContents.send(
+                        syncEventContracts.selectedImageIdUpdated.event,
+                        id
+                    );
                 }
             });
         }
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.sync.updateSelectedDimensionLineId,
+        syncIpcContracts.updateSelectedDimensionLineId.channel,
         (event, id: string | null) => {
             log.debug(
                 `[IPC] selectedDimensionLineId:update called with value: ${id}`
@@ -181,7 +193,7 @@ export const registerImageSettingsWindowHandlers = (
             windows.forEach((win) => {
                 if (win.webContents.id !== event.sender.id) {
                     win.webContents.send(
-                        IPC_EVENTS.selectedDimensionLineIdUpdated,
+                        syncEventContracts.selectedDimensionLineIdUpdated.event,
                         id
                     );
                 }
@@ -189,22 +201,25 @@ export const registerImageSettingsWindowHandlers = (
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.sync.updateProjectDirty, (_event, isDirty) => {
-        windowManager.setProjectDirty(Boolean(isDirty));
-    });
+    ipcMain.handle(
+        syncIpcContracts.updateProjectDirty.channel,
+        (_event, isDirty) => {
+            windowManager.setProjectDirty(Boolean(isDirty));
+        }
+    );
 
-    ipcMain.handle(IPC_CHANNELS.sync.requestInitialState, (event) => {
+    ipcMain.handle(syncIpcContracts.requestInitialState.channel, (event) => {
         log.debug("[IPC] state:requestInitial called");
         const windows = windowManager.getAllWindows();
         windows.forEach((win) => {
             if (win.webContents.id !== event.sender.id) {
-                win.webContents.send(IPC_EVENTS.requestStateSync);
+                win.webContents.send(syncEventContracts.requestStateSync.event);
             }
         });
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.imageSettingsWindow.loadImage,
+        imageSettingsWindowIpcContracts.loadImage.channel,
         async (event) => {
             log.debug("[IPC] image:load called");
             const window = BrowserWindow.fromWebContents(event.sender);
@@ -238,7 +253,7 @@ export const registerImageSettingsWindowHandlers = (
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.imageSettingsWindow.getImageInfo,
+        imageSettingsWindowIpcContracts.getImageInfo.channel,
         async (_event, imagePath: string): Promise<ImageInfoResult> => {
             const resolvedPath = resolveLocalFilePath(imagePath);
             if (!resolvedPath) {
@@ -269,30 +284,36 @@ export const registerImageSettingsWindowHandlers = (
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.imageSettingsWindow.pasteImage, async () => {
-        log.debug("[IPC] imageSettingsWindow:pasteImage called");
-        try {
-            const image = clipboard.readImage();
-            if (image.isEmpty()) {
-                log.debug(
-                    "[IPC] imageSettingsWindow:pasteImage no image found"
-                );
-                return null;
-            }
+    ipcMain.handle(
+        imageSettingsWindowIpcContracts.pasteImage.channel,
+        async () => {
+            log.debug("[IPC] imageSettingsWindow:pasteImage called");
+            try {
+                const image = clipboard.readImage();
+                if (image.isEmpty()) {
+                    log.debug(
+                        "[IPC] imageSettingsWindow:pasteImage no image found"
+                    );
+                    return null;
+                }
 
-            const filePath = await saveClipboardImageToCache(image);
-            log.info(
-                `[IPC] imageSettingsWindow:pasteImage cached: ${filePath}`
-            );
-            return filePath;
-        } catch (error) {
-            log.error("[IPC] imageSettingsWindow:pasteImage failed:", error);
-            throw error;
+                const filePath = await saveClipboardImageToCache(image);
+                log.info(
+                    `[IPC] imageSettingsWindow:pasteImage cached: ${filePath}`
+                );
+                return filePath;
+            } catch (error) {
+                log.error(
+                    "[IPC] imageSettingsWindow:pasteImage failed:",
+                    error
+                );
+                throw error;
+            }
         }
-    });
+    );
 
     ipcMain.handle(
-        IPC_CHANNELS.imageSettingsWindow.saveCacheImageAs,
+        imageSettingsWindowIpcContracts.saveCacheImageAs.channel,
         async (event, cacheFilePath: string) => {
             log.debug("[IPC] imageSettingsWindow:saveCacheImageAs called", {
                 cacheFilePath,

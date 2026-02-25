@@ -3,7 +3,10 @@ import type { IpcMainInvokeEvent } from "electron";
 import { IProjectRepository } from "../repositories/ProjectRepository";
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import log from "../logger";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import {
+    projectIpcContracts,
+    type SaveProjectPayload,
+} from "../../shared/ipc/contracts/project";
 import { ProjectService } from "../services/ProjectService";
 
 export interface ProjectHandlerOptions {
@@ -46,7 +49,7 @@ export const registerProjectHandlers = (
     };
 
     ipcMain.handle(
-        IPC_CHANNELS.project.saveAs,
+        projectIpcContracts.saveAs.channel,
         async (event, project: ProjectFile) => {
             log.debug("[IPC] project:saveAs called");
 
@@ -67,7 +70,7 @@ export const registerProjectHandlers = (
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.project.pickSavePath, async (event) => {
+    ipcMain.handle(projectIpcContracts.pickSavePath.channel, async (event) => {
         log.debug("[IPC] project:pickSavePath called");
         try {
             const filePath = await selectProjectSavePath(event);
@@ -84,18 +87,10 @@ export const registerProjectHandlers = (
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.project.save,
+        projectIpcContracts.save.channel,
         async (
             _event,
-            {
-                filePath,
-                project,
-                cacheImagePathsToDelete,
-            }: {
-                filePath: string;
-                project: ProjectFile;
-                cacheImagePathsToDelete?: string[];
-            }
+            { filePath, project, cacheImagePathsToDelete }: SaveProjectPayload
         ) => {
             log.debug(`[IPC] project:save called for: ${filePath}`);
             try {
@@ -124,7 +119,7 @@ export const registerProjectHandlers = (
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.project.load, async (event) => {
+    ipcMain.handle(projectIpcContracts.load.channel, async (event) => {
         log.debug("[IPC] project:load called");
 
         if (testMode?.enabled) {
@@ -171,7 +166,7 @@ export const registerProjectHandlers = (
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.project.loadFromPath,
+        projectIpcContracts.loadFromPath.channel,
         async (event, filePath: string) => {
             log.debug(`[IPC] project:loadFromPath called for: ${filePath}`);
             try {
@@ -189,7 +184,7 @@ export const registerProjectHandlers = (
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.project.materializeCacheImages,
+        projectIpcContracts.materializeCacheImages.channel,
         async (
             _event,
             payload: { projectFilePath: string; cacheImagePaths: string[] }

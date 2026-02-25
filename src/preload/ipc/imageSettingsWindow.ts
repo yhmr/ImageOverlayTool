@@ -1,23 +1,29 @@
 import { webUtils } from "electron";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import {
+    dimensionSettingsWindowIpcContracts,
+    imageSettingsWindowIpcContracts,
+} from "../../shared/ipc/contracts";
 import type { ImageInfoResult } from "../../shared/types/ImageInfo";
-import { invokeIpc } from "./client";
+import { invokeIpcContract } from "./client";
 
 export const createImageSettingsWindowApi = () => ({
     loadImage: () =>
-        invokeIpc<string | null>(IPC_CHANNELS.imageSettingsWindow.loadImage),
+        invokeIpcContract(imageSettingsWindowIpcContracts.loadImage),
     getImageInfo: (imagePath: string): Promise<ImageInfoResult> =>
-        invokeIpc(IPC_CHANNELS.imageSettingsWindow.getImageInfo, imagePath),
+        invokeIpcContract(
+            imageSettingsWindowIpcContracts.getImageInfo,
+            imagePath
+        ),
     pasteImage: (): Promise<string | null> =>
-        invokeIpc(IPC_CHANNELS.imageSettingsWindow.pasteImage),
+        invokeIpcContract(imageSettingsWindowIpcContracts.pasteImage),
     saveCacheImageAs: (cacheFilePath: string): Promise<string | null> =>
-        invokeIpc(
-            IPC_CHANNELS.imageSettingsWindow.saveCacheImageAs,
+        invokeIpcContract(
+            imageSettingsWindowIpcContracts.saveCacheImageAs,
             cacheFilePath
         ),
     getPathForFile: (file: File) => webUtils.getPathForFile(file),
     toggleImageSettingsWindow: () =>
-        invokeIpc<boolean>(IPC_CHANNELS.imageSettingsWindow.toggle),
+        invokeIpcContract(imageSettingsWindowIpcContracts.toggle),
     toggleDimensionSettingsWindow: () =>
-        invokeIpc<boolean>(IPC_CHANNELS.dimensionSettingsWindow.toggle),
+        invokeIpcContract(dimensionSettingsWindowIpcContracts.toggle),
 });

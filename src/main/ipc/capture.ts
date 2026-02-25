@@ -4,7 +4,7 @@ import {
     saveDataUrlImage,
     type CaptureTestModeOptions,
 } from "../services/captureService";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { captureIpcContracts } from "../../shared/ipc/contracts";
 
 export interface CaptureHandlerOptions {
     testMode?: CaptureTestModeOptions;
@@ -16,21 +16,21 @@ export const registerCaptureHandlers = (
     const testMode = options?.testMode;
 
     ipcMain.handle(
-        IPC_CHANNELS.capture.screen,
+        captureIpcContracts.screen.channel,
         async (event: IpcMainInvokeEvent) => {
             return captureWindowAreaAndSave(event, true, testMode);
         }
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.capture.window,
+        captureIpcContracts.window.channel,
         async (event: IpcMainInvokeEvent) => {
             return captureWindowAreaAndSave(event, false, testMode);
         }
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.capture.saveImageData,
+        captureIpcContracts.saveImageData.channel,
         async (event: IpcMainInvokeEvent, dataUrl: string) => {
             return saveDataUrlImage(event, dataUrl, testMode);
         }

@@ -1,26 +1,34 @@
-import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
+import {
+    settingsEventContracts,
+    settingsIpcContracts,
+} from "../../shared/ipc/contracts";
 import type { SettingType } from "../../shared/types/AppConfig";
-import { invokeIpc, onIpcEvent } from "./client";
+import { invokeIpcContract, onIpcEventContract } from "./client";
 
 export const createSettingsApi = () => ({
-    loadSetting: () => invokeIpc<SettingType>(IPC_CHANNELS.setting.load),
+    loadSetting: () => invokeIpcContract(settingsIpcContracts.load),
     saveSetting: (setting: SettingType) =>
-        invokeIpc(IPC_CHANNELS.setting.save, setting),
-    exportSettings: () => invokeIpc<string | null>(IPC_CHANNELS.setting.export),
-    importSettings: () =>
-        invokeIpc<SettingType | null>(IPC_CHANNELS.setting.import),
+        invokeIpcContract(settingsIpcContracts.save, setting),
+    exportSettings: () => invokeIpcContract(settingsIpcContracts.export),
+    importSettings: () => invokeIpcContract(settingsIpcContracts.import),
     onLanguageUpdated: (callback: (language: string) => void) =>
-        onIpcEvent(IPC_EVENTS.languageUpdated, callback),
+        onIpcEventContract(settingsEventContracts.languageUpdated, callback),
     onClickThroughShortcutTriggered: (callback: () => void) =>
-        onIpcEvent(IPC_EVENTS.clickThroughShortcutTriggered, callback),
+        onIpcEventContract(
+            settingsEventContracts.clickThroughShortcutTriggered,
+            callback
+        ),
     onAlwaysOnTopShortcutTriggered: (callback: () => void) =>
-        onIpcEvent(IPC_EVENTS.alwaysOnTopShortcutTriggered, callback),
+        onIpcEventContract(
+            settingsEventContracts.alwaysOnTopShortcutTriggered,
+            callback
+        ),
     loadWindowColor: () =>
-        invokeIpc<string>(IPC_CHANNELS.setting.windowColorLoad),
+        invokeIpcContract(settingsIpcContracts.windowColorLoad),
     saveWindowColor: (color: string) =>
-        invokeIpc(IPC_CHANNELS.setting.windowColorSave, color),
+        invokeIpcContract(settingsIpcContracts.windowColorSave, color),
     loadWindowColorPresets: () =>
-        invokeIpc<string[]>(IPC_CHANNELS.setting.windowColorPresetsLoad),
+        invokeIpcContract(settingsIpcContracts.windowColorPresetsLoad),
     saveWindowColorPresets: (presets: string[]) =>
-        invokeIpc(IPC_CHANNELS.setting.windowColorPresetsSave, presets),
+        invokeIpcContract(settingsIpcContracts.windowColorPresetsSave, presets),
 });

@@ -1,9 +1,9 @@
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
-import { invokeIpc } from "./client";
+import { captureIpcContracts } from "../../shared/ipc/contracts";
+import { invokeIpcContract } from "./client";
 
 export const createCaptureApi = () => ({
-    captureScreen: () => invokeIpc(IPC_CHANNELS.capture.screen),
-    captureWindow: () => invokeIpc(IPC_CHANNELS.capture.window),
+    captureScreen: () => invokeIpcContract(captureIpcContracts.screen),
+    captureWindow: () => invokeIpcContract(captureIpcContracts.window),
     saveImage: (dataUrl: string) =>
-        invokeIpc(IPC_CHANNELS.capture.saveImageData, dataUrl),
+        invokeIpcContract(captureIpcContracts.saveImageData, dataUrl),
 });

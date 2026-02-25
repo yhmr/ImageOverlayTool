@@ -1,7 +1,7 @@
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
-import { invokeIpc } from "./client";
+import { licenseIpcContracts } from "../../shared/ipc/contracts";
+import { invokeIpcContract } from "./client";
 
 export const createLicenseApi = () => ({
-    getLicenseInfo: () => invokeIpc(IPC_CHANNELS.license.get),
-    getAppVersion: () => invokeIpc<string>(IPC_CHANNELS.license.appVersion),
+    getLicenseInfo: () => invokeIpcContract(licenseIpcContracts.get),
+    getAppVersion: () => invokeIpcContract(licenseIpcContracts.appVersion),
 });

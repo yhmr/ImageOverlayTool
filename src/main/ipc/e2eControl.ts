@@ -6,7 +6,7 @@ import {
     captureWindowAreaAndSave,
     type CaptureTestModeOptions,
 } from "../services/captureService";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { e2eIpcContracts } from "../../shared/ipc/contracts";
 import { parseE2ESceneExtensions } from "../repositories/e2eSceneExtensions";
 import { loadResolvedSceneDocumentFromPath } from "../repositories/sceneLoader";
 import { resolveSceneSourcePath } from "../repositories/sceneResolver";
@@ -59,7 +59,7 @@ export const registerE2EControlHandlers = ({
         fixedNow: e2eConfig.fixedNow,
     };
 
-    ipcMain.handle(IPC_CHANNELS.e2e.getStatus, (): E2EControlStatus => {
+    ipcMain.handle(e2eIpcContracts.getStatus.channel, (): E2EControlStatus => {
         const enabled = isControlPlaneEnabled(e2eConfig);
         return {
             enabled,
@@ -70,7 +70,7 @@ export const registerE2EControlHandlers = ({
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.e2e.setSceneFromPath,
+        e2eIpcContracts.setSceneFromPath.channel,
         async (_event, scenePath: string): Promise<E2EResolvedSceneFile> => {
             assertControlPlaneEnabled(e2eConfig);
             if (
@@ -97,7 +97,7 @@ export const registerE2EControlHandlers = ({
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.e2e.loadFixtureImage,
+        e2eIpcContracts.loadFixtureImage.channel,
         (
             _event,
             request: E2ELoadFixtureImageRequest
@@ -115,16 +115,19 @@ export const registerE2EControlHandlers = ({
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.e2e.waitStable, (): E2EWaitStableResult => {
-        assertControlPlaneEnabled(e2eConfig);
-        return {
-            stable: true,
-            elapsedMs: 0,
-        };
-    });
+    ipcMain.handle(
+        e2eIpcContracts.waitStable.channel,
+        (): E2EWaitStableResult => {
+            assertControlPlaneEnabled(e2eConfig);
+            return {
+                stable: true,
+                elapsedMs: 0,
+            };
+        }
+    );
 
     ipcMain.handle(
-        IPC_CHANNELS.e2e.capture,
+        e2eIpcContracts.capture.channel,
         async (event: IpcMainInvokeEvent, request?: E2ECaptureRequest) => {
             assertControlPlaneEnabled(e2eConfig);
             const mode = request?.mode ?? "window";

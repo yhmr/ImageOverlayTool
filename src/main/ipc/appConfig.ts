@@ -4,7 +4,10 @@ import { SettingType, SettingsSnapshot } from "../../shared/types/AppConfig";
 import { ISettingsRepository } from "../repositories/SettingsRepository";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log, { setLogLevel, LevelOption } from "../logger";
-import { IPC_CHANNELS, IPC_EVENTS } from "../../shared/ipc/channels";
+import {
+    settingsEventContracts,
+    settingsIpcContracts,
+} from "../../shared/ipc/contracts";
 import { initializeMainI18n } from "../../i18n/mainI18n";
 
 export const registerAppConfigHandlers = (
@@ -13,11 +16,14 @@ export const registerAppConfigHandlers = (
 ) => {
     const broadcastLanguageUpdated = (language: string) => {
         BrowserWindow.getAllWindows().forEach((win) => {
-            win.webContents.send(IPC_EVENTS.languageUpdated, language);
+            win.webContents.send(
+                settingsEventContracts.languageUpdated.event,
+                language
+            );
         });
     };
 
-    ipcMain.handle(IPC_CHANNELS.setting.load, async () => {
+    ipcMain.handle(settingsIpcContracts.load.channel, async () => {
         log.debug("[IPC] setting:load called");
         try {
             const settings = await settingsRepository.loadSettings();
@@ -30,7 +36,7 @@ export const registerAppConfigHandlers = (
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.setting.save,
+        settingsIpcContracts.save.channel,
         async (event, arg: SettingType) => {
             log.debug("[IPC] setting:save called");
             try {
@@ -49,7 +55,7 @@ export const registerAppConfigHandlers = (
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.setting.windowColorLoad, async () => {
+    ipcMain.handle(settingsIpcContracts.windowColorLoad.channel, async () => {
         log.debug("[IPC] window_color:load called");
         try {
             const color = await windowRepository.loadWindowColor();
@@ -62,7 +68,7 @@ export const registerAppConfigHandlers = (
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.setting.windowColorSave,
+        settingsIpcContracts.windowColorSave.channel,
         async (event, color: string) => {
             log.debug(`[IPC] window_color:save called with: ${color}`);
             try {
@@ -75,20 +81,23 @@ export const registerAppConfigHandlers = (
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.setting.windowColorPresetsLoad, async () => {
-        log.debug("[IPC] window_color_presets:load called");
-        try {
-            const presets = await windowRepository.loadWindowColorPresets();
-            log.debug(`[IPC] window_color_presets:load completed`);
-            return presets;
-        } catch (error) {
-            log.error("[IPC] window_color_presets:load failed:", error);
-            throw error;
+    ipcMain.handle(
+        settingsIpcContracts.windowColorPresetsLoad.channel,
+        async () => {
+            log.debug("[IPC] window_color_presets:load called");
+            try {
+                const presets = await windowRepository.loadWindowColorPresets();
+                log.debug(`[IPC] window_color_presets:load completed`);
+                return presets;
+            } catch (error) {
+                log.error("[IPC] window_color_presets:load failed:", error);
+                throw error;
+            }
         }
-    });
+    );
 
     ipcMain.handle(
-        IPC_CHANNELS.setting.windowColorPresetsSave,
+        settingsIpcContracts.windowColorPresetsSave.channel,
         async (event, presets: string[]) => {
             log.debug(`[IPC] window_color_presets:save called`);
             try {
@@ -101,7 +110,7 @@ export const registerAppConfigHandlers = (
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.setting.export, async () => {
+    ipcMain.handle(settingsIpcContracts.export.channel, async () => {
         log.debug("[IPC] setting:export called");
         try {
             const snapshot = await settingsRepository.exportSettingsSnapshot();
@@ -128,7 +137,7 @@ export const registerAppConfigHandlers = (
         }
     });
 
-    ipcMain.handle(IPC_CHANNELS.setting.import, async () => {
+    ipcMain.handle(settingsIpcContracts.import.channel, async () => {
         log.debug("[IPC] setting:import called");
         try {
             const result = await dialog.showOpenDialog({
