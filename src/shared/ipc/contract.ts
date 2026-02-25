@@ -54,18 +54,3 @@ export const invokeByContract = <
     ...args: InvokeArgs<TContract>
 ): Promise<InvokeResult<TContract>> =>
     invoke(contract.channel, ...args) as Promise<InvokeResult<TContract>>;
-
-export const subscribeByEventContract = <
-    TContract extends EventContract<unknown[]>
->(
-    on: (event: string, listener: (...args: unknown[]) => void) => void,
-    off: (event: string, listener: (...args: unknown[]) => void) => void,
-    contract: TContract,
-    callback: (...args: EventArgs<TContract>) => void
-): (() => void) => {
-    const listener = (...args: unknown[]) =>
-        callback(...(args as EventArgs<TContract>));
-
-    on(contract.event, listener);
-    return () => off(contract.event, listener);
-};
