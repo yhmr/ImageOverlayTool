@@ -14,9 +14,8 @@ import type {
     E2ECaptureRequest,
     E2EControlStatus,
     E2ELoadFixtureImageRequest,
+    E2EResolvedSceneFile,
     E2EResolvedFixtureImage,
-    E2EResolvedScene,
-    E2ESceneInput,
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "@/shared/types/E2EControl";
@@ -276,8 +275,13 @@ export class MockIPCService implements IIPCService {
         };
     }
 
-    async e2eSetScene(_scene: E2ESceneInput): Promise<E2EResolvedScene> {
-        return { images: [] };
+    async e2eSetSceneFromPath(
+        _scenePath: string
+    ): Promise<E2EResolvedSceneFile> {
+        return {
+            version: "1.0.0",
+            images: [],
+        };
     }
 
     async e2eLoadFixtureImage(

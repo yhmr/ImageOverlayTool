@@ -1,17 +1,15 @@
 {
-  "name": "scene06-final",
-  "unitFactor": 1,
+  "version": "1.0.0",
+  "window": {
+    "color": "#d3c07b54"
+  },
+  "unitFactor": 1.0,
   "unit": "um",
-  "windowColor": "#d3c07b54",
   "canvas": {
     "x": 707.5082072696971,
     "y": 333.0171158066692,
     "scale": 0.466507380209733
   },
-  "interactionMode": "default",
-  "selectedImageId": null,
-  "selectedDimensionLineId": null,
-  "uiHidden": false,
   "images": [
     {
       "id": "2dff9647-61db-4dad-b8da-800937b25c68",
@@ -126,5 +124,10 @@
       }
     }
   ],
-  "dimensionLines": []
+  "dimensionLines": [],
+  "name": "scene06-final",
+  "interactionMode": "default",
+  "selectedImageId": null,
+  "selectedDimensionLineId": null,
+  "uiHidden": false
 }

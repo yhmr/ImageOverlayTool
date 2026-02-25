@@ -1,17 +1,15 @@
 {
-  "name": "scene05-controls",
-  "unitFactor": 1,
+  "version": "1.0.0",
+  "window": {
+    "color": "#d3c07b54"
+  },
+  "unitFactor": 1.0,
   "unit": "um",
-  "windowColor": "#d3c07b54",
   "canvas": {
     "x": 83.00883676489042,
     "y": 68.04515305723527,
     "scale": 0.9090909090909087
   },
-  "interactionMode": "default",
-  "selectedImageId": null,
-  "selectedDimensionLineId": null,
-  "uiHidden": false,
   "images": [
     {
       "id": "bcfbb906-1f7a-4083-b627-7eadee6124d1",
@@ -126,5 +124,10 @@
       }
     }
   ],
-  "dimensionLines": []
+  "dimensionLines": [],
+  "name": "scene05-controls",
+  "interactionMode": "default",
+  "selectedImageId": null,
+  "selectedDimensionLineId": null,
+  "uiHidden": false
 }

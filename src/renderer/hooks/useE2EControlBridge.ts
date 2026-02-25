@@ -3,19 +3,15 @@ import { useEffect } from "react";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type {
     E2ECaptureRequest,
-    E2EResolvedScene,
-    E2EResolvedSceneImage,
-    E2ESceneInput,
+    E2EResolvedSceneFile,
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "../../shared/types/E2EControl";
-import { sanitizeUnitFactor } from "../../shared/constants/unitFactor";
-import type { ProjectFile } from "../../shared/types/ProjectFile";
-import type { ImageSet } from "../../shared/types/ImageSet";
 import { createImageSet, toLocalFileUrl } from "../factories/imageSetFactory";
 import { useIpcService } from "../providers/IpcServiceProvider";
-import { useAppStore } from "../store/useAppStore";
+import { applyResolvedSceneFile } from "../services/sceneFileApplicator";
 import { runAsSystemMutation } from "../store/temporalHistory";
+import { useAppStore } from "../store/useAppStore";
 
 const POLL_INTERVAL_MS = 16;
 const DEFAULT_STABLE_TIMEOUT_MS = 5000;
@@ -23,19 +19,6 @@ const DEFAULT_STABLE_TIMEOUT_MS = 5000;
 const wait = (ms: number): Promise<void> =>
     new Promise((resolve) => {
         setTimeout(resolve, ms);
-    });
-
-const createSceneImageSet = (image: E2EResolvedSceneImage): ImageSet =>
-    createImageSet({
-        id: image.id,
-        path: toLocalFileUrl(image.path),
-        transparency: image.transparency,
-        rotation: image.rotation,
-        initAnchorPos: image.initAnchorPos,
-        currentAnchorPos: image.currentAnchorPos,
-        locked: image.locked,
-        visible: image.visible,
-        filters: image.filters,
     });
 
 const isRendererStable = (): boolean => {
@@ -71,33 +54,7 @@ const waitForRendererStable = async (
     };
 };
 
-const applyResolvedScene = (scene: E2EResolvedScene): void => {
-    const current = useAppStore.getState();
-    const sceneImageSets = scene.images.map((image) =>
-        createSceneImageSet(image)
-    );
-    const nextProject: ProjectFile<ImageSet> = {
-        version: "1.0.0",
-        window: {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            x: 0,
-            y: 0,
-            color: scene.windowColor ?? current.windowColor,
-        },
-        settings: {
-            unitFactor: sanitizeUnitFactor(
-                scene.unitFactor ?? current.unitFactor
-            ),
-            unit: scene.unit ?? current.unit,
-        },
-        canvas: scene.canvas ?? current.canvas,
-        images: sceneImageSets,
-        dimensionLines: scene.dimensionLines ?? [],
-    };
-
-    useAppStore.getState().loadProject(nextProject);
-
+const applySceneExtensions = (scene: E2EResolvedSceneFile): void => {
     runAsSystemMutation(
         () => useAppStore.temporal,
         () => {
@@ -105,7 +62,7 @@ const applyResolvedScene = (scene: E2EResolvedScene): void => {
             if (scene.uiHidden !== undefined) {
                 state.setUIHidden(scene.uiHidden);
             }
-            if (scene.interactionMode) {
+            if (scene.interactionMode !== undefined) {
                 state.setInteractionMode(scene.interactionMode);
             }
             if (scene.selectedDimensionLineId !== undefined) {
@@ -148,9 +105,12 @@ export const useE2EControlBridge = (): void => {
                         isUIHidden: state.isUIHidden,
                     };
                 },
-                setScene: async (scene: E2ESceneInput) => {
-                    const resolvedScene = await ipcService.e2eSetScene(scene);
-                    applyResolvedScene(resolvedScene);
+                setSceneFromPath: async (scenePath: string) => {
+                    const resolvedScene = await ipcService.e2eSetSceneFromPath(
+                        scenePath
+                    );
+                    applyResolvedSceneFile(resolvedScene);
+                    applySceneExtensions(resolvedScene);
                     return waitForRendererStable();
                 },
                 loadFixtureImage: async (source, overrides = {}) => {

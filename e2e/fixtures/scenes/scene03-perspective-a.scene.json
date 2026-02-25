@@ -1,17 +1,15 @@
 {
-  "name": "scene03-perspective-a",
-  "unitFactor": 1,
+  "version": "1.0.0",
+  "window": {
+    "color": "#d3c07b54"
+  },
+  "unitFactor": 1.0,
   "unit": "um",
-  "windowColor": "#d3c07b54",
   "canvas": {
     "x": 141.73673572218365,
     "y": 82.82885104256582,
     "scale": 0.5131581182307063
   },
-  "interactionMode": "default",
-  "selectedImageId": null,
-  "selectedDimensionLineId": null,
-  "uiHidden": false,
   "images": [
     {
       "id": "c8dbb08f-1f9a-4f76-9167-a8cfbd0146b2",
@@ -126,5 +124,10 @@
       }
     }
   ],
-  "dimensionLines": []
+  "dimensionLines": [],
+  "name": "scene03-perspective-a",
+  "interactionMode": "default",
+  "selectedImageId": null,
+  "selectedDimensionLineId": null,
+  "uiHidden": false
 }

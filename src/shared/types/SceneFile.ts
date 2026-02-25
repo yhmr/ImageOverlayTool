@@ -1,3 +1,4 @@
+import type { AnchorPos } from "./AnchorPos";
 import type { DimensionLine } from "./DimensionLine";
 import type { ImageSet } from "./ImageSet";
 
@@ -23,6 +24,8 @@ export interface SceneImageInput {
     id?: string;
     transparency?: number;
     rotation?: number;
+    initAnchorPos?: AnchorPos | null;
+    currentAnchorPos?: AnchorPos | null;
     locked?: boolean;
     visible?: boolean;
     filters?: ImageSet["filters"];
@@ -43,6 +46,8 @@ export interface ResolvedSceneImage {
     id?: string;
     transparency?: number;
     rotation?: number;
+    initAnchorPos?: AnchorPos | null;
+    currentAnchorPos?: AnchorPos | null;
     locked?: boolean;
     visible?: boolean;
     filters?: ImageSet["filters"];

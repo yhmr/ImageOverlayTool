@@ -1,17 +1,15 @@
 {
-  "name": "scene02-image-settings",
-  "unitFactor": 1,
+  "version": "1.0.0",
+  "window": {
+    "color": "#d3c07b54"
+  },
+  "unitFactor": 1.0,
   "unit": "um",
-  "windowColor": "#d3c07b54",
   "canvas": {
     "x": 77.08601468674442,
     "y": 139.16742063511708,
     "scale": 0.466507380209733
   },
-  "interactionMode": "default",
-  "selectedImageId": null,
-  "selectedDimensionLineId": null,
-  "uiHidden": false,
   "images": [
     {
       "id": "2b4a37a0-9620-4c2d-8d35-76f17eaed03e",
@@ -238,5 +236,10 @@
       }
     }
   ],
-  "dimensionLines": []
+  "dimensionLines": [],
+  "name": "scene02-image-settings",
+  "interactionMode": "default",
+  "selectedImageId": null,
+  "selectedDimensionLineId": null,
+  "uiHidden": false
 }

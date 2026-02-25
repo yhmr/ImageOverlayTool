@@ -16,9 +16,8 @@ import type {
     E2ECaptureRequest,
     E2EControlStatus,
     E2ELoadFixtureImageRequest,
+    E2EResolvedSceneFile,
     E2EResolvedFixtureImage,
-    E2EResolvedScene,
-    E2ESceneInput,
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "../../shared/types/E2EControl";
@@ -165,7 +164,7 @@ export interface IProjectDirtySyncIPCService {
 
 export interface IE2EIPCService {
     getE2EStatus(): Promise<E2EControlStatus>;
-    e2eSetScene(scene: E2ESceneInput): Promise<E2EResolvedScene>;
+    e2eSetSceneFromPath(scenePath: string): Promise<E2EResolvedSceneFile>;
     e2eLoadFixtureImage(
         request: E2ELoadFixtureImageRequest
     ): Promise<E2EResolvedFixtureImage>;
@@ -470,8 +469,10 @@ class IPCService implements IIPCService {
         return await window.electronAPI.getE2EStatus();
     }
 
-    async e2eSetScene(scene: E2ESceneInput): Promise<E2EResolvedScene> {
-        return await window.electronAPI.e2eSetScene(scene);
+    async e2eSetSceneFromPath(
+        scenePath: string
+    ): Promise<E2EResolvedSceneFile> {
+        return await window.electronAPI.e2eSetSceneFromPath(scenePath);
     }
 
     async e2eLoadFixtureImage(

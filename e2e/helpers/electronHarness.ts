@@ -5,7 +5,6 @@ import type { CaptureResult } from "../../src/shared/types/CaptureResult";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
-    E2ESceneInput,
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "../../src/shared/types/E2EControl";
@@ -287,32 +286,35 @@ export const captureViaE2E = async (
     }, request);
 };
 
-export const applyScene = async (
+export const applyFixtureScene = async (
     page: Page,
-    scene: E2ESceneInput,
+    sceneFileName = "default.scene.json",
     options?: {
         requireStable?: boolean;
         timeoutMs?: number;
     }
 ): Promise<void> => {
+    const scenePath = path.join(E2E_SCENES_DIR, sceneFileName);
+    await ensureE2EBridge(page);
     await page.evaluate(async (payload) => {
-        const sceneInput = payload.scene;
         const requireStable = payload.requireStable ?? true;
         const timeoutMs = payload.timeoutMs ?? 20000;
 
         const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
             | {
-                setScene: (scene: E2ESceneInput) => Promise<{ stable: boolean }>;
-                waitStable: (
-                    request?: E2EWaitStableRequest
-                ) => Promise<E2EWaitStableResult>;
-            }
+                  setSceneFromPath: (
+                      scenePath: string
+                  ) => Promise<E2EWaitStableResult>;
+                  waitStable: (
+                      request?: E2EWaitStableRequest
+                  ) => Promise<E2EWaitStableResult>;
+              }
             | undefined;
         if (!bridge) {
             throw new Error("E2E bridge is not available in renderer.");
         }
 
-        const result = await bridge.setScene(sceneInput);
+        const result = await bridge.setSceneFromPath(payload.scenePath);
         if (!requireStable) {
             return;
         }
@@ -323,23 +325,10 @@ export const applyScene = async (
         }
         if (!stableResult.stable) {
             throw new Error(
-                `Renderer did not reach stable state after setScene. elapsedMs=${stableResult.elapsedMs}`
+                `Renderer did not reach stable state after setSceneFromPath. elapsedMs=${stableResult.elapsedMs}`
             );
         }
-    }, { scene, ...options });
-};
-
-export const applyFixtureScene = async (
-    page: Page,
-    sceneFileName = "default.scene.json",
-    options?: {
-        requireStable?: boolean;
-        timeoutMs?: number;
-    }
-): Promise<void> => {
-    const scenePath = path.join(E2E_SCENES_DIR, sceneFileName);
-    const scene = JSON.parse(fs.readFileSync(scenePath, "utf-8")) as E2ESceneInput;
-    await applyScene(page, scene, options);
+    }, { scenePath, ...options });
 };
 
 const ensureMenuOpened = async (page: Page): Promise<void> => {

@@ -64,7 +64,7 @@ export const IPC_CHANNELS = {
     },
     e2e: {
         getStatus: "e2e:getStatus",
-        setScene: "e2e:setScene",
+        setSceneFromPath: "e2e:setSceneFromPath",
         loadFixtureImage: "e2e:loadFixtureImage",
         waitStable: "e2e:waitStable",
         capture: "e2e:capture",

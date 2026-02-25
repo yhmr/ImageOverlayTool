@@ -6,6 +6,8 @@
 - ウィンドウ設定: `e2e/fixtures/app.config.json`
 - シーン定義(JSON): `e2e/fixtures/scenes/`
 
+`e2e/fixtures/scenes/*.scene.json` は、通常起動で使う scene と同じ `version: "1.0.0"` スキーマを土台に、E2E拡張キー（`name` / `interactionMode` / `selectedImageId` / `selectedDimensionLineId` / `uiHidden`）を追加できます。
+
 ## シーン一覧
 
 1. Scene 1: 基本画面とメニュー (Home)

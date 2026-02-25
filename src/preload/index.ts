@@ -12,9 +12,8 @@ import type {
     E2ECaptureRequest,
     E2EControlStatus,
     E2ELoadFixtureImageRequest,
+    E2EResolvedSceneFile,
     E2EResolvedFixtureImage,
-    E2EResolvedScene,
-    E2ESceneInput,
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "../shared/types/E2EControl";
@@ -284,8 +283,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // E2E control plane
     getE2EStatus: (): Promise<E2EControlStatus> =>
         ipcRenderer.invoke(IPC_CHANNELS.e2e.getStatus),
-    e2eSetScene: (scene: E2ESceneInput): Promise<E2EResolvedScene> =>
-        ipcRenderer.invoke(IPC_CHANNELS.e2e.setScene, scene),
+    e2eSetSceneFromPath: (scenePath: string): Promise<E2EResolvedSceneFile> =>
+        ipcRenderer.invoke(IPC_CHANNELS.e2e.setSceneFromPath, scenePath),
     e2eLoadFixtureImage: (
         request: E2ELoadFixtureImageRequest
     ): Promise<E2EResolvedFixtureImage> =>

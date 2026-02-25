@@ -220,7 +220,10 @@ describe("ipcService", () => {
                     artifactsDir: "test-results/e2e-artifacts",
                     fixturesDir: "e2e/fixtures",
                 }),
-                e2eSetScene: vi.fn().mockResolvedValue({ images: [] }),
+                e2eSetSceneFromPath: vi.fn().mockResolvedValue({
+                    version: "1.0.0",
+                    images: [],
+                }),
                 e2eLoadFixtureImage: vi
                     .fn()
                     .mockResolvedValue({ path: "C:/tmp/fixture.png" }),
@@ -354,7 +357,10 @@ describe("ipcService", () => {
                 artifactsDir: "test-results/e2e-artifacts",
                 fixturesDir: "e2e/fixtures",
             });
-            await expect(service.e2eSetScene({ images: [] })).resolves.toEqual({
+            await expect(
+                service.e2eSetSceneFromPath("C:/tmp/default.scene.json")
+            ).resolves.toEqual({
+                version: "1.0.0",
                 images: [],
             });
             await expect(
@@ -408,7 +414,9 @@ describe("ipcService", () => {
             );
             expect(api.updateProjectDirty).toHaveBeenCalledWith(true);
             expect(api.getE2EStatus).toHaveBeenCalled();
-            expect(api.e2eSetScene).toHaveBeenCalledWith({ images: [] });
+            expect(api.e2eSetSceneFromPath).toHaveBeenCalledWith(
+                "C:/tmp/default.scene.json"
+            );
             expect(api.e2eLoadFixtureImage).toHaveBeenCalledWith({
                 source: "fixture:placeholder",
             });

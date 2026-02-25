@@ -8,39 +8,22 @@ import {
     type CaptureTestModeOptions,
 } from "../services/captureService";
 import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { loadResolvedSceneFileFromPath } from "../repositories/sceneLoader";
+import { resolveSceneSourcePath } from "../repositories/sceneResolver";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
     E2ELoadFixtureImageRequest,
+    E2EResolvedSceneFile,
     E2EResolvedFixtureImage,
-    E2EResolvedScene,
-    E2ESceneInput,
+    E2ESceneExtensions,
     E2EWaitStableResult,
 } from "../../shared/types/E2EControl";
+import type { InteractionMode } from "../../shared/types/InteractionMode";
 
 interface E2EControlRegistrationOptions {
     e2eConfig: E2ERuntimeConfig;
 }
-
-const SUPPORTED_IMAGE_EXTENSIONS = [
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".webp",
-    ".gif",
-    ".svg",
-];
-
-const isPathInsideDirectory = (
-    baseDir: string,
-    targetPath: string
-): boolean => {
-    const relative = path.relative(baseDir, targetPath);
-    return (
-        relative === "" ||
-        (!relative.startsWith("..") && !path.isAbsolute(relative))
-    );
-};
 
 const getDisabledReason = (e2eConfig: E2ERuntimeConfig): string => {
     if (!e2eConfig.enabled) {
@@ -63,90 +46,107 @@ const assertControlPlaneEnabled = (e2eConfig: E2ERuntimeConfig): void => {
     }
 };
 
-const resolveFixtureAliasPath = (
-    fixturesDir: string,
-    alias: string
-): string | undefined => {
-    const imageDir = path.resolve(fixturesDir, "images");
-    const normalizedAlias = alias.trim();
-    if (!normalizedAlias) {
-        throw new Error("Fixture alias must not be empty.");
-    }
+type JsonRecord = Record<string, unknown>;
 
-    const aliasPath = path.resolve(imageDir, normalizedAlias);
-    if (!isPathInsideDirectory(imageDir, aliasPath)) {
+const isRecord = (value: unknown): value is JsonRecord =>
+    typeof value === "object" && value !== null;
+
+const parseOptionalString = (
+    value: unknown,
+    pathLabel: string
+): string | undefined => {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (typeof value !== "string") {
+        throw new Error(`Invalid scene file: ${pathLabel} must be a string.`);
+    }
+    return value;
+};
+
+const parseOptionalNullableString = (
+    value: unknown,
+    pathLabel: string
+): string | null | undefined => {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (value === null) {
+        return null;
+    }
+    if (typeof value !== "string") {
         throw new Error(
-            `Fixture alias escapes fixtures/images: fixture:${alias}`
+            `Invalid scene file: ${pathLabel} must be a string or null.`
         );
     }
-
-    const ext = path.extname(aliasPath).toLowerCase();
-
-    if (ext.length > 0) {
-        if (!SUPPORTED_IMAGE_EXTENSIONS.includes(ext)) {
-            throw new Error(
-                `Unsupported fixture alias extension: ${ext}. Supported extensions: ${SUPPORTED_IMAGE_EXTENSIONS.join(
-                    ", "
-                )}`
-            );
-        }
-        return fs.existsSync(aliasPath) ? aliasPath : undefined;
-    }
-
-    for (const candidateExt of SUPPORTED_IMAGE_EXTENSIONS) {
-        const candidatePath = `${aliasPath}${candidateExt}`;
-        if (fs.existsSync(candidatePath)) {
-            return candidatePath;
-        }
-    }
-
-    return undefined;
+    return value;
 };
 
-const resolveSceneSourceToAbsolutePath = (
-    source: string,
-    fixturesDir: string
-): string => {
-    const trimmedSource = source.trim();
-    if (!trimmedSource) {
-        throw new Error("Fixture source must not be empty.");
+const parseOptionalBoolean = (
+    value: unknown,
+    pathLabel: string
+): boolean | undefined => {
+    if (value === undefined) {
+        return undefined;
     }
-
-    if (trimmedSource.startsWith("fixture:")) {
-        const alias = trimmedSource.slice("fixture:".length);
-        const resolvedAliasPath = resolveFixtureAliasPath(fixturesDir, alias);
-        if (!resolvedAliasPath) {
-            throw new Error(`Fixture alias not found: ${trimmedSource}`);
-        }
-        return resolvedAliasPath;
+    if (typeof value !== "boolean") {
+        throw new Error(`Invalid scene file: ${pathLabel} must be a boolean.`);
     }
-
-    const resolvedPath = path.isAbsolute(trimmedSource)
-        ? path.resolve(trimmedSource)
-        : path.resolve(fixturesDir, trimmedSource);
-
-    if (!fs.existsSync(resolvedPath)) {
-        throw new Error(`Fixture path not found: ${resolvedPath}`);
-    }
-
-    return resolvedPath;
+    return value;
 };
 
-const resolveScene = (
-    scene: E2ESceneInput,
-    fixturesDir: string
-): E2EResolvedScene => {
-    if (!Array.isArray(scene.images)) {
-        throw new Error("Scene.images must be an array.");
+const parseOptionalInteractionMode = (
+    value: unknown
+): InteractionMode | undefined => {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (
+        value === "default" ||
+        value === "dimension_add" ||
+        value === "dimension_select"
+    ) {
+        return value;
+    }
+    throw new Error(
+        "Invalid scene file: interactionMode must be one of default/dimension_add/dimension_select."
+    );
+};
+
+const parseSceneExtensions = (value: unknown): E2ESceneExtensions => {
+    if (!isRecord(value)) {
+        throw new Error("Invalid scene file: root must be an object.");
     }
 
-    return {
-        ...scene,
-        images: scene.images.map((image) => ({
-            ...image,
-            path: resolveSceneSourceToAbsolutePath(image.source, fixturesDir),
-        })),
-    };
+    const parsed: E2ESceneExtensions = {};
+    const name = parseOptionalString(value.name, "name");
+    const interactionMode = parseOptionalInteractionMode(value.interactionMode);
+    const selectedImageId = parseOptionalNullableString(
+        value.selectedImageId,
+        "selectedImageId"
+    );
+    const selectedDimensionLineId = parseOptionalNullableString(
+        value.selectedDimensionLineId,
+        "selectedDimensionLineId"
+    );
+    const uiHidden = parseOptionalBoolean(value.uiHidden, "uiHidden");
+
+    if (name !== undefined) {
+        parsed.name = name;
+    }
+    if (interactionMode !== undefined) {
+        parsed.interactionMode = interactionMode;
+    }
+    if (selectedImageId !== undefined) {
+        parsed.selectedImageId = selectedImageId;
+    }
+    if (selectedDimensionLineId !== undefined) {
+        parsed.selectedDimensionLineId = selectedDimensionLineId;
+    }
+    if (uiHidden !== undefined) {
+        parsed.uiHidden = uiHidden;
+    }
+    return parsed;
 };
 
 export const registerE2EControlHandlers = ({
@@ -170,10 +170,35 @@ export const registerE2EControlHandlers = ({
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.e2e.setScene,
-        (_event, scene: E2ESceneInput): E2EResolvedScene => {
+        IPC_CHANNELS.e2e.setSceneFromPath,
+        async (_event, scenePath: string): Promise<E2EResolvedSceneFile> => {
             assertControlPlaneEnabled(e2eConfig);
-            return resolveScene(scene, e2eConfig.fixturesDir);
+            if (
+                typeof scenePath !== "string" ||
+                scenePath.trim().length === 0
+            ) {
+                throw new Error("Invalid payload for e2e:setSceneFromPath");
+            }
+            const normalizedScenePath = path.resolve(scenePath.trim());
+            const rawText = await fs.promises.readFile(
+                normalizedScenePath,
+                "utf-8"
+            );
+            const extensions = parseSceneExtensions(
+                JSON.parse(rawText) as unknown
+            );
+            const resolvedScene = await loadResolvedSceneFileFromPath(
+                normalizedScenePath,
+                {
+                    allowFixtureAlias: true,
+                    fixturesDir: e2eConfig.fixturesDir,
+                }
+            );
+
+            return {
+                ...resolvedScene,
+                ...extensions,
+            };
         }
     );
 
@@ -185,9 +210,13 @@ export const registerE2EControlHandlers = ({
         ): E2EResolvedFixtureImage => {
             assertControlPlaneEnabled(e2eConfig);
             return {
-                path: resolveSceneSourceToAbsolutePath(
+                path: resolveSceneSourcePath(
                     request.source,
-                    e2eConfig.fixturesDir
+                    e2eConfig.fixturesDir,
+                    {
+                        allowFixtureAlias: true,
+                        fixturesDir: e2eConfig.fixturesDir,
+                    }
                 ),
             };
         }

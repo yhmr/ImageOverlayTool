@@ -1,5 +1,6 @@
 import type { DimensionLine } from "../../shared/types/DimensionLine";
 import type { ImageSet } from "../../shared/types/ImageSet";
+import type { AnchorPos } from "../../shared/types/AnchorPos";
 import {
     SCENE_FILE_VERSION,
     type SceneFile,
@@ -124,6 +125,41 @@ const parseImageFilters = (
     return Object.keys(filters).length > 0 ? filters : undefined;
 };
 
+const parseAnchorPoint = (
+    value: unknown,
+    path: string
+): { x: number; y: number } => {
+    if (!isRecord(value)) {
+        throw new Error(`Invalid scene file: ${path} must be an object.`);
+    }
+    return {
+        x: parseFiniteNumber(value.x, `${path}.x`) as number,
+        y: parseFiniteNumber(value.y, `${path}.y`) as number,
+    };
+};
+
+const parseAnchorPos = (
+    value: unknown,
+    path: string
+): AnchorPos | null | undefined => {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (value === null) {
+        return null;
+    }
+    if (!isRecord(value)) {
+        throw new Error(`Invalid scene file: ${path} must be an object.`);
+    }
+
+    return {
+        lt: parseAnchorPoint(value.lt, `${path}.lt`),
+        lb: parseAnchorPoint(value.lb, `${path}.lb`),
+        rt: parseAnchorPoint(value.rt, `${path}.rt`),
+        rb: parseAnchorPoint(value.rb, `${path}.rb`),
+    };
+};
+
 const parseImage = (value: unknown, index: number): SceneImageInput => {
     const pathPrefix = `images[${index}]`;
     if (!isRecord(value)) {
@@ -158,7 +194,7 @@ const parseImage = (value: unknown, index: number): SceneImageInput => {
         );
     }
 
-    return {
+    const parsed: SceneImageInput = {
         source: source.trim(),
         id,
         transparency,
@@ -171,6 +207,24 @@ const parseImage = (value: unknown, index: number): SceneImageInput => {
         visible: parseBoolean(value.visible, `${pathPrefix}.visible`, true),
         filters: parseImageFilters(value.filters, `${pathPrefix}.filters`),
     };
+
+    const initAnchorPos = parseAnchorPos(
+        value.initAnchorPos,
+        `${pathPrefix}.initAnchorPos`
+    );
+    if (initAnchorPos !== undefined) {
+        parsed.initAnchorPos = initAnchorPos;
+    }
+
+    const currentAnchorPos = parseAnchorPos(
+        value.currentAnchorPos,
+        `${pathPrefix}.currentAnchorPos`
+    );
+    if (currentAnchorPos !== undefined) {
+        parsed.currentAnchorPos = currentAnchorPos;
+    }
+
+    return parsed;
 };
 
 const parsePoint = (value: unknown, path: string): { x: number; y: number } => {

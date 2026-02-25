@@ -10,10 +10,10 @@ import type { ResolvedSceneFile } from "../shared/types/SceneFile";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
+    E2EFixtureImageOverrides,
     E2ELoadFixtureImageRequest,
+    E2EResolvedSceneFile,
     E2EResolvedFixtureImage,
-    E2EResolvedScene,
-    E2ESceneInput,
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "../shared/types/E2EControl";
@@ -130,7 +130,7 @@ export interface IElectronAPI {
     saveImage: (dataUrl: string) => Promise<string | null>;
     // E2E control plane
     getE2EStatus: () => Promise<E2EControlStatus>;
-    e2eSetScene: (scene: E2ESceneInput) => Promise<E2EResolvedScene>;
+    e2eSetSceneFromPath: (scenePath: string) => Promise<E2EResolvedSceneFile>;
     e2eLoadFixtureImage: (
         request: E2ELoadFixtureImageRequest
     ) => Promise<E2EResolvedFixtureImage>;
@@ -153,10 +153,10 @@ export interface IE2EBridgeAPI {
         windowColor: string;
         isUIHidden: boolean;
     };
-    setScene: (scene: E2ESceneInput) => Promise<E2EWaitStableResult>;
+    setSceneFromPath: (scenePath: string) => Promise<E2EWaitStableResult>;
     loadFixtureImage: (
         source: string,
-        overrides?: Omit<E2ESceneInput["images"][number], "source">
+        overrides?: E2EFixtureImageOverrides
     ) => Promise<E2EWaitStableResult>;
     waitStable: (
         request?: E2EWaitStableRequest

@@ -1,17 +1,15 @@
 {
-  "name": "default",
-  "unitFactor": 1,
+  "version": "1.0.0",
+  "window": {
+    "color": "#00000000"
+  },
+  "unitFactor": 1.0,
   "unit": "um",
-  "windowColor": "#00000000",
   "canvas": {
     "x": 0,
     "y": 0,
     "scale": 1
   },
-  "interactionMode": "default",
-  "selectedImageId": null,
-  "selectedDimensionLineId": null,
-  "uiHidden": false,
   "images": [
     {
       "id": "fixture-placeholder",
@@ -22,5 +20,10 @@
       "locked": false
     }
   ],
-  "dimensionLines": []
+  "dimensionLines": [],
+  "name": "default",
+  "interactionMode": "default",
+  "selectedImageId": null,
+  "selectedDimensionLineId": null,
+  "uiHidden": false
 }
