@@ -10,6 +10,9 @@
     "y": 0,
     "scale": 1
   },
+  "imagePathAliases": {
+    "fixtures": "../images"
+  },
   "images": [],
   "dimensionLines": [],
   "name": "scene01-home",

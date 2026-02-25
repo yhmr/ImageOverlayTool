@@ -10,10 +10,13 @@
     "y": 0,
     "scale": 1
   },
+  "imagePathAliases": {
+    "fixtures": "../images"
+  },
   "images": [
     {
       "id": "fixture-placeholder",
-      "source": "fixture:placeholder",
+      "source": "@fixtures/placeholder.png",
       "transparency": 0,
       "rotation": 0,
       "visible": true,

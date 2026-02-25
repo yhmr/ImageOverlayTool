@@ -8,70 +8,81 @@ import type {
 } from "../../shared/types/SceneFile";
 
 export interface ResolveSceneSourcePathOptions {
-    allowFixtureAlias?: boolean;
-    fixturesDir?: string;
+    imagePathAliases?: Record<string, string>;
 }
 
-const SUPPORTED_IMAGE_EXTENSIONS = [
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".webp",
-    ".gif",
-    ".svg",
-];
+interface ParsedImagePathAliasSource {
+    aliasName: string;
+    subPath: string;
+}
 
-const isPathInsideDirectory = (
-    baseDir: string,
-    targetPath: string
-): boolean => {
-    const relative = path.relative(baseDir, targetPath);
-    return (
-        relative === "" ||
-        (!relative.startsWith("..") && !path.isAbsolute(relative))
-    );
-};
-
-const resolveFixtureAliasPath = (
-    fixturesDir: string,
-    alias: string
-): string => {
-    const imageDir = path.resolve(fixturesDir, "images");
-    const normalizedAlias = alias.trim();
-    if (!normalizedAlias) {
-        throw new Error("Fixture alias must not be empty.");
+const parseImagePathAliasSource = (
+    source: string
+): ParsedImagePathAliasSource | null => {
+    if (!source.startsWith("@")) {
+        return null;
     }
 
-    const aliasPath = path.resolve(imageDir, normalizedAlias);
-    if (!isPathInsideDirectory(imageDir, aliasPath)) {
+    const body = source.slice(1);
+    const slashIndex = body.indexOf("/");
+    const backslashIndex = body.indexOf("\\");
+    const separatorIndex =
+        slashIndex === -1
+            ? backslashIndex
+            : backslashIndex === -1
+            ? slashIndex
+            : Math.min(slashIndex, backslashIndex);
+
+    const aliasName = (
+        separatorIndex === -1 ? body : body.slice(0, separatorIndex)
+    ).trim();
+    const subPath =
+        separatorIndex === -1 ? "" : body.slice(separatorIndex + 1).trim();
+
+    if (aliasName.length === 0) {
         throw new Error(
-            `Fixture alias escapes fixtures/images: fixture:${alias}`
+            `Invalid scene image source alias syntax: ${source}. Use @alias/path format.`
         );
     }
 
-    const ext = path.extname(aliasPath).toLowerCase();
-    if (ext.length > 0) {
-        if (!SUPPORTED_IMAGE_EXTENSIONS.includes(ext)) {
-            throw new Error(
-                `Unsupported fixture alias extension: ${ext}. Supported extensions: ${SUPPORTED_IMAGE_EXTENSIONS.join(
-                    ", "
-                )}`
-            );
-        }
-        if (fs.existsSync(aliasPath)) {
-            return aliasPath;
-        }
-        throw new Error(`Fixture alias not found: fixture:${alias}`);
+    if (separatorIndex !== -1 && subPath.length === 0) {
+        throw new Error(
+            `Invalid scene image source alias syntax: ${source}. Use @alias/path format.`
+        );
     }
 
-    for (const candidateExt of SUPPORTED_IMAGE_EXTENSIONS) {
-        const candidatePath = `${aliasPath}${candidateExt}`;
-        if (fs.existsSync(candidatePath)) {
-            return candidatePath;
-        }
+    return {
+        aliasName,
+        subPath,
+    };
+};
+
+const resolveImagePathAliasSourcePath = (
+    sceneDirectory: string,
+    source: string,
+    imagePathAliases?: Record<string, string>
+): string => {
+    const parsed = parseImagePathAliasSource(source);
+    if (!parsed) {
+        return source;
     }
 
-    throw new Error(`Fixture alias not found: fixture:${alias}`);
+    const aliasTarget = imagePathAliases?.[parsed.aliasName];
+    if (!aliasTarget) {
+        throw new Error(
+            `Scene image alias is not defined: @${parsed.aliasName}. Define imagePathAliases.${parsed.aliasName}.`
+        );
+    }
+
+    const resolvedAliasBase = path.isAbsolute(aliasTarget)
+        ? path.resolve(aliasTarget)
+        : path.resolve(sceneDirectory, aliasTarget);
+
+    if (!parsed.subPath) {
+        return resolvedAliasBase;
+    }
+
+    return path.resolve(resolvedAliasBase, parsed.subPath);
 };
 
 export const resolveSceneSourcePath = (
@@ -84,22 +95,15 @@ export const resolveSceneSourcePath = (
         throw new Error("Scene image source must not be empty.");
     }
 
-    let resolvedPath: string;
-    if (trimmedSource.startsWith("fixture:")) {
-        if (!options.allowFixtureAlias || !options.fixturesDir) {
-            throw new Error(
-                `Fixture alias is not supported in this mode: ${trimmedSource}`
-            );
-        }
-        resolvedPath = resolveFixtureAliasPath(
-            options.fixturesDir,
-            trimmedSource.slice("fixture:".length)
-        );
-    } else {
-        resolvedPath = path.isAbsolute(trimmedSource)
-            ? path.resolve(trimmedSource)
-            : path.resolve(sceneDirectory, trimmedSource);
-    }
+    const aliasResolvedPath = resolveImagePathAliasSourcePath(
+        sceneDirectory,
+        trimmedSource,
+        options.imagePathAliases
+    );
+
+    const resolvedPath = path.isAbsolute(aliasResolvedPath)
+        ? path.resolve(aliasResolvedPath)
+        : path.resolve(sceneDirectory, aliasResolvedPath);
 
     if (!fs.existsSync(resolvedPath) || !fs.statSync(resolvedPath).isFile()) {
         throw new Error(`Scene image file not found: ${resolvedPath}`);
@@ -118,11 +122,18 @@ export const resolveSceneFile = (
     options: ResolveSceneSourcePathOptions = {}
 ): ResolvedSceneFile => {
     const sceneDirectory = path.dirname(scenePath);
+    const imagePathAliases = {
+        ...(options.imagePathAliases ?? {}),
+        ...(scene.imagePathAliases ?? {}),
+    };
 
     return {
         ...scene,
         images: scene.images.map((image) => ({
-            path: resolveSceneSourcePath(image.source, sceneDirectory, options),
+            path: resolveSceneSourcePath(image.source, sceneDirectory, {
+                ...options,
+                imagePathAliases,
+            }),
             id: image.id,
             transparency: image.transparency,
             rotation: image.rotation,

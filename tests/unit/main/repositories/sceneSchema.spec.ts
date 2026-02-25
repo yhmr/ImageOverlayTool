@@ -86,6 +86,36 @@ describe("parseSceneFile", () => {
         ).toThrow("canvas.scale must be a number");
     });
 
+    it("throws when imagePathAliases are invalid", () => {
+        expect(() =>
+            parseSceneFile({
+                version: SCENE_FILE_VERSION,
+                imagePathAliases: "aliases",
+                images: [],
+            })
+        ).toThrow("imagePathAliases must be an object");
+
+        expect(() =>
+            parseSceneFile({
+                version: SCENE_FILE_VERSION,
+                imagePathAliases: {
+                    "": "./images",
+                },
+                images: [],
+            })
+        ).toThrow("imagePathAliases key must not be empty");
+
+        expect(() =>
+            parseSceneFile({
+                version: SCENE_FILE_VERSION,
+                imagePathAliases: {
+                    assets: "",
+                },
+                images: [],
+            })
+        ).toThrow("imagePathAliases.assets must be a non-empty string");
+    });
+
     it("throws when filters are invalid", () => {
         expect(() =>
             parseSceneFile({
@@ -135,6 +165,10 @@ describe("parseSceneFile", () => {
             unitFactor: 2,
             unit: "mm",
             canvas: { x: 10, y: 20, scale: 1.5 },
+            imagePathAliases: {
+                assets: "./images",
+                shared: "D:/shared",
+            },
             images: [
                 {
                     source: "relative/path.png",
@@ -172,6 +206,10 @@ describe("parseSceneFile", () => {
         expect(scene.unitFactor).toBe(2);
         expect(scene.unit).toBe("mm");
         expect(scene.canvas).toEqual({ x: 10, y: 20, scale: 1.5 });
+        expect(scene.imagePathAliases).toEqual({
+            assets: "./images",
+            shared: "D:/shared",
+        });
         expect(scene.images).toHaveLength(1);
         expect(scene.images[0]).toEqual({
             source: "relative/path.png",

@@ -10,10 +10,13 @@
     "y": 333.0171158066692,
     "scale": 0.466507380209733
   },
+  "imagePathAliases": {
+    "fixtures": "../images"
+  },
   "images": [
     {
       "id": "2dff9647-61db-4dad-b8da-800937b25c68",
-      "source": "fixture:scene06-03",
+      "source": "@fixtures/scene06-03.png",
       "transparency": 0,
       "rotation": 0,
       "initAnchorPos": {
@@ -69,7 +72,7 @@
     },
     {
       "id": "a8f9d273-b585-4668-b2e6-a609a18e5b8c",
-      "source": "fixture:scene06-02",
+      "source": "@fixtures/scene06-02.png",
       "transparency": 0.25,
       "rotation": 0,
       "initAnchorPos": {

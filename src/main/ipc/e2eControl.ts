@@ -1,4 +1,5 @@
 import { ipcMain, type IpcMainInvokeEvent } from "electron";
+import path from "path";
 
 import type { E2ERuntimeConfig } from "../e2e/runtimeConfig";
 import {
@@ -47,6 +48,10 @@ const assertControlPlaneEnabled = (e2eConfig: E2ERuntimeConfig): void => {
 export const registerE2EControlHandlers = ({
     e2eConfig,
 }: E2EControlRegistrationOptions): void => {
+    const e2eImagePathAliases = {
+        fixtures: path.resolve(e2eConfig.fixturesDir, "images"),
+    };
+
     const captureTestMode: CaptureTestModeOptions = {
         enabled: true,
         captureFilePath: e2eConfig.captureFilePath,
@@ -77,8 +82,7 @@ export const registerE2EControlHandlers = ({
             const sceneDocument = await loadResolvedSceneDocumentFromPath(
                 scenePath.trim(),
                 {
-                    allowFixtureAlias: true,
-                    fixturesDir: e2eConfig.fixturesDir,
+                    imagePathAliases: e2eImagePathAliases,
                 }
             );
             const extensions: E2ESceneExtensions = parseE2ESceneExtensions(
@@ -104,8 +108,7 @@ export const registerE2EControlHandlers = ({
                     request.source,
                     e2eConfig.fixturesDir,
                     {
-                        allowFixtureAlias: true,
-                        fixturesDir: e2eConfig.fixturesDir,
+                        imagePathAliases: e2eImagePathAliases,
                     }
                 ),
             };

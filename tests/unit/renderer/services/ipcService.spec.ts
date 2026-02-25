@@ -364,7 +364,7 @@ describe("ipcService", () => {
                 images: [],
             });
             await expect(
-                service.e2eLoadFixtureImage({ source: "fixture:placeholder" })
+                service.e2eLoadFixtureImage({ source: "@fixtures/placeholder.png" })
             ).resolves.toEqual({
                 path: "C:/tmp/fixture.png",
             });
@@ -418,7 +418,7 @@ describe("ipcService", () => {
                 "C:/tmp/default.scene.json"
             );
             expect(api.e2eLoadFixtureImage).toHaveBeenCalledWith({
-                source: "fixture:placeholder",
+                source: "@fixtures/placeholder.png",
             });
             expect(api.e2eWaitStable).toHaveBeenCalledWith({ timeoutMs: 1000 });
             expect(api.e2eCapture).toHaveBeenCalledWith({ mode: "window" });

@@ -50,8 +50,6 @@ import { applyFixtureScene } from "../helpers/electronHarness";
 await applyFixtureScene(page, "scene04-filters.scene.json");
 ```
 
-`source` の `fixture:xxx` は `e2e/fixtures/images/xxx.(png|jpg|jpeg|webp|gif|svg)` を解決します。
-
 ## シナリオ撮影E2E
 
 シーンを順番に読み込み、説明用スクリーンショットを出力する専用E2E:

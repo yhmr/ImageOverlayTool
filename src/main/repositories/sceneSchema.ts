@@ -347,6 +347,37 @@ const parseWindowSettings = (
     return parsed;
 };
 
+const parseImagePathAliases = (
+    value: unknown
+): SceneFile["imagePathAliases"] => {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (!isRecord(value)) {
+        throw new Error(
+            "Invalid scene file: imagePathAliases must be an object."
+        );
+    }
+
+    const aliases: Record<string, string> = {};
+    for (const [key, rawValue] of Object.entries(value)) {
+        const aliasName = key.trim();
+        if (aliasName.length === 0) {
+            throw new Error(
+                "Invalid scene file: imagePathAliases key must not be empty."
+            );
+        }
+        if (typeof rawValue !== "string" || rawValue.trim().length === 0) {
+            throw new Error(
+                `Invalid scene file: imagePathAliases.${aliasName} must be a non-empty string.`
+            );
+        }
+        aliases[aliasName] = rawValue.trim();
+    }
+
+    return aliases;
+};
+
 export const parseSceneFile = (value: unknown): SceneFile => {
     if (!isRecord(value)) {
         throw new Error("Invalid scene file: root must be an object.");
@@ -370,6 +401,7 @@ export const parseSceneFile = (value: unknown): SceneFile => {
         unitFactor: parseFiniteNumber(value.unitFactor, "unitFactor", true),
         unit: parseUnit(value.unit),
         canvas: parseCanvas(value.canvas),
+        imagePathAliases: parseImagePathAliases(value.imagePathAliases),
         images: value.images.map((image, index) => parseImage(image, index)),
         dimensionLines: parseDimensionLines(value.dimensionLines),
     };

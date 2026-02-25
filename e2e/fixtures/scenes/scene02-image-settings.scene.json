@@ -10,10 +10,13 @@
     "y": 139.16742063511708,
     "scale": 0.466507380209733
   },
+  "imagePathAliases": {
+    "fixtures": "../images"
+  },
   "images": [
     {
       "id": "2b4a37a0-9620-4c2d-8d35-76f17eaed03e",
-      "source": "fixture:scene02-01",
+      "source": "@fixtures/scene02-01.png",
       "transparency": 0,
       "rotation": 0,
       "initAnchorPos": {
@@ -69,7 +72,7 @@
     },
     {
       "id": "d2fb6a44-2fae-4a04-9b48-d9f57395d36e",
-      "source": "fixture:scene02-02",
+      "source": "@fixtures/scene02-02.png",
       "transparency": 0.28,
       "rotation": 0,
       "initAnchorPos": {
@@ -125,7 +128,7 @@
     },
     {
       "id": "6c746676-edd8-43cf-b5e4-a9361eaf6e90",
-      "source": "fixture:scene02-03",
+      "source": "@fixtures/scene02-03.png",
       "transparency": 0,
       "rotation": 0,
       "initAnchorPos": {
@@ -181,7 +184,7 @@
     },
     {
       "id": "baf23550-afe0-4496-8aba-15dad687dfec",
-      "source": "fixture:scene02-04",
+      "source": "@fixtures/scene02-04.png",
       "transparency": 0.23,
       "rotation": 0,
       "initAnchorPos": {

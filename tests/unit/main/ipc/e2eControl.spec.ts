@@ -100,7 +100,7 @@ describe("e2e control ipc handlers", () => {
         ).rejects.toThrow("IOT_E2E_MODE");
     });
 
-    it("resolves fixture alias in enabled e2e mode", async () => {
+    it("resolves @fixtures alias in enabled e2e mode", async () => {
         const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
         const imageDir = path.join(tempRoot, "images");
         fs.mkdirSync(imageDir, { recursive: true });
@@ -115,12 +115,12 @@ describe("e2e control ipc handlers", () => {
         const resolved = await invokeIpcHandler<E2EResolvedFixtureImage>(
             "e2e:loadFixtureImage",
             {},
-            { source: "fixture:placeholder" }
+            { source: "@fixtures/placeholder.png" }
         );
         expect(resolved.path).toBe(fixturePath);
     });
 
-    it("resolves fixture alias with explicit extension when file exists", async () => {
+    it("resolves relative path in enabled e2e mode", async () => {
         const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
         const imageDir = path.join(tempRoot, "images");
         fs.mkdirSync(imageDir, { recursive: true });
@@ -135,22 +135,26 @@ describe("e2e control ipc handlers", () => {
         const resolved = await invokeIpcHandler<E2EResolvedFixtureImage>(
             "e2e:loadFixtureImage",
             {},
-            { source: "fixture:exact.png" }
+            { source: "images/exact.png" }
         );
         expect(resolved.path).toBe(fixturePath);
     });
 
-    it("loads versioned scene from path with fixture alias, relative path and absolute path", async () => {
+    it("loads versioned scene from path with @fixtures alias, relative path, alias path and absolute path", async () => {
         const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
         const imageDir = path.join(tempRoot, "images");
+        const aliasedImageDir = path.join(tempRoot, "aliased-images");
         const sceneDir = path.join(tempRoot, "scenes");
         fs.mkdirSync(imageDir, { recursive: true });
+        fs.mkdirSync(aliasedImageDir, { recursive: true });
         fs.mkdirSync(sceneDir, { recursive: true });
 
         const fixturePath = path.join(imageDir, "fixture-image.png");
+        const aliasedPath = path.join(aliasedImageDir, "aliased.png");
         const relativePath = path.join(sceneDir, "relative.png");
         const absolutePath = path.join(tempRoot, "absolute.png");
         fs.writeFileSync(fixturePath, "fixture");
+        fs.writeFileSync(aliasedPath, "aliased");
         fs.writeFileSync(relativePath, "relative");
         fs.writeFileSync(absolutePath, "absolute");
 
@@ -167,9 +171,14 @@ describe("e2e control ipc handlers", () => {
                 window: { color: "#00000000" },
                 unitFactor: 3,
                 unit: "mm",
+                imagePathAliases: {
+                    fixtures: "../images",
+                    assets: "../aliased-images",
+                },
                 images: [
-                    { id: "img-a", source: "fixture:fixture-image" },
+                    { id: "img-a", source: "@fixtures/fixture-image.png" },
                     { id: "img-b", source: "./relative.png" },
+                    { id: "img-d", source: "@assets/aliased.png" },
                     { id: "img-c", source: absolutePath },
                 ],
             })
@@ -195,7 +204,8 @@ describe("e2e control ipc handlers", () => {
         expect(resolved.window?.color).toBe("#00000000");
         expect(resolved.images[0].path).toBe(fixturePath);
         expect(resolved.images[1].path).toBe(relativePath);
-        expect(resolved.images[2].path).toBe(absolutePath);
+        expect(resolved.images[2].path).toBe(aliasedPath);
+        expect(resolved.images[3].path).toBe(absolutePath);
     });
 
     it("rejects invalid e2e extension fields in scene file", async () => {
@@ -214,7 +224,10 @@ describe("e2e control ipc handlers", () => {
             JSON.stringify({
                 version: "1.0.0",
                 interactionMode: "invalid-mode",
-                images: [{ source: "fixture:fixture-image" }],
+                imagePathAliases: {
+                    fixtures: "../images",
+                },
+                images: [{ source: "@fixtures/fixture-image.png" }],
             })
         );
 
@@ -241,39 +254,7 @@ describe("e2e control ipc handlers", () => {
         ).rejects.toThrow("Invalid payload for e2e:setSceneFromPath");
     });
 
-    it("rejects fixture alias that escapes fixtures/images", async () => {
-        const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
-        const scenesDir = path.join(tempRoot, "scenes");
-        fs.mkdirSync(scenesDir, { recursive: true });
-        fs.writeFileSync(path.join(scenesDir, "outside.png"), "fixture-bytes");
-
-        process.env.IOT_E2E_MODE = "1";
-        registerE2EControlHandlers({
-            e2eConfig: createConfig({ enabled: true, fixturesDir: tempRoot }),
-        });
-
-        await expect(
-            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "fixture:../scenes/outside" })
-        ).rejects.toThrow("escapes fixtures/images");
-    });
-
-    it("rejects fixture alias with unsupported explicit extension", async () => {
-        const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
-        const imageDir = path.join(tempRoot, "images");
-        fs.mkdirSync(imageDir, { recursive: true });
-        fs.writeFileSync(path.join(imageDir, "sample.txt"), "not-image");
-
-        process.env.IOT_E2E_MODE = "1";
-        registerE2EControlHandlers({
-            e2eConfig: createConfig({ enabled: true, fixturesDir: tempRoot }),
-        });
-
-        await expect(
-            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "fixture:sample.txt" })
-        ).rejects.toThrow("Unsupported fixture alias extension");
-    });
-
-    it("rejects empty fixture alias", async () => {
+    it("rejects undefined image alias for loadFixtureImage", async () => {
         const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
         fs.mkdirSync(path.join(tempRoot, "images"), { recursive: true });
 
@@ -283,11 +264,11 @@ describe("e2e control ipc handlers", () => {
         });
 
         await expect(
-            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "fixture:   " })
-        ).rejects.toThrow("Fixture alias must not be empty");
+            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "@assets/sample.png" })
+        ).rejects.toThrow("Scene image alias is not defined");
     });
 
-    it("rejects unsupported fixture alias when no file matches candidate extensions", async () => {
+    it("rejects invalid alias source syntax for loadFixtureImage", async () => {
         const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
         fs.mkdirSync(path.join(tempRoot, "images"), { recursive: true });
 
@@ -297,11 +278,11 @@ describe("e2e control ipc handlers", () => {
         });
 
         await expect(
-            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "fixture:not-found" })
-        ).rejects.toThrow("Fixture alias not found");
+            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "@fixtures/" })
+        ).rejects.toThrow("Invalid scene image source alias syntax");
     });
 
-    it("rejects fixture alias with explicit supported extension when file does not exist", async () => {
+    it("rejects @fixtures alias path when file does not exist", async () => {
         const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
         fs.mkdirSync(path.join(tempRoot, "images"), { recursive: true });
 
@@ -311,11 +292,11 @@ describe("e2e control ipc handlers", () => {
         });
 
         await expect(
-            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "fixture:ghost.png" })
-        ).rejects.toThrow("Fixture alias not found");
+            invokeIpcHandler("e2e:loadFixtureImage", {}, { source: "@fixtures/ghost.png" })
+        ).rejects.toThrow("Scene image file not found");
     });
 
-    it("rejects empty fixture source", async () => {
+    it("rejects empty source for loadFixtureImage", async () => {
         const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
         fs.mkdirSync(path.join(tempRoot, "images"), { recursive: true });
 
@@ -329,7 +310,7 @@ describe("e2e control ipc handlers", () => {
         ).rejects.toThrow("Scene image source must not be empty");
     });
 
-    it("rejects non-fixture path when file does not exist", async () => {
+    it("rejects non-alias path when file does not exist", async () => {
         const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "iot-e2e-fixtures-"));
         fs.mkdirSync(path.join(tempRoot, "images"), { recursive: true });
 

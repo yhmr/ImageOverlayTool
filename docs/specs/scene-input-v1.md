@@ -21,7 +21,6 @@
 ### 2.2 非対象（Phase 1）
 
 - `--opacity` などの CLI オプション公開
-- `fixture:` エイリアス
 - `waitStable` / `capture` / `__IOT_E2E__` などのE2E制御API
 
 ## 3. 用語
@@ -54,6 +53,10 @@ CLIの細かいオプションは将来Phaseで追加する。
   "unitFactor": 1,
   "unit": "um",
   "canvas": { "x": 0, "y": 0, "scale": 1 },
+  "imagePathAliases": {
+    "assets": "./images",
+    "shared": "D:/overlay-assets"
+  },
   "images": [],
   "dimensionLines": []
 }
@@ -69,8 +72,13 @@ CLIの細かいオプションは将来Phaseで追加する。
 - `unitFactor`（任意）: number
 - `unit`（任意）: `"nm" | "um" | "mm"`
 - `canvas`（任意）: `{ x, y, scale }`
+- `imagePathAliases`（任意）: `{ [alias: string]: string }`
+  - 値は絶対パス、またはSceneファイル基準の相対パス
 - `images`（必須）: array
-- `images[].source`（必須）: 画像パス（絶対 or Sceneファイル基準の相対）
+- `images[].source`（必須）: 画像パス
+  - 絶対パス
+  - Sceneファイル基準の相対パス
+  - `@alias/path` 形式（`imagePathAliases` を参照）
 - `images[].transparency`（任意）: `0.0..1.0`
 - `images[].rotation`（任意）: number
 - `images[].locked` / `visible`（任意）: boolean
@@ -82,7 +90,8 @@ CLIの細かいオプションは将来Phaseで追加する。
 ## 6. パス解決ルール
 
 - 許可: 絶対パス、Sceneファイルの親ディレクトリ基準の相対パス
-- 禁止: `fixture:` などのエイリアス記法（Phase 1）
+- 許可: `@alias/path` 形式（`imagePathAliases` で定義）
+- `@` で始まる場合は alias 指定として扱い、未定義aliasはエラー
 - 存在しないファイルが1件でもあれば Scene 全体を不正扱い
 
 ## 7. 適用ルール
@@ -120,16 +129,14 @@ E2Eは公開Scene機能の拡張として扱う。
 - 通常起動: 公開Sceneスキーマのみ有効
 - `--e2e` 起動: E2E拡張キーとE2E制御APIを有効
 
-`fixture:`、`waitStable`、`capture`、`__IOT_E2E__` はE2E時のみ許可する。
+`waitStable`、`capture`、`__IOT_E2E__` はE2E時のみ許可する。
 
 ## 10. バージョニング方針
 
 - `version` は必須
-- Major不一致は非互換として扱い、フォールバック起動
-- Minor/Patchは後方互換前提で拡張
+- Phase 1 では `"1.0.0"` のみ受理し、それ以外はフォールバック起動
 
 ## 11. 将来拡張（Phase 2以降）
 
 - CLIオプションを `LaunchIntent` へマッピングするアダプタ追加
-- Scene内パスエイリアス（`pathAliases`）の導入検討
 - Sceneをメニューから読み込む導線の追加

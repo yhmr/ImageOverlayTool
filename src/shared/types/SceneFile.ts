@@ -37,6 +37,7 @@ export interface SceneFile {
     unitFactor?: number;
     unit?: SceneUnit;
     canvas?: SceneCanvasState;
+    imagePathAliases?: Record<string, string>;
     images: SceneImageInput[];
     dimensionLines?: DimensionLine[];
 }
@@ -59,6 +60,7 @@ export interface ResolvedSceneFile {
     unitFactor?: number;
     unit?: SceneUnit;
     canvas?: SceneCanvasState;
+    imagePathAliases?: Record<string, string>;
     images: ResolvedSceneImage[];
     dimensionLines?: DimensionLine[];
 }

@@ -4,7 +4,10 @@ import path from "path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { registerSceneHandlers } from "@/main/ipc/scene";
-import { SCENE_FILE_VERSION } from "@/shared/types/SceneFile";
+import {
+    SCENE_FILE_VERSION,
+    type ResolvedSceneFile,
+} from "@/shared/types/SceneFile";
 import { IPC_CHANNELS } from "@/shared/ipc/channels";
 import { invokeIpcHandler } from "../../../support/helpers/ipcTestHelper";
 
@@ -47,7 +50,7 @@ describe("scene IPC handlers", () => {
                 "utf-8"
             );
 
-            const result = await invokeIpcHandler(
+            const result = await invokeIpcHandler<ResolvedSceneFile>(
                 IPC_CHANNELS.scene.loadFromPath,
                 {},
                 scenePath
@@ -70,7 +73,46 @@ describe("scene IPC handlers", () => {
                 unitFactor: undefined,
                 unit: undefined,
                 canvas: undefined,
+                imagePathAliases: undefined,
                 dimensionLines: undefined,
+            });
+        } finally {
+            await fs.promises.rm(tempDir, { recursive: true, force: true });
+        }
+    });
+
+    it("loads scene and resolves image path aliases", async () => {
+        const tempDir = await fs.promises.mkdtemp(
+            path.join(os.tmpdir(), "iot-scene-")
+        );
+        const imageDir = path.join(tempDir, "images");
+        const imagePath = path.join(imageDir, "sample.png");
+        const scenePath = path.join(tempDir, "aliased.scene.json");
+
+        try {
+            await fs.promises.mkdir(imageDir, { recursive: true });
+            await fs.promises.writeFile(imagePath, "png");
+            await fs.promises.writeFile(
+                scenePath,
+                JSON.stringify({
+                    version: SCENE_FILE_VERSION,
+                    imagePathAliases: {
+                        assets: "./images",
+                    },
+                    images: [{ source: "@assets/sample.png" }],
+                }),
+                "utf-8"
+            );
+
+            const result = await invokeIpcHandler<ResolvedSceneFile>(
+                IPC_CHANNELS.scene.loadFromPath,
+                {},
+                scenePath
+            );
+
+            expect(result.images[0].path).toBe(path.resolve(imagePath));
+            expect(result.imagePathAliases).toEqual({
+                assets: "./images",
             });
         } finally {
             await fs.promises.rm(tempDir, { recursive: true, force: true });
@@ -106,6 +148,34 @@ describe("scene IPC handlers", () => {
                     scenePath
                 )
             ).rejects.toThrow("Scene image file not found");
+        } finally {
+            await fs.promises.rm(tempDir, { recursive: true, force: true });
+        }
+    });
+
+    it("rejects scene when source uses undefined image alias", async () => {
+        const tempDir = await fs.promises.mkdtemp(
+            path.join(os.tmpdir(), "iot-scene-")
+        );
+        const scenePath = path.join(tempDir, "missing-alias.scene.json");
+
+        try {
+            await fs.promises.writeFile(
+                scenePath,
+                JSON.stringify({
+                    version: SCENE_FILE_VERSION,
+                    images: [{ source: "@assets/sample.png" }],
+                }),
+                "utf-8"
+            );
+
+            await expect(
+                invokeIpcHandler(
+                    IPC_CHANNELS.scene.loadFromPath,
+                    {},
+                    scenePath
+                )
+            ).rejects.toThrow("Scene image alias is not defined");
         } finally {
             await fs.promises.rm(tempDir, { recursive: true, force: true });
         }
