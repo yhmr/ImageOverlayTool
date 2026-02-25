@@ -84,26 +84,6 @@ pnpm run test:e2e:screenshots
 
 - テスト作法の基準は `tests/TESTING_GUIDELINES.md` を参照
 
-### ベンチ運用フロー
-
-- bench:compare（baselineとの比較）のタイミング
-  - PR作成前など
-  - CI（`main` への push / PR）
-  - 最適化作業中
-- bench:baseline（baseline更新）のタイミング
-  - 最適化を意図して性能が変わったとき
-  - 仕様変更により計測対象の処理量そのものが変わったとき
-
-### テストセレクタ（data-testid）規約
-
-E2E/統合テストで使用する `data-testid` は、以下の形式で命名します。
-
-- 形式: `<screen>.<area>.<action>`
-- 例: `main.menu.item.save-project`, `settings.image-list.add`
-- 主要操作UIには `data-testid` を必須化し、`eslint` の `require-data-testid` / `require-component-testid` ルールで検知します（`pnpm run lint`）。
-
-原則として、文言や表示順に依存するセレクタは使わず、主要操作は `data-testid` で参照します。
-
 ## 📁 ディレクトリ構成
 
 ```
@@ -144,10 +124,35 @@ E2E/統合テストで使用する `data-testid` は、以下の形式で命名�
 
 ## ⚠️ 開発上の注意点
 
-- **ローカルファイルの読み込み**: セキュリティ制限により、ローカル画像を表示する際は `local-file://[絶対パス]` 形式のカスタムプロトコルを使用しています。
-- **型定義**: `window.electronAPI` などの独自APIは `src/renderer/env.d.ts` で定義されています。
+### ローカルファイルの読み込み
+
+セキュリティ制限により、ローカル画像を表示する際は `local-file://[絶対パス]` 形式のカスタムプロトコルを使用しています。
+
+### 型定義
+
+`window.electronAPI` などの独自APIは `src/renderer/env.d.ts` で定義されています。
+
+### ベンチ運用フロー
+
+- bench:compare（baselineとの比較）のタイミング
+  - PR作成前など
+  - CI（`main` への push / PR）
+  - 最適化作業中
+- bench:baseline（baseline更新）のタイミング
+  - 最適化を意図して性能が変わったとき
+  - 仕様変更により計測対象の処理量そのものが変わったとき
+
+### テストセレクタ（data-testid）規約
+
+E2E/統合テストで使用する `data-testid` は、以下の形式で命名します。
+
+- 形式: `<screen>.<area>.<action>`
+- 例: `main.menu.item.save-project`, `settings.image-list.add`
+- 主要操作UIには `data-testid` を必須化し、`eslint` の `require-data-testid` / `require-component-testid` ルールで検知します（`pnpm run lint`）。
+
+原則として、文言や表示順に依存するセレクタは使わず、主要操作は `data-testid` で参照します。
 
 ## 📄 ライセンス
 
-このプロジェクトは [AGPL-3.0](LICENSE) ライセンスの下で公開されています。　　
+このプロジェクトは [AGPL-3.0](LICENSE) ライセンスの下で公開されています。  
 ソフトの利用や、機能に関する問い合わせなどは、メールなどで作者までお気軽にご連絡ください。
