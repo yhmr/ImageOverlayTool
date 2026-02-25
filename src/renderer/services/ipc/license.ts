@@ -1,7 +1,9 @@
 import { getElectronApi } from "./electronApi";
-import type { ILicenseIPCService } from "./types";
+import type { IElectronAPI } from "../../../shared/ipc/electronApi";
 
-export const createLicenseIPCService = (): ILicenseIPCService => ({
+type LicenseIPCService = Pick<IElectronAPI, "getLicenseInfo" | "getAppVersion">;
+
+export const createLicenseIPCService = (): LicenseIPCService => ({
     getLicenseInfo: () => getElectronApi().getLicenseInfo(),
     getAppVersion: () => getElectronApi().getAppVersion(),
 });

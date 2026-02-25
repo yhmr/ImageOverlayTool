@@ -1,9 +1,20 @@
 import type { ImageSet } from "../../../shared/types/ImageSet";
 import type { ProjectFile } from "../../../shared/types/ProjectFile";
 import { getElectronApi } from "./electronApi";
-import type { IProjectIPCService } from "./types";
+import type { IElectronAPI } from "../../../shared/ipc/electronApi";
 
-export const createProjectIPCService = (): IProjectIPCService => ({
+type ProjectIPCService = Pick<
+    IElectronAPI,
+    | "saveProjectAs"
+    | "pickProjectSavePath"
+    | "materializeCacheImages"
+    | "saveProject"
+    | "loadProject"
+    | "loadProjectFromPath"
+    | "loadSceneFromPath"
+>;
+
+export const createProjectIPCService = (): ProjectIPCService => ({
     saveProjectAs: (project: ProjectFile<ImageSet>) =>
         getElectronApi().saveProjectAs(project),
     pickProjectSavePath: () => getElectronApi().pickProjectSavePath(),

@@ -1,5 +1,5 @@
 import { getElectronApi } from "./electronApi";
-import type { IWindowIPCService } from "./types";
+import type { IElectronAPI } from "../../../shared/ipc/electronApi";
 
 type WindowRect = {
     x: number;
@@ -8,7 +8,17 @@ type WindowRect = {
     height: number;
 };
 
-export const createWindowIPCService = (): IWindowIPCService => ({
+type WindowIPCService = Pick<
+    IElectronAPI,
+    | "minimizeWindow"
+    | "switchWindowSize"
+    | "setWindowRect"
+    | "setIgnoreMouseEvents"
+    | "setAlwaysOnTop"
+    | "closeWindow"
+>;
+
+export const createWindowIPCService = (): WindowIPCService => ({
     minimizeWindow: () => getElectronApi().minimizeWindow(),
     switchWindowSize: () => getElectronApi().switchWindowSize(),
     setWindowRect: (rect: WindowRect) => getElectronApi().setWindowRect(rect),

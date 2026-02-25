@@ -1,8 +1,19 @@
 import { getElectronApi } from "./electronApi";
-import type { IImageSettingsWindowIPCService } from "./types";
+import type { IElectronAPI } from "../../../shared/ipc/electronApi";
+
+type ImageSettingsWindowIPCService = Pick<
+    IElectronAPI,
+    | "loadImage"
+    | "getImageInfo"
+    | "pasteImage"
+    | "saveCacheImageAs"
+    | "getPathForFile"
+    | "toggleImageSettingsWindow"
+    | "toggleDimensionSettingsWindow"
+>;
 
 export const createImageSettingsWindowIPCService =
-    (): IImageSettingsWindowIPCService => ({
+    (): ImageSettingsWindowIPCService => ({
         loadImage: () => getElectronApi().loadImage(),
         getImageInfo: (imagePath: string) =>
             getElectronApi().getImageInfo(imagePath),

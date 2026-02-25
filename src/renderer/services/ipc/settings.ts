@@ -1,8 +1,21 @@
 import type { SettingType } from "../../../shared/types/AppConfig";
 import { getElectronApi } from "./electronApi";
-import type { ISettingsIPCService } from "./types";
+import type { IElectronAPI } from "../../../shared/ipc/electronApi";
 
-export const createSettingsIPCService = (): ISettingsIPCService => ({
+type SettingsIPCService = Pick<
+    IElectronAPI,
+    | "loadSetting"
+    | "saveSetting"
+    | "exportSettings"
+    | "importSettings"
+    | "onLanguageUpdated"
+    | "loadWindowColor"
+    | "saveWindowColor"
+    | "loadWindowColorPresets"
+    | "saveWindowColorPresets"
+>;
+
+export const createSettingsIPCService = (): SettingsIPCService => ({
     loadSetting: () => getElectronApi().loadSetting(),
     saveSetting: (setting: SettingType) =>
         getElectronApi().saveSetting(setting),

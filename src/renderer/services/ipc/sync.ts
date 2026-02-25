@@ -2,26 +2,33 @@ import type { DimensionLine } from "../../../shared/types/DimensionLine";
 import type { ImageSet } from "../../../shared/types/ImageSet";
 import type { InteractionMode } from "../../../shared/types/InteractionMode";
 import { getElectronApi } from "./electronApi";
-import type {
-    IDimensionLineSyncIPCService,
-    IImageSyncIPCService,
-    IInteractionModeSyncIPCService,
-    IProjectDirtySyncIPCService,
-    ISelectedDimensionLineSyncIPCService,
-    ISelectedImageSyncIPCService,
-    IStateSyncIPCService,
-    IUnitSyncIPCService,
-    Unit,
-} from "./types";
+import type { IElectronAPI, Unit } from "../../../shared/ipc/electronApi";
 
-export const createSyncIPCService = (): IImageSyncIPCService &
-    IDimensionLineSyncIPCService &
-    IUnitSyncIPCService &
-    IInteractionModeSyncIPCService &
-    IStateSyncIPCService &
-    ISelectedImageSyncIPCService &
-    ISelectedDimensionLineSyncIPCService &
-    IProjectDirtySyncIPCService => ({
+type SyncIPCService = Pick<
+    IElectronAPI,
+    | "updateImageSets"
+    | "onImageSetsUpdated"
+    | "updateDimensionLines"
+    | "onDimensionLinesUpdated"
+    | "updateUnitFactor"
+    | "onUnitFactorUpdated"
+    | "updateUnit"
+    | "onUnitUpdated"
+    | "updateInteractionMode"
+    | "onInteractionModeUpdated"
+    | "requestInitialState"
+    | "onRequestStateSync"
+    | "onAlwaysOnTopShortcutTriggered"
+    | "onClickThroughShortcutTriggered"
+    | "onFileOpen"
+    | "updateSelectedImageId"
+    | "onSelectedImageIdUpdated"
+    | "updateSelectedDimensionLineId"
+    | "onSelectedDimensionLineIdUpdated"
+    | "updateProjectDirty"
+>;
+
+export const createSyncIPCService = (): SyncIPCService => ({
     updateImageSets: (imageSets: ImageSet[]) =>
         getElectronApi().updateImageSets(imageSets),
     onImageSetsUpdated: (callback: (imageSets: ImageSet[]) => void) =>

@@ -11,30 +11,19 @@ import { createLogIPCService } from "./ipc/log";
 import { createProjectIPCService } from "./ipc/project";
 import { createSettingsIPCService } from "./ipc/settings";
 import { createSyncIPCService } from "./ipc/sync";
-import type { IIPCService } from "./ipc/types";
 import { createWindowIPCService } from "./ipc/window";
+import type { IElectronAPI, Unit } from "../../shared/ipc/electronApi";
 
-export type {
-    ICaptureIPCService,
-    IDimensionLineSyncIPCService,
-    IE2EIPCService,
-    IImageSettingsWindowIPCService,
-    IImageSyncIPCService,
-    IInteractionModeSyncIPCService,
+export type IIPCService = IElectronAPI;
+export type IProjectDataSyncIPCService = Pick<
     IIPCService,
-    ILicenseIPCService,
-    ILogIPCService,
-    IProjectDataSyncIPCService,
-    IProjectDirtySyncIPCService,
-    IProjectIPCService,
-    ISelectedDimensionLineSyncIPCService,
-    ISelectedImageSyncIPCService,
-    ISettingsIPCService,
-    IStateSyncIPCService,
-    IUnitSyncIPCService,
-    IWindowIPCService,
-    Unit,
-} from "./ipc/types";
+    | "updateImageSets"
+    | "updateDimensionLines"
+    | "updateUnitFactor"
+    | "updateUnit"
+>;
+
+export type { Unit };
 
 const createIPCService = (): IIPCService => ({
     ...createLogIPCService(),

@@ -1,7 +1,9 @@
 import { getElectronApi } from "./electronApi";
-import type { ILogIPCService } from "./types";
+import type { IElectronAPI } from "../../../shared/ipc/electronApi";
 
-export const createLogIPCService = (): ILogIPCService => ({
+type LogIPCService = Pick<IElectronAPI, "log">;
+
+export const createLogIPCService = (): LogIPCService => ({
     log: {
         debug: (message: string, ...params: unknown[]) =>
             getElectronApi().log.debug(message, ...params),
