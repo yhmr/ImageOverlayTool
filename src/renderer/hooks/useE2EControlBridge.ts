@@ -3,78 +3,13 @@ import { useEffect } from "react";
 import type { CaptureResult } from "../../shared/types/CaptureResult";
 import type {
     E2ECaptureRequest,
-    E2EResolvedSceneFile,
     E2EWaitStableRequest,
-    E2EWaitStableResult,
 } from "../../shared/types/E2EControl";
 import { createImageSet, toLocalFileUrl } from "../factories/imageSetFactory";
 import { useIpcService } from "../providers/IpcServiceProvider";
-import { applyResolvedSceneFile } from "../services/sceneFileApplicator";
-import { runAsSystemMutation } from "../store/temporalHistory";
+import { applyResolvedE2ESceneFile } from "../services/e2eSceneFileApplicator";
+import { waitForRendererStable } from "../services/rendererStability";
 import { useAppStore } from "../store/useAppStore";
-
-const POLL_INTERVAL_MS = 16;
-const DEFAULT_STABLE_TIMEOUT_MS = 5000;
-
-const wait = (ms: number): Promise<void> =>
-    new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-
-const isRendererStable = (): boolean => {
-    const { imageSets } = useAppStore.getState();
-    return imageSets.every((imageSet) => {
-        if (!imageSet.path) {
-            return true;
-        }
-        return Boolean(imageSet.initAnchorPos && imageSet.currentAnchorPos);
-    });
-};
-
-const waitForRendererStable = async (
-    request?: E2EWaitStableRequest
-): Promise<E2EWaitStableResult> => {
-    const start = Date.now();
-    const timeoutMs = request?.timeoutMs ?? DEFAULT_STABLE_TIMEOUT_MS;
-
-    while (Date.now() - start <= timeoutMs) {
-        if (isRendererStable()) {
-            return {
-                stable: true,
-                elapsedMs: Date.now() - start,
-            };
-        }
-
-        await wait(POLL_INTERVAL_MS);
-    }
-
-    return {
-        stable: false,
-        elapsedMs: Date.now() - start,
-    };
-};
-
-const applySceneExtensions = (scene: E2EResolvedSceneFile): void => {
-    runAsSystemMutation(
-        () => useAppStore.temporal,
-        () => {
-            const state = useAppStore.getState();
-            if (scene.uiHidden !== undefined) {
-                state.setUIHidden(scene.uiHidden);
-            }
-            if (scene.interactionMode !== undefined) {
-                state.setInteractionMode(scene.interactionMode);
-            }
-            if (scene.selectedDimensionLineId !== undefined) {
-                state.setSelectedDimensionLineId(scene.selectedDimensionLineId);
-            }
-            if (scene.selectedImageId !== undefined) {
-                state.setSelectedImageId(scene.selectedImageId);
-            }
-            state.markProjectSaved();
-        }
-    );
-};
 
 export const useE2EControlBridge = (): void => {
     const ipcService = useIpcService();
@@ -109,8 +44,7 @@ export const useE2EControlBridge = (): void => {
                     const resolvedScene = await ipcService.e2eSetSceneFromPath(
                         scenePath
                     );
-                    applyResolvedSceneFile(resolvedScene);
-                    applySceneExtensions(resolvedScene);
+                    applyResolvedE2ESceneFile(resolvedScene);
                     return waitForRendererStable();
                 },
                 loadFixtureImage: async (source, overrides = {}) => {

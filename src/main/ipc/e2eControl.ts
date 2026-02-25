@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import { ipcMain, type IpcMainInvokeEvent } from "electron";
 
 import type { E2ERuntimeConfig } from "../e2e/runtimeConfig";
@@ -8,7 +6,8 @@ import {
     type CaptureTestModeOptions,
 } from "../services/captureService";
 import { IPC_CHANNELS } from "../../shared/ipc/channels";
-import { loadResolvedSceneFileFromPath } from "../repositories/sceneLoader";
+import { parseE2ESceneExtensions } from "../repositories/e2eSceneExtensions";
+import { loadResolvedSceneDocumentFromPath } from "../repositories/sceneLoader";
 import { resolveSceneSourcePath } from "../repositories/sceneResolver";
 import type {
     E2ECaptureRequest,
@@ -19,7 +18,6 @@ import type {
     E2ESceneExtensions,
     E2EWaitStableResult,
 } from "../../shared/types/E2EControl";
-import type { InteractionMode } from "../../shared/types/InteractionMode";
 
 interface E2EControlRegistrationOptions {
     e2eConfig: E2ERuntimeConfig;
@@ -44,109 +42,6 @@ const assertControlPlaneEnabled = (e2eConfig: E2ERuntimeConfig): void => {
     if (reason.length > 0) {
         throw new Error(reason);
     }
-};
-
-type JsonRecord = Record<string, unknown>;
-
-const isRecord = (value: unknown): value is JsonRecord =>
-    typeof value === "object" && value !== null;
-
-const parseOptionalString = (
-    value: unknown,
-    pathLabel: string
-): string | undefined => {
-    if (value === undefined) {
-        return undefined;
-    }
-    if (typeof value !== "string") {
-        throw new Error(`Invalid scene file: ${pathLabel} must be a string.`);
-    }
-    return value;
-};
-
-const parseOptionalNullableString = (
-    value: unknown,
-    pathLabel: string
-): string | null | undefined => {
-    if (value === undefined) {
-        return undefined;
-    }
-    if (value === null) {
-        return null;
-    }
-    if (typeof value !== "string") {
-        throw new Error(
-            `Invalid scene file: ${pathLabel} must be a string or null.`
-        );
-    }
-    return value;
-};
-
-const parseOptionalBoolean = (
-    value: unknown,
-    pathLabel: string
-): boolean | undefined => {
-    if (value === undefined) {
-        return undefined;
-    }
-    if (typeof value !== "boolean") {
-        throw new Error(`Invalid scene file: ${pathLabel} must be a boolean.`);
-    }
-    return value;
-};
-
-const parseOptionalInteractionMode = (
-    value: unknown
-): InteractionMode | undefined => {
-    if (value === undefined) {
-        return undefined;
-    }
-    if (
-        value === "default" ||
-        value === "dimension_add" ||
-        value === "dimension_select"
-    ) {
-        return value;
-    }
-    throw new Error(
-        "Invalid scene file: interactionMode must be one of default/dimension_add/dimension_select."
-    );
-};
-
-const parseSceneExtensions = (value: unknown): E2ESceneExtensions => {
-    if (!isRecord(value)) {
-        throw new Error("Invalid scene file: root must be an object.");
-    }
-
-    const parsed: E2ESceneExtensions = {};
-    const name = parseOptionalString(value.name, "name");
-    const interactionMode = parseOptionalInteractionMode(value.interactionMode);
-    const selectedImageId = parseOptionalNullableString(
-        value.selectedImageId,
-        "selectedImageId"
-    );
-    const selectedDimensionLineId = parseOptionalNullableString(
-        value.selectedDimensionLineId,
-        "selectedDimensionLineId"
-    );
-    const uiHidden = parseOptionalBoolean(value.uiHidden, "uiHidden");
-
-    if (name !== undefined) {
-        parsed.name = name;
-    }
-    if (interactionMode !== undefined) {
-        parsed.interactionMode = interactionMode;
-    }
-    if (selectedImageId !== undefined) {
-        parsed.selectedImageId = selectedImageId;
-    }
-    if (selectedDimensionLineId !== undefined) {
-        parsed.selectedDimensionLineId = selectedDimensionLineId;
-    }
-    if (uiHidden !== undefined) {
-        parsed.uiHidden = uiHidden;
-    }
-    return parsed;
 };
 
 export const registerE2EControlHandlers = ({
@@ -179,24 +74,19 @@ export const registerE2EControlHandlers = ({
             ) {
                 throw new Error("Invalid payload for e2e:setSceneFromPath");
             }
-            const normalizedScenePath = path.resolve(scenePath.trim());
-            const rawText = await fs.promises.readFile(
-                normalizedScenePath,
-                "utf-8"
-            );
-            const extensions = parseSceneExtensions(
-                JSON.parse(rawText) as unknown
-            );
-            const resolvedScene = await loadResolvedSceneFileFromPath(
-                normalizedScenePath,
+            const sceneDocument = await loadResolvedSceneDocumentFromPath(
+                scenePath.trim(),
                 {
                     allowFixtureAlias: true,
                     fixturesDir: e2eConfig.fixturesDir,
                 }
             );
+            const extensions: E2ESceneExtensions = parseE2ESceneExtensions(
+                sceneDocument.source
+            );
 
             return {
-                ...resolvedScene,
+                ...sceneDocument.resolvedScene,
                 ...extensions,
             };
         }
