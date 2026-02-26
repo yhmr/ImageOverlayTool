@@ -15,8 +15,6 @@ export const selectRemoveDimensionLine = (state: AppState) =>
 
 export const selectUnitFactor = (state: AppState) => state.unitFactor;
 export const selectUnit = (state: AppState) => state.unit;
-export const selectProjectDataChangeOrigin = (state: AppState) =>
-    state.projectDataChangeOrigin;
 export const selectHasUnsavedChanges = (state: AppState) =>
     state.hasUnsavedChanges;
 

@@ -3,6 +3,7 @@ import { useStore } from "zustand";
 import type { TemporalState } from "zundo";
 import { useFitToScreen } from "./useFitToScreen";
 import { useAppStore, type AppState } from "../store/useAppStore";
+import { selectSetProjectDataChangeOrigin } from "../store/selectors";
 
 export const MAIN_WINDOW_SHORTCUT_LABELS = {
     newProject: "Ctrl+N",
@@ -74,6 +75,9 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
         useAppStore.temporal,
         (state: TemporalState<Partial<AppState>>) => state.redo
     );
+    const setProjectDataChangeOrigin = useAppStore(
+        selectSetProjectDataChangeOrigin
+    );
     const { fitToScreen } = useFitToScreen();
 
     useEffect(() => {
@@ -112,7 +116,7 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
                 e.preventDefault();
                 undo();
                 // undo後のstateをsync bridgeが検出できるようにoriginをlocalに設定
-                useAppStore.setState({ projectDataChangeOrigin: "local" });
+                setProjectDataChangeOrigin("local");
             }
             // Redo: Ctrl + Shift + Z or Ctrl + Y
             else if (
@@ -121,7 +125,7 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
             ) {
                 e.preventDefault();
                 redo();
-                useAppStore.setState({ projectDataChangeOrigin: "local" });
+                setProjectDataChangeOrigin("local");
             }
             // New Project: Ctrl/Cmd + N
             else if (matchesShortcut(e, { key: "n" })) {
@@ -285,6 +289,7 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutOptions = {}) => {
         onToggleWindowFrame,
         onApplyPresetColor,
         redo,
+        setProjectDataChangeOrigin,
         undo,
     ]);
 };

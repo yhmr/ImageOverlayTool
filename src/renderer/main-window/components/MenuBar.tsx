@@ -17,6 +17,7 @@ import { Button } from "@/renderer/components/ui/button";
 import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
 import { useAppStore, type AppState } from "../../store/useAppStore";
+import { selectSetProjectDataChangeOrigin } from "../../store/selectors";
 import type { MainWindowActions } from "../hooks/useMainWindowActions";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 
@@ -35,6 +36,9 @@ export function MenuBar({
 }: MenuBarProps) {
     const { t } = useTranslation();
     const { isUIHidden, imageSets } = useAppStore();
+    const setProjectDataChangeOrigin = useAppStore(
+        selectSetProjectDataChangeOrigin
+    );
     const { missingCount } = useImageFileStatus(imageSets);
     const ipcService = useIpcService();
 
@@ -126,15 +130,11 @@ export function MenuBar({
                     canRedo={futureStates.length > 0}
                     onUndo={() => {
                         undo();
-                        useAppStore.setState({
-                            projectDataChangeOrigin: "local",
-                        });
+                        setProjectDataChangeOrigin("local");
                     }}
                     onRedo={() => {
                         redo();
-                        useAppStore.setState({
-                            projectDataChangeOrigin: "local",
-                        });
+                        setProjectDataChangeOrigin("local");
                     }}
                 />
 
