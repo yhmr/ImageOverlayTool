@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 
 import { useIpcService } from "../providers/IpcServiceProvider";
+import {
+    createSyncBroadcaster,
+    toProjectSyncSnapshot,
+} from "../services/sync/syncBroadcaster";
 import { useAppStore } from "../store/useAppStore";
 
 /**
@@ -11,6 +15,8 @@ export const useProjectSync = () => {
     const ipcService = useIpcService();
 
     useEffect(() => {
+        const broadcaster = createSyncBroadcaster(ipcService);
+
         // unitFactorの更新監視
         const unsubscribeUnitFactor = ipcService.onUnitFactorUpdated(
             (unitFactor) => {
@@ -61,27 +67,8 @@ export const useProjectSync = () => {
 
         // 初期状態同期要求の監視 (メインウィンドウが応答する側)
         const unsubscribeRequestSync = ipcService.onRequestStateSync(() => {
-            // 現在の状態を送信
-            const currentImageSets = useAppStore.getState().imageSets;
-            const currentDimensionLines = useAppStore.getState().dimensionLines;
-            const currentUnitFactor = useAppStore.getState().unitFactor;
-            const currentUnit = useAppStore.getState().unit;
-            const currentInteractionMode =
-                useAppStore.getState().interactionMode;
-            const currentSelectedImageId =
-                useAppStore.getState().selectedImageId;
-            const currentSelectedDimensionLineId =
-                useAppStore.getState().selectedDimensionLineId;
-
-            ipcService.updateImageSets(currentImageSets);
-            ipcService.updateDimensionLines(currentDimensionLines);
-            ipcService.updateUnitFactor(currentUnitFactor);
-            ipcService.updateUnit(currentUnit);
-            ipcService.updateInteractionMode(currentInteractionMode);
-            ipcService.updateSelectedImageId(currentSelectedImageId);
-            ipcService.updateSelectedDimensionLineId(
-                currentSelectedDimensionLineId
-            );
+            const snapshot = toProjectSyncSnapshot(useAppStore.getState());
+            broadcaster.broadcastSnapshot(snapshot);
         });
 
         return () => {
