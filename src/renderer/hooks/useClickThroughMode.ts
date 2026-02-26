@@ -2,6 +2,10 @@ import { useEffect } from "react";
 
 import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
+import {
+    selectIsAlwaysOnTopMode,
+    selectIsClickThroughMode,
+} from "../store/selectors";
 
 const CLICK_THROUGH_TARGET_SELECTOR = "[data-clickthrough-target]";
 const CLICK_THROUGH_ALLOW_SELECTOR = "[data-clickthrough-allow]";
@@ -18,8 +22,8 @@ const shouldIgnoreMouseEvents = (element: HTMLElement | null): boolean => {
 
 export const useClickThroughMode = (): void => {
     const ipcService = useIpcService();
-    const isAlwaysOnTopMode = useAppStore((state) => state.isAlwaysOnTopMode);
-    const isClickThroughMode = useAppStore((state) => state.isClickThroughMode);
+    const isAlwaysOnTopMode = useAppStore(selectIsAlwaysOnTopMode);
+    const isClickThroughMode = useAppStore(selectIsClickThroughMode);
 
     useEffect(() => {
         const unsubscribeAlwaysOnTop =

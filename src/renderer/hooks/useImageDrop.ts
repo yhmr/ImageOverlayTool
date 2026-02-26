@@ -4,6 +4,7 @@ import type { DragEventHandler } from "react";
 import { isSupportedImagePath } from "../../shared/constants/imageFormats";
 import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
+import { selectAddImageSetWithPath } from "../store/selectors";
 
 type FileWithPath = File & {
     path?: string;
@@ -49,9 +50,7 @@ const extractPathsFromUriList = (dataTransfer: DataTransfer): string[] => {
 
 export const useImageDrop = () => {
     const ipcService = useIpcService();
-    const addImageSetWithPath = useAppStore(
-        (state) => state.addImageSetWithPath
-    );
+    const addImageSetWithPath = useAppStore(selectAddImageSetWithPath);
 
     const onDragOver = useCallback<DragEventHandler<HTMLElement>>((event) => {
         event.preventDefault();

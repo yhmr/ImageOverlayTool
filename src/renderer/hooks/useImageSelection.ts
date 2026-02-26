@@ -1,9 +1,17 @@
 import { useCallback, useEffect } from "react";
 import { useAppStore } from "../store/useAppStore";
+import {
+    selectImageSets,
+    selectInteractionMode,
+    selectSelectedImageId,
+    selectSetSelectedImageId,
+} from "../store/selectors";
 
 export const useImageSelection = () => {
-    const { imageSets, selectedImageId, setSelectedImageId, interactionMode } =
-        useAppStore();
+    const imageSets = useAppStore(selectImageSets);
+    const selectedImageId = useAppStore(selectSelectedImageId);
+    const setSelectedImageId = useAppStore(selectSetSelectedImageId);
+    const interactionMode = useAppStore(selectInteractionMode);
 
     // 選択された画像が削除された場合、選択を解除する
     useEffect(() => {

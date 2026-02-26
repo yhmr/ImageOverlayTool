@@ -4,20 +4,27 @@ import i18n from "../../i18n/configs";
 import { useIpcService } from "../providers/IpcServiceProvider";
 import { createProjectCommandService } from "../services/projectCommandService";
 import { useAppStore } from "../store/useAppStore";
+import {
+    selectCurrentProjectFilePath,
+    selectHasUnsavedChanges,
+    selectLoadProject,
+    selectMarkProjectSaved,
+    selectReplaceImageSetsAfterSave,
+    selectResetAll,
+    selectSetCurrentProjectFilePath,
+} from "../store/selectors";
 
 export const useProjectOperations = () => {
-    const currentProjectFilePath = useAppStore(
-        (state) => state.currentProjectFilePath
-    );
-    const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
-    const loadProject = useAppStore((state) => state.loadProject);
-    const resetAll = useAppStore((state) => state.resetAll);
+    const currentProjectFilePath = useAppStore(selectCurrentProjectFilePath);
+    const hasUnsavedChanges = useAppStore(selectHasUnsavedChanges);
+    const loadProject = useAppStore(selectLoadProject);
+    const resetAll = useAppStore(selectResetAll);
     const setCurrentProjectFilePath = useAppStore(
-        (state) => state.setCurrentProjectFilePath
+        selectSetCurrentProjectFilePath
     );
-    const markProjectSaved = useAppStore((state) => state.markProjectSaved);
+    const markProjectSaved = useAppStore(selectMarkProjectSaved);
     const replaceImageSetsAfterSave = useAppStore(
-        (state) => state.replaceImageSetsAfterSave
+        selectReplaceImageSetsAfterSave
     );
 
     const ipcService = useIpcService();

@@ -2,6 +2,17 @@ import { useCallback, RefObject, useMemo, useState } from "react";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { useAppStore } from "../store/useAppStore";
+import {
+    selectAddDimensionLine,
+    selectDimensionLines,
+    selectInteractionMode,
+    selectSelectedDimensionLineId,
+    selectSetInteractionMode,
+    selectSetSelectedDimensionLineId,
+    selectUnit,
+    selectUnitFactor,
+    selectUpdateDimensionLine,
+} from "../store/selectors";
 import { DimensionLine } from "../../shared/types/DimensionLine";
 import { MIN_DIMENSION_LINE_DISTANCE } from "../constants";
 import { useDimensionKeyboard } from "./useDimensionKeyboard";
@@ -11,17 +22,17 @@ import { isDimensionInteractionMode } from "../../shared/types/InteractionMode";
 export const useDimensionLineMode = (
     stageRef: RefObject<Konva.Stage | null>
 ) => {
-    const {
-        dimensionLines,
-        unitFactor,
-        unit,
-        addDimensionLine,
-        updateDimensionLine,
-        interactionMode,
-        setInteractionMode,
-        selectedDimensionLineId,
-        setSelectedDimensionLineId,
-    } = useAppStore();
+    const dimensionLines = useAppStore(selectDimensionLines);
+    const unitFactor = useAppStore(selectUnitFactor);
+    const unit = useAppStore(selectUnit);
+    const addDimensionLine = useAppStore(selectAddDimensionLine);
+    const updateDimensionLine = useAppStore(selectUpdateDimensionLine);
+    const interactionMode = useAppStore(selectInteractionMode);
+    const setInteractionMode = useAppStore(selectSetInteractionMode);
+    const selectedDimensionLineId = useAppStore(selectSelectedDimensionLineId);
+    const setSelectedDimensionLineId = useAppStore(
+        selectSetSelectedDimensionLineId
+    );
 
     const [draftLine, setDraftLine] = useState<DimensionLine | null>(null);
 

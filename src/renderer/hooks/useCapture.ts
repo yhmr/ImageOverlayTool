@@ -2,9 +2,16 @@ import { TITLE_BAR_HEIGHT } from "../constants";
 import { createImageSetFromLocalFile } from "../factories/imageSetFactory";
 import { useIpcService } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
+import {
+    selectCanvas,
+    selectImageSets,
+    selectSetImageSets,
+} from "../store/selectors";
 
 export function useCapture() {
-    const { imageSets, setImageSets, canvas } = useAppStore();
+    const imageSets = useAppStore(selectImageSets);
+    const setImageSets = useAppStore(selectSetImageSets);
+    const canvas = useAppStore(selectCanvas);
     const ipcService = useIpcService();
 
     const captureBackground = async () => {
