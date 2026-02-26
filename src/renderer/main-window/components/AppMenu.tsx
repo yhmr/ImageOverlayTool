@@ -37,7 +37,7 @@ import { useImagePaste } from "../../hooks/useImagePaste";
 import {
     MAIN_WINDOW_SHORTCUT_LABELS,
     type MainWindowShortcutLabelKey,
-} from "../../hooks/useKeyboardShortcuts";
+} from "../../hooks/shortcuts/mainWindowShortcuts";
 import type { MainWindowActions } from "../hooks/useMainWindowActions";
 
 interface AppMenuProps {
