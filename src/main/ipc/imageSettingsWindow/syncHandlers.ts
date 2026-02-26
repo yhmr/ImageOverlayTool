@@ -11,6 +11,25 @@ import log from "../../logger";
 import { broadcastToOtherWindows } from "../../windows/broadcast";
 import type { ImageSettingsWindowHandlerDependencies } from "./types";
 
+const registerSyncBroadcastHandler = <TPayload>(
+    windowManager: ImageSettingsWindowHandlerDependencies,
+    args: {
+        channel: string;
+        event: string;
+        formatLog: (payload: TPayload) => string;
+    }
+): void => {
+    ipcMain.handle(args.channel, (event, payload: TPayload) => {
+        log.debug(args.formatLog(payload));
+        broadcastToOtherWindows(
+            windowManager,
+            event.sender.id,
+            args.event,
+            payload
+        );
+    });
+};
+
 /**
  * ドラッグによる画像や寸法線の変更、単位変更など、
  * 異なるウィンドウ(メイン / 設定ウィンドウ等)間で状態を同期するためのIPCハンドラーを登録します。
@@ -22,103 +41,47 @@ import type { ImageSettingsWindowHandlerDependencies } from "./types";
 export const registerSyncHandlers = (
     windowManager: ImageSettingsWindowHandlerDependencies
 ): void => {
-    ipcMain.handle(
-        syncIpcContracts.updateImageSets.channel,
-        (event, imageSets: ImageSet[]) => {
-            log.debug(
-                `[IPC] imageSets:update called with ${imageSets.length} images`
-            );
-            broadcastToOtherWindows(
-                windowManager,
-                event.sender.id,
-                syncEventContracts.imageSetsUpdated.event,
-                imageSets
-            );
-        }
-    );
-
-    ipcMain.handle(
-        syncIpcContracts.updateDimensionLines.channel,
-        (event, dimensionLines: DimensionLine[]) => {
-            log.debug(
-                `[IPC] dimensionLines:update called with ${dimensionLines.length} lines`
-            );
-            broadcastToOtherWindows(
-                windowManager,
-                event.sender.id,
-                syncEventContracts.dimensionLinesUpdated.event,
-                dimensionLines
-            );
-        }
-    );
-
-    ipcMain.handle(
-        syncIpcContracts.updateUnitFactor.channel,
-        (event, unitFactor: number) => {
-            log.debug(
-                `[IPC] unitFactor:update called with value: ${unitFactor}`
-            );
-            broadcastToOtherWindows(
-                windowManager,
-                event.sender.id,
-                syncEventContracts.unitFactorUpdated.event,
-                unitFactor
-            );
-        }
-    );
-
-    ipcMain.handle(syncIpcContracts.updateUnit.channel, (event, unit: Unit) => {
-        log.debug(`[IPC] unit:update called with value: ${unit}`);
-        broadcastToOtherWindows(
-            windowManager,
-            event.sender.id,
-            syncEventContracts.unitUpdated.event,
-            unit
-        );
+    registerSyncBroadcastHandler<ImageSet[]>(windowManager, {
+        channel: syncIpcContracts.updateImageSets.channel,
+        event: syncEventContracts.imageSetsUpdated.event,
+        formatLog: (imageSets) =>
+            `[IPC] imageSets:update called with ${imageSets.length} images`,
     });
-
-    ipcMain.handle(
-        syncIpcContracts.updateInteractionMode.channel,
-        (event, mode: InteractionMode) => {
-            log.debug(
-                `[IPC] interactionMode:update called with value: ${mode}`
-            );
-            broadcastToOtherWindows(
-                windowManager,
-                event.sender.id,
-                syncEventContracts.interactionModeUpdated.event,
-                mode
-            );
-        }
-    );
-
-    ipcMain.handle(
-        syncIpcContracts.updateSelectedImageId.channel,
-        (event, id: string | null) => {
-            log.debug(`[IPC] selectedImageId:update called with value: ${id}`);
-            broadcastToOtherWindows(
-                windowManager,
-                event.sender.id,
-                syncEventContracts.selectedImageIdUpdated.event,
-                id
-            );
-        }
-    );
-
-    ipcMain.handle(
-        syncIpcContracts.updateSelectedDimensionLineId.channel,
-        (event, id: string | null) => {
-            log.debug(
-                `[IPC] selectedDimensionLineId:update called with value: ${id}`
-            );
-            broadcastToOtherWindows(
-                windowManager,
-                event.sender.id,
-                syncEventContracts.selectedDimensionLineIdUpdated.event,
-                id
-            );
-        }
-    );
+    registerSyncBroadcastHandler<DimensionLine[]>(windowManager, {
+        channel: syncIpcContracts.updateDimensionLines.channel,
+        event: syncEventContracts.dimensionLinesUpdated.event,
+        formatLog: (dimensionLines) =>
+            `[IPC] dimensionLines:update called with ${dimensionLines.length} lines`,
+    });
+    registerSyncBroadcastHandler<number>(windowManager, {
+        channel: syncIpcContracts.updateUnitFactor.channel,
+        event: syncEventContracts.unitFactorUpdated.event,
+        formatLog: (unitFactor) =>
+            `[IPC] unitFactor:update called with value: ${unitFactor}`,
+    });
+    registerSyncBroadcastHandler<Unit>(windowManager, {
+        channel: syncIpcContracts.updateUnit.channel,
+        event: syncEventContracts.unitUpdated.event,
+        formatLog: (unit) => `[IPC] unit:update called with value: ${unit}`,
+    });
+    registerSyncBroadcastHandler<InteractionMode>(windowManager, {
+        channel: syncIpcContracts.updateInteractionMode.channel,
+        event: syncEventContracts.interactionModeUpdated.event,
+        formatLog: (mode) =>
+            `[IPC] interactionMode:update called with value: ${mode}`,
+    });
+    registerSyncBroadcastHandler<string | null>(windowManager, {
+        channel: syncIpcContracts.updateSelectedImageId.channel,
+        event: syncEventContracts.selectedImageIdUpdated.event,
+        formatLog: (id) =>
+            `[IPC] selectedImageId:update called with value: ${id}`,
+    });
+    registerSyncBroadcastHandler<string | null>(windowManager, {
+        channel: syncIpcContracts.updateSelectedDimensionLineId.channel,
+        event: syncEventContracts.selectedDimensionLineIdUpdated.event,
+        formatLog: (id) =>
+            `[IPC] selectedDimensionLineId:update called with value: ${id}`,
+    });
 
     ipcMain.handle(
         syncIpcContracts.updateProjectDirty.channel,

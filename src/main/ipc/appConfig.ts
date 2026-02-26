@@ -2,6 +2,7 @@ import { BrowserWindow } from "electron";
 import { ISettingsRepository } from "../repositories/SettingsRepository";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import { settingsEventContracts } from "../../shared/ipc/contracts";
+import { broadcastToAllWindows } from "../windows/broadcast";
 import { registerSettingsHandlers } from "./appConfig/settingsHandlers";
 import { registerTransferHandlers } from "./appConfig/transferHandlers";
 import { registerWindowHandlers } from "./appConfig/windowHandlers";
@@ -21,12 +22,11 @@ export const registerAppConfigHandlers = (
     windowRepository: IWindowRepository
 ) => {
     const broadcastLanguageUpdated = (language: string) => {
-        BrowserWindow.getAllWindows().forEach((win) => {
-            win.webContents.send(
-                settingsEventContracts.languageUpdated.event,
-                language
-            );
-        });
+        broadcastToAllWindows(
+            BrowserWindow.getAllWindows(),
+            settingsEventContracts.languageUpdated.event,
+            language
+        );
     };
 
     const context: AppConfigHandlerContext = {
