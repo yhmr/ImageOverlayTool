@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import i18n from "../../i18n/configs";
 import { useIpcService } from "../providers/IpcServiceProvider";
 import { createProjectCommandService } from "../services/projectCommandService";
+import { getCurrentWindowState } from "../services/project/buildProjectFile";
 import { useAppStore } from "../store/useAppStore";
 import {
     selectCurrentProjectFilePath,
@@ -54,6 +55,7 @@ export const useProjectOperations = () => {
                 },
                 readCurrentProjectFilePath: () =>
                     useAppStore.getState().currentProjectFilePath,
+                readWindowState: getCurrentWindowState,
                 mutations: {
                     loadProject,
                     resetAll,

@@ -1,22 +1,18 @@
-import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { ImageSet } from "../../shared/types/ImageSet";
+import type { ProjectFile } from "../../shared/types/ProjectFile";
 
 import i18n from "../../i18n/configs";
-import { fromLocalFileUrl, toLocalFileUrl } from "../factories/imageSetFactory";
 import type { IIPCService } from "./ipcService";
-
-type ProjectSnapshot = {
-    unitFactor: number;
-    unit: "nm" | "um" | "mm";
-    windowColor: string;
-    canvas: {
-        x: number;
-        y: number;
-        scale: number;
-    };
-    imageSets: ImageSet[];
-    dimensionLines: ProjectFile<ImageSet>["dimensionLines"];
-};
+import {
+    buildProjectFile,
+    getCurrentWindowState,
+    type ProjectSnapshot,
+    type ProjectWindowState,
+} from "./project/buildProjectFile";
+import {
+    getCacheImageLocalPaths,
+    resolveCacheImagePaths,
+} from "./project/resolveCacheImages";
 
 type ProjectMutations = {
     loadProject: (project: ProjectFile<ImageSet>) => void;
@@ -28,8 +24,12 @@ type ProjectMutations = {
 
 interface ProjectCommandServiceDeps {
     ipcService: IIPCService;
+    // Storeから現在のプロジェクトデータ（スナップショット）を取得する関数
     readSnapshot: () => ProjectSnapshot;
+    // 現在開いているプロジェクトファイルのパスを取得する関数
     readCurrentProjectFilePath: () => string | null;
+    // ウィンドウの現在の状態（位置・サイズ等）を取得する関数
+    readWindowState?: () => ProjectWindowState;
     mutations: ProjectMutations;
 }
 
@@ -52,32 +52,6 @@ interface ResolvedProjectForSave {
     nextImageSets: ImageSet[] | null;
     cacheImagePathsToDelete: string[];
 }
-
-const buildProjectFile = (
-    snapshot: ProjectSnapshot
-): ProjectFile<ImageSet> => ({
-    version: "1.0.0",
-    window: {
-        width: window.outerWidth,
-        height: window.outerHeight,
-        x: window.screenX,
-        y: window.screenY,
-        color: snapshot.windowColor,
-    },
-    settings: {
-        unitFactor: snapshot.unitFactor,
-        unit: snapshot.unit,
-    },
-    canvas: snapshot.canvas,
-    images: snapshot.imageSets,
-    dimensionLines: snapshot.dimensionLines,
-});
-
-const getCacheImageLocalPaths = (imageSets: ImageSet[]): string[] =>
-    imageSets
-        .filter((imageSet) => (imageSet.sourceType ?? "file") === "cache")
-        .map((imageSet) => fromLocalFileUrl(imageSet.path))
-        .filter((value): value is string => Boolean(value));
 
 const applyProject = async (
     ipcService: IIPCService,
@@ -105,10 +79,13 @@ export const createProjectCommandService = ({
     ipcService,
     readSnapshot,
     readCurrentProjectFilePath,
+    // window状態の取得関数を受け取る（指定がなければデフォルトのものを使用）
+    readWindowState = getCurrentWindowState,
     mutations,
 }: ProjectCommandServiceDeps): ProjectCommandService => {
+    // ウィンドウ状態(readWindowState())を外部から注入・合成する
     const createProjectFile = (): ProjectFile<ImageSet> => {
-        return buildProjectFile(readSnapshot());
+        return buildProjectFile(readSnapshot(), readWindowState());
     };
 
     const resolveProjectFileForSave = async (
@@ -118,7 +95,7 @@ export const createProjectCommandService = ({
         const cacheImagePaths = getCacheImageLocalPaths(snapshot.imageSets);
         if (cacheImagePaths.length === 0) {
             return {
-                project: buildProjectFile(snapshot),
+                project: buildProjectFile(snapshot, readWindowState()),
                 nextImageSets: null,
                 cacheImagePathsToDelete: [],
             };
@@ -136,44 +113,31 @@ export const createProjectCommandService = ({
             targetProjectFilePath,
             cacheImagePaths
         );
-        const missingPaths = cacheImagePaths.filter(
-            (path) => !replacementMap[path]
+        // キャッシュ画像の解決処理結果を受け取る
+        const resolution = resolveCacheImagePaths(
+            snapshot.imageSets,
+            replacementMap,
+            cacheImagePaths
         );
-        if (missingPaths.length > 0) {
+        if (resolution.missingPaths.length > 0) {
             throw new Error(
-                `Failed to materialize cache images: ${missingPaths.join(", ")}`
+                `Failed to materialize cache images: ${resolution.missingPaths.join(
+                    ", "
+                )}`
             );
         }
 
-        const nextImageSets = snapshot.imageSets.map((imageSet) => {
-            if ((imageSet.sourceType ?? "file") !== "cache") {
-                return imageSet;
-            }
-
-            const sourcePath = fromLocalFileUrl(imageSet.path);
-            if (!sourcePath) {
-                return imageSet;
-            }
-
-            const destinationPath = replacementMap[sourcePath];
-            if (!destinationPath) {
-                return imageSet;
-            }
-
-            return {
-                ...imageSet,
-                path: toLocalFileUrl(destinationPath),
-                sourceType: "file" as const,
-            };
-        });
-
         return {
-            project: buildProjectFile({
-                ...snapshot,
-                imageSets: nextImageSets,
-            }),
-            nextImageSets,
-            cacheImagePathsToDelete: [...new Set(cacheImagePaths)],
+            // buildProjectFile にウィンドウ状態を渡す
+            project: buildProjectFile(
+                {
+                    ...snapshot,
+                    imageSets: resolution.nextImageSets,
+                },
+                readWindowState()
+            ),
+            nextImageSets: resolution.nextImageSets,
+            cacheImagePathsToDelete: resolution.cacheImagePathsToDelete,
         };
     };
 
@@ -209,7 +173,7 @@ export const createProjectCommandService = ({
 
         if (!hasCacheImages) {
             const savedPath = await ipcService.saveProjectAs(
-                buildProjectFile(snapshot)
+                buildProjectFile(snapshot, readWindowState())
             );
             if (savedPath) {
                 mutations.setCurrentProjectFilePath(savedPath);
@@ -219,30 +183,30 @@ export const createProjectCommandService = ({
         }
 
         const savedPath = await ipcService.pickProjectSavePath();
-        if (savedPath) {
-            const projectForSave = await resolveProjectFileForSave(
-                savedPath,
-                snapshot
-            );
-            if (!projectForSave) {
-                return;
-            }
-
-            await ipcService.saveProject(
-                savedPath,
-                projectForSave.project,
-                projectForSave.cacheImagePathsToDelete.length > 0
-                    ? projectForSave.cacheImagePathsToDelete
-                    : undefined
-            );
-            if (projectForSave.nextImageSets) {
-                mutations.replaceImageSetsAfterSave(
-                    projectForSave.nextImageSets
-                );
-            }
-            mutations.setCurrentProjectFilePath(savedPath);
-            mutations.markProjectSaved();
+        if (!savedPath) {
+            return;
         }
+
+        const projectForSave = await resolveProjectFileForSave(
+            savedPath,
+            snapshot
+        );
+        if (!projectForSave) {
+            return;
+        }
+
+        await ipcService.saveProject(
+            savedPath,
+            projectForSave.project,
+            projectForSave.cacheImagePathsToDelete.length > 0
+                ? projectForSave.cacheImagePathsToDelete
+                : undefined
+        );
+        if (projectForSave.nextImageSets) {
+            mutations.replaceImageSetsAfterSave(projectForSave.nextImageSets);
+        }
+        mutations.setCurrentProjectFilePath(savedPath);
+        mutations.markProjectSaved();
     };
 
     const saveProject = async (): Promise<void> => {
