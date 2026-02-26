@@ -20,6 +20,7 @@ import {
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
 import { cn } from "@/renderer/lib/utils";
+import { selectIsUIHidden } from "@/renderer/store/selectors";
 import { useAppStore } from "../../store/useAppStore";
 import type { MainWindowActions } from "../hooks/useMainWindowActions";
 
@@ -36,7 +37,7 @@ export function ControlButton(props: ControlButtonProps) {
         mainWindowActions,
     } = props;
     const { t } = useTranslation();
-    const isUIHidden = useAppStore((state) => state.isUIHidden);
+    const isUIHidden = useAppStore(selectIsUIHidden);
     const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
 
     const toggleFabMenu = () => setIsFabMenuOpen((prev) => !prev);

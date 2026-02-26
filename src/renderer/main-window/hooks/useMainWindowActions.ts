@@ -2,6 +2,14 @@ import { useCallback } from "react";
 
 import { useCapture } from "../../hooks/useCapture";
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import {
+    selectIsAlwaysOnTopMode,
+    selectIsClickThroughMode,
+    selectIsWindowFrameVisible,
+    selectSetAlwaysOnTopMode,
+    selectSetClickThroughMode,
+    selectSetWindowFrameVisible,
+} from "../../store/selectors";
 import { useAppStore } from "../../store/useAppStore";
 
 export interface MainWindowActions {
@@ -23,18 +31,12 @@ export interface MainWindowActions {
 export function useMainWindowActions(): MainWindowActions {
     const ipcService = useIpcService();
     const { captureBackground } = useCapture();
-    const isAlwaysOnTopMode = useAppStore((state) => state.isAlwaysOnTopMode);
-    const isClickThroughMode = useAppStore((state) => state.isClickThroughMode);
-    const isWindowFrameVisible = useAppStore(
-        (state) => state.isWindowFrameVisible
-    );
-    const setAlwaysOnTopMode = useAppStore((state) => state.setAlwaysOnTopMode);
-    const setClickThroughMode = useAppStore(
-        (state) => state.setClickThroughMode
-    );
-    const setWindowFrameVisible = useAppStore(
-        (state) => state.setWindowFrameVisible
-    );
+    const isAlwaysOnTopMode = useAppStore(selectIsAlwaysOnTopMode);
+    const isClickThroughMode = useAppStore(selectIsClickThroughMode);
+    const isWindowFrameVisible = useAppStore(selectIsWindowFrameVisible);
+    const setAlwaysOnTopMode = useAppStore(selectSetAlwaysOnTopMode);
+    const setClickThroughMode = useAppStore(selectSetClickThroughMode);
+    const setWindowFrameVisible = useAppStore(selectSetWindowFrameVisible);
 
     const openImageSettingsWindow = useCallback(() => {
         void ipcService.toggleImageSettingsWindow();

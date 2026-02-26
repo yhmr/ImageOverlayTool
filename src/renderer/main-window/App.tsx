@@ -16,6 +16,14 @@ import {
     useIpcService,
 } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
+import {
+    selectHasUnsavedChanges,
+    selectIsWindowFrameVisible,
+    selectSetWindowColor,
+    selectSetWindowColorPresets,
+    selectSetWindowFrameVisible,
+    selectWindowColor,
+} from "../store/selectors";
 import { DEFAULT_SHOW_WINDOW_FRAME } from "../../shared/types/AppConfig";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
@@ -27,18 +35,12 @@ import { useWindowColorPickerController } from "./hooks/useWindowColorPickerCont
 
 const App = () => {
     // 設定の読み込み
-    const setWindowColor = useAppStore((state) => state.setWindowColor);
-    const setWindowColorPresets = useAppStore(
-        (state) => state.setWindowColorPresets
-    );
-    const setWindowFrameVisible = useAppStore(
-        (state) => state.setWindowFrameVisible
-    );
-    const isWindowFrameVisible = useAppStore(
-        (state) => state.isWindowFrameVisible
-    );
-    const windowColor = useAppStore((state) => state.windowColor);
-    const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
+    const setWindowColor = useAppStore(selectSetWindowColor);
+    const setWindowColorPresets = useAppStore(selectSetWindowColorPresets);
+    const setWindowFrameVisible = useAppStore(selectSetWindowFrameVisible);
+    const isWindowFrameVisible = useAppStore(selectIsWindowFrameVisible);
+    const windowColor = useAppStore(selectWindowColor);
+    const hasUnsavedChanges = useAppStore(selectHasUnsavedChanges);
     const ipcService = useIpcService();
     const mainWindowActions = useMainWindowActions();
     const windowColorPicker = useWindowColorPickerController();

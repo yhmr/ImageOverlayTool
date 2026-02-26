@@ -5,6 +5,12 @@ import {
     normalizeWindowColorPresets,
 } from "../../../shared/types/AppConfig";
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import {
+    selectSetWindowColor,
+    selectSetWindowColorPresets,
+    selectWindowColor,
+    selectWindowColorPresets,
+} from "../../store/selectors";
 import { useAppStore } from "../../store/useAppStore";
 
 export interface WindowColorPickerController {
@@ -27,12 +33,12 @@ export function useWindowColorPickerController(): WindowColorPickerController {
     const ipcService = useIpcService();
 
     // 現在の背景色状態
-    const windowColor = useAppStore((state) => state.windowColor);
-    const setWindowColorStore = useAppStore((state) => state.setWindowColor);
+    const windowColor = useAppStore(selectWindowColor);
+    const setWindowColorStore = useAppStore(selectSetWindowColor);
 
     // プリセット状態
-    const presets = useAppStore((state) => state.windowColorPresets);
-    const setPresetsStore = useAppStore((state) => state.setWindowColorPresets);
+    const presets = useAppStore(selectWindowColorPresets);
+    const setPresetsStore = useAppStore(selectSetWindowColorPresets);
 
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const open = useCallback(() => setIsPickerOpen(true), []);

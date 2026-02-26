@@ -1,6 +1,14 @@
 import React, { memo, useCallback, useEffect, useRef } from "react";
 
 import { useAppStore } from "../../store/useAppStore";
+import {
+    selectCanvas,
+    selectImageSets,
+    selectSetCanvasState,
+    selectSetUIHidden,
+    selectSyncImageSets,
+    selectUpdateImageSet,
+} from "../../store/selectors";
 
 import Konva from "konva";
 import { Stage, Layer } from "react-konva";
@@ -39,14 +47,12 @@ export const ImageStage = memo(function ImageStage(props: ImageStageProps) {
         onOpenWindowColorPicker,
         mainWindowActions,
     } = props;
-    const {
-        imageSets,
-        updateImageSet,
-        syncImageSets,
-        canvas,
-        setCanvasState,
-        setUIHidden,
-    } = useAppStore();
+    const imageSets = useAppStore(selectImageSets);
+    const updateImageSet = useAppStore(selectUpdateImageSet);
+    const syncImageSets = useAppStore(selectSyncImageSets);
+    const canvas = useAppStore(selectCanvas);
+    const setCanvasState = useAppStore(selectSetCanvasState);
+    const setUIHidden = useAppStore(selectSetUIHidden);
 
     const stageRef = useRef<Konva.Stage>(null);
 

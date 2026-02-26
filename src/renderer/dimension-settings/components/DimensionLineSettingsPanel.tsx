@@ -14,6 +14,19 @@ import {
 import { Switch } from "@/renderer/components/ui/switch";
 import { cn } from "@/renderer/lib/utils";
 import { useAppStore } from "@/renderer/store/useAppStore";
+import {
+    selectDimensionLines,
+    selectInteractionMode,
+    selectRemoveDimensionLine,
+    selectSelectedDimensionLineId,
+    selectSetInteractionMode,
+    selectSetSelectedDimensionLineId,
+    selectSetUnit,
+    selectSetUnitFactor,
+    selectUnit,
+    selectUnitFactor,
+    selectUpdateDimensionLine,
+} from "@/renderer/store/selectors";
 import { sanitizeDimensionLineColor } from "@/shared/constants/dimensionLine";
 import type { InteractionMode } from "@/shared/types/InteractionMode";
 import {
@@ -36,19 +49,19 @@ const formatLineLength = (
 
 export function DimensionLineSettingsPanel() {
     const { t } = useTranslation();
-    const {
-        interactionMode,
-        setInteractionMode,
-        unitFactor,
-        setUnitFactor,
-        unit,
-        setUnit,
-        dimensionLines,
-        updateDimensionLine,
-        removeDimensionLine,
-        selectedDimensionLineId,
-        setSelectedDimensionLineId,
-    } = useAppStore();
+    const interactionMode = useAppStore(selectInteractionMode);
+    const setInteractionMode = useAppStore(selectSetInteractionMode);
+    const unitFactor = useAppStore(selectUnitFactor);
+    const setUnitFactor = useAppStore(selectSetUnitFactor);
+    const unit = useAppStore(selectUnit);
+    const setUnit = useAppStore(selectSetUnit);
+    const dimensionLines = useAppStore(selectDimensionLines);
+    const updateDimensionLine = useAppStore(selectUpdateDimensionLine);
+    const removeDimensionLine = useAppStore(selectRemoveDimensionLine);
+    const selectedDimensionLineId = useAppStore(selectSelectedDimensionLineId);
+    const setSelectedDimensionLineId = useAppStore(
+        selectSetSelectedDimensionLineId
+    );
 
     const isDimensionAddMode = interactionMode === "dimension_add";
     const isDimensionSelectMode = interactionMode === "dimension_select";

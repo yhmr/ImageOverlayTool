@@ -17,7 +17,11 @@ import { Button } from "@/renderer/components/ui/button";
 import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
 import { useAppStore, type AppState } from "../../store/useAppStore";
-import { selectSetProjectDataChangeOrigin } from "../../store/selectors";
+import {
+    selectImageSets,
+    selectIsUIHidden,
+    selectSetProjectDataChangeOrigin,
+} from "../../store/selectors";
 import type { MainWindowActions } from "../hooks/useMainWindowActions";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 
@@ -35,7 +39,8 @@ export function MenuBar({
     mainWindowActions,
 }: MenuBarProps) {
     const { t } = useTranslation();
-    const { isUIHidden, imageSets } = useAppStore();
+    const isUIHidden = useAppStore(selectIsUIHidden);
+    const imageSets = useAppStore(selectImageSets);
     const setProjectDataChangeOrigin = useAppStore(
         selectSetProjectDataChangeOrigin
     );

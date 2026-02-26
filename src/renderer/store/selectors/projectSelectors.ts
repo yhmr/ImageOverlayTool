@@ -2,6 +2,8 @@ import type { AppState } from "../useAppStore";
 
 export const selectImageSets = (state: AppState) => state.imageSets;
 export const selectSetImageSets = (state: AppState) => state.setImageSets;
+export const selectUpdateImageSet = (state: AppState) => state.updateImageSet;
+export const selectSyncImageSets = (state: AppState) => state.syncImageSets;
 export const selectAddImageSetWithPath = (state: AppState) =>
     state.addImageSetWithPath;
 
@@ -14,7 +16,11 @@ export const selectRemoveDimensionLine = (state: AppState) =>
     state.removeDimensionLine;
 
 export const selectUnitFactor = (state: AppState) => state.unitFactor;
+export const selectSetUnitFactor = (state: AppState) => state.setUnitFactor;
 export const selectUnit = (state: AppState) => state.unit;
+export const selectSetUnit = (state: AppState) => state.setUnit;
+export const selectWindowColor = (state: AppState) => state.windowColor;
+export const selectSetWindowColor = (state: AppState) => state.setWindowColor;
 export const selectHasUnsavedChanges = (state: AppState) =>
     state.hasUnsavedChanges;
 
