@@ -9,6 +9,14 @@ export type WindowRect = {
     height: number;
 };
 
+export type ConfirmDialogOptions = {
+    title?: string;
+    message: string;
+    detail?: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+};
+
 /**
  * 汎用ウィンドウ操作関連のIPC通信におけるRequest/Responseの型定義群
  */
@@ -16,6 +24,7 @@ export type WindowInvokeContracts = {
     minimize: InvokeContract<[], void>;
     switchSize: InvokeContract<[], boolean>;
     close: InvokeContract<[], void>;
+    confirm: InvokeContract<[options: ConfirmDialogOptions], boolean>;
     setRect: InvokeContract<[rect: WindowRect], void>;
     setIgnoreMouseEvents: InvokeContract<[ignore: boolean], void>;
     setAlwaysOnTop: InvokeContract<[enabled: boolean], void>;
@@ -26,6 +35,7 @@ export const windowIpcContracts: WindowInvokeContracts = {
     minimize: defineInvokeContract(IPC_CHANNELS.window.minimize),
     switchSize: defineInvokeContract(IPC_CHANNELS.window.switchSize),
     close: defineInvokeContract(IPC_CHANNELS.window.close),
+    confirm: defineInvokeContract(IPC_CHANNELS.window.confirm),
     setRect: defineInvokeContract(IPC_CHANNELS.window.setRect),
     setIgnoreMouseEvents: defineInvokeContract(
         IPC_CHANNELS.window.setIgnoreMouseEvents

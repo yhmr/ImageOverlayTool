@@ -11,6 +11,7 @@ export const IPC_CHANNELS = {
         minimize: "window:minimize",
         switchSize: "window:switchSize",
         close: "window:close",
+        confirm: "window:confirm",
         setRect: "window:setRect",
         setIgnoreMouseEvents: "window:setIgnoreMouseEvents",
         setAlwaysOnTop: "window:setAlwaysOnTop",

@@ -46,6 +46,16 @@ export class MockIPCService implements IIPCService {
         height: number;
     }): Promise<void> { }
 
+    async showConfirmDialog(_options: {
+        title?: string;
+        message: string;
+        detail?: string;
+        confirmLabel?: string;
+        cancelLabel?: string;
+    }): Promise<boolean> {
+        return true;
+    }
+
     async setIgnoreMouseEvents(_ignore: boolean): Promise<void> { }
 
     async setAlwaysOnTop(_enabled: boolean): Promise<void> { }

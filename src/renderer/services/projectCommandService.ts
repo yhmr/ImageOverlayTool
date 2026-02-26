@@ -1,11 +1,9 @@
 import type { ImageSet } from "../../shared/types/ImageSet";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
 
-import i18n from "../../i18n/configs";
 import type { IIPCService } from "./ipcService";
 import {
     buildProjectFile,
-    getCurrentWindowState,
     type ProjectSnapshot,
     type ProjectWindowState,
 } from "./project/buildProjectFile";
@@ -29,7 +27,8 @@ interface ProjectCommandServiceDeps {
     // 現在開いているプロジェクトファイルのパスを取得する関数
     readCurrentProjectFilePath: () => string | null;
     // ウィンドウの現在の状態（位置・サイズ等）を取得する関数
-    readWindowState?: () => ProjectWindowState;
+    readWindowState: () => ProjectWindowState;
+    confirmCacheImageMaterialization: () => Promise<boolean>;
     mutations: ProjectMutations;
 }
 
@@ -79,8 +78,8 @@ export const createProjectCommandService = ({
     ipcService,
     readSnapshot,
     readCurrentProjectFilePath,
-    // window状態の取得関数を受け取る（指定がなければデフォルトのものを使用）
-    readWindowState = getCurrentWindowState,
+    readWindowState,
+    confirmCacheImageMaterialization,
     mutations,
 }: ProjectCommandServiceDeps): ProjectCommandService => {
     // ウィンドウ状態(readWindowState())を外部から注入・合成する
@@ -101,9 +100,7 @@ export const createProjectCommandService = ({
             };
         }
 
-        const shouldMaterialize = window.confirm(
-            i18n.t("render.project_save.cache_warning.confirm_move")
-        );
+        const shouldMaterialize = await confirmCacheImageMaterialization();
         if (!shouldMaterialize) {
             await ipcService.toggleImageSettingsWindow();
             return null;

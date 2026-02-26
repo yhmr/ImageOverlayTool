@@ -1,4 +1,5 @@
 import {
+    type ConfirmDialogOptions,
     windowIpcContracts,
     type WindowRect,
 } from "../../shared/ipc/contracts/window";
@@ -13,6 +14,8 @@ export const createWindowApi = () => ({
         invokeIpcContract(windowIpcContracts.switchSize),
     setWindowRect: (rect: WindowRect) =>
         invokeIpcContract(windowIpcContracts.setRect, rect),
+    showConfirmDialog: (options: ConfirmDialogOptions): Promise<boolean> =>
+        invokeIpcContract(windowIpcContracts.confirm, options),
     setIgnoreMouseEvents: (ignore: boolean) =>
         invokeIpcContract(windowIpcContracts.setIgnoreMouseEvents, ignore),
     setAlwaysOnTop: (enabled: boolean) =>

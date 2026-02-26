@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import i18n from "../../i18n/configs";
 import { useIpcService } from "../providers/IpcServiceProvider";
@@ -30,6 +30,24 @@ export const useProjectOperations = () => {
 
     const ipcService = useIpcService();
 
+    const confirmWithNativeDialog = useCallback(
+        async (message: string): Promise<boolean> => {
+            try {
+                return await ipcService.showConfirmDialog({
+                    message,
+                    title: i18n.t("render.menu_button.app_title"),
+                });
+            } catch {
+                try {
+                    return window.confirm(message);
+                } catch {
+                    return true;
+                }
+            }
+        },
+        [ipcService]
+    );
+
     const projectCommands = useMemo(
         () =>
             createProjectCommandService({
@@ -56,6 +74,10 @@ export const useProjectOperations = () => {
                 readCurrentProjectFilePath: () =>
                     useAppStore.getState().currentProjectFilePath,
                 readWindowState: getCurrentWindowState,
+                confirmCacheImageMaterialization: () =>
+                    confirmWithNativeDialog(
+                        i18n.t("render.project_save.cache_warning.confirm_move")
+                    ),
                 mutations: {
                     loadProject,
                     resetAll,
@@ -71,39 +93,36 @@ export const useProjectOperations = () => {
             setCurrentProjectFilePath,
             markProjectSaved,
             replaceImageSetsAfterSave,
+            confirmWithNativeDialog,
         ]
     );
 
-    const confirmDiscardUnsavedChanges = (): boolean => {
+    const confirmDiscardUnsavedChanges = async (): Promise<boolean> => {
         if (!hasUnsavedChanges) {
             return true;
         }
 
-        try {
-            return window.confirm(
-                i18n.t("render.unsaved_changes.confirm_discard")
-            );
-        } catch {
-            return true;
-        }
+        return confirmWithNativeDialog(
+            i18n.t("render.unsaved_changes.confirm_discard")
+        );
     };
 
     return {
         currentProjectFilePath,
         newProject: async () => {
-            if (!confirmDiscardUnsavedChanges()) {
+            if (!(await confirmDiscardUnsavedChanges())) {
                 return;
             }
             await projectCommands.newProject();
         },
         openProject: async () => {
-            if (!confirmDiscardUnsavedChanges()) {
+            if (!(await confirmDiscardUnsavedChanges())) {
                 return;
             }
             await projectCommands.openProject();
         },
         openProjectFromPath: async (filePath: string) => {
-            if (!confirmDiscardUnsavedChanges()) {
+            if (!(await confirmDiscardUnsavedChanges())) {
                 return;
             }
             await projectCommands.openProjectFromPath(filePath);

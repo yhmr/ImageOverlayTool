@@ -12,6 +12,7 @@ const mockIPC = vi.hoisted(() => ({
     saveProject: vi.fn(),
     saveProjectAs: vi.fn(),
     setWindowRect: vi.fn(),
+    showConfirmDialog: vi.fn().mockResolvedValue(true),
     saveWindowColor: vi.fn(),
     updateUnit: vi.fn(),
     onUnitUpdated: vi.fn(() => vi.fn()),

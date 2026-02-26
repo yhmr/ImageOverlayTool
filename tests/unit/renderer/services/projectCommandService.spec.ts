@@ -42,7 +42,9 @@ describe("projectCommandService", () => {
             info: vi.fn(),
         },
     };
-    let confirmMock: ReturnType<typeof vi.fn>;
+    const confirmCacheImageMaterialization = vi.fn<
+        () => Promise<boolean>
+    >();
 
     const mutations = {
         loadProject: vi.fn(),
@@ -63,9 +65,26 @@ describe("projectCommandService", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        confirmMock = vi.fn().mockReturnValue(true);
-        vi.stubGlobal("confirm", confirmMock);
+        confirmCacheImageMaterialization.mockResolvedValue(true);
     });
+
+const createService = (
+        overrides: Partial<Parameters<typeof createProjectCommandService>[0]> = {}
+    ) =>
+        createProjectCommandService({
+            ipcService: mockIpc as unknown as IIPCService,
+            readSnapshot: () => snapshot,
+            readCurrentProjectFilePath: () => null,
+            readWindowState: () => ({
+                width: window.outerWidth,
+                height: window.outerHeight,
+                x: window.screenX,
+                y: window.screenY,
+            }),
+            confirmCacheImageMaterialization,
+            mutations,
+            ...overrides,
+        });
 
     const createCacheSnapshot = () => ({
         ...snapshot,
@@ -89,7 +108,7 @@ describe("projectCommandService", () => {
         };
         mockIpc.loadProject.mockResolvedValue(loaded);
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => null,
@@ -111,7 +130,7 @@ describe("projectCommandService", () => {
     });
 
     it("createProjectFile should build a snapshot-based project payload", () => {
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => null,
@@ -139,7 +158,7 @@ describe("projectCommandService", () => {
     it("openProject should no-op when load is canceled", async () => {
         mockIpc.loadProject.mockResolvedValue(null);
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => null,
@@ -156,7 +175,7 @@ describe("projectCommandService", () => {
     it("openProjectFromPath should no-op when load returns null", async () => {
         mockIpc.loadProjectFromPath.mockResolvedValue(null);
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => null,
@@ -176,7 +195,7 @@ describe("projectCommandService", () => {
             filePath: "C:/tmp/from-path.iot",
         };
         mockIpc.loadProjectFromPath.mockResolvedValue(loaded);
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => null,
@@ -205,7 +224,7 @@ describe("projectCommandService", () => {
             filePath: "C:/tmp/no-window.iot",
         };
         mockIpc.loadProject.mockResolvedValue(loaded);
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => null,
@@ -224,7 +243,7 @@ describe("projectCommandService", () => {
     it("saveProject should fallback to saveProjectAs when current path is missing", async () => {
         mockIpc.saveProjectAs.mockResolvedValue("C:/tmp/new.iot");
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => null,
@@ -244,7 +263,7 @@ describe("projectCommandService", () => {
     it("saveProjectAs should keep state unchanged when user cancels save dialog", async () => {
         mockIpc.saveProjectAs.mockResolvedValue(null);
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => null,
@@ -272,7 +291,7 @@ describe("projectCommandService", () => {
                 } as ImageSet,
             ],
         };
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshotWithImplicitFileType,
             readCurrentProjectFilePath: () => null,
@@ -291,7 +310,7 @@ describe("projectCommandService", () => {
     });
 
     it("saveProject should write to current file path", async () => {
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => "C:/tmp/current.iot",
@@ -314,7 +333,7 @@ describe("projectCommandService", () => {
     });
 
     it("newProject should reset store and clear current path", async () => {
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => snapshot,
             readCurrentProjectFilePath: () => "C:/tmp/current.iot",
@@ -334,7 +353,7 @@ describe("projectCommandService", () => {
 
         const cacheSnapshot = createCacheSnapshot();
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => cacheSnapshot,
             readCurrentProjectFilePath: () => "C:/tmp/current.iot",
@@ -368,11 +387,11 @@ describe("projectCommandService", () => {
     });
 
     it("saveProject should reject save and open image settings when user cancels cache move", async () => {
-        confirmMock.mockReturnValue(false);
+        confirmCacheImageMaterialization.mockResolvedValue(false);
 
         const cacheSnapshot = createCacheSnapshot();
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => cacheSnapshot,
             readCurrentProjectFilePath: () => "C:/tmp/current.iot",
@@ -388,7 +407,7 @@ describe("projectCommandService", () => {
     it("saveProjectAs with cache should do nothing when target path is not selected", async () => {
         mockIpc.pickProjectSavePath.mockResolvedValue(null);
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => createCacheSnapshot(),
             readCurrentProjectFilePath: () => null,
@@ -409,7 +428,7 @@ describe("projectCommandService", () => {
             "C:/cache/pasted.png": "C:/tmp/assets/pasted.png",
         });
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => createCacheSnapshot(),
             readCurrentProjectFilePath: () => null,
@@ -443,10 +462,10 @@ describe("projectCommandService", () => {
     });
 
     it("saveProjectAs with cache should stop when user cancels materialization confirm", async () => {
-        confirmMock.mockReturnValue(false);
+        confirmCacheImageMaterialization.mockResolvedValue(false);
         mockIpc.pickProjectSavePath.mockResolvedValue("C:/tmp/new-cache.iot");
 
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => createCacheSnapshot(),
             readCurrentProjectFilePath: () => null,
@@ -462,7 +481,7 @@ describe("projectCommandService", () => {
 
     it("saveProject should throw when cache materialization misses required replacements", async () => {
         mockIpc.materializeCacheImages.mockResolvedValue({});
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => createCacheSnapshot(),
             readCurrentProjectFilePath: () => "C:/tmp/current.iot",
@@ -510,7 +529,7 @@ describe("projectCommandService", () => {
                 },
             ],
         };
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => mixedSnapshot,
             readCurrentProjectFilePath: () => "C:/tmp/current.iot",
@@ -556,7 +575,7 @@ describe("projectCommandService", () => {
             "C:/cache/pasted.png": "C:/tmp/assets/pasted.png",
         });
         const cacheSnapshot = createCacheSnapshot();
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => cacheSnapshot,
             readCurrentProjectFilePath: () => "C:/tmp/current.iot",
@@ -606,7 +625,7 @@ describe("projectCommandService", () => {
                 } as ImageSet,
             ],
         };
-        const service = createProjectCommandService({
+        const service = createService({
             ipcService: mockIpc as unknown as IIPCService,
             readSnapshot: () => mixedSnapshot,
             readCurrentProjectFilePath: () => "C:/tmp/current.iot",

@@ -57,6 +57,7 @@ export interface IElectronAPI {
     minimizeWindow: InvokeMethod<typeof windowIpcContracts.minimize>;
     switchWindowSize: InvokeMethod<typeof windowIpcContracts.switchSize>;
     setWindowRect: InvokeMethod<typeof windowIpcContracts.setRect>;
+    showConfirmDialog: InvokeMethod<typeof windowIpcContracts.confirm>;
     setIgnoreMouseEvents: InvokeMethod<
         typeof windowIpcContracts.setIgnoreMouseEvents
     >;

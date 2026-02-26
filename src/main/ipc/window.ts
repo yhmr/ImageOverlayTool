@@ -1,7 +1,10 @@
-import { ipcMain, BrowserWindow } from "electron";
+import { ipcMain, BrowserWindow, dialog } from "electron";
 import log from "../logger";
 import { windowIpcContracts } from "../../shared/ipc/contracts";
-import type { WindowRect } from "../../shared/ipc/contracts/window";
+import type {
+    ConfirmDialogOptions,
+    WindowRect,
+} from "../../shared/ipc/contracts/window";
 
 /**
  * 汎用的なウィンドウ操作（最小化、最大化、閉じる、サイズ変更、常に手前に表示など）や
@@ -32,6 +35,28 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
         log.info("[IPC] window:close called");
         mainWindow.close();
     });
+
+    ipcMain.handle(
+        windowIpcContracts.confirm.channel,
+        async (event, options: ConfirmDialogOptions) => {
+            const targetWindow =
+                BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
+            const result = await dialog.showMessageBox(targetWindow, {
+                type: "question",
+                title: options.title,
+                message: options.message,
+                detail: options.detail,
+                buttons: [
+                    options.confirmLabel ?? "OK",
+                    options.cancelLabel ?? "Cancel",
+                ],
+                defaultId: 0,
+                cancelId: 1,
+                noLink: true,
+            });
+            return result.response === 0;
+        }
+    );
 
     ipcMain.handle(
         windowIpcContracts.setRect.channel,

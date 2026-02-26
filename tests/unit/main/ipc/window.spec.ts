@@ -4,9 +4,16 @@ import { registerWindowHandlers } from "@/main/ipc/window";
 import { IPC_CHANNELS } from "@/shared/ipc/channels";
 import { invokeIpcHandler } from "../../../support/helpers/ipcTestHelper";
 
+const { showMessageBox } = vi.hoisted(() => ({
+    showMessageBox: vi.fn(),
+}));
+
 vi.mock("electron", () => ({
     ipcMain: {
         handle: vi.fn(),
+    },
+    dialog: {
+        showMessageBox,
     },
     BrowserWindow: {
         fromWebContents: vi.fn(),
@@ -67,6 +74,7 @@ describe("window IPC handlers", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        showMessageBox.mockResolvedValue({ response: 0 });
         mainWindowMock = createMainWindowMock();
         registerWindowHandlers(asBrowserWindow(mainWindowMock));
     });
@@ -121,6 +129,57 @@ describe("window IPC handlers", () => {
 
         expect(senderWindowMock.setBounds).toHaveBeenCalledWith(rect);
         expect(mainWindowMock.setBounds).not.toHaveBeenCalled();
+    });
+
+    it("confirm uses sender window when available", async () => {
+        const senderWindowMock = createSenderWindowMock();
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(
+            asBrowserWindow(senderWindowMock)
+        );
+        showMessageBox.mockResolvedValue({ response: 0 });
+
+        const result = await invokeIpcHandler<boolean>(
+            IPC_CHANNELS.window.confirm,
+            { sender: {} },
+            {
+                message: "confirm?",
+                title: "Title",
+            }
+        );
+
+        expect(result).toBe(true);
+        expect(showMessageBox).toHaveBeenCalledWith(
+            asBrowserWindow(senderWindowMock),
+            expect.objectContaining({
+                type: "question",
+                message: "confirm?",
+                title: "Title",
+                buttons: ["OK", "Cancel"],
+            })
+        );
+    });
+
+    it("confirm falls back to main window and returns false on cancel", async () => {
+        vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
+        showMessageBox.mockResolvedValue({ response: 1 });
+
+        const result = await invokeIpcHandler<boolean>(
+            IPC_CHANNELS.window.confirm,
+            { sender: {} },
+            {
+                message: "confirm?",
+                confirmLabel: "Yes",
+                cancelLabel: "No",
+            }
+        );
+
+        expect(result).toBe(false);
+        expect(showMessageBox).toHaveBeenCalledWith(
+            asBrowserWindow(mainWindowMock),
+            expect.objectContaining({
+                buttons: ["Yes", "No"],
+            })
+        );
     });
 
     it("setRect falls back to main window when sender window is unavailable", async () => {
