@@ -4,6 +4,9 @@ import type { InteractionMode } from "../../../shared/types/InteractionMode";
 import { getElectronApi } from "./electronApi";
 import type { IElectronAPI, Unit } from "../../../shared/ipc/electronApi";
 
+/**
+ * レンダラープロセス内でウィンドウ間状態同期通信を担うサービスのインターフェース
+ */
 type SyncIPCService = Pick<
     IElectronAPI,
     | "updateImageSets"
@@ -28,6 +31,9 @@ type SyncIPCService = Pick<
     | "updateProjectDirty"
 >;
 
+/**
+ * 状態同期管理IPC通信サービスを生成して返します。
+ */
 export const createSyncIPCService = (): SyncIPCService => ({
     updateImageSets: (imageSets: ImageSet[]) =>
         getElectronApi().updateImageSets(imageSets),

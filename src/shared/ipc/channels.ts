@@ -1,3 +1,7 @@
+/**
+ * メインプロセス(引受側)とレンダラープロセス(呼出側)間の
+ * Request/Response型IPC通信で利用されるチャンネル名の定義
+ */
 export const IPC_CHANNELS = {
     log: {
         write: "log:write",
@@ -71,6 +75,10 @@ export const IPC_CHANNELS = {
     },
 } as const;
 
+/**
+ * メインプロセスからレンダラープロセスなどに対する
+ * 単方向のイベント通知(Publish/Subscribe)型IPC通信で利用されるイベント名の定義
+ */
 export const IPC_EVENTS = {
     imageSetsUpdated: "imageSets:updated",
     dimensionLinesUpdated: "dimensionLines:updated",

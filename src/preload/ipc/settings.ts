@@ -5,6 +5,9 @@ import {
 import type { SettingType } from "../../shared/types/AppConfig";
 import { invokeIpcContract, onIpcEventContract } from "./client";
 
+/**
+ * アプリケーション設定およびウィンドウ設定に関するIPC通信APIの構築関数
+ */
 export const createSettingsApi = () => ({
     loadSetting: () => invokeIpcContract(settingsIpcContracts.load),
     saveSetting: (setting: SettingType) =>

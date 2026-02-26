@@ -9,8 +9,12 @@ import {
 } from "../contract";
 import { IPC_CHANNELS, IPC_EVENTS } from "../channels";
 
+/** 長さの単位 */
 export type Unit = "nm" | "um" | "mm";
 
+/**
+ * 複数ウィンドウ間での状態同期を依頼するためのIPC通信(Request/Response)の型定義群
+ */
 export type SyncInvokeContracts = {
     updateImageSets: InvokeContract<[imageSets: ImageSet[]], void>;
     updateDimensionLines: InvokeContract<
@@ -26,6 +30,9 @@ export type SyncInvokeContracts = {
     requestInitialState: InvokeContract<[], void>;
 };
 
+/**
+ * 複数ウィンドウ間での状態同期を通知するためのIPC通信(Publish/Subscribe)の型定義群
+ */
 export type SyncEventContracts = {
     imageSetsUpdated: EventContract<[imageSets: ImageSet[]]>;
     dimensionLinesUpdated: EventContract<[dimensionLines: DimensionLine[]]>;
@@ -37,6 +44,7 @@ export type SyncEventContracts = {
     requestStateSync: EventContract<[]>;
 };
 
+/** 状態同期依頼関連IPC通信の契約定義オブジェクト */
 export const syncIpcContracts: SyncInvokeContracts = {
     updateImageSets: defineInvokeContract(IPC_CHANNELS.sync.updateImageSets),
     updateDimensionLines: defineInvokeContract(
@@ -61,6 +69,7 @@ export const syncIpcContracts: SyncInvokeContracts = {
     ),
 };
 
+/** 状態同期通知関連IPC通信の契約定義オブジェクト */
 export const syncEventContracts: SyncEventContracts = {
     imageSetsUpdated: defineEventContract(IPC_EVENTS.imageSetsUpdated),
     dimensionLinesUpdated: defineEventContract(

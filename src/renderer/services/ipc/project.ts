@@ -3,6 +3,9 @@ import type { ProjectFile } from "../../../shared/types/ProjectFile";
 import { getElectronApi } from "./electronApi";
 import type { IElectronAPI } from "../../../shared/ipc/electronApi";
 
+/**
+ * レンダラープロセス内でプロジェクトおよびシーン制御通信を担うサービスのインターフェース
+ */
 type ProjectIPCService = Pick<
     IElectronAPI,
     | "saveProjectAs"
@@ -14,6 +17,9 @@ type ProjectIPCService = Pick<
     | "loadSceneFromPath"
 >;
 
+/**
+ * プロジェクト管理IPC通信サービスを生成して返します。
+ */
 export const createProjectIPCService = (): ProjectIPCService => ({
     saveProjectAs: (project: ProjectFile<ImageSet>) =>
         getElectronApi().saveProjectAs(project),

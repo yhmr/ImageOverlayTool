@@ -2,12 +2,18 @@ import type { CaptureResult } from "../../types/CaptureResult";
 import { defineInvokeContract, type InvokeContract } from "../contract";
 import { IPC_CHANNELS } from "../channels";
 
+/**
+ * キャプチャ関連のIPC通信におけるRequest/Responseの型定義群
+ */
 export type CaptureInvokeContracts = {
     screen: InvokeContract<[], CaptureResult>;
     window: InvokeContract<[], CaptureResult>;
     saveImageData: InvokeContract<[dataUrl: string], string | null>;
 };
 
+/**
+ * キャプチャ関連IPC通信の契約定義オブジェクト
+ */
 export const captureIpcContracts: CaptureInvokeContracts = {
     screen: defineInvokeContract(IPC_CHANNELS.capture.screen),
     window: defineInvokeContract(IPC_CHANNELS.capture.window),

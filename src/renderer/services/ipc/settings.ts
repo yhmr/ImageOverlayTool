@@ -2,6 +2,9 @@ import type { SettingType } from "../../../shared/types/AppConfig";
 import { getElectronApi } from "./electronApi";
 import type { IElectronAPI } from "../../../shared/ipc/electronApi";
 
+/**
+ * レンダラープロセス内で設定およびウィンドウ設定通信を担うサービスのインターフェース
+ */
 type SettingsIPCService = Pick<
     IElectronAPI,
     | "loadSetting"
@@ -15,6 +18,9 @@ type SettingsIPCService = Pick<
     | "saveWindowColorPresets"
 >;
 
+/**
+ * アプリケーション設定管理IPC通信サービスを生成して返します。
+ */
 export const createSettingsIPCService = (): SettingsIPCService => ({
     loadSetting: () => getElectronApi().loadSetting(),
     saveSetting: (setting: SettingType) =>

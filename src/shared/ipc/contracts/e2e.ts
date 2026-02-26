@@ -11,6 +11,9 @@ import type {
 import { defineInvokeContract, type InvokeContract } from "../contract";
 import { IPC_CHANNELS } from "../channels";
 
+/**
+ * E2Eテスト制御関連のIPC通信におけるRequest/Responseの型定義群
+ */
 export type E2EInvokeContracts = {
     getStatus: InvokeContract<[], E2EControlStatus>;
     setSceneFromPath: InvokeContract<[scenePath: string], E2EResolvedSceneFile>;
@@ -28,6 +31,9 @@ export type E2EInvokeContracts = {
     >;
 };
 
+/**
+ * E2E制御関連IPC通信の契約定義オブジェクト
+ */
 export const e2eIpcContracts: E2EInvokeContracts = {
     getStatus: defineInvokeContract(IPC_CHANNELS.e2e.getStatus),
     setSceneFromPath: defineInvokeContract(IPC_CHANNELS.e2e.setSceneFromPath),

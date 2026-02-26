@@ -8,6 +8,9 @@ type WindowRect = {
     height: number;
 };
 
+/**
+ * レンダラープロセス内で汎用ウィンドウ操作通信を担うサービスのインターフェース
+ */
 type WindowIPCService = Pick<
     IElectronAPI,
     | "minimizeWindow"
@@ -18,6 +21,9 @@ type WindowIPCService = Pick<
     | "closeWindow"
 >;
 
+/**
+ * ウィンドウ操作管理IPC通信サービスを生成して返します。
+ */
 export const createWindowIPCService = (): WindowIPCService => ({
     minimizeWindow: () => getElectronApi().minimizeWindow(),
     switchWindowSize: () => getElectronApi().switchWindowSize(),

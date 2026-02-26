@@ -1,3 +1,6 @@
+/**
+ * Request/Response型のIPC通信に紐づける引数および戻り値の型定義(契約)インターフェース
+ */
 export interface InvokeContract<TArgs extends unknown[] = [], TResult = void> {
     readonly kind: "invoke";
     readonly channel: string;
@@ -5,6 +8,9 @@ export interface InvokeContract<TArgs extends unknown[] = [], TResult = void> {
     readonly __result?: TResult;
 }
 
+/**
+ * Publish/Subscribe型(イベント通知)のIPC通信に紐づける引数の型定義(契約)インターフェース
+ */
 export interface EventContract<TArgs extends unknown[] = []> {
     readonly kind: "event";
     readonly event: string;
@@ -29,6 +35,11 @@ export type EventArgs<TContract> = TContract extends EventContract<infer TArgs>
     ? TArgs
     : never;
 
+/**
+ * 引数と戻り値の型情報を結びつけたRequest/Response型のIPC通信の契約定義オブジェクトを生成します。
+ *
+ * @param channel 対象のIPCチャンネル名
+ */
 export const defineInvokeContract = <
     TArgs extends unknown[] = [],
     TResult = void
@@ -39,6 +50,11 @@ export const defineInvokeContract = <
     channel,
 });
 
+/**
+ * 引数の型情報を結びつけたイベント通知型のIPC通信の契約定義オブジェクトを生成します。
+ *
+ * @param event 対象のIPCイベント名
+ */
 export const defineEventContract = <TArgs extends unknown[] = []>(
     event: string
 ): EventContract<TArgs> => ({
@@ -46,6 +62,13 @@ export const defineEventContract = <TArgs extends unknown[] = []>(
     event,
 });
 
+/**
+ * 型定義されたInvokeContractに従ってIPC通信を実行するためのヘルパー関数です。
+ *
+ * @param invoke 実際のIPC通信処理(ipcRenderer.invoke等)
+ * @param contract 呼び出し対象の契約定義(チャンネル名や型のメタ情報)
+ * @param args 契約定義に基づく引数リスト
+ */
 export const invokeByContract = <
     TContract extends InvokeContract<unknown[], unknown>
 >(

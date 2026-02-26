@@ -6,6 +6,9 @@ import type {
 import { getElectronApi } from "./electronApi";
 import type { IElectronAPI } from "../../../shared/ipc/electronApi";
 
+/**
+ * レンダラープロセス内でE2Eテスト制御通信を担うサービスのインターフェース
+ */
 type E2EIPCService = Pick<
     IElectronAPI,
     | "getE2EStatus"
@@ -15,6 +18,9 @@ type E2EIPCService = Pick<
     | "e2eCapture"
 >;
 
+/**
+ * E2Eテスト制御IPC通信サービスを生成して返します。
+ */
 export const createE2EIPCService = (): E2EIPCService => ({
     getE2EStatus: () => getElectronApi().getE2EStatus(),
     e2eSetSceneFromPath: (scenePath: string) =>

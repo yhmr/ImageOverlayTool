@@ -42,6 +42,10 @@ type LogParams = LogWriteArgs[2];
 
 export type Unit = SyncUnit;
 
+/**
+ * メインプロセスからレンダラープロセスに公開される API (contextBridge 経由) の全体インターフェース。
+ * window.electronAPI としてアクセス可能な全メソッドの型情報を定義します。
+ */
 export interface IElectronAPI {
     log: {
         debug: (message: LogMessage, ...params: LogParams) => Promise<void>;

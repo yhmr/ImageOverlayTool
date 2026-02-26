@@ -10,6 +10,9 @@ import type {
 } from "../../shared/types/E2EControl";
 import { invokeIpcContract } from "./client";
 
+/**
+ * E2Eテスト制御に関するIPC通信APIの構築関数
+ */
 export const createE2EApi = () => ({
     getE2EStatus: (): Promise<E2EControlStatus> =>
         invokeIpcContract(e2eIpcContracts.getStatus),

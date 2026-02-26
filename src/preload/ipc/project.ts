@@ -7,6 +7,9 @@ import type { ProjectFile } from "../../shared/types/ProjectFile";
 import type { ResolvedSceneFile } from "../../shared/types/SceneFile";
 import { invokeIpcContract } from "./client";
 
+/**
+ * プロジェクト管理およびシーン(構成情報)管理に関するIPC通信APIの構築関数
+ */
 export const createProjectApi = () => ({
     saveProjectAs: (project: ProjectFile<ImageSet>) =>
         invokeIpcContract(projectIpcContracts.saveAs, project),

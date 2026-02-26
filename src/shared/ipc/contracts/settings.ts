@@ -7,6 +7,9 @@ import {
 } from "../contract";
 import { IPC_CHANNELS, IPC_EVENTS } from "../channels";
 
+/**
+ * アプリケーション設定およびウィンドウ設定のIPC通信におけるRequest/Responseの型定義群
+ */
 export type SettingsInvokeContracts = {
     load: InvokeContract<[], SettingType>;
     save: InvokeContract<[setting: SettingType], void>;
@@ -18,12 +21,16 @@ export type SettingsInvokeContracts = {
     windowColorPresetsSave: InvokeContract<[presets: string[]], void>;
 };
 
+/**
+ * アプリケーション設定変更等のPublish/Subscribe型IPC通信の型定義群
+ */
 export type SettingsEventContracts = {
     languageUpdated: EventContract<[language: string]>;
     clickThroughShortcutTriggered: EventContract<[]>;
     alwaysOnTopShortcutTriggered: EventContract<[]>;
 };
 
+/** アプリケーション設定関連(Invoke)IPC通信の契約定義オブジェクト */
 export const settingsIpcContracts: SettingsInvokeContracts = {
     load: defineInvokeContract(IPC_CHANNELS.setting.load),
     save: defineInvokeContract(IPC_CHANNELS.setting.save),
@@ -39,6 +46,7 @@ export const settingsIpcContracts: SettingsInvokeContracts = {
     ),
 };
 
+/** アプリケーション設定関連(Event)IPC通信の契約定義オブジェクト */
 export const settingsEventContracts: SettingsEventContracts = {
     languageUpdated: defineEventContract(IPC_EVENTS.languageUpdated),
     clickThroughShortcutTriggered: defineEventContract(

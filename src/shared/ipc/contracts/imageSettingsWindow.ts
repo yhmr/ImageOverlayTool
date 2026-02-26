@@ -2,6 +2,9 @@ import type { ImageInfoResult } from "../../types/ImageInfo";
 import { defineInvokeContract, type InvokeContract } from "../contract";
 import { IPC_CHANNELS } from "../channels";
 
+/**
+ * 画像設定ウィンドウ管理関連のIPC通信におけるRequest/Responseの型定義群
+ */
 export type ImageSettingsWindowInvokeContracts = {
     toggle: InvokeContract<[], boolean>;
     loadImage: InvokeContract<[], string | null>;
@@ -10,10 +13,14 @@ export type ImageSettingsWindowInvokeContracts = {
     saveCacheImageAs: InvokeContract<[cacheFilePath: string], string | null>;
 };
 
+/**
+ * 寸法設定ウィンドウ管理関連のIPC通信におけるRequest/Responseの型定義群
+ */
 export type DimensionSettingsWindowInvokeContracts = {
     toggle: InvokeContract<[], boolean>;
 };
 
+/** 画像設定ウィンドウ管理関連IPC通信の契約定義オブジェクト */
 export const imageSettingsWindowIpcContracts: ImageSettingsWindowInvokeContracts =
     {
         toggle: defineInvokeContract(IPC_CHANNELS.imageSettingsWindow.toggle),
@@ -31,6 +38,7 @@ export const imageSettingsWindowIpcContracts: ImageSettingsWindowInvokeContracts
         ),
     };
 
+/** 寸法設定ウィンドウ管理関連IPC通信の契約定義オブジェクト */
 export const dimensionSettingsWindowIpcContracts: DimensionSettingsWindowInvokeContracts =
     {
         toggle: defineInvokeContract(

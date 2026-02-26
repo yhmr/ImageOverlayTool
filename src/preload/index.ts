@@ -10,6 +10,10 @@ import { createSettingsApi } from "./ipc/settings";
 import { createSyncApi } from "./ipc/sync";
 import { createWindowApi } from "./ipc/window";
 
+/**
+ * メインプロセスとレンダラープロセスの間にかかるブリッジ(contextBridge)の構築。
+ * セキュリティを担保しつつ、レンダラープロセスに各種IPC通信APIを `window.electronAPI` として公開します。
+ */
 contextBridge.exposeInMainWorld("electronAPI", {
     ...createLogApi(),
     ...createWindowApi(),

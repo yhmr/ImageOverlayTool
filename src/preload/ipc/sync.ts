@@ -8,6 +8,9 @@ import type { ImageSet } from "../../shared/types/ImageSet";
 import type { InteractionMode } from "../../shared/types/InteractionMode";
 import { invokeIpcContract, onIpcEventContract } from "./client";
 
+/**
+ * 複数ウィンドウ間での状態同期に関するIPC通信APIの構築関数
+ */
 export const createSyncApi = () => ({
     updateImageSets: (imageSets: ImageSet[]) =>
         invokeIpcContract(syncIpcContracts.updateImageSets, imageSets),

@@ -4,6 +4,9 @@ import {
 } from "../../shared/ipc/contracts/window";
 import { invokeIpcContract } from "./client";
 
+/**
+ * 汎用的なウィンドウ操作に関するIPC通信APIの構築関数
+ */
 export const createWindowApi = () => ({
     minimizeWindow: () => invokeIpcContract(windowIpcContracts.minimize),
     switchWindowSize: (): Promise<boolean> =>

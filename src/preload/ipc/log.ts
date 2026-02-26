@@ -1,6 +1,9 @@
 import { logIpcContracts } from "../../shared/ipc/contracts";
 import { invokeIpcContract } from "./client";
 
+/**
+ * ロギングに関するIPC通信APIの構築関数
+ */
 export const createLogApi = () => ({
     log: {
         debug: (message: string, ...params: unknown[]) =>
