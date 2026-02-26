@@ -11,6 +11,13 @@ import { fromLocalFileUrl } from "../../../shared/utils/localFileUrl";
 import log from "../../logger";
 import type { ImageSettingsWindowHandlerDependencies } from "./types";
 
+/**
+ * URIスキーム(local-file:// 等)や通常のパス文字列から、ローカルファイルシステムの絶対パスを解決します。
+ * パス・トラバーサル等を防ぎ、安全な絶対パスのみを許可します。
+ *
+ * @param value パスまたはURLを含む文字列
+ * @returns 解決され検証された絶対パス文字列 (無効な場合はnull)
+ */
 const resolveLocalFilePath = (value: string): string | null => {
     const isAbsoluteFilesystemPath = (targetPath: string): boolean =>
         path.isAbsolute(targetPath) || path.win32.isAbsolute(targetPath);
@@ -32,6 +39,12 @@ const resolveLocalFilePath = (value: string): string | null => {
     return isAbsoluteFilesystemPath(normalizedPath) ? normalizedPath : null;
 };
 
+/**
+ * 画像設定・寸法設定ウィンドウの表示切り替えや、OSネイティブの画像読み込みダイアログ、
+ * 画像ファイルの基本的な情報(存在可否やサイズ)取得など、コアとなる機能のIPCハンドラーを登録します。
+ *
+ * @param windowManager ウィンドウの表示状態のトグル機能を提供するコントローラー
+ */
 export const registerImageSettingsWindowCoreHandlers = (
     windowManager: ImageSettingsWindowHandlerDependencies
 ): void => {

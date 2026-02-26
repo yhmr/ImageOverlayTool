@@ -10,6 +10,10 @@ import {
 } from "../../services/clipboardCacheService";
 import log from "../../logger";
 
+/**
+ * クリップボードからの画像ペースト(キャッシュへの一時保存)や、
+ * キャッシュされた画像のファイルへの保存(名前を付けて保存)を担うIPCハンドラーを登録します。
+ */
 export const registerClipboardHandlers = (): void => {
     ipcMain.handle(
         imageSettingsWindowIpcContracts.pasteImage.channel,

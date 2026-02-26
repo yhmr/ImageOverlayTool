@@ -17,7 +17,8 @@ const getLicensePathCandidates = (): string[] => {
 };
 
 /**
- * ライセンス情報取得用IPCハンドラを登録
+ * アプリのバージョン取得や、licenses.jsonからのオープンソースライセンス一覧取得など、
+ * ライセンスに関する情報の提供を担うIPCハンドラーを登録します。
  */
 export function registerLicenseIpc(): void {
     ipcMain.handle(licenseIpcContracts.appVersion.channel, (): string => {

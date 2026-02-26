@@ -10,6 +10,13 @@ import type {
 
 export type { ProjectHandlerOptions };
 
+/**
+ * プロジェクトファイルの保存・読み込みや、画像キャッシュの実体化など、
+ * プロジェクト管理全般に関わるメインプロセスのIPCハンドラーを登録します。
+ *
+ * @param repository プロジェクトデータの読み書きを行うリポジトリ
+ * @param options E2Eテストモードなどの付加的なオプション
+ */
 export const registerProjectHandlers = (
     repository: IProjectRepository,
     options?: ProjectHandlerOptions

@@ -3,6 +3,13 @@ import { projectIpcContracts } from "../../../shared/ipc/contracts/project";
 import log from "../../logger";
 import type { ProjectHandlerContext } from "./types";
 
+/**
+ * プロジェクトファイルの読み込みに関するIPCハンドラーを登録します。
+ * OSネイティブのファイル選択ダイアログを使用した読み込みや、
+ * ファイルパス指定での直接読み込み、およびE2Eテスト環境での読み込みをサポートします。
+ *
+ * @param context ハンドラー間で共有するコンテキスト(リポジトリやテスト設定)
+ */
 export const registerProjectLoadHandlers = (
     context: ProjectHandlerContext
 ): void => {

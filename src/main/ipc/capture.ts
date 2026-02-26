@@ -6,10 +6,18 @@ import {
 } from "../services/captureService";
 import { captureIpcContracts } from "../../shared/ipc/contracts";
 
+/** キャプチャ関連ハンドラーの登録時オプション */
 export interface CaptureHandlerOptions {
+    /** E2Eテスト用のキャプチャモック設定 */
     testMode?: CaptureTestModeOptions;
 }
 
+/**
+ * 画面全体やウィンドウ範囲のキャプチャ取得、および
+ * 取得した画像データ(DataURL)の保存処理を担うIPCハンドラーを登録します。
+ *
+ * @param options E2Eテストに応じたモック動作などの設定オプション
+ */
 export const registerCaptureHandlers = (
     options?: CaptureHandlerOptions
 ): void => {

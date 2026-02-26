@@ -3,6 +3,12 @@ import log from "../logger";
 import { windowIpcContracts } from "../../shared/ipc/contracts";
 import type { WindowRect } from "../../shared/ipc/contracts/window";
 
+/**
+ * 汎用的なウィンドウ操作（最小化、最大化、閉じる、サイズ変更、常に手前に表示など）や
+ * マウスイベントの透過設定などに関与するIPCハンドラーを登録します。
+ *
+ * @param mainWindow これら操作のフォールバック対象などとして使用されるメインウィンドウ
+ */
 export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
     ipcMain.handle(windowIpcContracts.minimize.channel, async () => {
         log.info("[IPC] window:minimize called");

@@ -5,6 +5,13 @@ import log, { setLogLevel, LevelOption } from "../../logger";
 import { initializeMainI18n } from "../../../i18n/mainI18n";
 import type { AppConfigHandlerContext } from "./types";
 
+/**
+ * アプリケーション設定の読み込みと保存を担うIPCハンドラーを登録します。
+ *
+ * 保存時にはログレベルの更新や、i18nの再初期化・言語変更のブロードキャストも行います。
+ *
+ * @param context ハンドラー間で共有するコンテキスト(リポジトリとブロードキャスト関数)
+ */
 export const registerSettingsHandlers = (
     context: AppConfigHandlerContext
 ): void => {

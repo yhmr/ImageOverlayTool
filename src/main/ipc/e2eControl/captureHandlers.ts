@@ -4,6 +4,11 @@ import type { E2ECaptureRequest } from "../../../shared/types/E2EControl";
 import { captureWindowAreaAndSave } from "../../services/captureService";
 import type { E2EControlHandlerContext } from "./types";
 
+/**
+ * E2Eテストにおける画面やウィンドウのキャプチャ取得を担うIPCハンドラーを登録します。
+ *
+ * @param context ハンドラー間で共有するコンテキスト(キャプチャ設定やE2E有効判定関数)
+ */
 export const registerE2ECaptureHandlers = (
     context: E2EControlHandlerContext
 ): void => {

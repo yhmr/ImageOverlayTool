@@ -14,6 +14,14 @@ const saveDialogOptions = {
     filters: [{ name: "Overlay Project", extensions: ["iot"] }],
 };
 
+/**
+ * ファイル保存ダイアログを表示して、プロジェクトの保存先パスをユーザーに選択させます。
+ * E2Eテストモードが有効な場合は、ダイアログを表示せずにテスト用の固定パスを返します。
+ *
+ * @param event IPC呼び出し元のイベントオブジェクト
+ * @param testMode E2Eテストモードの設定情報
+ * @returns 選択されたファイルパス、キャンセル時はnull
+ */
 const selectProjectSavePath = async (
     event: IpcMainInvokeEvent,
     testMode: ProjectHandlerContext["testMode"]
@@ -34,6 +42,12 @@ const selectProjectSavePath = async (
     return result.filePath;
 };
 
+/**
+ * プロジェクトファイルの保存(上書き保存、名前を付けて保存)や、
+ * 不要になったキャッシュ画像の削除などを担うIPCハンドラーを登録します。
+ *
+ * @param context ハンドラー間で共有するコンテキスト(リポジトリやテストモード情報)
+ */
 export const registerProjectSaveHandlers = (
     context: ProjectHandlerContext
 ): void => {

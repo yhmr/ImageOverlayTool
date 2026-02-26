@@ -10,7 +10,8 @@ import { logIpcContracts } from "../../shared/ipc/contracts";
 import type { LogLevel } from "../../shared/ipc/contracts/log";
 
 /**
- * ログ出力IPCハンドラーを登録する
+ * レンダラープロセスからのログ出力要求を受け付ける処理や、
+ * ログファイルのデスクトップへの一括エクスポート処理を担うIPCハンドラーを登録します。
  */
 export function registerLogHandlers(): void {
     ipcMain.handle(

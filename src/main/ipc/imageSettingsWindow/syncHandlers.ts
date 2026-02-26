@@ -11,6 +11,14 @@ import log from "../../logger";
 import { broadcastToOtherWindows } from "../../windows/broadcast";
 import type { ImageSettingsWindowHandlerDependencies } from "./types";
 
+/**
+ * ドラッグによる画像や寸法線の変更、単位変更など、
+ * 異なるウィンドウ(メイン / 設定ウィンドウ等)間で状態を同期するためのIPCハンドラーを登録します。
+ *
+ * あるウィンドウからの更新要求を受け取り、送信元以外のすべてのウィンドウへ状態をブロードキャストします。
+ *
+ * @param windowManager ウィンドウコレクションやプロジェクトのDirty状態を管理するオブジェクト
+ */
 export const registerSyncHandlers = (
     windowManager: ImageSettingsWindowHandlerDependencies
 ): void => {

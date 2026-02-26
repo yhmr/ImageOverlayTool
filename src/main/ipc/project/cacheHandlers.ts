@@ -3,6 +3,12 @@ import { projectIpcContracts } from "../../../shared/ipc/contracts/project";
 import log from "../../logger";
 import type { ProjectHandlerContext } from "./types";
 
+/**
+ * クリップボードからペーストされた一時的な画像キャッシュを、
+ * プロジェクト保存時に正式な画像ファイルとして実体化(コピー/移動)するためのIPCハンドラーを登録します。
+ *
+ * @param context ハンドラー間で共有するコンテキスト(プロジェクトサービスなど)
+ */
 export const registerProjectCacheHandlers = (
     context: ProjectHandlerContext
 ): void => {

@@ -3,6 +3,11 @@ import { settingsIpcContracts } from "../../../shared/ipc/contracts";
 import log from "../../logger";
 import type { AppConfigHandlerContext } from "./types";
 
+/**
+ * ウィンドウの背景色やそのプリセットの読み書きを担うIPCハンドラーを登録します。
+ *
+ * @param context ハンドラー間で共有するコンテキスト(ウィンドウリポジトリ)
+ */
 export const registerWindowHandlers = (
     context: AppConfigHandlerContext
 ): void => {

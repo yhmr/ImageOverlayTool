@@ -6,6 +6,12 @@ import log, { setLogLevel, LevelOption } from "../../logger";
 import { initializeMainI18n } from "../../../i18n/mainI18n";
 import type { AppConfigHandlerContext } from "./types";
 
+/**
+ * 引数が有効な設定スナップショット(エクスポート/インポート用データ)であるかを判定する型ガード
+ *
+ * @param value 検証対象の任意の値
+ * @returns 妥当なSettingsSnapshotであればtrue
+ */
 const isSettingsSnapshot = (value: unknown): value is SettingsSnapshot => {
     if (!value || typeof value !== "object") {
         return false;
@@ -27,6 +33,12 @@ const isSettingsSnapshot = (value: unknown): value is SettingsSnapshot => {
     );
 };
 
+/**
+ * ロードされた設定をアプリケーションの各コンポーネント(ロガーやi18nなど)に適用します
+ *
+ * @param loaded リポジトリ等からロードされた設定データ
+ * @param broadcastLanguageUpdated 言語変更の通知用コールバック
+ */
 const applyLoadedSettings = async (
     loaded: SettingType,
     broadcastLanguageUpdated: (language: string) => void
@@ -38,6 +50,14 @@ const applyLoadedSettings = async (
     broadcastLanguageUpdated(loaded.language);
 };
 
+/**
+ * 設定データのエクスポートとインポートを担うIPCハンドラーを登録します。
+ *
+ * ユーザーにファイル保存/選択ダイアログを提示し、JSON形式での設定移行を実現します。
+ * インポート成功時は新しい設定をアプリ全体に自動適用します。
+ *
+ * @param context ハンドラー間で共有するコンテキスト
+ */
 export const registerTransferHandlers = (
     context: AppConfigHandlerContext
 ): void => {

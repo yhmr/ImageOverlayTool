@@ -6,6 +6,12 @@ import type {
 } from "../../../shared/types/E2EControl";
 import type { E2EControlHandlerContext } from "./types";
 
+/**
+ * E2E機能の有効/無効状態の取得や、アプリが安定状態になるまでの待機など、
+ * E2Eテストのステータス確認に関するIPCハンドラーを登録します。
+ *
+ * @param context ハンドラー間で共有するコンテキスト
+ */
 export const registerE2EStatusHandlers = (
     context: E2EControlHandlerContext
 ): void => {

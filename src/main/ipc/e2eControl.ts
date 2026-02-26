@@ -30,6 +30,14 @@ const assertControlPlaneEnabled = (e2eConfig: E2ERuntimeConfig): void => {
     }
 };
 
+/**
+ * E2Eテスト用の制御を行うIPCハンドラーを登録します。
+ *
+ * 状態確認、シーン設定、キャプチャ機能の各エンドポイントを構築します。
+ * E2E機能が有効化されていない場合は、各ハンドラーの呼び出しでエラーをスローします。
+ *
+ * @param options E2E実行時の設定を含むオプション
+ */
 export const registerE2EControlHandlers = ({
     e2eConfig,
 }: E2EControlRegistrationOptions): void => {

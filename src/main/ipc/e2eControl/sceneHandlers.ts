@@ -11,6 +11,12 @@ import type {
 } from "../../../shared/types/E2EControl";
 import type { E2EControlHandlerContext } from "./types";
 
+/**
+ * E2Eテストにおけるシーン(プロジェクトファイル)の読み込みや
+ * フィクスチャ画像のパス解決を担うIPCハンドラーを登録します。
+ *
+ * @param context ハンドラー間で共有するコンテキスト
+ */
 export const registerE2ESceneHandlers = (
     context: E2EControlHandlerContext
 ): void => {

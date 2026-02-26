@@ -5,6 +5,10 @@ import type { ResolvedSceneFile } from "../../shared/types/SceneFile";
 import { loadResolvedSceneFileFromPath } from "../repositories/sceneLoader";
 import log from "../logger";
 
+/**
+ * ファイルパスを指定してシーン(構成情報)を読み込み、完全な解決済みシーンデータとして
+ * レンダラープロセスへ提供する処理を担うIPCハンドラーを登録します。
+ */
 export const registerSceneHandlers = (): void => {
     ipcMain.handle(
         sceneIpcContracts.loadFromPath.channel,
