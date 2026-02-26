@@ -7,10 +7,11 @@ import "./App.css";
 
 import { useFileHandler } from "../hooks/useFileHandler";
 import { useImageDrop } from "../hooks/useImageDrop";
-import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
-import { useProjectSync } from "../hooks/useProjectSync";
+import { useBroadcastProjectData } from "../hooks/useBroadcastProjectData";
 import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
 import { useMainWindowDialogState } from "../hooks/useMainWindowDialogState";
+import { useReceiveProjectData } from "../hooks/useReceiveProjectData";
+import { useRespondProjectDataSyncRequest } from "../hooks/useRespondProjectDataSyncRequest";
 import {
     IpcServiceProvider,
     useIpcService,
@@ -51,9 +52,11 @@ const App = () => {
     } = useMainWindowDialogState();
 
     // ローカル編集を他ウィンドウへ同期
-    useProjectDataSyncBridge();
-    // 同期フックを使用
-    useProjectSync();
+    useBroadcastProjectData();
+    // 同期データの受信
+    useReceiveProjectData();
+    // 同期要求に対する現在状態の応答
+    useRespondProjectDataSyncRequest();
     // ファイルハンドラフックを使用 (起動時引数など)
     useFileHandler();
     // E2E制御ブリッジ

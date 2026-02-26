@@ -8,9 +8,10 @@ import { MIN_DIMENSION_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig
 import "../shared/globals.css";
 import "./DimensionSettingsApp.css";
 
-import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
-import { useProjectSync } from "../hooks/useProjectSync";
+import { useBroadcastProjectData } from "../hooks/useBroadcastProjectData";
 import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
+import { useReceiveProjectData } from "../hooks/useReceiveProjectData";
+import { useRespondProjectDataSyncRequest } from "../hooks/useRespondProjectDataSyncRequest";
 import {
     IpcServiceProvider,
     useIpcService,
@@ -23,8 +24,12 @@ const DimensionSettingsApp = () => {
     const ipcService = useIpcService();
     const { i18n } = useTranslation();
 
-    useProjectDataSyncBridge();
-    useProjectSync();
+    // ローカルでの変更を監視し、他のウィンドウへ「送信(Broadcast)」する
+    useBroadcastProjectData();
+    // 他のウィンドウからの変更イベントを「受信(Receive)」し、自身のStoreを更新する
+    useReceiveProjectData();
+    // 新規ウィンドウが開いた際などの「状態の全同期要求」に対して、現在の状態を返信する
+    useRespondProjectDataSyncRequest();
     useE2EControlBridge();
 
     React.useEffect(() => {

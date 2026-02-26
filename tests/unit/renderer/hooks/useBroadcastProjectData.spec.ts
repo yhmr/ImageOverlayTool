@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 
-import { useProjectDataSyncBridge } from "@/renderer/hooks/useProjectDataSyncBridge";
+import { useBroadcastProjectData } from "@/renderer/hooks/useBroadcastProjectData";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 const mockIPC = vi.hoisted(() => ({
@@ -21,14 +21,14 @@ vi.mock("@/renderer/services/ipcService", () => ({
     getIPCService: () => mockIPC,
 }));
 
-describe("useProjectDataSyncBridge", () => {
+describe("useBroadcastProjectData", () => {
     beforeEach(() => {
         useAppStore.getState().resetAll();
         vi.clearAllMocks();
     });
 
     it("broadcasts local project data changes", () => {
-        renderHook(() => useProjectDataSyncBridge());
+        renderHook(() => useBroadcastProjectData());
 
         act(() => {
             useAppStore.getState().setUnitFactor(2.5);
@@ -60,7 +60,7 @@ describe("useProjectDataSyncBridge", () => {
     });
 
     it("does not re-broadcast remote synced changes", () => {
-        renderHook(() => useProjectDataSyncBridge());
+        renderHook(() => useBroadcastProjectData());
 
         act(() => {
             useAppStore.getState().syncUnitFactor(3.2);
@@ -92,7 +92,7 @@ describe("useProjectDataSyncBridge", () => {
     });
 
     it("broadcasts only changed local fields and skips unchanged image sets", () => {
-        renderHook(() => useProjectDataSyncBridge());
+        renderHook(() => useBroadcastProjectData());
 
         act(() => {
             useAppStore.getState().setUnitFactor(1.25);
@@ -105,7 +105,7 @@ describe("useProjectDataSyncBridge", () => {
     });
 
     it("syncs selected ids and interaction mode only when values change", () => {
-        renderHook(() => useProjectDataSyncBridge());
+        renderHook(() => useBroadcastProjectData());
 
         act(() => {
             useAppStore.getState().setSelectedImageId("img-1");
@@ -138,4 +138,3 @@ describe("useProjectDataSyncBridge", () => {
         expect(mockIPC.updateInteractionMode).not.toHaveBeenCalled();
     });
 });
-

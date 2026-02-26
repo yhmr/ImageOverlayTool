@@ -1,35 +1,29 @@
 import { useEffect } from "react";
 
 import { useIpcService } from "../providers/IpcServiceProvider";
-import {
-    createSyncBroadcaster,
-    toProjectSyncSnapshot,
-} from "../services/sync/syncBroadcaster";
 import { useAppStore } from "../store/useAppStore";
 
 /**
- * アプリケーション状態の同期を行うフック
- * IPC経由で変更を受信し、Zustandストアを更新する
+ * アプリケーション状態の同期を行うフック（受信側）。
+ * 他のウィンドウで発生した変更（ブロードキャスト）をIPC経由で受け取り、自身のZustand Storeを更新する。
  */
-export const useProjectSync = () => {
+export const useReceiveProjectData = () => {
     const ipcService = useIpcService();
 
     useEffect(() => {
-        const broadcaster = createSyncBroadcaster(ipcService);
-
-        // unitFactorの更新監視
         const unsubscribeUnitFactor = ipcService.onUnitFactorUpdated(
             (unitFactor) => {
                 useAppStore.getState().syncUnitFactor(unitFactor);
             }
         );
 
-        // unitの更新監視
         const unsubscribeUnit = ipcService.onUnitUpdated((unit) => {
             useAppStore.getState().syncUnit(unit);
         });
 
-        // imageSetsの更新監視（undo対象とするためreceiveImageSetsを使用）
+        // imageSetsの更新監視
+        // receiveImageSetsを使用することで、ローカル操作（変更元）として扱わず、
+        // かつUndo/Redoの履歴（Temporal）に自動的に積まれるようにしている
         const unsubscribeImageSets = ipcService.onImageSetsUpdated(
             (imageSets) => {
                 useAppStore.getState().receiveImageSets(imageSets);
@@ -42,9 +36,10 @@ export const useProjectSync = () => {
             }
         );
 
-        // selectedImageIdの更新監視
-        // 寸法線操作中はリモートからの選択変更を無視する
-        // （setSelectedImageIdがselectedDimensionLineIdをクリアするため）
+        // 選択画像の更新監視
+        // 寸法線操作中（selectedDimensionLineIdが存在する状態）は、
+        // setSelectedImageIdが呼ばれると連動して寸法線の選択状態が解除されてしまうため
+        // リモートからの画像選択の変更（同期）をあえて無視する仕様になっている
         const unsubscribeSelectedImageId = ipcService.onSelectedImageIdUpdated(
             (id) => {
                 const { interactionMode } = useAppStore.getState();
@@ -65,12 +60,6 @@ export const useProjectSync = () => {
             }
         );
 
-        // 初期状態同期要求の監視 (メインウィンドウが応答する側)
-        const unsubscribeRequestSync = ipcService.onRequestStateSync(() => {
-            const snapshot = toProjectSyncSnapshot(useAppStore.getState());
-            broadcaster.broadcastSnapshot(snapshot);
-        });
-
         return () => {
             unsubscribeUnitFactor();
             unsubscribeUnit();
@@ -79,7 +68,6 @@ export const useProjectSync = () => {
             unsubscribeSelectedImageId();
             unsubscribeSelectedDimensionLineId();
             unsubscribeInteractionMode();
-            unsubscribeRequestSync();
         };
     }, [ipcService]);
 };

@@ -39,7 +39,7 @@ export const toProjectSyncSnapshot = (
 
 /**
  * 他のウィンドウへ現在の状態（スナップショット）や差分を送信するための専用インターフェース。
- * `useProjectDataSyncBridge`（送信側）などで利用される。
+ * `useBroadcastProjectData`（送信側）などで利用される。
  */
 export interface SyncBroadcaster {
     /** 前回との差分を計算し、変更があった項目のみを送信する */

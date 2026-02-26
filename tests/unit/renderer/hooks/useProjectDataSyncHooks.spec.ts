@@ -3,7 +3,8 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useProjectSync } from "@/renderer/hooks/useProjectSync";
+import { useReceiveProjectData } from "@/renderer/hooks/useReceiveProjectData";
+import { useRespondProjectDataSyncRequest } from "@/renderer/hooks/useRespondProjectDataSyncRequest";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
@@ -50,20 +51,20 @@ const mockIPC = vi.hoisted(() => ({
             return unsubscribers.dimensionLines;
         }
     ),
-    onInteractionModeUpdated: vi.fn(
-        (cb: (mode: InteractionMode) => void) => {
-            callbacks.interactionMode = cb;
-            return unsubscribers.interactionMode;
-        }
-    ),
+    onInteractionModeUpdated: vi.fn((cb: (mode: InteractionMode) => void) => {
+        callbacks.interactionMode = cb;
+        return unsubscribers.interactionMode;
+    }),
     onSelectedImageIdUpdated: vi.fn((cb: (id: string | null) => void) => {
         callbacks.selectedImageId = cb;
         return unsubscribers.selectedImageId;
     }),
-    onSelectedDimensionLineIdUpdated: vi.fn((cb: (id: string | null) => void) => {
-        callbacks.selectedDimensionLineId = cb;
-        return unsubscribers.selectedDimensionLineId;
-    }),
+    onSelectedDimensionLineIdUpdated: vi.fn(
+        (cb: (id: string | null) => void) => {
+            callbacks.selectedDimensionLineId = cb;
+            return unsubscribers.selectedDimensionLineId;
+        }
+    ),
     onRequestStateSync: vi.fn((cb: () => void) => {
         callbacks.requestSync = cb;
         return unsubscribers.requestSync;
@@ -81,7 +82,19 @@ vi.mock("@/renderer/services/ipcService", () => ({
     getIPCService: () => mockIPC,
 }));
 
-describe("useProjectSync", () => {
+const mountProjectDataSyncHooks = () => {
+    const receive = renderHook(() => useReceiveProjectData());
+    const respond = renderHook(() => useRespondProjectDataSyncRequest());
+
+    return {
+        unmount: () => {
+            receive.unmount();
+            respond.unmount();
+        },
+    };
+};
+
+describe("project data sync hooks", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         callbacks.unitFactor = null;
@@ -96,7 +109,7 @@ describe("useProjectSync", () => {
     });
 
     it("should sync unitFactor when receiving unitFactor update event", () => {
-        renderHook(() => useProjectSync());
+        mountProjectDataSyncHooks();
 
         expect(callbacks.unitFactor).toBeTypeOf("function");
 
@@ -108,7 +121,7 @@ describe("useProjectSync", () => {
     });
 
     it("should sync unit, imageSets, dimensionLines and interaction mode from IPC", () => {
-        renderHook(() => useProjectSync());
+        mountProjectDataSyncHooks();
 
         const imageSets: ImageSet[] = [
             {
@@ -144,7 +157,7 @@ describe("useProjectSync", () => {
     });
 
     it("should sync selectedImageId only in default interaction mode", () => {
-        renderHook(() => useProjectSync());
+        mountProjectDataSyncHooks();
 
         act(() => {
             useAppStore.setState({ interactionMode: "default" });
@@ -160,7 +173,7 @@ describe("useProjectSync", () => {
     });
 
     it("should always sync selectedDimensionLineId", () => {
-        renderHook(() => useProjectSync());
+        mountProjectDataSyncHooks();
 
         act(() => {
             callbacks.selectedDimensionLineId?.("line-selected");
@@ -202,7 +215,7 @@ describe("useProjectSync", () => {
             });
         });
 
-        renderHook(() => useProjectSync());
+        mountProjectDataSyncHooks();
 
         act(() => {
             callbacks.requestSync?.();
@@ -229,7 +242,7 @@ describe("useProjectSync", () => {
     });
 
     it("should unsubscribe all IPC listeners on unmount", () => {
-        const { unmount } = renderHook(() => useProjectSync());
+        const { unmount } = mountProjectDataSyncHooks();
 
         unmount();
 

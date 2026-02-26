@@ -21,7 +21,15 @@ import {
     selectUnitFactor,
 } from "../store/selectors";
 
-export const useProjectDataSyncBridge = () => {
+/**
+ * アプリケーション状態の同期を行うフック（送信側）。
+ * 自身のZustand Storeの変更を監視し、変更があった場合に他のウィンドウへ差分をブロードキャストする。
+ *
+ * ローカル操作（ユーザーによる直接の操作）によって発生したデータ変更のみを送信対象とする。
+ * これにより、他ウィンドウからの同期（受信）によって発生したStore変更が、
+ * 再び送信されて無限ループに陥ることを防いでいる。
+ */
+export const useBroadcastProjectData = () => {
     const imageSets = useAppStore(selectImageSets);
     const dimensionLines = useAppStore(selectDimensionLines);
     const unitFactor = useAppStore(selectUnitFactor);

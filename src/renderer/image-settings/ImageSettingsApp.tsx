@@ -8,10 +8,11 @@ import { MIN_IMAGE_SETTINGS_WINDOW_SIZE } from "../../shared/types/AppConfig";
 import "../shared/globals.css";
 import "./ImageSettingsApp.css";
 
-import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
-import { useProjectSync } from "../hooks/useProjectSync";
+import { useBroadcastProjectData } from "../hooks/useBroadcastProjectData";
 import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
 import { useImageDrop } from "../hooks/useImageDrop";
+import { useReceiveProjectData } from "../hooks/useReceiveProjectData";
+import { useRespondProjectDataSyncRequest } from "../hooks/useRespondProjectDataSyncRequest";
 import {
     IpcServiceProvider,
     useIpcService,
@@ -25,9 +26,11 @@ const ImageSettingsApp = () => {
     const { i18n } = useTranslation();
 
     // ローカル編集を他ウィンドウへ同期
-    useProjectDataSyncBridge();
-    // 同期フックを使用
-    useProjectSync();
+    useBroadcastProjectData();
+    // 同期データの受信
+    useReceiveProjectData();
+    // 同期要求に対する現在状態の応答
+    useRespondProjectDataSyncRequest();
     // E2E制御ブリッジ
     useE2EControlBridge();
     // D&D画像読み込み

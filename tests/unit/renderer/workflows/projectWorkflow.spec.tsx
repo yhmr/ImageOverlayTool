@@ -6,7 +6,7 @@ import { act, renderHook } from "@testing-library/react";
 
 import { useCapture } from "@/renderer/hooks/useCapture";
 import { useProjectOperations } from "@/renderer/hooks/useProjectOperations";
-import { useProjectDataSyncBridge } from "@/renderer/hooks/useProjectDataSyncBridge";
+import { useBroadcastProjectData } from "@/renderer/hooks/useBroadcastProjectData";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 const mockIPC = vi.hoisted(() => ({
@@ -70,7 +70,7 @@ describe("Renderer workflow: image add -> settings change -> save", () => {
     });
 
     it("captures image, applies setting change, and saves latest state", async () => {
-        renderHook(() => useProjectDataSyncBridge());
+        renderHook(() => useBroadcastProjectData());
         const { result: capture } = renderHook(() => useCapture());
         const { result: projectOps } = renderHook(() => useProjectOperations());
 
@@ -122,7 +122,7 @@ describe("Renderer workflow: image add -> settings change -> save", () => {
     it("does not mutate image state when capture returns null", async () => {
         mockIPC.captureScreen.mockResolvedValueOnce(null);
 
-        renderHook(() => useProjectDataSyncBridge());
+        renderHook(() => useBroadcastProjectData());
         const { result: capture } = renderHook(() => useCapture());
 
         const before = useAppStore.getState().imageSets;
