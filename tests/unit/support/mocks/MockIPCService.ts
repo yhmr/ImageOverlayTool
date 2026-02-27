@@ -4,15 +4,19 @@ import { DimensionLine } from "@/shared/types/DimensionLine";
 import type { ImageInfoResult } from "@/shared/types/ImageInfo";
 import { ProjectFile } from "@/shared/types/ProjectFile";
 import { CaptureResult } from "@/shared/types/CaptureResult";
-import { SettingType } from "@/shared/types/AppConfig";
+import {
+    SettingType,
+    DEFAULT_WINDOW_COLOR_PRESETS,
+} from "@/shared/types/AppConfig";
 import { LicenseInfo } from "@/shared/types/LicenseInfo";
+import type { LaunchIntent } from "@/shared/types/LaunchIntent";
+import type { AppControlCommand } from "@/shared/types/AppControlCommand";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
     E2ELoadFixtureImageRequest,
+    E2EResolvedSceneFile,
     E2EResolvedFixtureImage,
-    E2EResolvedScene,
-    E2ESceneInput,
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "@/shared/types/E2EControl";
@@ -30,6 +34,8 @@ export class MockIPCService implements IIPCService {
         export: async () => null,
     };
 
+    async minimizeWindow(): Promise<void> { }
+
     async switchWindowSize(): Promise<boolean> {
         return true;
     }
@@ -40,6 +46,16 @@ export class MockIPCService implements IIPCService {
         width: number;
         height: number;
     }): Promise<void> { }
+
+    async showConfirmDialog(_options: {
+        title?: string;
+        message: string;
+        detail?: string;
+        confirmLabel?: string;
+        cancelLabel?: string;
+    }): Promise<boolean> {
+        return true;
+    }
 
     async setIgnoreMouseEvents(_ignore: boolean): Promise<void> { }
 
@@ -70,6 +86,12 @@ export class MockIPCService implements IIPCService {
     }
 
     async saveWindowColor(_color: string): Promise<void> { }
+
+    async loadWindowColorPresets(): Promise<string[]> {
+        return [...DEFAULT_WINDOW_COLOR_PRESETS];
+    }
+
+    async saveWindowColorPresets(_presets: string[]): Promise<void> { }
 
     async saveProjectAs(_project: ProjectFile<ImageSet>): Promise<string | null> {
         return "path/to/project.iot";
@@ -106,6 +128,12 @@ export class MockIPCService implements IIPCService {
         filePath: string;
     } | null> {
         return null;
+    }
+
+    async loadSceneFromPath(_filePath: string): Promise<LaunchIntent> {
+        return {
+            images: [],
+        };
     }
 
     async loadImage(): Promise<string | null> {
@@ -191,11 +219,27 @@ export class MockIPCService implements IIPCService {
         return () => { };
     }
 
+    onAlwaysOnTopShortcutTriggered(_callback: () => void): () => void {
+        return () => { };
+    }
+
     onClickThroughShortcutTriggered(_callback: () => void): () => void {
         return () => { };
     }
 
-    onFileOpen(_callback: (filePath: string, ext: string) => void): () => void {
+    onFileOpen(
+        _callback: (payload: { filePath: string; ext: string }) => void
+    ): () => void {
+        return () => { };
+    }
+
+    onLaunchIntentApply(_callback: (launchIntent: LaunchIntent) => void): () => void {
+        return () => { };
+    }
+
+    onAppControlCommandApply(
+        _callback: (command: AppControlCommand) => void
+    ): () => void {
         return () => { };
     }
 
@@ -253,8 +297,13 @@ export class MockIPCService implements IIPCService {
         };
     }
 
-    async e2eSetScene(_scene: E2ESceneInput): Promise<E2EResolvedScene> {
-        return { images: [] };
+    async e2eSetSceneFromPath(
+        _scenePath: string
+    ): Promise<E2EResolvedSceneFile> {
+        return {
+            version: "1.0.0",
+            images: [],
+        };
     }
 
     async e2eLoadFixtureImage(

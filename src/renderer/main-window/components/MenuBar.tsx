@@ -2,37 +2,48 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import type { TemporalState } from "zundo";
 
-import { SettingDialog } from "../../dialogs/settings/SettingDialog";
+import { SettingDialog } from "../dialogs/settings/SettingDialog";
 import { AppMenu } from "./AppMenu";
 import { MenuBarHistoryActions } from "./MenuBarHistoryActions";
+import { MenuBarStatusBadges } from "./MenuBarStatusBadges";
 import { MenuBarWindowActions } from "./MenuBarWindowActions";
-import { useMainWindowDialogState } from "../../hooks/useMainWindowDialogState";
-import { useWindowOperations } from "../../hooks/useWindowOperations";
-import { useProjectOperations } from "../../hooks/useProjectOperations";
+import { useMainWindowDialogState } from "../hooks/useMainWindowDialogState";
+import { useWindowOperations } from "../hooks/useWindowOperations";
+import { useProjectOperations } from "../hooks/useProjectOperations";
 import { useImageFileStatus } from "../../hooks/useImageFileStatus";
-import { useImagePaste } from "../../hooks/useImagePaste";
-import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
-import { AboutDialog } from "../../dialogs/about/AboutDialog";
-import { Button } from "@/renderer/components/ui/button";
+import { useImagePaste } from "../hooks/useImagePaste";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { AboutDialog } from "../dialogs/about/AboutDialog";
 import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
 import { useAppStore, type AppState } from "../../store/useAppStore";
+import {
+    selectImageSets,
+    selectIsUIHidden,
+    selectSetProjectDataChangeOrigin,
+} from "../../store/selectors";
 import type { MainWindowActions } from "../hooks/useMainWindowActions";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 
 interface MenuBarProps {
     onOpenImageExportDialog: () => void;
     onOpenWindowColorPicker: () => void;
+    onApplyPresetColor?: (index: number) => void;
     mainWindowActions: MainWindowActions;
 }
 
 export function MenuBar({
     onOpenImageExportDialog,
     onOpenWindowColorPicker,
+    onApplyPresetColor,
     mainWindowActions,
 }: MenuBarProps) {
     const { t } = useTranslation();
-    const { isUIHidden, imageSets } = useAppStore();
+    const isUIHidden = useAppStore(selectIsUIHidden);
+    const imageSets = useAppStore(selectImageSets);
+    const setProjectDataChangeOrigin = useAppStore(
+        selectSetProjectDataChangeOrigin
+    );
     const { missingCount } = useImageFileStatus(imageSets);
     const ipcService = useIpcService();
 
@@ -63,7 +74,8 @@ export function MenuBar({
         closeAboutDialog,
     } = useMainWindowDialogState();
 
-    const { isMaximized, toggleMaximized, closeWindow } = useWindowOperations();
+    const { isMaximized, minimizeWindow, toggleMaximized, closeWindow } =
+        useWindowOperations();
 
     const { newProject, openProject, saveProject, saveProjectAs } =
         useProjectOperations();
@@ -84,9 +96,11 @@ export function MenuBar({
         onOpenImageExport: onOpenImageExportDialog,
         onOpenDimensionSettings: mainWindowActions.openDimensionSettingsWindow,
         onOpenBackgroundStyle: onOpenWindowColorPicker,
+        onToggleWindowFrame: mainWindowActions.toggleWindowFrameVisibility,
         onOpenSettings: openSettingDialog,
         onExportLogs: exportLogs,
         onExit: closeWindow,
+        onApplyPresetColor: onApplyPresetColor,
     });
 
     return (
@@ -121,15 +135,11 @@ export function MenuBar({
                     canRedo={futureStates.length > 0}
                     onUndo={() => {
                         undo();
-                        useAppStore.setState({
-                            projectDataChangeOrigin: "local",
-                        });
+                        setProjectDataChangeOrigin("local");
                     }}
                     onRedo={() => {
                         redo();
-                        useAppStore.setState({
-                            projectDataChangeOrigin: "local",
-                        });
+                        setProjectDataChangeOrigin("local");
                     }}
                 />
 
@@ -138,38 +148,15 @@ export function MenuBar({
                     {t("render.menu_button.app_title")}
                 </div>
 
-                {missingCount > 0 && (
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={mainWindowActions.openImageSettingsWindow}
-                        className="mr-2 app-region-no-drag"
-                        data-testid="main.status.missing-images"
-                        data-clickthrough-allow
-                    >
-                        {t("render.image_status.missing_summary", {
-                            count: missingCount,
-                        })}
-                    </Button>
-                )}
-
-                {mainWindowActions.isClickThroughMode && (
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={mainWindowActions.disableClickThroughMode}
-                        className="mr-2 app-region-no-drag bg-amber-500/90 text-amber-950 hover:bg-amber-500"
-                        data-testid="main.status.click-through-mode"
-                        data-clickthrough-allow
-                    >
-                        {t(
-                            "render.menu_button.status.click_through_mode_active"
-                        )}
-                    </Button>
-                )}
+                <MenuBarStatusBadges
+                    missingCount={missingCount}
+                    mainWindowActions={mainWindowActions}
+                    t={t}
+                />
 
                 <MenuBarWindowActions
                     isMaximized={isMaximized}
+                    onMinimizeWindow={minimizeWindow}
                     onToggleMaximized={toggleMaximized}
                     onCloseWindow={closeWindow}
                 />

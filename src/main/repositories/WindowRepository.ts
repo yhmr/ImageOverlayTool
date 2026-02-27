@@ -7,6 +7,8 @@ import {
     DEFAULT_DIMENSION_SETTINGS_WINDOW_SIZE,
     MIN_IMAGE_SETTINGS_WINDOW_SIZE,
     MIN_DIMENSION_SETTINGS_WINDOW_SIZE,
+    normalizeWindowColor,
+    normalizeWindowColorPresets,
 } from "../../shared/types/AppConfig";
 import { calcCenterPosition } from "../utils/calcCenterPosition";
 import { Point } from "../../shared/types/Point";
@@ -15,6 +17,8 @@ import { Size } from "../../shared/types/Size";
 export interface IWindowRepository {
     loadWindowColor(): Promise<string>;
     saveWindowColor(color: string): Promise<void>;
+    loadWindowColorPresets(): Promise<string[]>;
+    saveWindowColorPresets(presets: string[]): Promise<void>;
     getWindowPositionAndSize(): {
         pos: Point;
         size: Size;
@@ -42,11 +46,32 @@ export class WindowRepository implements IWindowRepository {
     }
 
     async loadWindowColor(): Promise<string> {
-        return this.store.get("window.color", "#FFFFFF55");
+        const rawColor = this.store.get("window.color");
+        const color = normalizeWindowColor(rawColor);
+        if (rawColor !== color) {
+            this.store.set("window.color", color);
+        }
+        return color;
     }
 
     async saveWindowColor(color: string): Promise<void> {
-        this.store.set("window.color", color);
+        this.store.set("window.color", normalizeWindowColor(color));
+    }
+
+    async loadWindowColorPresets(): Promise<string[]> {
+        const rawPresets = this.store.get("window.colorPresets");
+        const presets = normalizeWindowColorPresets(rawPresets);
+        if (this.shouldPersistNormalizedPresets(rawPresets, presets)) {
+            this.store.set("window.colorPresets", presets);
+        }
+        return presets;
+    }
+
+    async saveWindowColorPresets(presets: string[]): Promise<void> {
+        this.store.set(
+            "window.colorPresets",
+            normalizeWindowColorPresets(presets)
+        );
     }
 
     getWindowPositionAndSize(): {
@@ -177,5 +202,25 @@ export class WindowRepository implements IWindowRepository {
                 height: DEFAULT_MAIN_WINDOW_SIZE.height,
             }
         );
+    }
+
+    private shouldPersistNormalizedPresets(
+        rawPresets: unknown,
+        normalizedPresets: string[]
+    ): boolean {
+        if (!Array.isArray(rawPresets)) {
+            return true;
+        }
+
+        if (rawPresets.length !== normalizedPresets.length) {
+            return true;
+        }
+
+        for (let i = 0; i < rawPresets.length; i += 1) {
+            if (rawPresets[i] !== normalizedPresets[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 }

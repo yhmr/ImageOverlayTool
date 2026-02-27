@@ -18,6 +18,7 @@ import {
 import { createEmptyImageSet } from "../../factories/imageSetFactory";
 import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
+import { selectImageSets, selectSetImageSets } from "../../store/selectors";
 import { useImageFileStatus } from "../../hooks/useImageFileStatus";
 
 import { ImageListItem } from "./ImageListItem";
@@ -29,7 +30,8 @@ import { ImageListItem } from "./ImageListItem";
 export function ImageList() {
     const { t } = useTranslation();
 
-    const { imageSets, setImageSets } = useAppStore();
+    const imageSets = useAppStore(selectImageSets);
+    const setImageSets = useAppStore(selectSetImageSets);
     const ipcService = useIpcService();
     const { statusById } = useImageFileStatus(imageSets);
 

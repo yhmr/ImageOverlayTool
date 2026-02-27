@@ -1,46 +1,13 @@
-import fs from "fs";
 import path from "path";
-import { ipcMain, type IpcMainInvokeEvent } from "electron";
 
 import type { E2ERuntimeConfig } from "../e2e/runtimeConfig";
-import {
-    captureWindowAreaAndSave,
-    type CaptureTestModeOptions,
-} from "../services/captureService";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { registerE2ECaptureHandlers } from "./e2eControl/captureHandlers";
+import { registerE2ESceneHandlers } from "./e2eControl/sceneHandlers";
+import { registerE2EStatusHandlers } from "./e2eControl/statusHandlers";
 import type {
-    E2ECaptureRequest,
-    E2EControlStatus,
-    E2ELoadFixtureImageRequest,
-    E2EResolvedFixtureImage,
-    E2EResolvedScene,
-    E2ESceneInput,
-    E2EWaitStableResult,
-} from "../../shared/types/E2EControl";
-
-interface E2EControlRegistrationOptions {
-    e2eConfig: E2ERuntimeConfig;
-}
-
-const SUPPORTED_IMAGE_EXTENSIONS = [
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".webp",
-    ".gif",
-    ".svg",
-];
-
-const isPathInsideDirectory = (
-    baseDir: string,
-    targetPath: string
-): boolean => {
-    const relative = path.relative(baseDir, targetPath);
-    return (
-        relative === "" ||
-        (!relative.startsWith("..") && !path.isAbsolute(relative))
-    );
-};
+    E2EControlHandlerContext,
+    E2EControlRegistrationOptions,
+} from "./e2eControl/types";
 
 const getDisabledReason = (e2eConfig: E2ERuntimeConfig): string => {
     if (!e2eConfig.enabled) {
@@ -63,153 +30,34 @@ const assertControlPlaneEnabled = (e2eConfig: E2ERuntimeConfig): void => {
     }
 };
 
-const resolveFixtureAliasPath = (
-    fixturesDir: string,
-    alias: string
-): string | undefined => {
-    const imageDir = path.resolve(fixturesDir, "images");
-    const normalizedAlias = alias.trim();
-    if (!normalizedAlias) {
-        throw new Error("Fixture alias must not be empty.");
-    }
-
-    const aliasPath = path.resolve(imageDir, normalizedAlias);
-    if (!isPathInsideDirectory(imageDir, aliasPath)) {
-        throw new Error(
-            `Fixture alias escapes fixtures/images: fixture:${alias}`
-        );
-    }
-
-    const ext = path.extname(aliasPath).toLowerCase();
-
-    if (ext.length > 0) {
-        if (!SUPPORTED_IMAGE_EXTENSIONS.includes(ext)) {
-            throw new Error(
-                `Unsupported fixture alias extension: ${ext}. Supported extensions: ${SUPPORTED_IMAGE_EXTENSIONS.join(
-                    ", "
-                )}`
-            );
-        }
-        return fs.existsSync(aliasPath) ? aliasPath : undefined;
-    }
-
-    for (const candidateExt of SUPPORTED_IMAGE_EXTENSIONS) {
-        const candidatePath = `${aliasPath}${candidateExt}`;
-        if (fs.existsSync(candidatePath)) {
-            return candidatePath;
-        }
-    }
-
-    return undefined;
-};
-
-const resolveSceneSourceToAbsolutePath = (
-    source: string,
-    fixturesDir: string
-): string => {
-    const trimmedSource = source.trim();
-    if (!trimmedSource) {
-        throw new Error("Fixture source must not be empty.");
-    }
-
-    if (trimmedSource.startsWith("fixture:")) {
-        const alias = trimmedSource.slice("fixture:".length);
-        const resolvedAliasPath = resolveFixtureAliasPath(fixturesDir, alias);
-        if (!resolvedAliasPath) {
-            throw new Error(`Fixture alias not found: ${trimmedSource}`);
-        }
-        return resolvedAliasPath;
-    }
-
-    const resolvedPath = path.isAbsolute(trimmedSource)
-        ? path.resolve(trimmedSource)
-        : path.resolve(fixturesDir, trimmedSource);
-
-    if (!fs.existsSync(resolvedPath)) {
-        throw new Error(`Fixture path not found: ${resolvedPath}`);
-    }
-
-    return resolvedPath;
-};
-
-const resolveScene = (
-    scene: E2ESceneInput,
-    fixturesDir: string
-): E2EResolvedScene => {
-    if (!Array.isArray(scene.images)) {
-        throw new Error("Scene.images must be an array.");
-    }
-
-    return {
-        ...scene,
-        images: scene.images.map((image) => ({
-            ...image,
-            path: resolveSceneSourceToAbsolutePath(image.source, fixturesDir),
-        })),
-    };
-};
-
+/**
+ * E2Eテスト用の制御を行うIPCハンドラーを登録します。
+ *
+ * 状態確認、シーン設定、キャプチャ機能の各エンドポイントを構築します。
+ * E2E機能が有効化されていない場合は、各ハンドラーの呼び出しでエラーをスローします。
+ *
+ * @param options E2E実行時の設定を含むオプション
+ */
 export const registerE2EControlHandlers = ({
     e2eConfig,
 }: E2EControlRegistrationOptions): void => {
-    const captureTestMode: CaptureTestModeOptions = {
-        enabled: true,
-        captureFilePath: e2eConfig.captureFilePath,
-        exportImagePath: e2eConfig.exportImagePath,
-        fixedNow: e2eConfig.fixedNow,
+    const context: E2EControlHandlerContext = {
+        e2eConfig,
+        e2eImagePathAliases: {
+            fixtures: path.resolve(e2eConfig.fixturesDir, "images"),
+        },
+        captureTestMode: {
+            enabled: true,
+            captureFilePath: e2eConfig.captureFilePath,
+            exportImagePath: e2eConfig.exportImagePath,
+            fixedNow: e2eConfig.fixedNow,
+        },
+        getDisabledReason: () => getDisabledReason(e2eConfig),
+        isControlPlaneEnabled: () => isControlPlaneEnabled(e2eConfig),
+        assertControlPlaneEnabled: () => assertControlPlaneEnabled(e2eConfig),
     };
 
-    ipcMain.handle(IPC_CHANNELS.e2e.getStatus, (): E2EControlStatus => {
-        const enabled = isControlPlaneEnabled(e2eConfig);
-        return {
-            enabled,
-            artifactsDir: e2eConfig.artifactsDir,
-            fixturesDir: e2eConfig.fixturesDir,
-            reason: enabled ? undefined : getDisabledReason(e2eConfig),
-        };
-    });
-
-    ipcMain.handle(
-        IPC_CHANNELS.e2e.setScene,
-        (_event, scene: E2ESceneInput): E2EResolvedScene => {
-            assertControlPlaneEnabled(e2eConfig);
-            return resolveScene(scene, e2eConfig.fixturesDir);
-        }
-    );
-
-    ipcMain.handle(
-        IPC_CHANNELS.e2e.loadFixtureImage,
-        (
-            _event,
-            request: E2ELoadFixtureImageRequest
-        ): E2EResolvedFixtureImage => {
-            assertControlPlaneEnabled(e2eConfig);
-            return {
-                path: resolveSceneSourceToAbsolutePath(
-                    request.source,
-                    e2eConfig.fixturesDir
-                ),
-            };
-        }
-    );
-
-    ipcMain.handle(IPC_CHANNELS.e2e.waitStable, (): E2EWaitStableResult => {
-        assertControlPlaneEnabled(e2eConfig);
-        return {
-            stable: true,
-            elapsedMs: 0,
-        };
-    });
-
-    ipcMain.handle(
-        IPC_CHANNELS.e2e.capture,
-        async (event: IpcMainInvokeEvent, request?: E2ECaptureRequest) => {
-            assertControlPlaneEnabled(e2eConfig);
-            const mode = request?.mode ?? "window";
-            if (mode === "screen") {
-                return captureWindowAreaAndSave(event, true, captureTestMode);
-            }
-            return captureWindowAreaAndSave(event, false, captureTestMode);
-        }
-    );
+    registerE2EStatusHandlers(context);
+    registerE2ESceneHandlers(context);
+    registerE2ECaptureHandlers(context);
 };

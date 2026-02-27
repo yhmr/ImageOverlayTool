@@ -6,17 +6,16 @@ import fs from "fs/promises";
 import path from "path";
 import { app, dialog, ipcMain } from "electron";
 import log from "../logger";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
-
-// ログレベルの型定義
-type LogLevel = "debug" | "info" | "warn" | "error";
+import { logIpcContracts } from "../../shared/ipc/contracts";
+import type { LogLevel } from "../../shared/ipc/contracts/log";
 
 /**
- * ログ出力IPCハンドラーを登録する
+ * レンダラープロセスからのログ出力要求を受け付ける処理や、
+ * ログファイルのデスクトップへの一括エクスポート処理を担うIPCハンドラーを登録します。
  */
 export function registerLogHandlers(): void {
     ipcMain.handle(
-        IPC_CHANNELS.log.write,
+        logIpcContracts.write.channel,
         (_event, level: LogLevel, message: string, params: unknown[]): void => {
             if (["debug", "info", "warn", "error"].includes(level)) {
                 const rendererLog = log.scope("renderer");
@@ -28,7 +27,7 @@ export function registerLogHandlers(): void {
         }
     );
 
-    ipcMain.handle(IPC_CHANNELS.log.export, async () => {
+    ipcMain.handle(logIpcContracts.export.channel, async () => {
         try {
             const result = await dialog.showSaveDialog({
                 title: "Export Logs",

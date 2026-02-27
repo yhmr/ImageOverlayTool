@@ -16,7 +16,7 @@ extraFiles:
     to: "licenses.json"
   - from: "LICENSE"
     to: "LICENSE"
-  - from: "SOURCE_CODE_URL.txt"
+  - from: "docs/store-submission/SOURCE_CODE_URL.txt"
     to: "SOURCE_CODE_URL.txt"
 win:
   target:

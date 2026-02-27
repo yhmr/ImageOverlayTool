@@ -3,7 +3,11 @@ import os from "os";
 import path from "path";
 import type Store from "electron-store";
 import { vi } from "vitest";
-import type { AppConfig } from "@/shared/types/AppConfig";
+import {
+    type AppConfig,
+    DEFAULT_WINDOW_COLOR,
+    DEFAULT_WINDOW_COLOR_PRESETS,
+} from "@/shared/types/AppConfig";
 import { resetIpcHandlerRegistry } from "../../../support/helpers/ipcTestHelper";
 import {
     mockGetAllWindows,
@@ -63,7 +67,8 @@ const createDefaultAppConfig = (): AppConfig => ({
     window: {
         pos: { x: 0, y: 0 },
         size: { width: 800, height: 600 },
-        color: "#FFFFFF55",
+        color: DEFAULT_WINDOW_COLOR,
+        colorPresets: [...DEFAULT_WINDOW_COLOR_PRESETS],
     },
     imageSettingsWindow: {
         pos: { x: 0, y: 0 },

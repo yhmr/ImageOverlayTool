@@ -9,6 +9,14 @@ import {
     InteractionSlice,
     createInteractionSlice,
 } from "./slices/createInteractionSlice";
+import {
+    AppConfigSlice,
+    createAppConfigSlice,
+} from "./slices/createAppConfigSlice";
+import {
+    SyncOriginSlice,
+    createSyncOriginSlice,
+} from "./slices/createSyncOriginSlice";
 
 import { ProjectFile } from "../../shared/types/ProjectFile";
 import { ImageSet } from "../../shared/types/ImageSet";
@@ -32,6 +40,8 @@ type UndoSnapshot = Pick<
 >;
 
 export type AppState = ProjectDataSlice &
+    SyncOriginSlice &
+    AppConfigSlice &
     ViewSlice &
     InteractionSlice &
     StoreActions;
@@ -72,7 +82,9 @@ export const useAppStore = create<AppState>()(
             };
 
             return {
+                ...createSyncOriginSlice(...args),
                 ...createProjectDataSlice(getTemporal)(...args),
+                ...createAppConfigSlice(...args),
                 ...createViewSlice(...args),
                 ...createInteractionSlice(...args),
 

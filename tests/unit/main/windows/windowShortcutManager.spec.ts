@@ -19,6 +19,18 @@ describe("ElectronWindowShortcutManager", () => {
         vi.clearAllMocks();
     });
 
+    it("registers Ctrl/Cmd+Shift+T shortcut", () => {
+        const manager = new ElectronWindowShortcutManager();
+        const callback = vi.fn();
+
+        manager.registerToggleAlwaysOnTopMode(callback);
+
+        expect(register).toHaveBeenCalledWith(
+            "CommandOrControl+Shift+T",
+            callback
+        );
+    });
+
     it("registers Ctrl/Cmd+Shift+M shortcut", () => {
         const manager = new ElectronWindowShortcutManager();
         const callback = vi.fn();

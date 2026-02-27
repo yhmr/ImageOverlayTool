@@ -1,11 +1,17 @@
+/**
+ * メインプロセス(引受側)とレンダラープロセス(呼出側)間の
+ * Request/Response型IPC通信で利用されるチャンネル名の定義
+ */
 export const IPC_CHANNELS = {
     log: {
         write: "log:write",
         export: "log:export",
     },
     window: {
+        minimize: "window:minimize",
         switchSize: "window:switchSize",
         close: "window:close",
+        confirm: "window:confirm",
         setRect: "window:setRect",
         setIgnoreMouseEvents: "window:setIgnoreMouseEvents",
         setAlwaysOnTop: "window:setAlwaysOnTop",
@@ -17,6 +23,8 @@ export const IPC_CHANNELS = {
         import: "setting:import",
         windowColorLoad: "window_color:load",
         windowColorSave: "window_color:save",
+        windowColorPresetsLoad: "window_color_presets:load",
+        windowColorPresetsSave: "window_color_presets:save",
     },
     project: {
         saveAs: "project:saveAs",
@@ -25,6 +33,9 @@ export const IPC_CHANNELS = {
         loadFromPath: "project:loadFromPath",
         pickSavePath: "project:pickSavePath",
         materializeCacheImages: "project:materializeCacheImages",
+    },
+    scene: {
+        loadFromPath: "scene:loadFromPath",
     },
     imageSettingsWindow: {
         toggle: "imageSettingsWindow:toggle",
@@ -58,13 +69,17 @@ export const IPC_CHANNELS = {
     },
     e2e: {
         getStatus: "e2e:getStatus",
-        setScene: "e2e:setScene",
+        setSceneFromPath: "e2e:setSceneFromPath",
         loadFixtureImage: "e2e:loadFixtureImage",
         waitStable: "e2e:waitStable",
         capture: "e2e:capture",
     },
 } as const;
 
+/**
+ * メインプロセスからレンダラープロセスなどに対する
+ * 単方向のイベント通知(Publish/Subscribe)型IPC通信で利用されるイベント名の定義
+ */
 export const IPC_EVENTS = {
     imageSetsUpdated: "imageSets:updated",
     dimensionLinesUpdated: "dimensionLines:updated",
@@ -74,7 +89,10 @@ export const IPC_EVENTS = {
     selectedImageIdUpdated: "selectedImageId:updated",
     selectedDimensionLineIdUpdated: "selectedDimensionLineId:updated",
     languageUpdated: "language:updated",
+    alwaysOnTopShortcutTriggered: "alwaysOnTop:shortcutTriggered",
     clickThroughShortcutTriggered: "clickThrough:shortcutTriggered",
     requestStateSync: "state:requestSync",
     fileOpen: "file:open",
+    launchIntentApply: "launchIntent:apply",
+    appControlCommandApply: "appControlCommand:apply",
 } as const;

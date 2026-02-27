@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Maximize, Minimize, X } from "lucide-react";
+import { Maximize, Minimize, Minus, X } from "lucide-react";
 
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -10,12 +10,14 @@ import {
 
 interface MenuBarWindowActionsProps {
     isMaximized: boolean;
+    onMinimizeWindow: () => void;
     onToggleMaximized: () => void;
     onCloseWindow: () => void;
 }
 
 export function MenuBarWindowActions({
     isMaximized,
+    onMinimizeWindow,
     onToggleMaximized,
     onCloseWindow,
 }: MenuBarWindowActionsProps) {
@@ -23,6 +25,23 @@ export function MenuBarWindowActions({
 
     return (
         <>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onMinimizeWindow}
+                        className="app-region-no-drag"
+                        data-testid="main.action.window-minimize"
+                    >
+                        <Minus className="h-6 w-6" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>{t("render.menu_button.tooltip.minimize")}</p>
+                </TooltipContent>
+            </Tooltip>
+
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button

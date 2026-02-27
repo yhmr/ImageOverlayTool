@@ -3,7 +3,7 @@ import Konva from "konva";
 import { Circle, Line } from "react-konva";
 import type { ImageSet } from "../../../shared/types/ImageSet";
 import type { AnchorPos } from "../../../shared/types/AnchorPos";
-import { useImageAnchor } from "../../hooks/useImageAnchor";
+import { useImageAnchor } from "../hooks/useImageAnchor";
 import { rotateAnchorPos } from "../../utils/anchorUtils";
 import {
     ANCHOR_RADIUS,
@@ -32,9 +32,6 @@ export const OverlayControls = ({
     const rbRef = useRef<Konva.Circle>(null);
     const lineRef = useRef<Konva.Line>(null);
 
-    // 配列化して扱いやすくする
-    const cRefs = [ltRef, lbRef, rtRef, rbRef];
-
     // ドラッグ時の座標補正を行うラッパー
     const onUpdateAnchorWrapper = useCallback(
         (newAnchors: AnchorPos) => {
@@ -54,7 +51,7 @@ export const OverlayControls = ({
         [imageSet.rotation, onUpdateAnchor]
     );
 
-    const { onDragStart, onDragEnd, onCircleDragEnd } = useImageAnchor({
+    const { onDragStart, onDragEnd } = useImageAnchor({
         imageSet,
         onUpdateAnchor: onUpdateAnchorWrapper,
     });
@@ -72,7 +69,28 @@ export const OverlayControls = ({
         if (rbRef.current) rbRef.current.draggable(true);
     }, [imageSet.locked]);
 
-    const circleDragHandler = onCircleDragEnd(ltRef, lbRef, rtRef, rbRef);
+    const circleDragHandler = useCallback(() => {
+        if (ltRef.current && lbRef.current && rtRef.current && rbRef.current) {
+            onUpdateAnchorWrapper({
+                lt: {
+                    x: ltRef.current.x(),
+                    y: ltRef.current.y(),
+                },
+                lb: {
+                    x: lbRef.current.x(),
+                    y: lbRef.current.y(),
+                },
+                rt: {
+                    x: rtRef.current.x(),
+                    y: rtRef.current.y(),
+                },
+                rb: {
+                    x: rbRef.current.x(),
+                    y: rbRef.current.y(),
+                },
+            });
+        }
+    }, [onUpdateAnchorWrapper]);
 
     // アンカー位置の同期
     useLayoutEffect(() => {
@@ -138,19 +156,46 @@ export const OverlayControls = ({
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
             />
-            {!imageSet.locked &&
-                cRefs.map((ref, index) => (
+            {!imageSet.locked && (
+                <>
                     <Circle
-                        key={index}
                         draggable={false} // onMouseDownでtrueにする
                         onMouseDown={onMouseDown}
                         onDragEnd={circleDragHandler}
-                        ref={ref}
+                        ref={ltRef}
                         radius={ANCHOR_RADIUS}
                         stroke={ANCHOR_STROKE_COLOR}
                         fill={ANCHOR_FILL_COLOR}
                     />
-                ))}
+                    <Circle
+                        draggable={false}
+                        onMouseDown={onMouseDown}
+                        onDragEnd={circleDragHandler}
+                        ref={lbRef}
+                        radius={ANCHOR_RADIUS}
+                        stroke={ANCHOR_STROKE_COLOR}
+                        fill={ANCHOR_FILL_COLOR}
+                    />
+                    <Circle
+                        draggable={false}
+                        onMouseDown={onMouseDown}
+                        onDragEnd={circleDragHandler}
+                        ref={rtRef}
+                        radius={ANCHOR_RADIUS}
+                        stroke={ANCHOR_STROKE_COLOR}
+                        fill={ANCHOR_FILL_COLOR}
+                    />
+                    <Circle
+                        draggable={false}
+                        onMouseDown={onMouseDown}
+                        onDragEnd={circleDragHandler}
+                        ref={rbRef}
+                        radius={ANCHOR_RADIUS}
+                        stroke={ANCHOR_STROKE_COLOR}
+                        fill={ANCHOR_FILL_COLOR}
+                    />
+                </>
+            )}
         </>
     );
 };

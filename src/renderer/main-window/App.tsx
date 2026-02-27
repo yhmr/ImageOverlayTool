@@ -1,35 +1,39 @@
-import React, { useEffect, useLayoutEffect, type ErrorInfo } from "react";
+import React, { type ErrorInfo } from "react";
 import ReactDOM from "react-dom/client";
 
 import "../../i18n/configs"; //i18
 import "../shared/globals.css";
 import "./App.css";
 
-import { useFileHandler } from "../hooks/useFileHandler";
+import { useFileHandler } from "./hooks/useFileHandler";
 import { useImageDrop } from "../hooks/useImageDrop";
-import { useProjectDataSyncBridge } from "../hooks/useProjectDataSyncBridge";
-import { useProjectSync } from "../hooks/useProjectSync";
+import { useBroadcastProjectData } from "../hooks/useBroadcastProjectData";
 import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
-import { useMainWindowDialogState } from "../hooks/useMainWindowDialogState";
+import { useMainWindowDialogState } from "./hooks/useMainWindowDialogState";
+import { useReceiveProjectData } from "../hooks/useReceiveProjectData";
+import { useRespondProjectDataSyncRequest } from "../hooks/useRespondProjectDataSyncRequest";
 import {
     IpcServiceProvider,
     useIpcService,
 } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
-import { ColorPicker } from "./components/ColorPicker";
+import {
+    selectIsWindowFrameVisible,
+    selectWindowColor,
+} from "../store/selectors";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { WindowResizeHandles } from "./components/WindowResizeHandles";
 import { useMainWindowActions } from "./hooks/useMainWindowActions";
+import { ColorPicker } from "./components/ColorPicker";
+import { useGlobalErrorLogging } from "./hooks/useGlobalErrorLogging";
+import { useMainWindowBootstrap } from "./hooks/useMainWindowBootstrap";
 import { useWindowColorPickerController } from "./hooks/useWindowColorPickerController";
 
 const App = () => {
-    // 設定の読み込み
-    const setWindowColor = useAppStore((state) => state.setWindowColor);
-    const windowColor = useAppStore((state) => state.windowColor);
-    const hasUnsavedChanges = useAppStore((state) => state.hasUnsavedChanges);
-    const ipcService = useIpcService();
+    const isWindowFrameVisible = useAppStore(selectIsWindowFrameVisible);
+    const windowColor = useAppStore(selectWindowColor);
     const mainWindowActions = useMainWindowActions();
     const windowColorPicker = useWindowColorPickerController();
     const {
@@ -39,60 +43,25 @@ const App = () => {
     } = useMainWindowDialogState();
 
     // ローカル編集を他ウィンドウへ同期
-    useProjectDataSyncBridge();
-    // 同期フックを使用
-    useProjectSync();
+    useBroadcastProjectData();
+    // 同期データの受信
+    useReceiveProjectData();
+    // 同期要求に対する現在状態の応答
+    useRespondProjectDataSyncRequest();
     // ファイルハンドラフックを使用 (起動時引数など)
     useFileHandler();
     // E2E制御ブリッジ
     useE2EControlBridge();
+    useGlobalErrorLogging();
+    useMainWindowBootstrap();
     // D&D画像読み込み
     const { onDragOver, onDrop } = useImageDrop();
 
-    // グローバルエラーハンドリング
-    useEffect(() => {
-        const onError = (event: ErrorEvent) => {
-            void ipcService.log.error(
-                "Renderer Uncaught Error:",
-                event.error || event.message
-            );
-        };
-
-        const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-            void ipcService.log.error(
-                "Renderer Unhandled Rejection:",
-                event.reason
-            );
-        };
-
-        window.addEventListener("error", onError);
-        window.addEventListener("unhandledrejection", onUnhandledRejection);
-
-        return () => {
-            window.removeEventListener("error", onError);
-            window.removeEventListener(
-                "unhandledrejection",
-                onUnhandledRejection
-            );
-        };
-    }, [ipcService]);
-
-    // 初めの一度のみ描画前にファイルから色を取得
-    useLayoutEffect(() => {
-        // 設定を読み込み
-        const loadColor = async () => {
-            const color = await ipcService.loadWindowColor();
-            setWindowColor(color);
-            // 初期設定による変更なので履歴をクリアする
-            useAppStore.temporal.getState().clear();
-            useAppStore.getState().markProjectSaved();
-        };
-        void loadColor();
-    }, [setWindowColor, ipcService]);
-
-    useEffect(() => {
-        void ipcService.updateProjectDirty(hasUnsavedChanges);
-    }, [hasUnsavedChanges, ipcService]);
+    const handleApplyPresetColor = (index: number) => {
+        if (windowColorPicker.presets.length > index) {
+            windowColorPicker.applyColor(windowColorPicker.presets[index]);
+        }
+    };
 
     return (
         <div
@@ -104,6 +73,7 @@ const App = () => {
             <MenuBar
                 onOpenImageExportDialog={openImageExportDialog}
                 onOpenWindowColorPicker={windowColorPicker.open}
+                onApplyPresetColor={handleApplyPresetColor}
                 mainWindowActions={mainWindowActions}
             />
             <div
@@ -129,14 +99,25 @@ const App = () => {
                 </div>
             </div>
             <ColorPicker
-                isOpen={windowColorPicker.isOpen}
-                onOpenChange={windowColorPicker.setOpen}
+                isOpen={windowColorPicker.isPickerOpen}
+                onOpenChange={windowColorPicker.setPickerOpen}
                 color={windowColorPicker.windowColor}
-                onColorChange={windowColorPicker.setWindowColor}
-                onColorChangeComplete={windowColorPicker.saveWindowColor}
+                onColorChange={(color) =>
+                    windowColorPicker.applyColor(color, false)
+                }
+                onColorChangeComplete={() =>
+                    windowColorPicker.applyColor(
+                        windowColorPicker.windowColor,
+                        true
+                    )
+                }
                 centerOnScreen
+                presets={windowColorPicker.presets}
+                onAddPreset={windowColorPicker.addPreset}
+                onRemovePreset={windowColorPicker.removePreset}
+                onUpdatePreset={windowColorPicker.updatePreset}
             />
-            <WindowResizeHandles />
+            <WindowResizeHandles showFrameBorder={isWindowFrameVisible} />
         </div>
     );
 };

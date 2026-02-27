@@ -8,6 +8,7 @@ import { registerImageSettingsWindowHandlers } from "../ipc/imageSettingsWindow"
 import { registerLicenseIpc } from "../ipc/license";
 import { registerLogHandlers } from "../ipc/log";
 import { registerProjectHandlers } from "../ipc/project";
+import { registerSceneHandlers } from "../ipc/scene";
 import { registerWindowHandlers } from "../ipc/window";
 import type { IProjectRepository } from "../repositories/ProjectRepository";
 import type { ISettingsRepository } from "../repositories/SettingsRepository";
@@ -47,6 +48,7 @@ export const registerCoreIpcHandlers = ({
               }
             : undefined
     );
+    registerSceneHandlers();
 
     registerImageSettingsWindowHandlers(windowManager);
     registerLicenseIpc();

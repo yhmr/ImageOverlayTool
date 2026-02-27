@@ -105,21 +105,24 @@ describe("ipcService", () => {
             const unsubDimensionLines = vi.fn();
             const unsubInteractionMode = vi.fn();
             const unsubRequestState = vi.fn();
+            const unsubAlwaysOnTop = vi.fn();
+            const unsubClickThrough = vi.fn();
             const unsubFileOpen = vi.fn();
+            const unsubLaunchIntentApply = vi.fn();
+            const unsubAppControlCommandApply = vi.fn();
             const unsubSelectedImageId = vi.fn();
             const unsubSelectedDimensionLineId = vi.fn();
             const unsubLanguage = vi.fn();
 
             const api = {
                 log: {
-                    debug: vi.fn().mockResolvedValue(undefined),
-                    info: vi.fn().mockResolvedValue(undefined),
-                    warn: vi.fn().mockResolvedValue(undefined),
-                    error: vi.fn().mockResolvedValue(undefined),
+                    write: vi.fn().mockResolvedValue(undefined),
                     export: vi.fn().mockResolvedValue("logs.txt"),
                 },
+                minimizeWindow: vi.fn().mockResolvedValue(undefined),
                 switchWindowSize: vi.fn().mockResolvedValue(true),
                 setWindowRect: vi.fn().mockResolvedValue(undefined),
+                showConfirmDialog: vi.fn().mockResolvedValue(true),
                 setIgnoreMouseEvents: vi.fn().mockResolvedValue(undefined),
                 setAlwaysOnTop: vi.fn().mockResolvedValue(undefined),
                 closeWindow: vi.fn().mockResolvedValue(undefined),
@@ -146,6 +149,9 @@ describe("ipcService", () => {
                 loadProjectFromPath: vi
                     .fn()
                     .mockResolvedValue({ project: createProject(), filePath: "b.iot" }),
+                loadSceneFromPath: vi.fn().mockResolvedValue({
+                    images: [],
+                }),
                 loadImage: vi.fn().mockResolvedValue("C:/tmp/image.png"),
                 getImageInfo: vi
                     .fn()
@@ -173,7 +179,19 @@ describe("ipcService", () => {
                     .mockReturnValue(unsubInteractionMode),
                 requestInitialState: vi.fn().mockResolvedValue(undefined),
                 onRequestStateSync: vi.fn().mockReturnValue(unsubRequestState),
+                onAlwaysOnTopShortcutTriggered: vi
+                    .fn()
+                    .mockReturnValue(unsubAlwaysOnTop),
+                onClickThroughShortcutTriggered: vi
+                    .fn()
+                    .mockReturnValue(unsubClickThrough),
                 onFileOpen: vi.fn().mockReturnValue(unsubFileOpen),
+                onLaunchIntentApply: vi
+                    .fn()
+                    .mockReturnValue(unsubLaunchIntentApply),
+                onAppControlCommandApply: vi
+                    .fn()
+                    .mockReturnValue(unsubAppControlCommandApply),
                 getLicenseInfo: vi.fn().mockResolvedValue([
                     {
                         name: "dep",
@@ -207,7 +225,10 @@ describe("ipcService", () => {
                     artifactsDir: "test-results/e2e-artifacts",
                     fixturesDir: "e2e/fixtures",
                 }),
-                e2eSetScene: vi.fn().mockResolvedValue({ images: [] }),
+                e2eSetSceneFromPath: vi.fn().mockResolvedValue({
+                    version: "1.0.0",
+                    images: [],
+                }),
                 e2eLoadFixtureImage: vi
                     .fn()
                     .mockResolvedValue({ path: "C:/tmp/fixture.png" }),
@@ -230,7 +251,11 @@ describe("ipcService", () => {
                     unsubDimensionLines,
                     unsubInteractionMode,
                     unsubRequestState,
+                    unsubAlwaysOnTop,
+                    unsubClickThrough,
                     unsubFileOpen,
+                    unsubLaunchIntentApply,
+                    unsubAppControlCommandApply,
                     unsubSelectedImageId,
                     unsubSelectedDimensionLineId,
                     unsubLanguage,
@@ -250,13 +275,17 @@ describe("ipcService", () => {
             await service.log.warn("w", 3);
             await service.log.error("e", 4);
             await expect(service.log.export()).resolves.toBe("logs.txt");
-            expect(api.log.debug).toHaveBeenCalledWith("d", 1);
-            expect(api.log.info).toHaveBeenCalledWith("i", 2);
-            expect(api.log.warn).toHaveBeenCalledWith("w", 3);
-            expect(api.log.error).toHaveBeenCalledWith("e", 4);
+            expect(api.log.write).toHaveBeenNthCalledWith(1, "debug", "d", [1]);
+            expect(api.log.write).toHaveBeenNthCalledWith(2, "info", "i", [2]);
+            expect(api.log.write).toHaveBeenNthCalledWith(3, "warn", "w", [3]);
+            expect(api.log.write).toHaveBeenNthCalledWith(4, "error", "e", [4]);
 
+            await service.minimizeWindow();
             await expect(service.switchWindowSize()).resolves.toBe(true);
             await service.setWindowRect({ x: 1, y: 2, width: 3, height: 4 });
+            await expect(
+                service.showConfirmDialog({ message: "confirm?" })
+            ).resolves.toBe(true);
             await service.setIgnoreMouseEvents(true);
             await service.setAlwaysOnTop(true);
             await service.closeWindow();
@@ -287,6 +316,11 @@ describe("ipcService", () => {
             await expect(service.loadProjectFromPath("b.iot")).resolves.toEqual({
                 project,
                 filePath: "b.iot",
+            });
+            await expect(
+                service.loadSceneFromPath("default.scene.json")
+            ).resolves.toEqual({
+                images: [],
             });
             await expect(service.loadImage()).resolves.toBe("C:/tmp/image.png");
             await expect(service.getImageInfo("C:/tmp/image.png")).resolves.toEqual({
@@ -332,11 +366,14 @@ describe("ipcService", () => {
                 artifactsDir: "test-results/e2e-artifacts",
                 fixturesDir: "e2e/fixtures",
             });
-            await expect(service.e2eSetScene({ images: [] })).resolves.toEqual({
+            await expect(
+                service.e2eSetSceneFromPath("C:/tmp/default.scene.json")
+            ).resolves.toEqual({
+                version: "1.0.0",
                 images: [],
             });
             await expect(
-                service.e2eLoadFixtureImage({ source: "fixture:placeholder" })
+                service.e2eLoadFixtureImage({ source: "@fixtures/placeholder.png" })
             ).resolves.toEqual({
                 path: "C:/tmp/fixture.png",
             });
@@ -356,18 +393,28 @@ describe("ipcService", () => {
                 width: 3,
                 height: 4,
             });
+            expect(api.minimizeWindow).toHaveBeenCalledTimes(1);
+            expect(api.showConfirmDialog).toHaveBeenCalledWith({
+                message: "confirm?",
+            });
             expect(api.setIgnoreMouseEvents).toHaveBeenCalledWith(true);
             expect(api.setAlwaysOnTop).toHaveBeenCalledWith(true);
             expect(api.saveProject).toHaveBeenCalledWith(
-                "save.iot",
-                project,
-                undefined
+                {
+                    filePath: "save.iot",
+                    project,
+                    cacheImagePathsToDelete: undefined,
+                }
             );
             expect(api.pickProjectSavePath).toHaveBeenCalled();
-            expect(api.materializeCacheImages).toHaveBeenCalledWith("save.iot", [
-                "C:/tmp/cache.png",
-            ]);
+            expect(api.materializeCacheImages).toHaveBeenCalledWith({
+                projectFilePath: "save.iot",
+                cacheImagePaths: ["C:/tmp/cache.png"],
+            });
             expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
+            expect(api.loadSceneFromPath).toHaveBeenCalledWith(
+                "default.scene.json"
+            );
             expect(api.getImageInfo).toHaveBeenCalledWith("C:/tmp/image.png");
             expect(api.pasteImage).toHaveBeenCalled();
             expect(api.saveCacheImageAs).toHaveBeenCalledWith("C:/tmp/paste.png");
@@ -382,9 +429,11 @@ describe("ipcService", () => {
             );
             expect(api.updateProjectDirty).toHaveBeenCalledWith(true);
             expect(api.getE2EStatus).toHaveBeenCalled();
-            expect(api.e2eSetScene).toHaveBeenCalledWith({ images: [] });
+            expect(api.e2eSetSceneFromPath).toHaveBeenCalledWith(
+                "C:/tmp/default.scene.json"
+            );
             expect(api.e2eLoadFixtureImage).toHaveBeenCalledWith({
-                source: "fixture:placeholder",
+                source: "@fixtures/placeholder.png",
             });
             expect(api.e2eWaitStable).toHaveBeenCalledWith({ timeoutMs: 1000 });
             expect(api.e2eCapture).toHaveBeenCalledWith({ mode: "window" });
@@ -402,7 +451,11 @@ describe("ipcService", () => {
             const onDimensionLinesUpdated = vi.fn();
             const onInteractionModeUpdated = vi.fn();
             const onRequestStateSync = vi.fn();
+            const onAlwaysOnTopShortcutTriggered = vi.fn();
+            const onClickThroughShortcutTriggered = vi.fn();
             const onFileOpen = vi.fn();
+            const onLaunchIntentApply = vi.fn();
+            const onAppControlCommandApply = vi.fn();
             const onSelectedImageIdUpdated = vi.fn();
             const onSelectedDimensionLineIdUpdated = vi.fn();
             const onLanguageUpdated = vi.fn();
@@ -425,7 +478,23 @@ describe("ipcService", () => {
             expect(service.onRequestStateSync(onRequestStateSync)).toBe(
                 unsubscribers.unsubRequestState
             );
+            expect(
+                service.onAlwaysOnTopShortcutTriggered(
+                    onAlwaysOnTopShortcutTriggered
+                )
+            ).toBe(unsubscribers.unsubAlwaysOnTop);
+            expect(
+                service.onClickThroughShortcutTriggered(
+                    onClickThroughShortcutTriggered
+                )
+            ).toBe(unsubscribers.unsubClickThrough);
             expect(service.onFileOpen(onFileOpen)).toBe(unsubscribers.unsubFileOpen);
+            expect(service.onLaunchIntentApply(onLaunchIntentApply)).toBe(
+                unsubscribers.unsubLaunchIntentApply
+            );
+            expect(
+                service.onAppControlCommandApply(onAppControlCommandApply)
+            ).toBe(unsubscribers.unsubAppControlCommandApply);
             expect(service.onSelectedImageIdUpdated(onSelectedImageIdUpdated)).toBe(
                 unsubscribers.unsubSelectedImageId
             );
@@ -448,7 +517,19 @@ describe("ipcService", () => {
                 onInteractionModeUpdated
             );
             expect(api.onRequestStateSync).toHaveBeenCalledWith(onRequestStateSync);
+            expect(api.onAlwaysOnTopShortcutTriggered).toHaveBeenCalledWith(
+                onAlwaysOnTopShortcutTriggered
+            );
+            expect(api.onClickThroughShortcutTriggered).toHaveBeenCalledWith(
+                onClickThroughShortcutTriggered
+            );
             expect(api.onFileOpen).toHaveBeenCalledWith(onFileOpen);
+            expect(api.onLaunchIntentApply).toHaveBeenCalledWith(
+                onLaunchIntentApply
+            );
+            expect(api.onAppControlCommandApply).toHaveBeenCalledWith(
+                onAppControlCommandApply
+            );
             expect(api.onSelectedImageIdUpdated).toHaveBeenCalledWith(
                 onSelectedImageIdUpdated
             );

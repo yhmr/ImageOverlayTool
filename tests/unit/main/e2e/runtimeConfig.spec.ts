@@ -22,7 +22,7 @@ describe("resolveE2ERuntimeConfig", () => {
 
     it("returns disabled mode without --e2e", () => {
         process.argv = ["node", "index.js"];
-        const config = resolveE2ERuntimeConfig();
+        const config = resolveE2ERuntimeConfig({ isPackaged: false });
 
         expect(config.enabled).toBe(false);
     });
@@ -31,11 +31,12 @@ describe("resolveE2ERuntimeConfig", () => {
         const artifactsDir = path.resolve("test-results", "e2e-runtime-config-test");
         const fixturesDir = path.resolve("e2e", "fixtures");
         process.argv = ["node", "index.js", "--e2e"];
+        process.env.IOT_INTERNAL_E2E = "1";
         process.env.IOT_E2E_ARTIFACTS_DIR = artifactsDir;
         process.env.IOT_E2E_FIXED_NOW = "1701234567890";
         process.env.IOT_E2E_RANDOM_SEED = "9001";
 
-        const config = resolveE2ERuntimeConfig();
+        const config = resolveE2ERuntimeConfig({ isPackaged: false });
 
         expect(config.enabled).toBe(true);
         expect(config.artifactsDir).toBe(artifactsDir);
@@ -52,5 +53,22 @@ describe("resolveE2ERuntimeConfig", () => {
         expect(config.fixedNow).toBe(1701234567890);
         expect(config.randomSeed).toBe(9001);
         expect(fs.existsSync(artifactsDir)).toBe(true);
+    });
+
+    it("keeps e2e mode disabled when internal e2e env is missing", () => {
+        process.argv = ["node", "index.js", "--e2e"];
+
+        const config = resolveE2ERuntimeConfig({ isPackaged: false });
+
+        expect(config.enabled).toBe(false);
+    });
+
+    it("keeps e2e mode disabled in packaged builds even with --e2e", () => {
+        process.argv = ["node", "index.js", "--e2e"];
+        process.env.IOT_INTERNAL_E2E = "1";
+
+        const config = resolveE2ERuntimeConfig({ isPackaged: true });
+
+        expect(config.enabled).toBe(false);
     });
 });

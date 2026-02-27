@@ -145,6 +145,7 @@ describe("IPC AppConfig Handlers", () => {
             expect(sendA).toHaveBeenCalledWith(IPC_EVENTS.languageUpdated, "ja");
             expect(sendB).toHaveBeenCalledWith(IPC_EVENTS.languageUpdated, "ja");
         });
+
     });
 
     describe("window_color:save & window_color:load", () => {

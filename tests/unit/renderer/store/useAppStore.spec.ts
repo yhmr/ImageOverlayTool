@@ -7,6 +7,10 @@ import { ImageSet } from "@/shared/types/ImageSet";
 import { DimensionLine } from "@/shared/types/DimensionLine";
 import type { ProjectFile } from "@/shared/types/ProjectFile";
 import {
+    DEFAULT_SHOW_WINDOW_FRAME,
+    DEFAULT_WINDOW_COLOR_PRESETS,
+} from "@/shared/types/AppConfig";
+import {
     UNIT_FACTOR_DEFAULT,
     UNIT_FACTOR_MIN,
 } from "@/shared/constants/unitFactor";
@@ -14,6 +18,12 @@ import {
 describe("useAppStore", () => {
     beforeEach(() => {
         useAppStore.getState().resetAll();
+        useAppStore
+            .getState()
+            .setWindowFrameVisible(DEFAULT_SHOW_WINDOW_FRAME);
+        useAppStore
+            .getState()
+            .setWindowColorPresets([...DEFAULT_WINDOW_COLOR_PRESETS]);
     });
 
     describe("ProjectDataSlice", () => {
@@ -218,11 +228,15 @@ describe("useAppStore", () => {
         it("should reset view", () => {
             useAppStore.getState().setCanvasState({ x: 10, y: 20, scale: 2 });
             useAppStore.getState().setUIHidden(true);
+            useAppStore.getState().setAlwaysOnTopMode(true);
+            useAppStore.getState().setClickThroughMode(true);
 
             useAppStore.getState().resetView();
 
             expect(useAppStore.getState().canvas).toEqual({ x: 0, y: 0, scale: 1 });
             expect(useAppStore.getState().isUIHidden).toBe(false);
+            expect(useAppStore.getState().isAlwaysOnTopMode).toBe(false);
+            expect(useAppStore.getState().isClickThroughMode).toBe(false);
         });
 
         it("should toggle UI hidden state", () => {
@@ -231,6 +245,24 @@ describe("useAppStore", () => {
             expect(useAppStore.getState().isUIHidden).toBe(true);
             useAppStore.getState().setUIHidden(false);
             expect(useAppStore.getState().isUIHidden).toBe(false);
+        });
+
+        it("should not enable click-through when always-on-top is off", () => {
+            useAppStore.getState().setAlwaysOnTopMode(false);
+            useAppStore.getState().setClickThroughMode(true);
+
+            expect(useAppStore.getState().isClickThroughMode).toBe(false);
+        });
+
+        it("should disable click-through when always-on-top turns off", () => {
+            useAppStore.getState().setAlwaysOnTopMode(true);
+            useAppStore.getState().setClickThroughMode(true);
+            expect(useAppStore.getState().isClickThroughMode).toBe(true);
+
+            useAppStore.getState().setAlwaysOnTopMode(false);
+
+            expect(useAppStore.getState().isAlwaysOnTopMode).toBe(false);
+            expect(useAppStore.getState().isClickThroughMode).toBe(false);
         });
     });
 
@@ -245,6 +277,57 @@ describe("useAppStore", () => {
             expect(state.unitFactor).toBe(1.0);
             expect(state.interactionMode).toBe("default");
             expect(state.currentProjectFilePath).toBeNull();
+        });
+    });
+
+    describe("AppConfigSlice", () => {
+        it("should normalize and set window color presets", () => {
+            useAppStore.getState().setWindowColorPresets([
+                "#FFFFFF",
+                " #00000000 ",
+                "#ffffff",
+                "invalid",
+            ]);
+
+            expect(useAppStore.getState().windowColorPresets).toEqual([
+                "#FFFFFF",
+                "#00000000",
+            ]);
+        });
+
+        it("should fall back to default presets when all values are invalid", () => {
+            useAppStore.getState().setWindowColorPresets(["invalid", ""]);
+
+            expect(useAppStore.getState().windowColorPresets).toEqual([
+                ...DEFAULT_WINDOW_COLOR_PRESETS,
+            ]);
+        });
+
+        it("should preserve empty presets when explicitly set", () => {
+            useAppStore.getState().setWindowColorPresets([]);
+
+            expect(useAppStore.getState().windowColorPresets).toEqual([]);
+        });
+
+        it("should keep presets after resetAll because presets are app config", () => {
+            useAppStore
+                .getState()
+                .setWindowColorPresets(["#11223344", "#AABBCC"]);
+
+            useAppStore.getState().resetAll();
+
+            expect(useAppStore.getState().windowColorPresets).toEqual([
+                "#11223344",
+                "#AABBCC",
+            ]);
+        });
+
+        it("should keep window frame visibility after resetAll because it is app config", () => {
+            useAppStore.getState().setWindowFrameVisible(true);
+
+            useAppStore.getState().resetAll();
+
+            expect(useAppStore.getState().isWindowFrameVisible).toBe(true);
         });
     });
 

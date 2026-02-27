@@ -1,26 +1,44 @@
 {
-  "name": "default",
-  "unitFactor": 1,
+  "version": "1.0.0",
+  "window": {
+    "color": "#00000000"
+  },
+  "unitFactor": 1.0,
   "unit": "um",
-  "windowColor": "#00000000",
   "canvas": {
     "x": 0,
     "y": 0,
     "scale": 1
   },
-  "interactionMode": "default",
-  "selectedImageId": null,
-  "selectedDimensionLineId": null,
-  "uiHidden": false,
+  "imagePathAliases": {
+    "fixtures": "../images"
+  },
   "images": [
     {
       "id": "fixture-placeholder",
-      "source": "fixture:placeholder",
+      "source": "@fixtures/placeholder.png",
       "transparency": 0,
       "rotation": 0,
+      "initAnchorPos": {
+        "lt": { "x": 0, "y": 0 },
+        "rt": { "x": 1, "y": 0 },
+        "lb": { "x": 0, "y": 1 },
+        "rb": { "x": 1, "y": 1 }
+      },
+      "currentAnchorPos": {
+        "lt": { "x": 0, "y": 0 },
+        "rt": { "x": 1, "y": 0 },
+        "lb": { "x": 0, "y": 1 },
+        "rb": { "x": 1, "y": 1 }
+      },
       "visible": true,
       "locked": false
     }
   ],
-  "dimensionLines": []
+  "dimensionLines": [],
+  "name": "default",
+  "interactionMode": "default",
+  "selectedImageId": null,
+  "selectedDimensionLineId": null,
+  "uiHidden": false
 }

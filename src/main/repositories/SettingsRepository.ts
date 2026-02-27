@@ -3,6 +3,8 @@ import {
     AppConfig,
     SettingType,
     SettingsSnapshot,
+    normalizeWindowColor,
+    normalizeWindowColorPresets,
 } from "../../shared/types/AppConfig";
 import { DEFAULT_LANGUAGE, normalizeLanguage } from "../../i18n/languages";
 
@@ -21,11 +23,15 @@ export class SettingsRepository implements ISettingsRepository {
     }
 
     async loadSettings(): Promise<SettingType> {
+        const showWindowFrame = this.store.get("setting.showWindowFrame");
         return {
             language: normalizeLanguage(
                 this.store.get("setting.language", DEFAULT_LANGUAGE)
             ),
             logLevel: this.store.get("setting.logLevel", "info"),
+            ...(typeof showWindowFrame === "boolean"
+                ? { showWindowFrame }
+                : {}),
         };
     }
 
@@ -39,9 +45,34 @@ export class SettingsRepository implements ISettingsRepository {
         if (settings.logLevel !== undefined) {
             this.store.set("setting.logLevel", settings.logLevel);
         }
+        if (typeof settings.showWindowFrame === "boolean") {
+            this.store.set("setting.showWindowFrame", settings.showWindowFrame);
+        }
     }
 
     async exportSettingsSnapshot(): Promise<SettingsSnapshot> {
+        const rawWindowColor = this.store.get("window.color");
+        const windowColor = normalizeWindowColor(rawWindowColor);
+        if (rawWindowColor !== windowColor) {
+            this.store.set("window.color", windowColor);
+        }
+
+        const rawWindowColorPresets = this.store.get("window.colorPresets");
+        const windowColorPresets = normalizeWindowColorPresets(
+            rawWindowColorPresets
+        );
+        if (
+            !Array.isArray(rawWindowColorPresets) ||
+            rawWindowColorPresets.length !== windowColorPresets.length ||
+            rawWindowColorPresets.some(
+                (preset, index) => preset !== windowColorPresets[index]
+            )
+        ) {
+            this.store.set("window.colorPresets", windowColorPresets);
+        }
+
+        const showWindowFrame = this.store.get("setting.showWindowFrame");
+
         return {
             version: 1,
             exportedAt: new Date().toISOString(),
@@ -50,9 +81,13 @@ export class SettingsRepository implements ISettingsRepository {
                     this.store.get("setting.language", DEFAULT_LANGUAGE)
                 ),
                 logLevel: this.store.get("setting.logLevel", "info"),
+                ...(typeof showWindowFrame === "boolean"
+                    ? { showWindowFrame }
+                    : {}),
             },
             window: {
-                color: this.store.get("window.color", "#FFFFFF55"),
+                color: windowColor,
+                colorPresets: windowColorPresets,
             },
         };
     }
@@ -68,9 +103,24 @@ export class SettingsRepository implements ISettingsRepository {
             if (typeof snapshot.setting.logLevel === "string") {
                 this.store.set("setting.logLevel", snapshot.setting.logLevel);
             }
+            if (typeof snapshot.setting.showWindowFrame === "boolean") {
+                this.store.set(
+                    "setting.showWindowFrame",
+                    snapshot.setting.showWindowFrame
+                );
+            }
         }
         if (typeof snapshot.window?.color === "string") {
-            this.store.set("window.color", snapshot.window.color);
+            this.store.set(
+                "window.color",
+                normalizeWindowColor(snapshot.window.color)
+            );
+        }
+        if (Array.isArray(snapshot.window?.colorPresets)) {
+            this.store.set(
+                "window.colorPresets",
+                normalizeWindowColorPresets(snapshot.window.colorPresets)
+            );
         }
     }
 }

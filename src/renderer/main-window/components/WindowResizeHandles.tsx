@@ -1,18 +1,12 @@
 import { useMemo, type MouseEvent as ReactMouseEvent } from "react";
 
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import type { WindowRect } from "../../../shared/ipc/contracts/window";
 
 const MIN_WIDTH = 320;
 const MIN_HEIGHT = 240;
 
 type ResizeDirection = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
-
-type WindowRect = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
 
 const clampRect = (
     initialRect: WindowRect,
@@ -45,6 +39,7 @@ export interface WindowResizeHandlesProps {
     testIdPrefix?: string;
     minWidth?: number;
     minHeight?: number;
+    showFrameBorder?: boolean;
 }
 
 export function WindowResizeHandles(props: WindowResizeHandlesProps = {}) {
@@ -52,6 +47,7 @@ export function WindowResizeHandles(props: WindowResizeHandlesProps = {}) {
         testIdPrefix = "main",
         minWidth = MIN_WIDTH,
         minHeight = MIN_HEIGHT,
+        showFrameBorder = false,
     } = props;
     const ipcService = useIpcService();
     const isWindows = useMemo(
@@ -131,11 +127,27 @@ export function WindowResizeHandles(props: WindowResizeHandlesProps = {}) {
             aria-hidden="true"
             data-clickthrough-allow
         >
-            {handles.map((direction) => (
+            {showFrameBorder && (
                 <div
+                    className="window-frame-visual"
+                    data-testid={`${testIdPrefix}.window.frame.border`}
+                    data-clickthrough-allow
+                />
+            )}
+            {handles.map((direction) => (
+                <button
+                    type="button"
                     key={direction}
                     className={`window-resize-handle window-resize-handle-${direction}`}
                     onMouseDown={beginResize(direction)}
+                    onClick={(event) => event.preventDefault()}
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    style={{
+                        border: "none",
+                        padding: 0,
+                        background: "transparent",
+                    }}
                     data-testid={`${testIdPrefix}.window.resize.${direction}`}
                     data-clickthrough-allow
                 />

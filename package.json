@@ -1,7 +1,7 @@
 {
   "name": "imageoverlaytool",
   "description": "image blend tool",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "yhmr",
@@ -32,6 +32,7 @@
     "build:linux": "pnpm run prepare-release-assets && pnpm run build && electron-builder --linux",
     "build:all": "pnpm run prepare-release-assets && pnpm run build && electron-builder --win --linux",
     "verify:release-artifacts": "node scripts/verify-release-artifacts.js",
+    "verify:win-installer": "node scripts/verify-windows-installer-extract.js",
     "smoke:packaged-startup": "node scripts/smoke-packaged-startup.js",
     "preview": "electron-vite preview",
     "lint": "eslint --cache --rulesdir eslint/rules src/",
@@ -51,7 +52,7 @@
     "bench:compare": "vitest bench -c vitest.bench.config.mts --compare ./benchmarks/baseline.json --outputJson ./test-results/bench/latest.json",
     "prepare": "husky",
     "test:e2e": "playwright test",
-    "test:e2e:smoke": "playwright test e2e/startup.spec.ts",
+    "test:e2e:smoke": "playwright test e2e/app-launch-smoke.spec.ts e2e/cli-startup-control-smoke.spec.ts",
     "test:e2e:screenshots": "node scripts/run-e2e-screenshot-scenarios.js",
     "generate-icons": "node scripts/generate-icons.js",
     "generate:store-assets": "node scripts/generate-store-assets.js"

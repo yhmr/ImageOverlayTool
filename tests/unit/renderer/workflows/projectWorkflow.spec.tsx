@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 
 import { useCapture } from "@/renderer/hooks/useCapture";
-import { useProjectOperations } from "@/renderer/hooks/useProjectOperations";
-import { useProjectDataSyncBridge } from "@/renderer/hooks/useProjectDataSyncBridge";
+import { useProjectOperations } from "@/renderer/main-window/hooks/useProjectOperations";
+import { useBroadcastProjectData } from "@/renderer/hooks/useBroadcastProjectData";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 const mockIPC = vi.hoisted(() => ({
@@ -43,6 +43,8 @@ const mockIPC = vi.hoisted(() => ({
     requestInitialState: vi.fn().mockResolvedValue(undefined),
     onRequestStateSync: vi.fn(() => vi.fn()),
     onFileOpen: vi.fn(() => vi.fn()),
+    onLaunchIntentApply: vi.fn(() => vi.fn()),
+    onAppControlCommandApply: vi.fn(() => vi.fn()),
     getLicenseInfo: vi.fn().mockResolvedValue([]),
     getAppVersion: vi.fn().mockResolvedValue("1.0.0"),
     captureScreen: vi.fn().mockResolvedValue({
@@ -70,7 +72,7 @@ describe("Renderer workflow: image add -> settings change -> save", () => {
     });
 
     it("captures image, applies setting change, and saves latest state", async () => {
-        renderHook(() => useProjectDataSyncBridge());
+        renderHook(() => useBroadcastProjectData());
         const { result: capture } = renderHook(() => useCapture());
         const { result: projectOps } = renderHook(() => useProjectOperations());
 
@@ -122,7 +124,7 @@ describe("Renderer workflow: image add -> settings change -> save", () => {
     it("does not mutate image state when capture returns null", async () => {
         mockIPC.captureScreen.mockResolvedValueOnce(null);
 
-        renderHook(() => useProjectDataSyncBridge());
+        renderHook(() => useBroadcastProjectData());
         const { result: capture } = renderHook(() => useCapture());
 
         const before = useAppStore.getState().imageSets;

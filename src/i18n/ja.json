@@ -32,15 +32,21 @@
             "capture_background": "背景をキャプチャ",
             "export_image": "画像を保存",
             "background_style": "背景色/透過度",
+            "always_on_top_enable": "常に手前に表示を有効化",
+            "always_on_top_disable": "常に手前に表示を無効化",
             "click_through_mode_enable": "クリック透過モードを有効化",
-            "click_through_mode_disable": "クリック透過モードを無効化"
+            "click_through_mode_disable": "クリック透過モードを無効化",
+            "window_frame_show": "ウィンドウ補助枠を表示",
+            "window_frame_hide": "ウィンドウ補助枠を非表示"
         },
         "menu_button": {
             "app_title": "ImageOverlayTool",
             "status": {
+                "always_on_top_mode_active": "最前面固定中（クリックで解除）",
                 "click_through_mode_active": "透過モード中（最前面固定・クリックで解除）"
             },
             "tooltip": {
+                "minimize": "ウィンドウ最小化",
                 "maximize": "ウィンドウ最大化",
                 "unmaximize": "ウィンドウを戻す（縮小）",
                 "close": "閉じる"
@@ -53,6 +59,7 @@
                 "save": "画像を保存",
                 "capture": "背景をキャプチャ",
                 "image_settings": "画像設定",
+                "always_on_top": "常に手前に表示 (Ctrl+Shift+T)",
                 "click_through_mode": "クリック透過モード (Ctrl+Shift+M)"
             }
         },
@@ -107,6 +114,9 @@
                 "confirm_move": "キャッシュ画像が含まれています。プロジェクトと同じフォルダの assets に移動して保存しますか？\nキャンセルすると保存を中止し、画像設定を開きます。"
             }
         },
+        "scene_load": {
+            "failed": "シーンファイルの読み込みに失敗しました。\n{{message}}"
+        },
         "setting_dlg": {
             "title": "設定",
             "description": "言語などのアプリケーション設定を変更できます。",
@@ -118,9 +128,11 @@
             "unit": "単位",
             "helper": {
                 "language": "UIで使用する言語を変更します",
-                "unitFactor": "寸法線の描画で利用します"
+                "unitFactor": "寸法線の描画で利用します",
+                "window_frame": "リサイズしやすいように補助枠を表示します"
             },
             "log_level": "ログレベル",
+            "window_frame": "ウィンドウ枠",
             "log_levels": {
                 "error": "エラーのみ",
                 "warn": "警告以上",
@@ -174,6 +186,13 @@
             "confirm_exit": "未保存の変更があります。保存せずに終了しますか？",
             "button_cancel": "キャンセル",
             "button_discard_exit": "保存せず終了"
+        },
+        "windowColorManager": {
+            "title": "背景色",
+            "active": "適用中",
+            "edit": "編集",
+            "remove": "削除",
+            "add": "背景色を追加"
         }
     }
 }

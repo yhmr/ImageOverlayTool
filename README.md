@@ -20,12 +20,12 @@
 - **画像フィルタ**: 2値化やHSV（色相・彩度・明度）調整などの画像処理フィルタを適用できます。
 - **寸法線描画**: キャンバス上に寸法線を描画し、解像度係数を考慮した実寸法表示が可能です。
 - **Undo/Redo**: `Ctrl+Z` / `Ctrl+Shift+Z`（または `Ctrl+Y`）で操作履歴の元に戻す・やり直しが可能です。
-- **カスタマイズ**: コンテキストメニューからキャンバスの背景色（ウィンドウの背景）を変更可能。
-- **設定の永続化**: ウィンドウサイズ、表示位置、背景色、言語設定などは自動的に保存され、次回起動時に復元されます。
+- **カスタマイズ**: コンテキストメニューからキャンバスの背景色（ウィンドウの背景）を変更可能。よく使う色をプリセットカラーとして保存・管理できます。
+- **クリックスルーモード**: 「常に手前に表示」と組み合わせて、キャンバス上のクリック操作を背面のウィンドウに透過させることができます。
+- **表示設定の永続化**: ウィンドウサイズ、表示位置、背景色、プリセットカラー、言語設定などは自動的に保存され、次回起動時に復元されます。
+- **強力なCLI連携**: コマンドラインからの起動時に詳細な初期状態を指定（`startup`）したり、すでに起動しているアプリに対して外部から画像追加や操作（`control`）を行うことができます。
 
 ## 🛠 技術スタック
-
-このプロジェクトは以下の技術スタックで構築されています：
 
 - **Core**: [Electron](https://www.electronjs.org/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/)
 - **State Management**: [Zustand](https://zustand.docs.pmnd.rs/)
@@ -35,6 +35,8 @@
 - **Testing**: [Vitest](https://vitest.dev/), [Testing Library](https://testing-library.com/)
 
 ## 🚀 セットアップ
+
+詳細な使い方やCLI(コマンドライン)連携機能については、[公式ドキュメント（Hugo Pages）](https://yhmr.github.io/ImageOverlayTool/) を参照してください。
 
 ### 前提条件
 - Node.js v20.0.0 以上
@@ -86,6 +88,58 @@ pnpm run test:e2e:screenshots
 
 - テスト作法の基準は `tests/TESTING_GUIDELINES.md` を参照
 
+## 📁 ディレクトリ構成
+
+```
+.
+├── src/
+│   ├── main/           # Electron メインプロセス
+│   │   ├── index.ts        # アプリエントリポイント
+│   │   ├── bootstrap/      # アプリ起動時の初期化処理
+│   │   ├── ipc/            # IPC通信ハンドラ
+│   │   ├── services/       # ドメイン・ビジネスロジック
+│   │   ├── repositories/   # データアクセス・設定保存層
+│   │   ├── windows/        # ウィンドウ管理
+│   │   └── utils/          # メインプロセス用ユーティリティ
+│   │
+│   ├── preload/        # Preload スクリプト
+│   │
+│   ├── renderer/       # React レンダラープロセス
+│   │   ├── main-window/        # メインウィンドウ UI
+│   │   ├── image-settings/     # 画像設定ウィンドウ UI
+│   │   ├── dimension-settings/ # 寸法設定ウィンドウ UI
+│   │   ├── splash/             # スプラッシュスクリーン UI
+│   │   ├── components/         # 共通UIコンポーネント
+│   │   ├── hooks/              # カスタムHooks
+│   │   ├── store/              # Zustand ストア定義
+│   │   ├── services/           # 外部通信・副作用の抽象化
+│   │   └── env.d.ts            # レンダラープロセス用型定義
+│   │
+│   ├── shared/         # プロセス間共有コード
+│   │   ├── ipc/            # IPC通信の型定義および定数群
+│   │   └── types/          # その他共通型定義
+│   │
+│   └── i18n/           # 多言語対応リソース
+│
+├── tests/          # テストコード（Vitest）
+│   ├── bench/          # パフォーマンスベンチ（*.bench.ts / *.bench.tsx）
+│   ├── unit/           # 単体テスト（*.spec.ts / *.spec.tsx）
+│   │   ├── main/
+│   │   └── renderer/
+│   └── integration/    # 結合テスト（*.int-test.ts / *.int-test.tsx）
+└── scripts/        # ビルド・補助スクリプト
+```
+
+## ⚠️ 開発上の注意点
+
+### ローカルファイルの読み込み
+
+セキュリティ制限により、ローカル画像を表示する際は `local-file://[絶対パス]` 形式のカスタムプロトコルを使用しています。
+
+### 型定義
+
+`window.electronAPI` などの独自APIは `src/renderer/env.d.ts` で定義されています。
+
 ### ベンチ運用フロー
 
 - bench:compare（baselineとの比較）のタイミング
@@ -106,78 +160,7 @@ E2E/統合テストで使用する `data-testid` は、以下の形式で命名�
 
 原則として、文言や表示順に依存するセレクタは使わず、主要操作は `data-testid` で参照します。
 
-### E2E制御プレーン
-
-`--e2e` 起動時は、テスト用の制御APIが利用できます。
-
-- `window.__IOT_E2E__.setScene(scene)` : シーンJSONをストアへ注入
-- `window.__IOT_E2E__.loadFixtureImage(source)` : fixture画像を追加
-- `window.__IOT_E2E__.waitStable({ timeoutMs })` : 描画安定化待ち
-- `window.__IOT_E2E__.capture({ mode })` : E2E用キャプチャ保存
-
-シナリオ撮影用の `e2e/screenshot-scenarios.spec.ts` は、
-`IOT_E2E_SCREENSHOT_SCENARIOS=1` のときのみ有効になります。
-通常の `pnpm run test:e2e` / CI実行では除外されます。
-
-`pnpm run test:e2e:screenshots` は、毎回 `pnpm run build` を先に実行し、ビルド成功時のみ撮影を実行します。
-CI上で明示実行された場合も既定ではスキップし、必要時のみ `IOT_E2E_SCREENSHOT_FORCE_IN_CI=1` で強制実行します。
-
-fixture解決ルール:
-
-- `fixture:alias` は `e2e/fixtures/images/<alias>.(png|jpg|jpeg|webp|gif|svg)` を探索
-- 相対パスは `e2e/fixtures/` 基準で解決
-- 絶対パスはそのまま利用
-
-セキュリティ境界:
-
-- E2E制御は `--e2e` と `IOT_E2E_MODE=1` の両方が有効なときのみ動作
-- 通常起動/リリースビルドでは無効
-
-## 📁 ディレクトリ構成
-
-electron-vite の標準的な構成に基づき、コードの分離を行っています。
-
-```
-.
-├── src/
-│   ├── main/           # Electron メインプロセス
-│   │   ├── index.ts        # アプリエントリポイント
-│   │   ├── ipc/            # IPC通信ハンドラ
-│   │   ├── repositories/   # データアクセス層
-│   │   ├── windows/        # ウィンドウ管理
-│   │   └── utils/          # メインプロセス用ユーティリティ
-│   │
-│   ├── preload/        # Preload スクリプト
-│   │
-│   ├── renderer/       # React レンダラープロセス
-│   │   ├── main-window/    # メインウィンドウ UI
-│   │   ├── image-settings/ # 画像設定ウィンドウ UI
-│   │   ├── hooks/          # カスタムHooks
-│   │   ├── store/          # Zustand ストア定義
-│   │   ├── services/       # 外部通信・副作用の抽象化
-│   │   ├── components/     # 共通UIコンポーネント
-│   │   └── env.d.ts        # レンダラープロセス用型定義
-│   │
-│   ├── shared/         # プロセス間共有コード
-│   │   └── types/          # 共通型定義
-│   │
-│   └── i18n/           # 多言語対応リソース
-│
-├── tests/          # テストコード（Vitest）
-│   ├── bench/          # パフォーマンスベンチ（*.bench.ts / *.bench.tsx）
-│   ├── unit/           # 単体テスト（*.spec.ts / *.spec.tsx）
-│   │   ├── main/
-│   │   └── renderer/
-│   └── integration/    # 結合テスト（*.int-test.ts / *.int-test.tsx）
-│
-└── scripts/        # ビルド・補助スクリプト
-```
-
-## ⚠️ 開発上の注意点
-
-- **ローカルファイルの読み込み**: セキュリティ制限により、ローカル画像を表示する際は `local-file://[絶対パス]` 形式のカスタムプロトコルを使用しています。
-- **型定義**: `window.electronAPI` などの独自APIは `src/renderer/env.d.ts` で定義されています。
-
 ## 📄 ライセンス
 
-このプロジェクトは [AGPL-3.0](LICENSE) ライセンスの下で公開されています。
+このプロジェクトは [AGPL-3.0](LICENSE) ライセンスの下で公開されています。  
+ソフトの利用や、機能に関する問い合わせなどは、メールなどで作者までお気軽にご連絡ください。

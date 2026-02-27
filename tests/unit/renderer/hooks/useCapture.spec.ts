@@ -38,6 +38,14 @@ describe("useCapture", () => {
     // IPCのモック関数
     const mockCaptureScreen = vi.fn();
     const mockLogInfo = vi.fn();
+    const createStoreState = (overrides?: {
+        imageSets?: unknown[];
+        canvas?: { x: number; y: number; scale: number };
+    }) => ({
+        imageSets: overrides?.imageSets ?? mockImageSets,
+        setImageSets: mockSetImageSets,
+        canvas: overrides?.canvas ?? mockCanvas,
+    });
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -46,11 +54,10 @@ describe("useCapture", () => {
             capturedImageSets = nextImageSets;
         });
 
-        // useAppStoreのモック実装
-        mockUseAppStore.mockReturnValue({
-            imageSets: mockImageSets,
-            setImageSets: mockSetImageSets,
-            canvas: mockCanvas,
+        const storeState = createStoreState();
+        // useAppStore(selector) と useAppStore() の両方に対応
+        mockUseAppStore.mockImplementation((selector?: (s: typeof storeState) => unknown) => {
+            return typeof selector === "function" ? selector(storeState) : storeState;
         });
 
         // getIPCServiceのモック実装
@@ -131,11 +138,10 @@ describe("useCapture", () => {
 
     it("初期状態が空のimageSetsの場合、0番目を置き換えるのではなくunshiftで追加されるようロジック変更を確認", async () => {
         const emptyImageSet = [{ id: "empty", path: "" }];
+        const storeState = createStoreState({ imageSets: emptyImageSet });
 
-        mockUseAppStore.mockReturnValue({
-            imageSets: emptyImageSet,
-            setImageSets: mockSetImageSets,
-            canvas: mockCanvas,
+        mockUseAppStore.mockImplementation((selector?: (s: typeof storeState) => unknown) => {
+            return typeof selector === "function" ? selector(storeState) : storeState;
         });
 
         const { result } = renderHook(() => useCapture());

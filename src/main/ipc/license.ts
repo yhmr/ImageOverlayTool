@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import log from "../logger";
 import type { LicenseInfo } from "../../shared/types/LicenseInfo";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { licenseIpcContracts } from "../../shared/ipc/contracts";
 
 const getLicensePathCandidates = (): string[] => {
     if (!app.isPackaged) {
@@ -17,15 +17,16 @@ const getLicensePathCandidates = (): string[] => {
 };
 
 /**
- * ライセンス情報取得用IPCハンドラを登録
+ * アプリのバージョン取得や、licenses.jsonからのオープンソースライセンス一覧取得など、
+ * ライセンスに関する情報の提供を担うIPCハンドラーを登録します。
  */
 export function registerLicenseIpc(): void {
-    ipcMain.handle(IPC_CHANNELS.license.appVersion, (): string => {
+    ipcMain.handle(licenseIpcContracts.appVersion.channel, (): string => {
         return app.getVersion();
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.license.get,
+        licenseIpcContracts.get.channel,
         async (): Promise<LicenseInfo[]> => {
             try {
                 const candidates = getLicensePathCandidates();

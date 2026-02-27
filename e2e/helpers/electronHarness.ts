@@ -5,7 +5,6 @@ import type { CaptureResult } from "../../src/shared/types/CaptureResult";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
-    E2ESceneInput,
     E2EWaitStableRequest,
     E2EWaitStableResult,
 } from "../../src/shared/types/E2EControl";
@@ -34,6 +33,12 @@ const FIXTURE_APP_CONFIG_PATH_CANDIDATES = [
     path.join(E2E_FIXTURES_DIR, "app.config.json"),
     path.join(E2E_FIXTURES_DIR, "project", "config.json"),
 ];
+const DEFAULT_PLAYWRIGHT_LAUNCH_FLAGS = [
+    "--no-sandbox",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--disable-software-rasterizer",
+];
 
 type WindowLayoutConfig = {
     pos: [number, number];
@@ -43,6 +48,14 @@ type WindowLayoutConfig = {
 type FixtureAppConfig = {
     window?: WindowLayoutConfig;
     imageSettingsWindow?: WindowLayoutConfig;
+};
+
+type PngArtifactMetadata = {
+    exists: boolean;
+    fileSize: number;
+    width: number;
+    height: number;
+    isValidPng: boolean;
 };
 
 const assertBuildOutput = (): void => {
@@ -62,7 +75,14 @@ const resetArtifacts = (): void => {
     }
 };
 
-export const launchE2EApp = async (): Promise<{
+interface LaunchElectronAppOptions {
+    appArgs?: string[];
+    e2eMode?: boolean;
+}
+
+const launchElectronApp = async (
+    options: LaunchElectronAppOptions = {}
+): Promise<{
     app: ElectronApplication;
     page: Page;
 }> => {
@@ -70,30 +90,43 @@ export const launchE2EApp = async (): Promise<{
     resetArtifacts();
 
     const electronPath = require("electron") as string;
+    const appArgs = options.appArgs ?? [];
+    const e2eMode = options.e2eMode ?? false;
     const env = {
         ...process.env,
         NODE_ENV: "test",
-        IOT_E2E_ARTIFACTS_DIR: E2E_ARTIFACTS_DIR,
-        IOT_E2E_FIXED_NOW: "1700000000000",
-        IOT_E2E_RANDOM_SEED: "424242",
+        ...(e2eMode
+            ? {
+                  IOT_INTERNAL_E2E: "1",
+                  IOT_E2E_ARTIFACTS_DIR: E2E_ARTIFACTS_DIR,
+                  IOT_E2E_FIXED_NOW: "1700000000000",
+                  IOT_E2E_RANDOM_SEED: "424242",
+              }
+            : {}),
     };
     delete env.ELECTRON_RUN_AS_NODE;
 
     const app = await electron.launch({
         executablePath: electronPath,
-        args: [
-            APP_ROOT,
-            "--no-sandbox",
-            "--disable-gpu",
-            "--disable-dev-shm-usage",
-            "--disable-software-rasterizer",
-            "--e2e",
-        ],
+        args: [APP_ROOT, ...DEFAULT_PLAYWRIGHT_LAUNCH_FLAGS, ...appArgs],
         env,
     });
 
     const page = await app.firstWindow();
     await page.getByTestId("main.app.root").waitFor({ state: "attached" });
+    return { app, page };
+};
+
+export const launchE2EApp = async (
+    options: { appArgs?: string[] } = {}
+): Promise<{
+    app: ElectronApplication;
+    page: Page;
+}> => {
+    const { app, page } = await launchElectronApp({
+        appArgs: [...(options.appArgs ?? []), "--e2e"],
+        e2eMode: true,
+    });
     await ensureE2EBridge(page);
 
     return { app, page };
@@ -287,32 +320,35 @@ export const captureViaE2E = async (
     }, request);
 };
 
-export const applyScene = async (
+export const applyFixtureScene = async (
     page: Page,
-    scene: E2ESceneInput,
+    sceneFileName = "default.scene.json",
     options?: {
         requireStable?: boolean;
         timeoutMs?: number;
     }
 ): Promise<void> => {
+    const scenePath = path.join(E2E_SCENES_DIR, sceneFileName);
+    await ensureE2EBridge(page);
     await page.evaluate(async (payload) => {
-        const sceneInput = payload.scene;
         const requireStable = payload.requireStable ?? true;
         const timeoutMs = payload.timeoutMs ?? 20000;
 
         const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
             | {
-                setScene: (scene: E2ESceneInput) => Promise<{ stable: boolean }>;
-                waitStable: (
-                    request?: E2EWaitStableRequest
-                ) => Promise<E2EWaitStableResult>;
-            }
+                  setSceneFromPath: (
+                      scenePath: string
+                  ) => Promise<E2EWaitStableResult>;
+                  waitStable: (
+                      request?: E2EWaitStableRequest
+                  ) => Promise<E2EWaitStableResult>;
+              }
             | undefined;
         if (!bridge) {
             throw new Error("E2E bridge is not available in renderer.");
         }
 
-        const result = await bridge.setScene(sceneInput);
+        const result = await bridge.setSceneFromPath(payload.scenePath);
         if (!requireStable) {
             return;
         }
@@ -323,23 +359,60 @@ export const applyScene = async (
         }
         if (!stableResult.stable) {
             throw new Error(
-                `Renderer did not reach stable state after setScene. elapsedMs=${stableResult.elapsedMs}`
+                `Renderer did not reach stable state after setSceneFromPath. elapsedMs=${stableResult.elapsedMs}`
             );
         }
-    }, { scene, ...options });
+    }, { scenePath, ...options });
 };
 
-export const applyFixtureScene = async (
-    page: Page,
-    sceneFileName = "default.scene.json",
-    options?: {
-        requireStable?: boolean;
-        timeoutMs?: number;
+const PNG_SIGNATURE = Buffer.from([
+    0x89,
+    0x50,
+    0x4e,
+    0x47,
+    0x0d,
+    0x0a,
+    0x1a,
+    0x0a,
+]);
+const PNG_IHDR_MIN_LENGTH = 24;
+
+export const readPngArtifactMetadata = (filePath: string): PngArtifactMetadata => {
+    if (!fs.existsSync(filePath)) {
+        return {
+            exists: false,
+            fileSize: 0,
+            width: 0,
+            height: 0,
+            isValidPng: false,
+        };
     }
-): Promise<void> => {
-    const scenePath = path.join(E2E_SCENES_DIR, sceneFileName);
-    const scene = JSON.parse(fs.readFileSync(scenePath, "utf-8")) as E2ESceneInput;
-    await applyScene(page, scene, options);
+
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
+    if (fileSize < PNG_IHDR_MIN_LENGTH) {
+        return {
+            exists: true,
+            fileSize,
+            width: 0,
+            height: 0,
+            isValidPng: false,
+        };
+    }
+
+    const buffer = fs.readFileSync(filePath);
+    const signature = buffer.subarray(0, PNG_SIGNATURE.length);
+    const hasValidSignature = signature.equals(PNG_SIGNATURE);
+    const width = buffer.readUInt32BE(16);
+    const height = buffer.readUInt32BE(20);
+
+    return {
+        exists: true,
+        fileSize,
+        width,
+        height,
+        isValidPng: hasValidSignature && width > 0 && height > 0,
+    };
 };
 
 const ensureMenuOpened = async (page: Page): Promise<void> => {

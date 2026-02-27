@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 
 const E2E_SWITCH = "--e2e";
+const INTERNAL_E2E_ENV = "IOT_INTERNAL_E2E";
 const DEFAULT_FIXED_NOW = 1700000000000;
 const DEFAULT_RANDOM_SEED = 424242;
 
@@ -41,8 +42,17 @@ export interface E2ERuntimeConfig {
     randomSeed: number;
 }
 
-export const resolveE2ERuntimeConfig = (): E2ERuntimeConfig => {
-    const enabled = process.argv.includes(E2E_SWITCH);
+export interface ResolveE2ERuntimeConfigOptions {
+    isPackaged: boolean;
+}
+
+export const resolveE2ERuntimeConfig = (
+    options: ResolveE2ERuntimeConfigOptions
+): E2ERuntimeConfig => {
+    const enabled =
+        process.argv.includes(E2E_SWITCH) &&
+        !options.isPackaged &&
+        process.env[INTERNAL_E2E_ENV] === "1";
     const artifactsDir = resolveArtifactsDir();
     const fixturesDir = resolveFixturesDir();
     const fixedNow = parseIntFromEnv(

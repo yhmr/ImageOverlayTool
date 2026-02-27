@@ -1,9 +1,9 @@
-import fs from "fs";
 import { test, expect } from "@playwright/test";
 import {
     applyFixtureScene,
     E2E_CAPTURE_PATH,
     launchE2EApp,
+    readPngArtifactMetadata,
 } from "./helpers/electronHarness";
 
 test("undo/redo keyboard updates history direction", async () => {
@@ -19,7 +19,10 @@ test("undo/redo keyboard updates history direction", async () => {
         // FABメニューを展開してからキャプチャ
         await page.getByTestId("main.fab.menu-toggle").click();
         await page.getByTestId("main.fab.capture").click();
-        await expect.poll(() => fs.existsSync(E2E_CAPTURE_PATH)).toBe(true);
+        await expect.poll(() => readPngArtifactMetadata(E2E_CAPTURE_PATH)).toMatchObject({
+            exists: true,
+            isValidPng: true,
+        });
         await expect(undoButton).toBeEnabled();
         await expect(redoButton).toBeDisabled();
 

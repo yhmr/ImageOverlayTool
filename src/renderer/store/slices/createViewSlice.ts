@@ -12,6 +12,9 @@ export interface ViewSlice {
     isUIHidden: boolean;
     setUIHidden: (hidden: boolean) => void;
 
+    isAlwaysOnTopMode: boolean;
+    setAlwaysOnTopMode: (enabled: boolean) => void;
+
     isClickThroughMode: boolean;
     setClickThroughMode: (enabled: boolean) => void;
 
@@ -26,13 +29,24 @@ export const createViewSlice: StateCreator<ViewSlice> = (set) => ({
     isUIHidden: false,
     setUIHidden: (hidden) => set({ isUIHidden: hidden }),
 
+    isAlwaysOnTopMode: false,
+    setAlwaysOnTopMode: (enabled) =>
+        set((state) => ({
+            isAlwaysOnTopMode: enabled,
+            isClickThroughMode: enabled ? state.isClickThroughMode : false,
+        })),
+
     isClickThroughMode: false,
-    setClickThroughMode: (enabled) => set({ isClickThroughMode: enabled }),
+    setClickThroughMode: (enabled) =>
+        set((state) => ({
+            isClickThroughMode: state.isAlwaysOnTopMode ? enabled : false,
+        })),
 
     resetView: () =>
         set({
             canvas: { x: 0, y: 0, scale: 1 },
             isUIHidden: false,
+            isAlwaysOnTopMode: false,
             isClickThroughMode: false,
         }),
 });

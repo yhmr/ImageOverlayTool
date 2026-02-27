@@ -1,17 +1,23 @@
 {
-  "name": "scene01-home",
-  "unitFactor": 1,
+  "version": "1.0.0",
+  "window": {
+    "color": "#d3c07b54"
+  },
+  "unitFactor": 1.0,
   "unit": "um",
-  "windowColor": "#d3c07b54",
   "canvas": {
     "x": 0,
     "y": 0,
     "scale": 1
   },
+  "imagePathAliases": {
+    "fixtures": "../images"
+  },
+  "images": [],
+  "dimensionLines": [],
+  "name": "scene01-home",
   "interactionMode": "default",
   "selectedImageId": null,
   "selectedDimensionLineId": null,
-  "uiHidden": false,
-  "images": [],
-  "dimensionLines": []
+  "uiHidden": false
 }

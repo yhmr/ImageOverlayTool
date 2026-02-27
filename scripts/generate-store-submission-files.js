@@ -5,17 +5,27 @@ const childProcess = require("child_process");
 const pkg = require("../package.json");
 
 const ROOT_DIR = path.join(__dirname, "..");
+const STORE_SUBMISSION_DOCS_DIR = path.join("docs", "store-submission");
 
 const TEMPLATE_TARGETS = [
     {
         label: "Store license terms",
-        template: "STORE_LICENSE_TERMS.template.txt",
-        output: "STORE_LICENSE_TERMS.txt",
+        template: path.join(
+            STORE_SUBMISSION_DOCS_DIR,
+            "STORE_LICENSE_TERMS.template.txt"
+        ),
+        output: path.join(
+            STORE_SUBMISSION_DOCS_DIR,
+            "STORE_LICENSE_TERMS.txt"
+        ),
     },
     {
         label: "Source code URL notice",
-        template: "SOURCE_CODE_URL.template.txt",
-        output: "SOURCE_CODE_URL.txt",
+        template: path.join(
+            STORE_SUBMISSION_DOCS_DIR,
+            "SOURCE_CODE_URL.template.txt"
+        ),
+        output: path.join(STORE_SUBMISSION_DOCS_DIR, "SOURCE_CODE_URL.txt"),
     },
 ];
 
@@ -63,6 +73,7 @@ const releaseRef = resolveReleaseRef();
 for (const target of TEMPLATE_TARGETS) {
     const templatePath = path.join(ROOT_DIR, target.template);
     const outputPath = path.join(ROOT_DIR, target.output);
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     const templateText = fs.readFileSync(templatePath, "utf-8");
     const renderedText = renderTemplate(templateText, releaseRef);
     fs.writeFileSync(outputPath, renderedText, "utf-8");

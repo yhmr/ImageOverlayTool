@@ -1,9 +1,24 @@
-import { ipcMain, BrowserWindow } from "electron";
+import { ipcMain, BrowserWindow, dialog } from "electron";
 import log from "../logger";
-import { IPC_CHANNELS } from "../../shared/ipc/channels";
+import { windowIpcContracts } from "../../shared/ipc/contracts";
+import type {
+    ConfirmDialogOptions,
+    WindowRect,
+} from "../../shared/ipc/contracts/window";
 
+/**
+ * 汎用的なウィンドウ操作（最小化、最大化、閉じる、サイズ変更、常に手前に表示など）や
+ * マウスイベントの透過設定などに関与するIPCハンドラーを登録します。
+ *
+ * @param mainWindow これら操作のフォールバック対象などとして使用されるメインウィンドウ
+ */
 export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
-    ipcMain.handle(IPC_CHANNELS.window.switchSize, async () => {
+    ipcMain.handle(windowIpcContracts.minimize.channel, async () => {
+        log.info("[IPC] window:minimize called");
+        mainWindow.minimize();
+    });
+
+    ipcMain.handle(windowIpcContracts.switchSize.channel, async () => {
         if (!mainWindow.isMaximized()) {
             log.debug("[IPC] window:switchSize -> maximizing");
             mainWindow.maximize();
@@ -16,17 +31,36 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
         }
     });
 
-    ipcMain.handle(IPC_CHANNELS.window.close, async () => {
+    ipcMain.handle(windowIpcContracts.close.channel, async () => {
         log.info("[IPC] window:close called");
         mainWindow.close();
     });
 
     ipcMain.handle(
-        IPC_CHANNELS.window.setRect,
-        async (
-            event,
-            rect: { x: number; y: number; width: number; height: number }
-        ) => {
+        windowIpcContracts.confirm.channel,
+        async (event, options: ConfirmDialogOptions) => {
+            const targetWindow =
+                BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
+            const result = await dialog.showMessageBox(targetWindow, {
+                type: "question",
+                title: options.title,
+                message: options.message,
+                detail: options.detail,
+                buttons: [
+                    options.confirmLabel ?? "OK",
+                    options.cancelLabel ?? "Cancel",
+                ],
+                defaultId: 0,
+                cancelId: 1,
+                noLink: true,
+            });
+            return result.response === 0;
+        }
+    );
+
+    ipcMain.handle(
+        windowIpcContracts.setRect.channel,
+        async (event, rect: WindowRect) => {
             log.debug(`[IPC] window:setRect called: ${JSON.stringify(rect)}`);
             const targetWindow =
                 BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
@@ -35,7 +69,7 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.window.setIgnoreMouseEvents,
+        windowIpcContracts.setIgnoreMouseEvents.channel,
         async (event, ignore: boolean) => {
             const targetWindow =
                 BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
@@ -46,7 +80,7 @@ export const registerWindowHandlers = (mainWindow: BrowserWindow) => {
     );
 
     ipcMain.handle(
-        IPC_CHANNELS.window.setAlwaysOnTop,
+        windowIpcContracts.setAlwaysOnTop.channel,
         async (event, enabled: boolean) => {
             const targetWindow =
                 BrowserWindow.fromWebContents(event.sender) ?? mainWindow;

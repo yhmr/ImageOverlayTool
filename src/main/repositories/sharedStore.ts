@@ -1,5 +1,9 @@
 import Store from "electron-store";
-import { AppConfig } from "../../shared/types/AppConfig";
+import {
+    AppConfig,
+    normalizeWindowColor,
+    normalizeWindowColorPresets,
+} from "../../shared/types/AppConfig";
 
 /**
  * 共有のelectron-storeインスタンス
@@ -11,6 +15,13 @@ let sharedStore: Store<AppConfig> | null = null;
 export function getSharedStore(): Store<AppConfig> {
     if (!sharedStore) {
         sharedStore = new Store<AppConfig>();
+        const color = normalizeWindowColor(sharedStore.get("window.color"));
+        sharedStore.set("window.color", color);
+
+        const presets = normalizeWindowColorPresets(
+            sharedStore.get("window.colorPresets")
+        );
+        sharedStore.set("window.colorPresets", presets);
     }
     return sharedStore;
 }

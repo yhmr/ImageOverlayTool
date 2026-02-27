@@ -37,8 +37,8 @@ jobs:
       - name: Run unit tests
         run: pnpm run test
 
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright runtime deps
+        run: pnpm exec playwright install-deps
 
       - name: Build application (for smoke e2e)
         run: pnpm run build
@@ -74,8 +74,8 @@ jobs:
         with:
           name: store-submission-files
           path: |
-            STORE_LICENSE_TERMS.txt
-            SOURCE_CODE_URL.txt
+            docs/store-submission/STORE_LICENSE_TERMS.txt
+            docs/store-submission/SOURCE_CODE_URL.txt
           if-no-files-found: error
           retention-days: 1
 

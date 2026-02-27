@@ -31,11 +31,12 @@ Get it from [Microsoft Store](https://apps.microsoft.com/store/detail/9PBQ7VPKTX
 
 ### Loading Images
 
-There are three ways to load images:
+There are four ways to load images:
 
 1. **From file dialog**: Select "Image Settings" from the menu (or press `Ctrl+I`), then click the "Add" button to select files.
 2. **Drag & Drop**: Drag and drop image files onto the main window or image settings window.
 3. **Paste from clipboard**: Press `Ctrl+V` to paste an image from the clipboard (added as a temporary cache image).
+4. **Launch from Command Line (CLI)**: You can pass command-line arguments from a terminal to load images immediately upon startup. For details, please refer to the [Command Line (CLI) Integration Guide](cli-guide).
 
 ### Manipulating Images
 
@@ -136,11 +137,18 @@ Draw dimension lines on the canvas with resolution-factor-aware real dimension d
 
 ### Background Color/Style
 
-Change the canvas background color from "Background Style" (`Ctrl+B`) in the menu or the FAB menu's background style button. Choose any color from the color picker.
+Change the canvas background color from "Background Style" (`Ctrl+B`) in the menu or the FAB menu's background style button. You can choose any color from the color picker, and frequently used colors can be saved and managed as presets.
+
+### Always on Top
+
+Toggle this from "Always on Top" in the menu or the FAB menu.
+Click-through mode can be controlled only while this mode is ON.
 
 ### Click-Through Mode
 
 Toggle via "Click-Through Mode" (`Ctrl+Shift+M`) in the menu or the FAB menu.
+It can be enabled only when "Always on Top" is ON.
+When using the global shortcut `Ctrl+Shift+M`, the app can enable "Always on Top" automatically and enter click-through mode in one step.
 When enabled, clicks on the canvas area pass through to the window below (the menu bar and FAB buttons remain interactive).
 A yellow indicator appears in the menu bar when active.
 
@@ -156,6 +164,7 @@ Click it to expand the following shortcut buttons:
 | Image Settings | Open Image Settings window |
 | Dimension Lines | Open Dimension Settings window |
 | Background Style | Change background color |
+| Always on Top | Toggle always-on-top mode |
 | Click-Through | Toggle click-through mode |
 | Capture | Background capture |
 | Export | Image export |
@@ -170,7 +179,7 @@ Open the settings dialog from "Settings" (`Ctrl+,`) in the menu.
 - **Log Level**: Set the verbosity of application logs.
 - **Export/Import Settings**: Export and import app settings as JSON files.
 
-Window size, position, background color, language, and other settings are automatically saved and restored on next launch.
+Window size, position, background color, preset colors, language, and other settings are automatically saved and restored on next launch.
 
 ---
 
@@ -189,7 +198,8 @@ Window size, position, background color, language, and other settings are automa
 | `Ctrl+E` | Image Export |
 | `Ctrl+D` | Open Dimension Settings |
 | `Ctrl+B` | Background Style |
-| `Ctrl+Shift+M` | Toggle Click-Through Mode |
+| `Ctrl+Shift+T` | Toggle Always on Top |
+| `Ctrl+Shift+M` | Toggle Click-Through Mode (auto-enables Always on Top if needed) |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Shift+Z` / `Ctrl+Y` | Redo |
 | `Ctrl+,` | Open Settings |

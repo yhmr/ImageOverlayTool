@@ -189,6 +189,9 @@ vi.mock("@/i18n/mainI18n", () => ({
 import { WindowManager } from "@/main/windows/windowManager";
 import { IWindowRepository } from "@/main/repositories/WindowRepository";
 import type { IWindowShortcutManager } from "@/main/windows/windowShortcutManager";
+import { DEFAULT_WINDOW_COLOR_PRESETS } from "@/shared/types/AppConfig";
+import type { AppControlCommand } from "@/shared/types/AppControlCommand";
+import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 import type { BrowserWindow as ElectronBrowserWindow } from "electron";
 
 type Listener = (...args: unknown[]) => void;
@@ -257,6 +260,10 @@ describe("WindowManager", () => {
         mockWindowRepository = {
             loadWindowColor: vi.fn(),
             saveWindowColor: vi.fn(),
+            loadWindowColorPresets: vi
+                .fn()
+                .mockReturnValue([...DEFAULT_WINDOW_COLOR_PRESETS]),
+            saveWindowColorPresets: vi.fn(),
             getWindowPositionAndSize: vi.fn().mockReturnValue({
                 pos: { x: 0, y: 0 },
                 size: { width: 800, height: 600 },
@@ -351,6 +358,39 @@ describe("WindowManager", () => {
         });
     });
 
+    it("applyLaunchIntent sends IPC message if window exists and visible", () => {
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+        const launchIntent: LaunchIntent = {
+            window: {
+                alwaysOnTop: true,
+                clickThrough: true,
+            },
+            images: [],
+        };
+
+        windowManager.applyLaunchIntent(launchIntent);
+
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "launchIntent:apply",
+            launchIntent
+        );
+    });
+
+    it("applyAppControlCommand sends IPC message if window exists and visible", () => {
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+        const command: AppControlCommand = {
+            kind: "set-opacity",
+            opacity: 0.5,
+        };
+
+        windowManager.applyAppControlCommand(command);
+
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "appControlCommand:apply",
+            command
+        );
+    });
+
     it("openFile pends file if window not ready, and sends it when ready", () => {
         windowManager.openFile("test.png");
         const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
@@ -362,6 +402,46 @@ describe("WindowManager", () => {
             filePath: "test.png",
             ext: ".png",
         });
+    });
+
+    it("applyLaunchIntent pends intent if window not ready and sends it when ready", () => {
+        const launchIntent: LaunchIntent = {
+            images: [
+                {
+                    path: "C:/tmp/sample.png",
+                },
+            ],
+        };
+
+        windowManager.applyLaunchIntent(launchIntent);
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+
+        mainWindow.__emit("ready-to-show");
+
+        expect(mainWindow.show).toHaveBeenCalled();
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "launchIntent:apply",
+            launchIntent
+        );
+    });
+
+    it("applyAppControlCommand pends command if window not ready and sends it when ready", () => {
+        const command: AppControlCommand = {
+            kind: "add-image",
+            imagePath: "C:/tmp/sample.png",
+            opacity: 0.8,
+        };
+
+        windowManager.applyAppControlCommand(command);
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+
+        mainWindow.__emit("ready-to-show");
+
+        expect(mainWindow.show).toHaveBeenCalled();
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "appControlCommand:apply",
+            command
+        );
     });
 
     it("openFile pends file if window exists but hidden, and sends it when shown", () => {
@@ -502,6 +582,7 @@ describe("WindowManager", () => {
 
     it("delegates shortcut registration to injected manager", () => {
         const shortcutManager: IWindowShortcutManager = {
+            registerToggleAlwaysOnTopMode: vi.fn(),
             registerToggleClickThroughMode: vi.fn(),
             unregisterAll: vi.fn(),
         };
@@ -510,15 +591,48 @@ describe("WindowManager", () => {
         windowManager.registerShortcuts();
 
         expect(
+            shortcutManager.registerToggleAlwaysOnTopMode
+        ).toHaveBeenCalledTimes(1);
+        expect(
             shortcutManager.registerToggleClickThroughMode
         ).toHaveBeenCalledTimes(1);
     });
 
-    it("sends click-through shortcut event to main window when global shortcut fires", () => {
-        let registeredCallback: (() => void) | null = null;
+    it("sends always-on-top shortcut event to main window when global shortcut fires", () => {
+        let registeredAlwaysOnTopCallback: (() => void) | null = null;
         const shortcutManager: IWindowShortcutManager = {
+            registerToggleAlwaysOnTopMode: vi.fn((callback: () => void) => {
+                registeredAlwaysOnTopCallback = callback;
+            }),
+            registerToggleClickThroughMode: vi.fn(),
+            unregisterAll: vi.fn(),
+        };
+        windowManager = new WindowManager(mockWindowRepository, shortcutManager);
+        const mainWindow = requireWindow(
+            windowManager.createMainWindow(),
+            "main window"
+        );
+
+        windowManager.registerShortcuts();
+        expect(registeredAlwaysOnTopCallback).toBeTypeOf("function");
+
+        if (typeof registeredAlwaysOnTopCallback !== "function") {
+            throw new Error("registeredAlwaysOnTopCallback should be set");
+        }
+        const alwaysOnTopCallback = registeredAlwaysOnTopCallback as () => void;
+        alwaysOnTopCallback();
+
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "alwaysOnTop:shortcutTriggered"
+        );
+    });
+
+    it("sends click-through shortcut event to main window when global shortcut fires", () => {
+        let registeredClickThroughCallback: (() => void) | null = null;
+        const shortcutManager: IWindowShortcutManager = {
+            registerToggleAlwaysOnTopMode: vi.fn(),
             registerToggleClickThroughMode: vi.fn((callback: () => void) => {
-                registeredCallback = callback;
+                registeredClickThroughCallback = callback;
             }),
             unregisterAll: vi.fn(),
         };
@@ -526,44 +640,56 @@ describe("WindowManager", () => {
         const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
 
         windowManager.registerShortcuts();
-        expect(registeredCallback).toBeTypeOf("function");
+        expect(registeredClickThroughCallback).toBeTypeOf("function");
 
-        if (typeof registeredCallback !== "function") {
-            throw new Error("registeredCallback should be set");
+        if (typeof registeredClickThroughCallback !== "function") {
+            throw new Error("registeredClickThroughCallback should be set");
         }
-        (registeredCallback as () => void)();
+        const clickThroughCallback = registeredClickThroughCallback as () => void;
+        clickThroughCallback();
 
         expect(mainWindow.webContents.send).toHaveBeenCalledWith(
             "clickThrough:shortcutTriggered"
         );
     });
 
-    it("does not send click-through shortcut event when main window is missing or destroyed", () => {
-        let registeredCallback: (() => void) | null = null;
+    it("does not send shortcut events when main window is missing or destroyed", () => {
+        let registeredAlwaysOnTopCallback: (() => void) | null = null;
+        let registeredClickThroughCallback: (() => void) | null = null;
         const shortcutManager: IWindowShortcutManager = {
+            registerToggleAlwaysOnTopMode: vi.fn((callback: () => void) => {
+                registeredAlwaysOnTopCallback = callback;
+            }),
             registerToggleClickThroughMode: vi.fn((callback: () => void) => {
-                registeredCallback = callback;
+                registeredClickThroughCallback = callback;
             }),
             unregisterAll: vi.fn(),
         };
         windowManager = new WindowManager(mockWindowRepository, shortcutManager);
         windowManager.registerShortcuts();
 
-        if (typeof registeredCallback !== "function") {
-            throw new Error("registeredCallback should be set");
+        if (typeof registeredAlwaysOnTopCallback !== "function") {
+            throw new Error("registeredAlwaysOnTopCallback should be set");
         }
-
-        (registeredCallback as () => void)();
+        if (typeof registeredClickThroughCallback !== "function") {
+            throw new Error("registeredClickThroughCallback should be set");
+        }
+        const alwaysOnTopCallback = registeredAlwaysOnTopCallback as () => void;
+        const clickThroughCallback = registeredClickThroughCallback as () => void;
+        alwaysOnTopCallback();
+        clickThroughCallback();
 
         const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
         mainWindow.__setDestroyed(true);
-        (registeredCallback as () => void)();
+        alwaysOnTopCallback();
+        clickThroughCallback();
 
         expect(mainWindow.webContents.send).not.toHaveBeenCalled();
     });
 
     it("delegates shortcut unregistration to injected manager", () => {
         const shortcutManager: IWindowShortcutManager = {
+            registerToggleAlwaysOnTopMode: vi.fn(),
             registerToggleClickThroughMode: vi.fn(),
             unregisterAll: vi.fn(),
         };
@@ -576,6 +702,7 @@ describe("WindowManager", () => {
 
     it("cleanup unregisters shortcuts and closes all windows", () => {
         const shortcutManager: IWindowShortcutManager = {
+            registerToggleAlwaysOnTopMode: vi.fn(),
             registerToggleClickThroughMode: vi.fn(),
             unregisterAll: vi.fn(),
         };

@@ -1,4 +1,3 @@
-import fs from "fs";
 import { test, expect } from "@playwright/test";
 
 import {
@@ -7,6 +6,7 @@ import {
     E2E_CAPTURE_PATH,
     getE2EState,
     launchE2EApp,
+    readPngArtifactMetadata,
     waitForE2EStable,
 } from "./helpers/electronHarness";
 
@@ -24,7 +24,10 @@ test("e2e control bridge applies fixture scene deterministically", async () => {
 
         const captureResult = await captureViaE2E(page, { mode: "window" });
         expect(captureResult).not.toBeNull();
-        await expect.poll(() => fs.existsSync(E2E_CAPTURE_PATH)).toBe(true);
+        await expect.poll(() => readPngArtifactMetadata(E2E_CAPTURE_PATH)).toMatchObject({
+            exists: true,
+            isValidPng: true,
+        });
     } finally {
         await app.close();
     }

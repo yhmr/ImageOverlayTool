@@ -7,6 +7,13 @@ import {
     toLocalFileUrl,
 } from "../../factories/imageSetFactory";
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import {
+    selectImageSets,
+    selectSelectedImageId,
+    selectSetImageSets,
+    selectSetSelectedImageId,
+    selectUpdateImageSet,
+} from "../../store/selectors";
 import { useAppStore } from "../../store/useAppStore";
 import {
     applyScaleToImageSet,
@@ -15,7 +22,7 @@ import {
     createResetImageSet,
     resetImageSetTransformation,
     resolveRelinkInitAnchorPos,
-} from "../utils/imageListItemHelpers";
+} from "../utils/imageListItemUtils";
 
 interface UseImageListItemActionsParams {
     imageSet: ImageSet;
@@ -30,12 +37,11 @@ export const useImageListItemActions = ({
 }: UseImageListItemActionsParams) => {
     const { t } = useTranslation();
     const ipcService = useIpcService();
-    const {
-        updateImageSet,
-        setImageSets,
-        selectedImageId,
-        setSelectedImageId,
-    } = useAppStore();
+    const updateImageSet = useAppStore(selectUpdateImageSet);
+    const setImageSets = useAppStore(selectSetImageSets);
+    const selectedImageId = useAppStore(selectSelectedImageId);
+    const setSelectedImageId = useAppStore(selectSetSelectedImageId);
+    const imageSets = useAppStore(selectImageSets);
 
     const isSelected = selectedImageId === imageSet.id;
     const isCacheImage = (imageSet.sourceType ?? "file") === "cache";
@@ -104,9 +110,9 @@ export const useImageListItemActions = ({
     };
 
     const deleteImageSet = () => {
-        const newImageSets = useAppStore
-            .getState()
-            .imageSets.filter((item) => item.id !== imageSet.id);
+        const newImageSets = imageSets.filter(
+            (item) => item.id !== imageSet.id
+        );
         setImageSets(newImageSets);
     };
 
