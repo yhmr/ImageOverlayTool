@@ -1,6 +1,6 @@
 import type { ImageSet } from "../../types/ImageSet";
+import type { LaunchIntent } from "../../types/LaunchIntent";
 import type { ProjectFile } from "../../types/ProjectFile";
-import type { ResolvedSceneFile } from "../../types/SceneFile";
 import { defineInvokeContract, type InvokeContract } from "../contract";
 import { IPC_CHANNELS } from "../channels";
 
@@ -42,7 +42,7 @@ export type ProjectInvokeContracts = {
  * シーン(構成情報)管理関連のIPC通信におけるRequest/Responseの型定義群
  */
 export type SceneInvokeContracts = {
-    loadFromPath: InvokeContract<[filePath: string], ResolvedSceneFile>;
+    loadFromPath: InvokeContract<[filePath: string], LaunchIntent>;
 };
 
 /** プロジェクト管理関連IPC通信の契約定義オブジェクト */

@@ -1,5 +1,6 @@
 import { sanitizeUnitFactor } from "../../../shared/constants/unitFactor";
 import type { ImageSet } from "../../../shared/types/ImageSet";
+import type { LaunchIntent } from "../../../shared/types/LaunchIntent";
 import type { ProjectFile } from "../../../shared/types/ProjectFile";
 import type { ResolvedSceneFile } from "../../../shared/types/SceneFile";
 import {
@@ -9,8 +10,8 @@ import {
 import { useAppStore, type AppState } from "../../store/useAppStore";
 import { runAsSystemMutation } from "../../store/temporalHistory";
 
-const createSceneImageSet = (
-    image: ResolvedSceneFile["images"][number]
+const createIntentImageSet = (
+    image: LaunchIntent["images"][number]
 ): ImageSet =>
     createImageSet({
         id: image.id,
@@ -24,8 +25,8 @@ const createSceneImageSet = (
         filters: image.filters,
     });
 
-const buildProjectFromResolvedScene = (
-    scene: ResolvedSceneFile,
+const buildProjectFromLaunchIntent = (
+    launchIntent: LaunchIntent,
     current: AppState
 ): ProjectFile<ImageSet> => ({
     version: "1.0.0",
@@ -34,20 +35,22 @@ const buildProjectFromResolvedScene = (
         height: window.innerHeight,
         x: 0,
         y: 0,
-        color: scene.window?.color ?? current.windowColor,
+        color: launchIntent.window?.color ?? current.windowColor,
     },
     settings: {
-        unitFactor: sanitizeUnitFactor(scene.unitFactor ?? current.unitFactor),
-        unit: scene.unit ?? current.unit,
+        unitFactor: sanitizeUnitFactor(
+            launchIntent.unitFactor ?? current.unitFactor
+        ),
+        unit: launchIntent.unit ?? current.unit,
     },
-    canvas: scene.canvas ?? current.canvas,
-    images: scene.images.map((image) => createSceneImageSet(image)),
-    dimensionLines: scene.dimensionLines ?? [],
+    canvas: launchIntent.canvas ?? current.canvas,
+    images: launchIntent.images.map((image) => createIntentImageSet(image)),
+    dimensionLines: launchIntent.dimensionLines ?? [],
 });
 
-export const applyResolvedSceneFile = (scene: ResolvedSceneFile): void => {
+export const applyLaunchIntent = (launchIntent: LaunchIntent): void => {
     const current = useAppStore.getState();
-    const project = buildProjectFromResolvedScene(scene, current);
+    const project = buildProjectFromLaunchIntent(launchIntent, current);
 
     current.loadProject(project);
 
@@ -55,19 +58,48 @@ export const applyResolvedSceneFile = (scene: ResolvedSceneFile): void => {
         () => useAppStore.temporal,
         () => {
             const state = useAppStore.getState();
-            const alwaysOnTop = scene.window?.alwaysOnTop ?? false;
-            const clickThrough =
-                alwaysOnTop && Boolean(scene.window?.clickThrough);
+            const alwaysOnTop = launchIntent.window?.alwaysOnTop ?? false;
+            const clickThrough = launchIntent.window?.clickThrough ?? false;
 
             state.setAlwaysOnTopMode(alwaysOnTop);
             state.setClickThroughMode(clickThrough);
 
-            if (scene.window?.showWindowFrame !== undefined) {
-                state.setWindowFrameVisible(scene.window.showWindowFrame);
+            if (launchIntent.window?.showWindowFrame !== undefined) {
+                state.setWindowFrameVisible(
+                    launchIntent.window.showWindowFrame
+                );
             }
 
             state.setCurrentProjectFilePath(null);
             state.markProjectSaved();
         }
     );
+};
+
+const toLaunchIntentFromResolvedScene = (
+    scene: ResolvedSceneFile
+): LaunchIntent => {
+    const alwaysOnTop = scene.window?.alwaysOnTop ?? false;
+
+    return {
+        window: {
+            color: scene.window?.color,
+            alwaysOnTop,
+            clickThrough: alwaysOnTop && Boolean(scene.window?.clickThrough),
+            showWindowFrame: scene.window?.showWindowFrame,
+        },
+        unitFactor: scene.unitFactor,
+        unit: scene.unit,
+        canvas: scene.canvas,
+        images: scene.images.map((image) => ({
+            ...image,
+        })),
+        dimensionLines: scene.dimensionLines?.map((line) => ({
+            ...line,
+        })),
+    };
+};
+
+export const applyResolvedSceneFile = (scene: ResolvedSceneFile): void => {
+    applyLaunchIntent(toLaunchIntentFromResolvedScene(scene));
 };

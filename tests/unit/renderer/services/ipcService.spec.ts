@@ -151,7 +151,6 @@ describe("ipcService", () => {
                     .fn()
                     .mockResolvedValue({ project: createProject(), filePath: "b.iot" }),
                 loadSceneFromPath: vi.fn().mockResolvedValue({
-                    version: "1.0.0",
                     images: [],
                 }),
                 loadImage: vi.fn().mockResolvedValue("C:/tmp/image.png"),
@@ -314,7 +313,6 @@ describe("ipcService", () => {
             await expect(
                 service.loadSceneFromPath("default.scene.json")
             ).resolves.toEqual({
-                version: "1.0.0",
                 images: [],
             });
             await expect(service.loadImage()).resolves.toBe("C:/tmp/image.png");

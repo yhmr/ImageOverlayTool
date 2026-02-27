@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import i18n from "../../../i18n/configs";
 import { useIpcService } from "../../providers/IpcServiceProvider";
-import { applyResolvedSceneFile } from "../services/sceneFileApplicator";
+import { applyLaunchIntent } from "../services/sceneFileApplicator";
 
 const SCENE_FILE_SUFFIX = ".scene.json";
 
@@ -22,8 +22,10 @@ export const useSceneFileLoader = () => {
     return useCallback(
         async (filePath: string): Promise<void> => {
             try {
-                const scene = await ipcService.loadSceneFromPath(filePath);
-                applyResolvedSceneFile(scene);
+                const launchIntent = await ipcService.loadSceneFromPath(
+                    filePath
+                );
+                applyLaunchIntent(launchIntent);
             } catch (error) {
                 const message = toErrorMessage(error);
                 void ipcService.log.error("Scene file load failed", {

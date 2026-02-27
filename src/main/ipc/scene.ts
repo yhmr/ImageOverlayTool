@@ -1,7 +1,8 @@
 import { ipcMain } from "electron";
 
 import { sceneIpcContracts } from "../../shared/ipc/contracts";
-import type { ResolvedSceneFile } from "../../shared/types/SceneFile";
+import type { LaunchIntent } from "../../shared/types/LaunchIntent";
+import { resolveLaunchIntentFromScene } from "../repositories/launchIntent";
 import { loadResolvedSceneFileFromPath } from "../repositories/sceneLoader";
 import log from "../logger";
 
@@ -12,7 +13,7 @@ import log from "../logger";
 export const registerSceneHandlers = (): void => {
     ipcMain.handle(
         sceneIpcContracts.loadFromPath.channel,
-        async (_event, scenePath: string): Promise<ResolvedSceneFile> => {
+        async (_event, scenePath: string): Promise<LaunchIntent> => {
             log.debug(`[IPC] scene:loadFromPath called for: ${scenePath}`);
 
             if (!scenePath || typeof scenePath !== "string") {
@@ -20,9 +21,18 @@ export const registerSceneHandlers = (): void => {
             }
 
             const resolved = await loadResolvedSceneFileFromPath(scenePath);
+            const { launchIntent, warnings } =
+                resolveLaunchIntentFromScene(resolved);
+
+            warnings.forEach((warning) => {
+                log.warn(
+                    `[IPC] scene:loadFromPath warning: ${warning}`,
+                    scenePath
+                );
+            });
 
             log.info(`[IPC] scene:loadFromPath completed: ${scenePath}`);
-            return resolved;
+            return launchIntent;
         }
     );
 };

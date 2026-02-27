@@ -3,8 +3,8 @@ import {
     sceneIpcContracts,
 } from "../../shared/ipc/contracts";
 import type { ImageSet } from "../../shared/types/ImageSet";
+import type { LaunchIntent } from "../../shared/types/LaunchIntent";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
-import type { ResolvedSceneFile } from "../../shared/types/SceneFile";
 import { invokeIpcContract } from "./client";
 
 /**
@@ -36,6 +36,6 @@ export const createProjectApi = () => ({
     loadProject: () => invokeIpcContract(projectIpcContracts.load),
     loadProjectFromPath: (filePath: string) =>
         invokeIpcContract(projectIpcContracts.loadFromPath, filePath),
-    loadSceneFromPath: (filePath: string): Promise<ResolvedSceneFile> =>
+    loadSceneFromPath: (filePath: string): Promise<LaunchIntent> =>
         invokeIpcContract(sceneIpcContracts.loadFromPath, filePath),
 });

@@ -53,7 +53,6 @@ describe("useFileHandler", () => {
 
     it("applies scene file and marks project as clean", async () => {
         mockService.loadSceneFromPath = vi.fn().mockResolvedValue({
-            version: "1.0.0",
             window: {
                 color: "#11223344",
                 alwaysOnTop: true,
@@ -124,12 +123,11 @@ describe("useFileHandler", () => {
         expect(state.isWindowFrameVisible).toBe(true);
     });
 
-    it("disables click-through when scene does not enable alwaysOnTop", async () => {
+    it("applies normalized launch intent with click-through disabled", async () => {
         mockService.loadSceneFromPath = vi.fn().mockResolvedValue({
-            version: "1.0.0",
             window: {
                 alwaysOnTop: false,
-                clickThrough: true,
+                clickThrough: false,
             },
             images: [],
         });

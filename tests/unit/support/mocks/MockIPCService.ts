@@ -9,7 +9,7 @@ import {
     DEFAULT_WINDOW_COLOR_PRESETS,
 } from "@/shared/types/AppConfig";
 import { LicenseInfo } from "@/shared/types/LicenseInfo";
-import type { ResolvedSceneFile } from "@/shared/types/SceneFile";
+import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -129,9 +129,8 @@ export class MockIPCService implements IIPCService {
         return null;
     }
 
-    async loadSceneFromPath(_filePath: string): Promise<ResolvedSceneFile> {
+    async loadSceneFromPath(_filePath: string): Promise<LaunchIntent> {
         return {
-            version: "1.0.0",
             images: [],
         };
     }
