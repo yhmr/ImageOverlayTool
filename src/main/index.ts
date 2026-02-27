@@ -40,14 +40,12 @@ import {
     writeCliInvalidArgumentError,
     writeCliSceneValidationError,
 } from "./bootstrap/cliErrorHandler";
-import { initializeRuntimeEnvironment } from "./bootstrap/runtime";
 import {
     acquireSingleInstanceLock,
     registerSingleInstanceHandlers,
 } from "./bootstrap/singleInstance";
 import { resolveStartupCliRoute } from "./bootstrap/cliRouter";
 import { type StartupWindowOptions } from "./bootstrap/startupLaunch";
-import { resolveE2ERuntimeConfig } from "./e2e/runtimeConfig";
 import {
     registerLocalResourceProtocol,
     setupProtocolHandler,
@@ -59,9 +57,6 @@ import { SettingsRepositoryFactory } from "./repositories/SettingsRepositoryFact
 import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory";
 import { WindowManager } from "./windows/windowManager";
 import { cleanupClipboardCache } from "./services/clipboardCacheService";
-
-const e2eConfig = resolveE2ERuntimeConfig({ isPackaged: app.isPackaged });
-initializeRuntimeEnvironment(e2eConfig);
 
 let cliHelpRequest: ReturnType<typeof resolveCliHelpRequest> = null;
 let cliSceneTemplateRequest: ReturnType<typeof resolveCliSceneTemplateRequest> =
@@ -174,7 +169,7 @@ registerEarlyIpcHandlers();
 registerProcessErrorHandlers();
 registerLocalResourceProtocol();
 
-const gotTheLock = acquireSingleInstanceLock(e2eConfig.enabled);
+const gotTheLock = acquireSingleInstanceLock();
 log.info("Application starting...");
 
 if (!gotTheLock) {
@@ -233,7 +228,6 @@ if (!gotTheLock) {
             windowRepository,
             projectRepository,
             windowManager,
-            e2eConfig,
         });
 
         let startupLaunchPlan:
@@ -253,8 +247,7 @@ if (!gotTheLock) {
         }
 
         const mainWindow = await windowManager.launchMainWindow({
-            skipSplash:
-                e2eConfig.enabled || Boolean(startupLaunchPlan?.skipSplash),
+            skipSplash: Boolean(startupLaunchPlan?.skipSplash),
         });
         log.info("Main window created.");
         if (startupLaunchPlan) {
@@ -277,7 +270,7 @@ if (!gotTheLock) {
         windowManager.registerShortcuts();
 
         // 開発時のみデバッグツールを有効化
-        if (is.dev && !e2eConfig.enabled) {
+        if (is.dev) {
             installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
                 .then(() => {
                     // noop
@@ -287,7 +280,7 @@ if (!gotTheLock) {
                 });
         }
 
-        windowManager.openDevTools(mainWindow, e2eConfig.enabled);
+        windowManager.openDevTools(mainWindow);
     });
 
     registerShutdownHandlers(windowManager);

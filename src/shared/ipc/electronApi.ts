@@ -8,7 +8,6 @@ import type {
 import {
     appEventContracts,
     captureIpcContracts,
-    e2eIpcContracts,
     dimensionSettingsWindowIpcContracts,
     imageSettingsWindowIpcContracts,
     licenseIpcContracts,
@@ -147,9 +146,4 @@ export interface IElectronAPI {
     captureScreen: InvokeMethod<typeof captureIpcContracts.screen>;
     captureWindow: InvokeMethod<typeof captureIpcContracts.window>;
     saveImage: InvokeMethod<typeof captureIpcContracts.saveImageData>;
-    getE2EStatus: InvokeMethod<typeof e2eIpcContracts.getStatus>;
-    e2eSetSceneFromPath: InvokeMethod<typeof e2eIpcContracts.setSceneFromPath>;
-    e2eLoadFixtureImage: InvokeMethod<typeof e2eIpcContracts.loadFixtureImage>;
-    e2eWaitStable: InvokeMethod<typeof e2eIpcContracts.waitStable>;
-    e2eCapture: InvokeMethod<typeof e2eIpcContracts.capture>;
 }

@@ -2,10 +2,10 @@ import { test, expect, Page } from "@playwright/test";
 import {
     applyFixtureScene,
     clickAppMenuItem,
-    E2E_CAPTURE_PATH,
     E2E_EXPORT_PATH,
     launchE2EApp,
     readPngArtifactMetadata,
+    runControlCommand,
 } from "./helpers/electronHarness";
 
 const isFabMenuOpen = async (page: Page): Promise<boolean> => {
@@ -57,7 +57,7 @@ test("settings and about dialogs are operable via menu", async () => {
     }
 });
 
-test("export dialog saves direct export artifact", async () => {
+test("export dialog can be opened and canceled", async () => {
     const { app, page } = await launchE2EApp();
 
     try {
@@ -65,32 +65,28 @@ test("export dialog saves direct export artifact", async () => {
         await ensureFabMenuOpened(page);
         await page.getByTestId("main.fab.export").click({ force: true });
         await expect(page.getByTestId("main.export.save")).toBeVisible();
-        await page.getByTestId("main.export.save").click();
-        await expect.poll(() => readPngArtifactMetadata(E2E_EXPORT_PATH)).toMatchObject({
-            exists: true,
-            isValidPng: true,
-        });
+        await expect(
+            page.getByTestId("main.export.include-background")
+        ).toBeVisible();
+        await page.getByTestId("main.export.cancel").click();
+        await expect(page.getByTestId("main.export.save")).toHaveCount(0);
     } finally {
         await app.close();
     }
 });
 
-test("export dialog with include-background saves capture artifact", async () => {
+test("control export command saves png artifact", async () => {
     const { app, page } = await launchE2EApp();
 
     try {
         await applyFixtureScene(page, "default.scene.json");
-        await ensureFabMenuOpened(page);
-        await page.getByTestId("main.fab.export").click({ force: true });
-        await expect(page.getByTestId("main.export.include-background")).toBeVisible();
-        await page.getByTestId("main.export.include-background").click({
-            force: true,
-        });
-        await page.getByTestId("main.export.save").click();
-        await expect.poll(() => readPngArtifactMetadata(E2E_CAPTURE_PATH)).toMatchObject({
-            exists: true,
-            isValidPng: true,
-        });
+        await runControlCommand(["--export", E2E_EXPORT_PATH]);
+        await expect
+            .poll(() => readPngArtifactMetadata(E2E_EXPORT_PATH))
+            .toMatchObject({
+                exists: true,
+                isValidPng: true,
+            });
     } finally {
         await app.close();
     }

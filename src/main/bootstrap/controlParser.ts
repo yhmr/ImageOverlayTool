@@ -127,10 +127,6 @@ export const parseControlCommand = (
             continue;
         }
 
-        if (token === "--e2e") {
-            continue;
-        }
-
         if (isOptionToken(token)) {
             throw new Error(`Unknown second-instance option: ${token}`);
         }

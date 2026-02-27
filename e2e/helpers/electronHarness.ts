@@ -1,13 +1,7 @@
+import childProcess from "child_process";
 import fs from "fs";
 import path from "path";
 import { _electron as electron, ElectronApplication, Page } from "playwright";
-import type { CaptureResult } from "../../src/shared/types/CaptureResult";
-import type {
-    E2ECaptureRequest,
-    E2EControlStatus,
-    E2EWaitStableRequest,
-    E2EWaitStableResult,
-} from "../../src/shared/types/E2EControl";
 
 const APP_ROOT = path.resolve(__dirname, "..", "..");
 const OUT_MAIN_PATH = path.join(APP_ROOT, "out", "main", "index.js");
@@ -33,12 +27,7 @@ const FIXTURE_APP_CONFIG_PATH_CANDIDATES = [
     path.join(E2E_FIXTURES_DIR, "app.config.json"),
     path.join(E2E_FIXTURES_DIR, "project", "config.json"),
 ];
-const DEFAULT_PLAYWRIGHT_LAUNCH_FLAGS = [
-    "--no-sandbox",
-    "--disable-gpu",
-    "--disable-dev-shm-usage",
-    "--disable-software-rasterizer",
-];
+const CONTROL_COMMAND_TIMEOUT_MS = 20000;
 
 type WindowLayoutConfig = {
     pos: [number, number];
@@ -75,10 +64,55 @@ const resetArtifacts = (): void => {
     }
 };
 
+const executeElectronCli = (
+    args: string[],
+    timeoutMs = CONTROL_COMMAND_TIMEOUT_MS
+): void => {
+    const electronPath = require("electron") as string;
+    const env = { ...process.env };
+    delete env.ELECTRON_RUN_AS_NODE;
+
+    const result = childProcess.spawnSync(electronPath, [APP_ROOT, ...args], {
+        env,
+        encoding: "utf8",
+        windowsHide: true,
+        timeout: timeoutMs,
+        stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    if (result.error) {
+        throw new Error(
+            `Failed to execute electron CLI: ${result.error.message}`
+        );
+    }
+
+    if (typeof result.status === "number" && result.status !== 0) {
+        const stdout = result.stdout ? String(result.stdout).trim() : "";
+        const stderr = result.stderr ? String(result.stderr).trim() : "";
+        const details = [stderr, stdout].filter(Boolean).join("\n");
+        throw new Error(
+            `Electron CLI exited with code ${result.status}: ${args.join(" ")}${details ? `\n${details}` : ""}`
+        );
+    }
+};
+
 interface LaunchElectronAppOptions {
     appArgs?: string[];
-    e2eMode?: boolean;
 }
+
+const normalizeLaunchArgs = (appArgs: string[]): string[] => {
+    if (appArgs.length === 0) {
+        return ["startup", "--silent"];
+    }
+
+    if (appArgs[0] === "startup") {
+        return appArgs.includes("--silent")
+            ? appArgs
+            : ["startup", "--silent", ...appArgs.slice(1)];
+    }
+
+    return ["startup", "--silent", ...appArgs];
+};
 
 const launchElectronApp = async (
     options: LaunchElectronAppOptions = {}
@@ -90,25 +124,16 @@ const launchElectronApp = async (
     resetArtifacts();
 
     const electronPath = require("electron") as string;
-    const appArgs = options.appArgs ?? [];
-    const e2eMode = options.e2eMode ?? false;
+    const appArgs = normalizeLaunchArgs(options.appArgs ?? []);
     const env = {
         ...process.env,
         NODE_ENV: "test",
-        ...(e2eMode
-            ? {
-                  IOT_INTERNAL_E2E: "1",
-                  IOT_E2E_ARTIFACTS_DIR: E2E_ARTIFACTS_DIR,
-                  IOT_E2E_FIXED_NOW: "1700000000000",
-                  IOT_E2E_RANDOM_SEED: "424242",
-              }
-            : {}),
     };
     delete env.ELECTRON_RUN_AS_NODE;
 
     const app = await electron.launch({
         executablePath: electronPath,
-        args: [APP_ROOT, ...DEFAULT_PLAYWRIGHT_LAUNCH_FLAGS, ...appArgs],
+        args: [APP_ROOT, ...appArgs],
         env,
     });
 
@@ -117,19 +142,22 @@ const launchElectronApp = async (
     return { app, page };
 };
 
+export const resolveFixtureScenePath = (sceneFileName: string): string =>
+    path.join(E2E_SCENES_DIR, sceneFileName);
+
+export const runControlCommand = async (args: string[]): Promise<void> => {
+    executeElectronCli(["control", ...args]);
+};
+
 export const launchE2EApp = async (
     options: { appArgs?: string[] } = {}
 ): Promise<{
     app: ElectronApplication;
     page: Page;
 }> => {
-    const { app, page } = await launchElectronApp({
-        appArgs: [...(options.appArgs ?? []), "--e2e"],
-        e2eMode: true,
+    return launchElectronApp({
+        appArgs: options.appArgs,
     });
-    await ensureE2EBridge(page);
-
-    return { app, page };
 };
 
 const isValidWindowLayoutConfig = (
@@ -226,143 +254,32 @@ export const applyImageSettingsWindowLayout = async (
     await settingsPage.waitForTimeout(120);
 };
 
-export const ensureE2EBridge = async (page: Page): Promise<void> => {
-    await page.waitForFunction(() => Boolean(window.__IOT_E2E__));
-};
-
-export const getE2EStatus = async (page: Page): Promise<E2EControlStatus> => {
-    await ensureE2EBridge(page);
-    return page.evaluate(async () => {
-        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
-            | { getStatus: () => Promise<E2EControlStatus> }
-            | undefined;
-        if (!bridge) {
-            throw new Error("E2E bridge is not available in renderer.");
-        }
-        return bridge.getStatus();
-    });
-};
-
-export const getE2EState = async (
-    page: Page
-): Promise<{
-    imageCount: number;
-    dimensionLineCount: number;
-    selectedImageId: string | null;
-    selectedDimensionLineId: string | null;
-    interactionMode: string;
-    unit: string;
-    unitFactor: number;
-    windowColor: string;
-    isUIHidden: boolean;
-}> => {
-    await ensureE2EBridge(page);
-    return page.evaluate(() => {
-        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
-            | {
-                getState: () => {
-                    imageCount: number;
-                    dimensionLineCount: number;
-                    selectedImageId: string | null;
-                    selectedDimensionLineId: string | null;
-                    interactionMode: string;
-                    unit: string;
-                    unitFactor: number;
-                    windowColor: string;
-                    isUIHidden: boolean;
-                };
-            }
-            | undefined;
-        if (!bridge) {
-            throw new Error("E2E bridge is not available in renderer.");
-        }
-        return bridge.getState();
-    });
-};
-
 export const waitForE2EStable = async (
     page: Page,
-    request?: E2EWaitStableRequest
-): Promise<E2EWaitStableResult> => {
-    await ensureE2EBridge(page);
-    return page.evaluate(async (waitRequest) => {
-        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
-            | {
-                waitStable: (
-                    request?: E2EWaitStableRequest
-                ) => Promise<E2EWaitStableResult>;
-            }
-            | undefined;
-        if (!bridge) {
-            throw new Error("E2E bridge is not available in renderer.");
-        }
-        return bridge.waitStable(waitRequest);
-    }, request);
-};
+    request?: { timeoutMs?: number }
+): Promise<{ stable: true; elapsedMs: number }> => {
+    const startedAt = Date.now();
+    const timeoutMs = request?.timeoutMs ?? 5000;
 
-export const captureViaE2E = async (
-    page: Page,
-    request?: E2ECaptureRequest
-): Promise<CaptureResult | null> => {
-    await ensureE2EBridge(page);
-    return page.evaluate(async (captureRequest) => {
-        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
-            | {
-                capture: (
-                    request?: E2ECaptureRequest
-                ) => Promise<CaptureResult | null>;
-            }
-            | undefined;
-        if (!bridge) {
-            throw new Error("E2E bridge is not available in renderer.");
-        }
-        return bridge.capture(captureRequest);
-    }, request);
+    await page.getByTestId("main.app.root").waitFor({
+        state: "visible",
+        timeout: timeoutMs,
+    });
+    await page.waitForTimeout(250);
+
+    return {
+        stable: true,
+        elapsedMs: Date.now() - startedAt,
+    };
 };
 
 export const applyFixtureScene = async (
     page: Page,
-    sceneFileName = "default.scene.json",
-    options?: {
-        requireStable?: boolean;
-        timeoutMs?: number;
-    }
+    sceneFileName = "default.scene.json"
 ): Promise<void> => {
-    const scenePath = path.join(E2E_SCENES_DIR, sceneFileName);
-    await ensureE2EBridge(page);
-    await page.evaluate(async (payload) => {
-        const requireStable = payload.requireStable ?? true;
-        const timeoutMs = payload.timeoutMs ?? 20000;
-
-        const bridge = (window as { __IOT_E2E__?: unknown }).__IOT_E2E__ as
-            | {
-                  setSceneFromPath: (
-                      scenePath: string
-                  ) => Promise<E2EWaitStableResult>;
-                  waitStable: (
-                      request?: E2EWaitStableRequest
-                  ) => Promise<E2EWaitStableResult>;
-              }
-            | undefined;
-        if (!bridge) {
-            throw new Error("E2E bridge is not available in renderer.");
-        }
-
-        const result = await bridge.setSceneFromPath(payload.scenePath);
-        if (!requireStable) {
-            return;
-        }
-
-        let stableResult = result;
-        if (!stableResult.stable) {
-            stableResult = await bridge.waitStable({ timeoutMs });
-        }
-        if (!stableResult.stable) {
-            throw new Error(
-                `Renderer did not reach stable state after setSceneFromPath. elapsedMs=${stableResult.elapsedMs}`
-            );
-        }
-    }, { scenePath, ...options });
+    const scenePath = resolveFixtureScenePath(sceneFileName);
+    await runControlCommand(["--switch-scene", scenePath]);
+    await waitForE2EStable(page, { timeoutMs: 7000 });
 };
 
 const PNG_SIGNATURE = Buffer.from([

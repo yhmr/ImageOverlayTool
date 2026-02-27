@@ -11,46 +11,12 @@ import fs from "fs/promises";
 import path from "path";
 import log from "../logger";
 
-export interface CaptureTestModeOptions {
-    enabled: boolean;
-    captureFilePath: string;
-    exportImagePath: string;
-    fixedNow?: number;
-    captureWidth?: number;
-    captureHeight?: number;
-}
-
-const E2E_PLACEHOLDER_IMAGE =
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==";
-
-const ensureParentDir = async (filePath: string): Promise<void> => {
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-};
-
-const ensurePlaceholderCapture = async (filePath: string): Promise<void> => {
-    await ensureParentDir(filePath);
-    const image = nativeImage.createFromDataURL(E2E_PLACEHOLDER_IMAGE);
-    await fs.writeFile(filePath, image.toPNG());
-};
-
-const resolveTimestamp = (fixedNow?: number): number => {
-    return typeof fixedNow === "number" ? fixedNow : Date.now();
-};
+const resolveTimestamp = (): number => Date.now();
 
 export const captureWindowAreaAndSave = async (
     event: IpcMainInvokeEvent,
-    hideWindow: boolean,
-    testMode?: CaptureTestModeOptions
+    hideWindow: boolean
 ) => {
-    if (testMode?.enabled) {
-        await ensurePlaceholderCapture(testMode.captureFilePath);
-        return {
-            filePath: testMode.captureFilePath,
-            width: testMode.captureWidth ?? 1280,
-            height: testMode.captureHeight ?? 720,
-        };
-    }
-
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win) return null;
 
@@ -124,7 +90,7 @@ export const captureWindowAreaAndSave = async (
             win.focus();
         }
 
-        const now = resolveTimestamp(testMode?.fixedNow);
+        const now = resolveTimestamp();
         const { filePath } = await dialog.showSaveDialog(win, {
             title: "Save Capture",
             defaultPath: path.join(
@@ -166,25 +132,12 @@ export const captureWindowAreaAndSave = async (
 
 export const saveDataUrlImage = async (
     event: IpcMainInvokeEvent,
-    dataUrl: string,
-    testMode?: CaptureTestModeOptions
+    dataUrl: string
 ): Promise<string | null> => {
-    if (testMode?.enabled) {
-        await ensureParentDir(testMode.exportImagePath);
-        const image = nativeImage.createFromDataURL(dataUrl);
-        const ext = path.extname(testMode.exportImagePath).toLowerCase();
-        const buffer =
-            ext === ".jpg" || ext === ".jpeg"
-                ? image.toJPEG(90)
-                : image.toPNG();
-        await fs.writeFile(testMode.exportImagePath, buffer);
-        return testMode.exportImagePath;
-    }
-
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win) return null;
 
-    const now = resolveTimestamp(testMode?.fixedNow);
+    const now = resolveTimestamp();
     const { filePath } = await dialog.showSaveDialog(win, {
         title: "Save Image",
         defaultPath: path.join(app.getPath("pictures"), `image_${now}.png`),

@@ -14,7 +14,6 @@ const {
     mockCreateAppEventsApi,
     mockCreateLicenseApi,
     mockCreateCaptureApi,
-    mockCreateE2EApi,
 } = vi.hoisted(() => ({
     mockExposeInMainWorld: vi.fn(),
     mockCreateLogApi: vi.fn(() => ({ logApi: "log" })),
@@ -28,7 +27,6 @@ const {
     mockCreateAppEventsApi: vi.fn(() => ({ appEventsApi: "appEvents" })),
     mockCreateLicenseApi: vi.fn(() => ({ licenseApi: "license" })),
     mockCreateCaptureApi: vi.fn(() => ({ captureApi: "capture" })),
-    mockCreateE2EApi: vi.fn(() => ({ e2eApi: "e2e" })),
 }));
 
 vi.mock("electron", () => ({
@@ -64,9 +62,6 @@ vi.mock("@/preload/ipc/license", () => ({
 vi.mock("@/preload/ipc/capture", () => ({
     createCaptureApi: mockCreateCaptureApi,
 }));
-vi.mock("@/preload/ipc/e2e", () => ({
-    createE2EApi: mockCreateE2EApi,
-}));
 
 describe("preload/index", () => {
     beforeEach(() => {
@@ -87,7 +82,6 @@ describe("preload/index", () => {
             appEventsApi: "appEvents",
             licenseApi: "license",
             captureApi: "capture",
-            e2eApi: "e2e",
         });
     });
 });

@@ -176,10 +176,6 @@ export const parseStartupArgs = (
             continue;
         }
 
-        if (token === "--e2e") {
-            continue;
-        }
-
         if (allowUnknownOptions) {
             continue;
         }

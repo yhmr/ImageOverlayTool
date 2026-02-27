@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test";
 import {
     applyFixtureScene,
-    E2E_CAPTURE_PATH,
     launchE2EApp,
-    readPngArtifactMetadata,
+    openImageSettingsWindow,
 } from "./helpers/electronHarness";
 
 test("undo/redo keyboard updates history direction", async () => {
@@ -16,17 +15,18 @@ test("undo/redo keyboard updates history direction", async () => {
 
         await applyFixtureScene(page, "default.scene.json");
 
-        // FABメニューを展開してからキャプチャ
-        await page.getByTestId("main.fab.menu-toggle").click();
-        await page.getByTestId("main.fab.capture").click();
-        await expect.poll(() => readPngArtifactMetadata(E2E_CAPTURE_PATH)).toMatchObject({
-            exists: true,
-            isValidPng: true,
-        });
+        const settingsPage = await openImageSettingsWindow(app, page);
+        const cards = settingsPage.getByTestId("settings.image-item.card");
+        const beforeCount = await cards.count();
+        await settingsPage.getByTestId("settings.image-list.add").click();
+        await expect(cards).toHaveCount(beforeCount + 1);
+        await settingsPage.getByTestId("settings.menu.close").click();
+
+        await page.bringToFront();
+        await page.getByTestId("main.canvas.area").click({ position: { x: 20, y: 20 } });
+
         await expect(undoButton).toBeEnabled();
         await expect(redoButton).toBeDisabled();
-
-        await page.getByTestId("main.canvas.area").click({ position: { x: 20, y: 20 } });
 
         await page.keyboard.press(`${modifier}+Z`);
         await expect(redoButton).toBeEnabled();

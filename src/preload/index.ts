@@ -1,7 +1,6 @@
 import { contextBridge } from "electron";
 import { createAppEventsApi } from "./ipc/appEvents";
 import { createCaptureApi } from "./ipc/capture";
-import { createE2EApi } from "./ipc/e2e";
 import { createImageSettingsWindowApi } from "./ipc/imageSettingsWindow";
 import { createLicenseApi } from "./ipc/license";
 import { createLogApi } from "./ipc/log";
@@ -24,5 +23,4 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ...createAppEventsApi(),
     ...createLicenseApi(),
     ...createCaptureApi(),
-    ...createE2EApi(),
 });

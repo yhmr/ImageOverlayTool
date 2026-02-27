@@ -371,64 +371,6 @@ describe("IPC Project Handlers", () => {
         });
     });
 
-    describe("e2e test mode", () => {
-        const e2eProjectPath = "/tmp/e2e/project.iot";
-
-        beforeEach(() => {
-            vi.clearAllMocks();
-            mockRepo = new MockProjectRepository();
-            registerProjectHandlers(mockRepo, {
-                testMode: {
-                    enabled: true,
-                    projectFilePath: e2eProjectPath,
-                },
-            });
-        });
-
-        it("saveAs should bypass native save dialog and use fixed file path", async () => {
-            const dummyProject = createProject();
-
-            const result = await invokeIpcHandler(
-                "project:saveAs",
-                { sender: {} },
-                dummyProject
-            );
-
-            expect(result).toBe(e2eProjectPath);
-            expect(dialog.showSaveDialog).not.toHaveBeenCalled();
-            await expect(mockRepo.loadProject(e2eProjectPath)).resolves.toEqual(
-                dummyProject
-            );
-        });
-
-        it("load should bypass native open dialog and use fixed file path", async () => {
-            const existingProject: ProjectFile = {
-                version: "1.0.0",
-                window: { width: 100, height: 100, x: 10, y: 10, color: "#FFF" },
-                settings: { unitFactor: 2, unit: "mm" },
-                images: [],
-            };
-            await mockRepo.saveProject(e2eProjectPath, existingProject);
-
-            const result = await invokeIpcHandler("project:load", { sender: {} });
-
-            expect(dialog.showOpenDialog).not.toHaveBeenCalled();
-            expect(result).toEqual({
-                project: existingProject,
-                filePath: e2eProjectPath,
-            });
-        });
-
-        it("load should return null in e2e mode when source file is missing", async () => {
-            vi.spyOn(mockRepo, "loadProject").mockRejectedValueOnce(
-                new Error("missing")
-            );
-            const result = await invokeIpcHandler("project:load", { sender: {} });
-
-            expect(dialog.showOpenDialog).not.toHaveBeenCalled();
-            expect(result).toBeNull();
-        });
-    });
 });
 
 

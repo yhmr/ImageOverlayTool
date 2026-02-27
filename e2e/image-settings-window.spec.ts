@@ -2,9 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
     applyFixtureScene,
     clickAppMenuItem,
-    E2E_CAPTURE_PATH,
     launchE2EApp,
-    readPngArtifactMetadata,
 } from "./helpers/electronHarness";
 
 test("image settings window supports stable UI controls", async () => {
@@ -27,12 +25,6 @@ test("image settings window supports stable UI controls", async () => {
 
         await settingsPage.getByTestId("settings.image-list.add").click();
         await expect(cards).toHaveCount(beforeCount + 1);
-
-        await settingsPage.getByTestId("settings.menu.capture").click();
-        await expect.poll(() => readPngArtifactMetadata(E2E_CAPTURE_PATH)).toMatchObject({
-            exists: true,
-            isValidPng: true,
-        });
 
         await settingsPage.getByTestId("settings.menu.close").click();
         await clickAppMenuItem(page, "main.menu.item.open-image-settings");

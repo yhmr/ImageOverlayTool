@@ -11,15 +11,6 @@ import {
 import { LicenseInfo } from "@/shared/types/LicenseInfo";
 import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 import type { AppControlCommand } from "@/shared/types/AppControlCommand";
-import type {
-    E2ECaptureRequest,
-    E2EControlStatus,
-    E2ELoadFixtureImageRequest,
-    E2EResolvedSceneFile,
-    E2EResolvedFixtureImage,
-    E2EWaitStableRequest,
-    E2EWaitStableResult,
-} from "@/shared/types/E2EControl";
 import type { InteractionMode } from "@/shared/types/InteractionMode";
 
 /**
@@ -288,43 +279,6 @@ export class MockIPCService implements IIPCService {
     }
 
     async updateProjectDirty(_isDirty: boolean): Promise<void> { }
-
-    async getE2EStatus(): Promise<E2EControlStatus> {
-        return {
-            enabled: false,
-            artifactsDir: "",
-            fixturesDir: "",
-        };
-    }
-
-    async e2eSetSceneFromPath(
-        _scenePath: string
-    ): Promise<E2EResolvedSceneFile> {
-        return {
-            version: "1.0.0",
-            images: [],
-        };
-    }
-
-    async e2eLoadFixtureImage(
-        _request: E2ELoadFixtureImageRequest
-    ): Promise<E2EResolvedFixtureImage> {
-        return { path: "" };
-    }
-
-    async e2eWaitStable(
-        _request?: E2EWaitStableRequest
-    ): Promise<E2EWaitStableResult> {
-        return { stable: true, elapsedMs: 0 };
-    }
-
-    async e2eCapture(_request?: E2ECaptureRequest): Promise<CaptureResult | null> {
-        return {
-            filePath: "path/to/e2e-capture.png",
-            width: 800,
-            height: 600,
-        };
-    }
 
     reset(): void {
         this.updateImageSetsCalls = [];

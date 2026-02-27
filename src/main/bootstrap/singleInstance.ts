@@ -10,12 +10,7 @@ import { resolveSecondInstanceCliRoute } from "./cliRouter";
 import { executeSecondInstanceCommand } from "./secondInstanceCommand";
 import { type StartupWindowOptions } from "./startupLaunch";
 
-export const acquireSingleInstanceLock = (isE2EMode: boolean): boolean => {
-    if (isE2EMode) {
-        log.info("Single instance lock disabled in e2e mode.");
-        return true;
-    }
-
+export const acquireSingleInstanceLock = (): boolean => {
     return app.requestSingleInstanceLock();
 };
 
@@ -49,6 +44,9 @@ export const registerSingleInstanceHandlers = (
 
     // 2つ目のインスタンスが起動されたときの処理
     app.on("second-instance", async (_event, commandLine, workingDirectory) => {
+        log.debug(
+            `[second-instance] commandLine=${JSON.stringify(commandLine)}`
+        );
         const mainWindow = windowManager.getMainWindow();
         if (mainWindow) {
             if (mainWindow.isMinimized()) {
@@ -77,12 +75,15 @@ export const registerSingleInstanceHandlers = (
             return;
         }
 
+        log.debug(`[second-instance] route kind=${cliRoute.kind}`);
+
         if (cliRoute.kind === "control") {
             try {
                 await executeSecondInstanceCommand(
                     cliRoute.command,
                     windowManager
                 );
+                log.debug("[second-instance] control command executed");
             } catch (error) {
                 reportSecondInstanceCommandExecutionError(error);
             }

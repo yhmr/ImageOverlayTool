@@ -1,7 +1,61 @@
+import fs from "fs";
+
+const isInternalElectronSwitch = (token: string): boolean =>
+    token.startsWith("--inspect") ||
+    token.startsWith("--remote-debugging-port") ||
+    token === "--allow-file-access-from-files" ||
+    token.startsWith("--secure-schemes=") ||
+    token.startsWith("--standard-schemes=");
+
+const isCliSubcommandToken = (token: string): boolean => {
+    const normalized = token.toLowerCase();
+    return normalized === "startup" || normalized === "control";
+};
+
+const isLikelyAppEntryToken = (token: string): boolean => {
+    if (token.startsWith("--")) {
+        return false;
+    }
+    if (token.toLowerCase().endsWith(".js")) {
+        return true;
+    }
+    try {
+        return fs.existsSync(token) && fs.statSync(token).isDirectory();
+    } catch {
+        return false;
+    }
+};
+
+const normalizeDevArgv = (commandLine: string[]): string[] => {
+    const filtered = commandLine
+        .slice(1)
+        .filter((token) => !isInternalElectronSwitch(token));
+    const subcommandIndex = filtered.findIndex(isCliSubcommandToken);
+
+    if (
+        subcommandIndex > 0 &&
+        isLikelyAppEntryToken(filtered[subcommandIndex - 1])
+    ) {
+        const subcommand = filtered[subcommandIndex];
+        const headArgs = filtered
+            .slice(0, subcommandIndex)
+            .filter((token) => !isLikelyAppEntryToken(token));
+        const tailArgs = filtered.slice(subcommandIndex + 1);
+        return [subcommand, ...headArgs, ...tailArgs];
+    }
+
+    if (filtered.length > 0 && isLikelyAppEntryToken(filtered[0])) {
+        return filtered.slice(1);
+    }
+
+    return filtered;
+};
+
 export const normalizeArgv = (
     commandLine: string[],
     isPackaged: boolean
-): string[] => (isPackaged ? commandLine.slice(1) : commandLine.slice(2));
+): string[] =>
+    isPackaged ? commandLine.slice(1) : normalizeDevArgv(commandLine);
 
 export const isOptionToken = (value: string): boolean => value.startsWith("--");
 
