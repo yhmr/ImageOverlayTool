@@ -3,6 +3,7 @@ import { app, dialog } from "electron";
 
 import log from "@/main/logger";
 import { registerSingleInstanceHandlers } from "@/main/bootstrap/singleInstance";
+import { resetSecondInstanceErrorDialogStateForTest } from "@/main/bootstrap/cliErrorHandler";
 import {
     CliRouteParseError,
     resolveSecondInstanceCliRoute,
@@ -64,6 +65,7 @@ describe("singleInstance", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        resetSecondInstanceErrorDialogStateForTest();
         secondInstanceHandler = null;
         openFileHandler = null;
         vi.mocked(executeSecondInstanceCommand).mockResolvedValue(undefined);

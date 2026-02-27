@@ -4,6 +4,7 @@ import { dialog } from "electron";
 import log from "@/main/logger";
 import { CliRouteParseError } from "@/main/bootstrap/cliRouter";
 import {
+    resetSecondInstanceErrorDialogStateForTest,
     reportSecondInstanceCommandExecutionError,
     reportSecondInstanceRouteParseError,
     reportStartupLaunchParseError,
@@ -29,6 +30,7 @@ vi.mock("@/main/logger", () => ({
 describe("cliErrorHandler", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        resetSecondInstanceErrorDialogStateForTest();
     });
 
     it("writes json invalid-argument payload when parse error has json format hint", () => {
@@ -163,5 +165,31 @@ describe("cliErrorHandler", () => {
             "Second-instance command failed",
             "export failed"
         );
+    });
+
+    it("suppresses repeated second-instance error dialogs during cooldown", () => {
+        const nowSpy = vi.spyOn(Date, "now");
+        nowSpy.mockReturnValue(1000);
+
+        reportSecondInstanceCommandExecutionError(new Error("first"));
+
+        nowSpy.mockReturnValue(1001);
+        reportSecondInstanceCommandExecutionError(new Error("second"));
+
+        expect(dialog.showErrorBox).toHaveBeenCalledTimes(1);
+        expect(dialog.showErrorBox).toHaveBeenCalledWith(
+            "Second-instance command failed",
+            "first"
+        );
+        expect(log.warn).toHaveBeenCalledWith(
+            "Suppressed second-instance error dialog due to cooldown.",
+            expect.objectContaining({
+                title: "Second-instance command failed",
+                message: "second",
+                suppressedCount: 1,
+            })
+        );
+
+        nowSpy.mockRestore();
     });
 });

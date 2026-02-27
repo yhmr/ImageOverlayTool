@@ -60,7 +60,7 @@ import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory"
 import { WindowManager } from "./windows/windowManager";
 import { cleanupClipboardCache } from "./services/clipboardCacheService";
 
-const e2eConfig = resolveE2ERuntimeConfig();
+const e2eConfig = resolveE2ERuntimeConfig({ isPackaged: app.isPackaged });
 initializeRuntimeEnvironment(e2eConfig);
 
 let cliHelpRequest: ReturnType<typeof resolveCliHelpRequest> = null;

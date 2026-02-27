@@ -13,6 +13,11 @@ interface CliParseErrorLike {
     formatHint: CliOutputFormat;
 }
 
+const SECOND_INSTANCE_DIALOG_COOLDOWN_MS = 3000;
+
+let lastSecondInstanceDialogAt: number | null = null;
+let suppressedSecondInstanceDialogCount = 0;
+
 const isCliParseErrorLike = (error: unknown): error is CliParseErrorLike =>
     typeof error === "object" &&
     error !== null &&
@@ -79,6 +84,30 @@ export const writeCliSceneValidationError = (
     process.stderr.write(`Scene validation failed: ${message}\n`);
 };
 
+const showSecondInstanceErrorDialog = (
+    title: string,
+    message: string
+): void => {
+    const now = Date.now();
+    if (
+        lastSecondInstanceDialogAt !== null &&
+        now - lastSecondInstanceDialogAt < SECOND_INSTANCE_DIALOG_COOLDOWN_MS
+    ) {
+        suppressedSecondInstanceDialogCount += 1;
+        log.warn("Suppressed second-instance error dialog due to cooldown.", {
+            title,
+            message,
+            cooldownMs: SECOND_INSTANCE_DIALOG_COOLDOWN_MS,
+            suppressedCount: suppressedSecondInstanceDialogCount,
+        });
+        return;
+    }
+
+    lastSecondInstanceDialogAt = now;
+    suppressedSecondInstanceDialogCount = 0;
+    dialog.showErrorBox(title, message);
+};
+
 export const reportStartupLaunchParseError = (error: unknown): void => {
     const message = toErrorMessage(error);
     log.error("Failed to parse startup launch options.", { message });
@@ -96,7 +125,7 @@ export const reportSecondInstanceRouteParseError = (error: unknown): void => {
             : "Failed to parse second-instance startup options.",
         { message }
     );
-    dialog.showErrorBox(
+    showSecondInstanceErrorDialog(
         isControlParseError
             ? "Invalid second-instance command"
             : "Invalid startup options",
@@ -111,5 +140,10 @@ export const reportSecondInstanceCommandExecutionError = (
     log.error("Failed to execute second-instance command.", {
         message,
     });
-    dialog.showErrorBox("Second-instance command failed", message);
+    showSecondInstanceErrorDialog("Second-instance command failed", message);
+};
+
+export const resetSecondInstanceErrorDialogStateForTest = (): void => {
+    lastSecondInstanceDialogAt = null;
+    suppressedSecondInstanceDialogCount = 0;
 };
