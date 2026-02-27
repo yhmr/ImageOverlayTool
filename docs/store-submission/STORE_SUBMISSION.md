@@ -12,6 +12,9 @@
 ```bash
 pnpm run generate-store-submission-files
 pnpm run build:win:local
+pnpm run verify:release-artifacts -- --platform win
+pnpm run smoke:packaged-startup -- --platform win
+pnpm run verify:win-installer -- --arch arm64
 ```
 
 `build:win:local` is a local-only wrapper for Windows packaging checks.

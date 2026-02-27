@@ -1,6 +1,30 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+function Find-Pnpm7zaCandidates {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProjectRoot
+    )
+
+    $patterns = @(
+        (Join-Path $ProjectRoot "node_modules\.pnpm\7zip-bin@*\node_modules\7zip-bin\win\x64\7za.exe"),
+        (Join-Path $ProjectRoot "node_modules\.pnpm\7zip-bin@*\node_modules\7zip-bin\win\ia32\7za.exe")
+    )
+
+    $results = @()
+    foreach ($pattern in $patterns) {
+        $matches = Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -ExpandProperty FullName
+        if ($matches) {
+            $results += $matches
+        }
+    }
+
+    return @($results | Select-Object -Unique)
+}
+
 function Resolve-7zaPath {
     $sevenZipA = Get-Command "7za" -ErrorAction SilentlyContinue
     if ($sevenZipA -and $sevenZipA.Path -notmatch "\\scoop\\shims\\") {
@@ -21,13 +45,13 @@ function Resolve-7zaPath {
     }
 
     if (-not $sevenZipPath) {
+        $pnpmCandidates = Find-Pnpm7zaCandidates -ProjectRoot $projectRoot
         $candidatePaths = @(
             (Join-Path $projectRoot "node_modules\7zip-bin\win\x64\7za.exe"),
             (Join-Path $projectRoot "node_modules\7zip-bin\win\ia32\7za.exe"),
+            $pnpmCandidates,
             (Join-Path $env:ProgramFiles "7-Zip\7za.exe"),
-            (Join-Path ${env:ProgramFiles(x86)} "7-Zip\7za.exe"),
-            (Join-Path $env:ProgramFiles "7-Zip\7z.exe"),
-            (Join-Path ${env:ProgramFiles(x86)} "7-Zip\7z.exe")
+            (Join-Path ${env:ProgramFiles(x86)} "7-Zip\7za.exe")
         ) | Where-Object { $_ -and (Test-Path $_) }
         $candidatePaths = @($candidatePaths)
 
@@ -48,8 +72,7 @@ function Resolve-7zaPath {
     }
 
     if ((Split-Path -Leaf $sevenZipPath).ToLowerInvariant() -eq "7z.exe") {
-        Write-Warning "Using 7z.exe as 7za fallback. This can generate ARM64-compressed binaries that old NSIS extractors cannot restore correctly."
-        Write-Warning "Prefer a real 7za.exe (node_modules\\7zip-bin\\win\\x64\\7za.exe or Program Files\\7-Zip\\7za.exe)."
+        throw "7z.exe fallback is not supported for release packaging because it can produce broken NSIS extraction artifacts. Use a real 7za.exe."
     }
 
     $shimDir = Join-Path $env:TEMP "imageoverlaytool-local-bin"
