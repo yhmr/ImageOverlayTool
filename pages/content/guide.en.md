@@ -31,11 +31,12 @@ Get it from [Microsoft Store](https://apps.microsoft.com/store/detail/9PBQ7VPKTX
 
 ### Loading Images
 
-There are three ways to load images:
+There are four ways to load images:
 
 1. **From file dialog**: Select "Image Settings" from the menu (or press `Ctrl+I`), then click the "Add" button to select files.
 2. **Drag & Drop**: Drag and drop image files onto the main window or image settings window.
 3. **Paste from clipboard**: Press `Ctrl+V` to paste an image from the clipboard (added as a temporary cache image).
+4. **Launch Options & Scene Input**: You can pass file paths as arguments when launching the application to load them immediately. Additionally, by passing a `.scene.json` file, you can launch the app with an initial state that applies multiple images, layout information, and filter settings all at once.
 
 ### Manipulating Images
 
@@ -136,7 +137,7 @@ Draw dimension lines on the canvas with resolution-factor-aware real dimension d
 
 ### Background Color/Style
 
-Change the canvas background color from "Background Style" (`Ctrl+B`) in the menu or the FAB menu's background style button. Choose any color from the color picker.
+Change the canvas background color from "Background Style" (`Ctrl+B`) in the menu or the FAB menu's background style button. You can choose any color from the color picker, and frequently used colors can be saved and managed as presets.
 
 ### Always on Top
 
@@ -178,7 +179,7 @@ Open the settings dialog from "Settings" (`Ctrl+,`) in the menu.
 - **Log Level**: Set the verbosity of application logs.
 - **Export/Import Settings**: Export and import app settings as JSON files.
 
-Window size, position, background color, language, and other settings are automatically saved and restored on next launch.
+Window size, position, background color, preset colors, language, and other settings are automatically saved and restored on next launch.
 
 ---
 
