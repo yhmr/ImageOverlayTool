@@ -47,6 +47,7 @@ describe("resolveStartupLaunchPlan", () => {
             [
                 "node",
                 "index.js",
+                "startup",
                 projectPath,
                 "--always-on-top",
                 "--click-through",
@@ -66,6 +67,7 @@ describe("resolveStartupLaunchPlan", () => {
             [
                 "node",
                 "index.js",
+                "startup",
                 "--images",
                 imagePath,
                 "--opacity",
@@ -92,7 +94,14 @@ describe("resolveStartupLaunchPlan", () => {
 
     it("warns and disables click-through when always-on-top is not enabled", async () => {
         const plan = await resolveStartupLaunchPlan(
-            ["node", "index.js", "--images", imagePath, "--click-through"],
+            [
+                "node",
+                "index.js",
+                "startup",
+                "--images",
+                imagePath,
+                "--click-through",
+            ],
             false
         );
 
@@ -106,7 +115,14 @@ describe("resolveStartupLaunchPlan", () => {
     it("treats --scene as exclusive with state options", async () => {
         await expect(
             resolveStartupLaunchPlan(
-                ["node", "index.js", "--scene", scenePath, "--always-on-top"],
+                [
+                    "node",
+                    "index.js",
+                    "startup",
+                    "--scene",
+                    scenePath,
+                    "--always-on-top",
+                ],
                 false
             )
         ).rejects.toThrow("--scene is exclusive");
@@ -115,7 +131,7 @@ describe("resolveStartupLaunchPlan", () => {
     it("treats positional scene file as exclusive with state options", async () => {
         await expect(
             resolveStartupLaunchPlan(
-                ["node", "index.js", scenePath, "--fullscreen"],
+                ["node", "index.js", "startup", scenePath, "--fullscreen"],
                 false
             )
         ).rejects.toThrow("Scene file input is exclusive");
@@ -123,7 +139,7 @@ describe("resolveStartupLaunchPlan", () => {
 
     it("resolves scene launch intent from --scene", async () => {
         const plan = await resolveStartupLaunchPlan(
-            ["node", "index.js", "--scene", scenePath],
+            ["node", "index.js", "startup", "--scene", scenePath],
             false
         );
 
@@ -132,11 +148,43 @@ describe("resolveStartupLaunchPlan", () => {
         expect(plan.launchIntent?.images[0].path).toBe(path.resolve(imagePath));
     });
 
+    it("accepts startup subcommand and parses startup options", async () => {
+        const plan = await resolveStartupLaunchPlan(
+            ["node", "index.js", "startup", "--scene", scenePath],
+            false
+        );
+
+        expect(plan.filePath).toBeUndefined();
+        expect(plan.launchIntent?.images).toHaveLength(1);
+        expect(plan.launchIntent?.images[0].path).toBe(path.resolve(imagePath));
+    });
+
+    it("rejects control subcommand on startup parser", async () => {
+        await expect(
+            resolveStartupLaunchPlan(
+                ["node", "index.js", "control", "--set-opacity", "30"],
+                false
+            )
+        ).rejects.toThrow(
+            "control subcommand cannot be used with startup options."
+        );
+    });
+
+    it("rejects flat startup options without startup subcommand", async () => {
+        await expect(
+            resolveStartupLaunchPlan(
+                ["node", "index.js", "--images", imagePath],
+                false
+            )
+        ).rejects.toThrow('Startup options require the "startup" subcommand.');
+    });
+
     it("parses startup window options and silent flag", async () => {
         const plan = await resolveStartupLaunchPlan(
             [
                 "node",
                 "index.js",
+                "startup",
                 "--position",
                 "120,80",
                 "--size",
@@ -160,7 +208,15 @@ describe("resolveStartupLaunchPlan", () => {
     it("rejects invalid opacity values", async () => {
         await expect(
             resolveStartupLaunchPlan(
-                ["node", "index.js", "--opacity", "180", "--images", imagePath],
+                [
+                    "node",
+                    "index.js",
+                    "startup",
+                    "--opacity",
+                    "180",
+                    "--images",
+                    imagePath,
+                ],
                 false
             )
         ).rejects.toThrow("--opacity must be between 0 and 100");

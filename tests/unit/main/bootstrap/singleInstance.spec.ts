@@ -106,10 +106,15 @@ describe("singleInstance", () => {
         };
 
         registerSingleInstanceHandlers(windowManager as never);
-        await secondInstanceHandler?.({}, ["node", "index.js", "--images"]);
+        await secondInstanceHandler?.({}, [
+            "node",
+            "index.js",
+            "startup",
+            "--images",
+        ]);
 
         expect(resolveStartupLaunchPlan).toHaveBeenCalledWith(
-            ["node", "index.js", "--images"],
+            ["node", "index.js", "startup", "--images"],
             false
         );
         expect(mainWindow.restore).toHaveBeenCalledOnce();
@@ -144,10 +149,16 @@ describe("singleInstance", () => {
         };
 
         registerSingleInstanceHandlers(windowManager as never);
-        await secondInstanceHandler?.({}, ["node", "index.js", "--set-opacity", "30"]);
+        await secondInstanceHandler?.({}, [
+            "node",
+            "index.js",
+            "control",
+            "--set-opacity",
+            "30",
+        ]);
 
         expect(resolveSecondInstanceCommand).toHaveBeenCalledWith(
-            ["node", "index.js", "--set-opacity", "30"],
+            ["node", "index.js", "control", "--set-opacity", "30"],
             false
         );
         expect(executeSecondInstanceCommand).toHaveBeenCalledWith(
@@ -163,6 +174,74 @@ describe("singleInstance", () => {
         expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
     });
 
+    it("routes control subcommand to second-instance command path", async () => {
+        const mainWindow = createMainWindow();
+        vi.mocked(resolveSecondInstanceCommand).mockReturnValue({
+            kind: "app-control",
+            command: {
+                kind: "set-opacity",
+                opacity: 0.5,
+            },
+        });
+
+        const windowManager = {
+            getMainWindow: vi.fn(() => mainWindow),
+            applyLaunchIntent: vi.fn(),
+            openFile: vi.fn(),
+        };
+
+        registerSingleInstanceHandlers(windowManager as never);
+        await secondInstanceHandler?.(
+            {},
+            ["node", "index.js", "control", "--set-opacity", "50"]
+        );
+
+        expect(resolveSecondInstanceCommand).toHaveBeenCalledWith(
+            ["node", "index.js", "control", "--set-opacity", "50"],
+            false
+        );
+        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
+    });
+
+    it("routes startup subcommand to startup launch parsing when no command exists", async () => {
+        const launchIntent: LaunchIntent = {
+            window: { alwaysOnTop: false, clickThrough: false },
+            images: [],
+        };
+        vi.mocked(resolveSecondInstanceCommand).mockReturnValue(null);
+        vi.mocked(resolveStartupLaunchPlan).mockResolvedValue({
+            skipSplash: false,
+            filePath: undefined,
+            launchIntent,
+            windowOptions: {
+                fullscreen: false,
+                minimize: false,
+            },
+            warnings: [],
+        });
+
+        const windowManager = {
+            getMainWindow: vi.fn(() => createMainWindow()),
+            applyLaunchIntent: vi.fn(),
+            openFile: vi.fn(),
+        };
+
+        registerSingleInstanceHandlers(windowManager as never);
+        await secondInstanceHandler?.(
+            {},
+            ["node", "index.js", "startup", "--images", "sample.png"]
+        );
+
+        expect(resolveSecondInstanceCommand).toHaveBeenCalledWith(
+            ["node", "index.js", "startup", "--images", "sample.png"],
+            false
+        );
+        expect(resolveStartupLaunchPlan).toHaveBeenCalledWith(
+            ["node", "index.js", "startup", "--images", "sample.png"],
+            false
+        );
+    });
+
     it("shows error dialog when second-instance command args are invalid", async () => {
         vi.mocked(resolveSecondInstanceCommand).mockImplementation(() => {
             throw new Error("invalid command option");
@@ -175,7 +254,12 @@ describe("singleInstance", () => {
         };
 
         registerSingleInstanceHandlers(windowManager as never);
-        await secondInstanceHandler?.({}, ["node", "index.js", "--set-opacity"]);
+        await secondInstanceHandler?.({}, [
+            "node",
+            "index.js",
+            "control",
+            "--set-opacity",
+        ]);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "Invalid second-instance command",
@@ -200,7 +284,13 @@ describe("singleInstance", () => {
         };
 
         registerSingleInstanceHandlers(windowManager as never);
-        await secondInstanceHandler?.({}, ["node", "index.js", "--export", "overlay.png"]);
+        await secondInstanceHandler?.({}, [
+            "node",
+            "index.js",
+            "control",
+            "--export",
+            "overlay.png",
+        ]);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "Second-instance command failed",
@@ -252,7 +342,12 @@ describe("singleInstance", () => {
         };
 
         registerSingleInstanceHandlers(windowManager as never);
-        await secondInstanceHandler?.({}, ["node", "index.js", "--scene"]);
+        await secondInstanceHandler?.({}, [
+            "node",
+            "index.js",
+            "startup",
+            "--scene",
+        ]);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "Invalid startup options",

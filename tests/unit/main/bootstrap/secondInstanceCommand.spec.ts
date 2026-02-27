@@ -45,7 +45,15 @@ describe("secondInstanceCommand", () => {
 
     it("parses --add-image with optional --opacity", () => {
         const command = resolveSecondInstanceCommand(
-            ["node", "index.js", "--add-image", imagePath, "--opacity", "50"],
+            [
+                "node",
+                "index.js",
+                "control",
+                "--add-image",
+                imagePath,
+                "--opacity",
+                "50",
+            ],
             false
         );
 
@@ -61,7 +69,7 @@ describe("secondInstanceCommand", () => {
 
     it("parses --set-opacity", () => {
         const command = resolveSecondInstanceCommand(
-            ["node", "index.js", "--set-opacity", "30"],
+            ["node", "index.js", "control", "--set-opacity", "30"],
             false
         );
 
@@ -74,10 +82,42 @@ describe("secondInstanceCommand", () => {
         });
     });
 
+    it("parses control subcommand for second-instance command", () => {
+        const command = resolveSecondInstanceCommand(
+            ["node", "index.js", "control", "--set-opacity", "30"],
+            false
+        );
+
+        expect(command).toEqual({
+            kind: "app-control",
+            command: {
+                kind: "set-opacity",
+                opacity: 0.3,
+            },
+        });
+    });
+
+    it("returns null for startup subcommand in second-instance parser", () => {
+        const command = resolveSecondInstanceCommand(
+            ["node", "index.js", "startup", "--scene", scenePath],
+            false
+        );
+
+        expect(command).toBeNull();
+    });
+
     it("rejects --opacity when --add-image is not used", () => {
         expect(() =>
             resolveSecondInstanceCommand(
-                ["node", "index.js", "--set-opacity", "30", "--opacity", "40"],
+                [
+                    "node",
+                    "index.js",
+                    "control",
+                    "--set-opacity",
+                    "30",
+                    "--opacity",
+                    "40",
+                ],
                 false
             )
         ).toThrow("--opacity can only be used with --add-image");
@@ -89,6 +129,7 @@ describe("secondInstanceCommand", () => {
                 [
                     "node",
                     "index.js",
+                    "control",
                     "--set-opacity",
                     "30",
                     "--switch-scene",
@@ -101,7 +142,7 @@ describe("secondInstanceCommand", () => {
 
     it("parses --switch-scene with existing .scene.json path", () => {
         const command = resolveSecondInstanceCommand(
-            ["node", "index.js", "--switch-scene", scenePath],
+            ["node", "index.js", "control", "--switch-scene", scenePath],
             false
         );
 
@@ -117,7 +158,7 @@ describe("secondInstanceCommand", () => {
 
         expect(() =>
             resolveSecondInstanceCommand(
-                ["node", "index.js", "--switch-scene", invalidPath],
+                ["node", "index.js", "control", "--switch-scene", invalidPath],
                 false
             )
         ).toThrow("--switch-scene requires a .scene.json path");
@@ -126,7 +167,7 @@ describe("secondInstanceCommand", () => {
     it("parses --export output path", () => {
         const outputPath = path.join(tempDir, "capture.png");
         const command = resolveSecondInstanceCommand(
-            ["node", "index.js", "--export", outputPath],
+            ["node", "index.js", "control", "--export", outputPath],
             false
         );
 
@@ -134,6 +175,15 @@ describe("secondInstanceCommand", () => {
             kind: "export",
             outputPath: path.resolve(outputPath),
         });
+    });
+
+    it("rejects flat control command without control subcommand", () => {
+        expect(() =>
+            resolveSecondInstanceCommand(
+                ["node", "index.js", "--set-opacity", "30"],
+                false
+            )
+        ).toThrow('Control commands require the "control" subcommand.');
     });
 
     it("executes app-control command through WindowManager", async () => {

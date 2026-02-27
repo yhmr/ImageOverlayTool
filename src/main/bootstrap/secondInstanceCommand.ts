@@ -12,6 +12,7 @@ import {
     parseOpacityPercent,
     requireOptionValue,
 } from "./cliArgs";
+import { resolveCliSubcommandArgv } from "./cliSubcommand";
 
 const SCENE_FILE_SUFFIX = ".scene.json";
 const EXPORT_FILE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg"]);
@@ -113,10 +114,23 @@ export const resolveSecondInstanceCommand = (
     commandLine: string[],
     isPackaged: boolean
 ): SecondInstanceCommand | null => {
-    const argv = normalizeArgv(commandLine, isPackaged);
+    const normalizedArgv = normalizeArgv(commandLine, isPackaged);
+    const { subcommand, argv } = resolveCliSubcommandArgv(normalizedArgv);
     const hasCommandOption = argv.some((token) =>
         SECOND_INSTANCE_COMMAND_OPTIONS.has(token)
     );
+
+    if (subcommand === null && hasCommandOption) {
+        throw new Error('Control commands require the "control" subcommand.');
+    }
+
+    if (subcommand === "startup") {
+        return null;
+    }
+
+    if (subcommand === "control" && !hasCommandOption) {
+        throw new Error("control subcommand requires a command option.");
+    }
 
     if (!hasCommandOption) {
         return null;

@@ -11,6 +11,7 @@ import {
 } from "../repositories/launchIntent";
 import { loadResolvedSceneFileFromPath } from "../repositories/sceneLoader";
 import { isOptionToken, normalizeArgv, parseOpacityPercent } from "./cliArgs";
+import { resolveCliSubcommandArgv } from "./cliSubcommand";
 
 interface ParsedStartupArgs {
     scenePath?: string;
@@ -99,7 +100,17 @@ const parseStartupArgs = (
     commandLine: string[],
     isPackaged: boolean
 ): ParsedStartupArgs => {
-    const argv = normalizeArgv(commandLine, isPackaged);
+    const normalizedArgv = normalizeArgv(commandLine, isPackaged);
+    const { subcommand, argv } = resolveCliSubcommandArgv(normalizedArgv);
+    const hasOptionToken = argv.some(isOptionToken);
+    if (subcommand === "control") {
+        throw new Error(
+            "control subcommand cannot be used with startup options."
+        );
+    }
+    if (subcommand === null && hasOptionToken) {
+        throw new Error('Startup options require the "startup" subcommand.');
+    }
     const positional: string[] = [];
 
     const parsed: ParsedStartupArgs = {

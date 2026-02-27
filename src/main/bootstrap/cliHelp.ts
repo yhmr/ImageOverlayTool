@@ -151,6 +151,8 @@ export const resolveCliHelpRequest = (
 const HELP_HEADER = `ImageOverlayTool CLI Help
 
 Routing rules:
+  - Subcommands: startup ... | control ...
+  - startup/control options require explicit subcommand.
   - Startup options: parsed from primary-instance startup argv.
   - Control commands: sent to an already-running instance via second-instance.
   - If no instance is running, control commands are not accepted as startup options.
@@ -176,15 +178,17 @@ const CONTROL_HELP = `Control commands (for already-running instance):
   --export <path.png|path.jpg|path.jpeg>`;
 
 const EXAMPLES_HELP = `Examples:
+  ImageOverlayTool startup --scene "./scenes/default.scene.json"
+  ImageOverlayTool control --set-opacity 30
   ImageOverlayTool --scene-template v1
   ImageOverlayTool --validate-scene "./scenes/default.scene.json"
   ImageOverlayTool --validate-scene "./scenes/default.scene.json" --format json
-  ImageOverlayTool --scene "./scenes/default.scene.json"
-  ImageOverlayTool --images "./images/a.png" "./images/b.png" --opacity 50
-  ImageOverlayTool --add-image "./images/ref.png" --opacity 40
-  ImageOverlayTool --set-opacity 30
-  ImageOverlayTool --switch-scene "./scenes/layout-v2.scene.json"
-  ImageOverlayTool --export "./output/overlay.png"`;
+  ImageOverlayTool startup --scene "./scenes/default.scene.json"
+  ImageOverlayTool startup --images "./images/a.png" "./images/b.png" --opacity 50
+  ImageOverlayTool control --add-image "./images/ref.png" --opacity 40
+  ImageOverlayTool control --set-opacity 30
+  ImageOverlayTool control --switch-scene "./scenes/layout-v2.scene.json"
+  ImageOverlayTool control --export "./output/overlay.png"`;
 
 interface CliHelpSection {
     id: Exclude<HelpTopic, "all">;
@@ -234,6 +238,8 @@ export const buildCliHelpPayload = (topic: HelpTopic): CliHelpJsonPayload => {
         topic,
         format: "json",
         routingRules: [
+            "Subcommands: startup ... | control ...",
+            "startup/control options require explicit subcommand.",
             "Startup options: parsed from primary-instance startup argv.",
             "Control commands: sent to an already-running instance via second-instance.",
             "If no instance is running, control commands are not accepted as startup options.",

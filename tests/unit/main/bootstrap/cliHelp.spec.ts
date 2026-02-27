@@ -107,9 +107,15 @@ describe("cliHelp", () => {
     it("renders all sections for all-topic help", () => {
         const text = renderCliHelp({ topic: "all", format: "text" });
         expect(text).toContain("Routing rules:");
+        expect(text).toContain("Subcommands: startup ... | control ...");
+        expect(text).toContain(
+            "startup/control options require explicit subcommand."
+        );
         expect(text).toContain("Startup options:");
         expect(text).toContain("Control commands");
         expect(text).toContain("Examples:");
+        expect(text).toContain("ImageOverlayTool startup --scene");
+        expect(text).toContain("ImageOverlayTool control --set-opacity 30");
         expect(text).toContain("--scene-template v1");
         expect(text).toContain("--validate-scene");
     });
@@ -120,12 +126,16 @@ describe("cliHelp", () => {
             kind: string;
             topic: string;
             format: string;
+            routingRules: string[];
             sections: Array<{ id: string; content: string }>;
         };
 
         expect(payload.kind).toBe("help");
         expect(payload.topic).toBe("control");
         expect(payload.format).toBe("json");
+        expect(payload.routingRules).toContain(
+            "Subcommands: startup ... | control ..."
+        );
         expect(payload.sections).toHaveLength(1);
         expect(payload.sections[0]?.id).toBe("control");
     });
