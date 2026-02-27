@@ -6,26 +6,10 @@ import { isSupportedImagePath } from "../../shared/constants/imageFormats";
 import type { AppControlCommand } from "../../shared/types/AppControlCommand";
 import log from "../logger";
 import type { WindowManager } from "../windows/windowManager";
-import {
-    isOptionToken,
-    normalizeArgv,
-    parseOpacityPercent,
-    requireOptionValue,
-} from "./cliArgs";
-import { resolveCliSubcommandArgv } from "./cliSubcommand";
+import { parseControlCommand } from "./controlParser";
 
 const SCENE_FILE_SUFFIX = ".scene.json";
 const EXPORT_FILE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg"]);
-const SECOND_INSTANCE_COMMAND_OPTIONS = new Set([
-    "--add-image",
-    "--set-opacity",
-    "--switch-scene",
-    "--export",
-]);
-
-const parseOpacityRatio = (value: string, optionName: string): number => {
-    return parseOpacityPercent(value, optionName) / 100;
-};
 
 const resolveExistingFilePath = (
     inputPath: string,
@@ -61,17 +45,6 @@ const resolveExportPath = (inputPath: string): string => {
         throw new Error("--export supports only .png / .jpg / .jpeg.");
     }
     return resolvedPath;
-};
-
-const ensureSingleCommand = (
-    current: "add-image" | "set-opacity" | "switch-scene" | "export" | null,
-    next: "add-image" | "set-opacity" | "switch-scene" | "export"
-): void => {
-    if (current && current !== next) {
-        throw new Error(
-            "Only one second-instance command can be specified at a time."
-        );
-    }
 };
 
 const saveCapturedImage = async (
@@ -114,158 +87,42 @@ export const resolveSecondInstanceCommand = (
     commandLine: string[],
     isPackaged: boolean
 ): SecondInstanceCommand | null => {
-    const normalizedArgv = normalizeArgv(commandLine, isPackaged);
-    const { subcommand, argv } = resolveCliSubcommandArgv(normalizedArgv);
-    const hasCommandOption = argv.some((token) =>
-        SECOND_INSTANCE_COMMAND_OPTIONS.has(token)
-    );
-
-    if (subcommand === null && hasCommandOption) {
-        throw new Error('Control commands require the "control" subcommand.');
-    }
-
-    if (subcommand === "startup") {
+    const parsed = parseControlCommand(commandLine, isPackaged);
+    if (!parsed) {
         return null;
     }
 
-    if (subcommand === "control" && !hasCommandOption) {
-        throw new Error("control subcommand requires a command option.");
-    }
-
-    if (!hasCommandOption) {
-        return null;
-    }
-
-    let commandKind:
-        | "add-image"
-        | "set-opacity"
-        | "switch-scene"
-        | "export"
-        | null = null;
-    let addImagePath: string | null = null;
-    let switchScenePath: string | null = null;
-    let exportPath: string | null = null;
-    let setOpacity: number | null = null;
-    let addImageOpacity: number | undefined;
-
-    for (let index = 0; index < argv.length; index += 1) {
-        const token = argv[index];
-
-        if (token === "--add-image") {
-            ensureSingleCommand(commandKind, "add-image");
-            addImagePath = resolveImagePath(
-                requireOptionValue(argv, index, "--add-image")
-            );
-            commandKind = "add-image";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--set-opacity") {
-            ensureSingleCommand(commandKind, "set-opacity");
-            setOpacity = parseOpacityRatio(
-                requireOptionValue(argv, index, "--set-opacity"),
-                "--set-opacity"
-            );
-            commandKind = "set-opacity";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--switch-scene") {
-            ensureSingleCommand(commandKind, "switch-scene");
-            switchScenePath = resolveScenePath(
-                requireOptionValue(argv, index, "--switch-scene")
-            );
-            commandKind = "switch-scene";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--export") {
-            ensureSingleCommand(commandKind, "export");
-            exportPath = resolveExportPath(
-                requireOptionValue(argv, index, "--export")
-            );
-            commandKind = "export";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--opacity") {
-            addImageOpacity = parseOpacityRatio(
-                requireOptionValue(argv, index, "--opacity"),
-                "--opacity"
-            );
-            index += 1;
-            continue;
-        }
-
-        if (token === "--e2e") {
-            continue;
-        }
-
-        if (isOptionToken(token)) {
-            throw new Error(`Unknown second-instance option: ${token}`);
-        }
-
-        throw new Error(
-            "Positional arguments are not supported with second-instance commands."
-        );
-    }
-
-    if (!commandKind) {
-        return null;
-    }
-
-    if (addImageOpacity !== undefined && commandKind !== "add-image") {
-        throw new Error("--opacity can only be used with --add-image.");
-    }
-
-    if (commandKind === "add-image") {
-        if (!addImagePath) {
-            throw new Error("--add-image requires a path.");
-        }
+    if (parsed.kind === "add-image") {
         return {
             kind: "app-control",
             command: {
                 kind: "add-image",
-                imagePath: addImagePath,
-                opacity: addImageOpacity,
+                imagePath: resolveImagePath(parsed.imagePath),
+                opacity: parsed.opacity,
             },
         };
     }
 
-    if (commandKind === "set-opacity") {
-        if (setOpacity === null) {
-            throw new Error("--set-opacity requires a numeric value.");
-        }
+    if (parsed.kind === "set-opacity") {
         return {
             kind: "app-control",
             command: {
                 kind: "set-opacity",
-                opacity: setOpacity,
+                opacity: parsed.opacity,
             },
         };
     }
 
-    if (commandKind === "switch-scene") {
-        if (!switchScenePath) {
-            throw new Error("--switch-scene requires a path.");
-        }
+    if (parsed.kind === "switch-scene") {
         return {
             kind: "switch-scene",
-            scenePath: switchScenePath,
+            scenePath: resolveScenePath(parsed.scenePath),
         };
-    }
-
-    if (!exportPath) {
-        throw new Error("--export requires an output path.");
     }
 
     return {
         kind: "export",
-        outputPath: exportPath,
+        outputPath: resolveExportPath(parsed.outputPath),
     };
 };
 
