@@ -11,35 +11,64 @@ import { parseControlCommand } from "./controlParser";
 const SCENE_FILE_SUFFIX = ".scene.json";
 const EXPORT_FILE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg"]);
 
+const resolvePathFromWorkingDirectory = (
+    inputPath: string,
+    workingDirectory: string
+): string => path.resolve(workingDirectory, inputPath);
+
 const resolveExistingFilePath = (
     inputPath: string,
-    optionName: string
+    optionName: string,
+    workingDirectory: string
 ): string => {
-    const resolvedPath = path.resolve(inputPath);
+    const resolvedPath = resolvePathFromWorkingDirectory(
+        inputPath,
+        workingDirectory
+    );
     if (!fs.existsSync(resolvedPath) || !fs.statSync(resolvedPath).isFile()) {
         throw new Error(`${optionName} file not found: ${inputPath}`);
     }
     return resolvedPath;
 };
 
-const resolveImagePath = (inputPath: string): string => {
-    const resolvedPath = resolveExistingFilePath(inputPath, "--add-image");
+const resolveImagePath = (
+    inputPath: string,
+    workingDirectory: string
+): string => {
+    const resolvedPath = resolveExistingFilePath(
+        inputPath,
+        "--add-image",
+        workingDirectory
+    );
     if (!isSupportedImagePath(resolvedPath)) {
         throw new Error(`Unsupported image format: ${inputPath}`);
     }
     return resolvedPath;
 };
 
-const resolveScenePath = (inputPath: string): string => {
-    const resolvedPath = resolveExistingFilePath(inputPath, "--switch-scene");
+const resolveScenePath = (
+    inputPath: string,
+    workingDirectory: string
+): string => {
+    const resolvedPath = resolveExistingFilePath(
+        inputPath,
+        "--switch-scene",
+        workingDirectory
+    );
     if (!resolvedPath.toLowerCase().endsWith(SCENE_FILE_SUFFIX)) {
         throw new Error("--switch-scene requires a .scene.json path.");
     }
     return resolvedPath;
 };
 
-const resolveExportPath = (inputPath: string): string => {
-    const resolvedPath = path.resolve(inputPath);
+const resolveExportPath = (
+    inputPath: string,
+    workingDirectory: string
+): string => {
+    const resolvedPath = resolvePathFromWorkingDirectory(
+        inputPath,
+        workingDirectory
+    );
     const ext = path.extname(resolvedPath).toLowerCase();
     if (!EXPORT_FILE_EXTENSIONS.has(ext)) {
         throw new Error("--export supports only .png / .jpg / .jpeg.");
@@ -85,9 +114,12 @@ export type SecondInstanceCommand =
 
 export const resolveSecondInstanceCommand = (
     commandLine: string[],
-    isPackaged: boolean
+    isPackaged: boolean,
+    workingDirectory: string = process.cwd()
 ): SecondInstanceCommand | null => {
     const parsed = parseControlCommand(commandLine, isPackaged);
+    const baseWorkingDirectory =
+        workingDirectory.trim().length > 0 ? workingDirectory : process.cwd();
     if (!parsed) {
         return null;
     }
@@ -97,7 +129,10 @@ export const resolveSecondInstanceCommand = (
             kind: "app-control",
             command: {
                 kind: "add-image",
-                imagePath: resolveImagePath(parsed.imagePath),
+                imagePath: resolveImagePath(
+                    parsed.imagePath,
+                    baseWorkingDirectory
+                ),
                 opacity: parsed.opacity,
             },
         };
@@ -116,13 +151,13 @@ export const resolveSecondInstanceCommand = (
     if (parsed.kind === "switch-scene") {
         return {
             kind: "switch-scene",
-            scenePath: resolveScenePath(parsed.scenePath),
+            scenePath: resolveScenePath(parsed.scenePath, baseWorkingDirectory),
         };
     }
 
     return {
         kind: "export",
-        outputPath: resolveExportPath(parsed.outputPath),
+        outputPath: resolveExportPath(parsed.outputPath, baseWorkingDirectory),
     };
 };
 

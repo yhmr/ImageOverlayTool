@@ -244,7 +244,8 @@ if (!gotTheLock) {
         try {
             const startupRoute = await resolveStartupCliRoute(
                 process.argv,
-                app.isPackaged
+                app.isPackaged,
+                process.cwd()
             );
             startupLaunchPlan = startupRoute.startupLaunchPlan;
         } catch (error) {

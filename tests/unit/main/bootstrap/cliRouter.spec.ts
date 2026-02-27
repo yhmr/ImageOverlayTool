@@ -145,4 +145,25 @@ describe("cliRouter", () => {
             message: "invalid startup option",
         });
     });
+
+    it("forwards working directory to parser and startup resolver", async () => {
+        vi.mocked(resolveSecondInstanceCommand).mockReturnValue(null);
+
+        await resolveSecondInstanceCliRoute(
+            ["node", "index.js", "startup", "--images", "a.png"],
+            false,
+            "D:/cli-cwd"
+        );
+
+        expect(resolveSecondInstanceCommand).toHaveBeenCalledWith(
+            ["node", "index.js", "startup", "--images", "a.png"],
+            false,
+            "D:/cli-cwd"
+        );
+        expect(resolveStartupLaunchPlan).toHaveBeenCalledWith(
+            ["node", "index.js", "startup", "--images", "a.png"],
+            false,
+            "D:/cli-cwd"
+        );
+    });
 });

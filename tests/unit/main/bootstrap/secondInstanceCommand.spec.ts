@@ -67,6 +67,34 @@ describe("secondInstanceCommand", () => {
         });
     });
 
+    it("resolves relative --add-image path from provided working directory", () => {
+        const workingDirectory = path.join(tempDir, "cwd");
+        fs.mkdirSync(workingDirectory, { recursive: true });
+        const relativeImagePath = path.join(workingDirectory, "relative.png");
+        fs.writeFileSync(relativeImagePath, "png");
+
+        const command = resolveSecondInstanceCommand(
+            [
+                "node",
+                "index.js",
+                "control",
+                "--add-image",
+                "relative.png",
+            ],
+            false,
+            workingDirectory
+        );
+
+        expect(command).toEqual({
+            kind: "app-control",
+            command: {
+                kind: "add-image",
+                imagePath: relativeImagePath,
+                opacity: undefined,
+            },
+        });
+    });
+
     it("parses --set-opacity", () => {
         const command = resolveSecondInstanceCommand(
             ["node", "index.js", "control", "--set-opacity", "30"],

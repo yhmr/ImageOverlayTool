@@ -92,6 +92,21 @@ describe("resolveStartupLaunchPlan", () => {
         expect(plan.warnings).toEqual([]);
     });
 
+    it("resolves relative --images path from provided working directory", async () => {
+        const workingDirectory = path.join(tempDir, "cwd");
+        fs.mkdirSync(workingDirectory, { recursive: true });
+        const relativeImagePath = path.join(workingDirectory, "relative.png");
+        fs.writeFileSync(relativeImagePath, "png");
+
+        const plan = await resolveStartupLaunchPlan(
+            ["node", "index.js", "startup", "--images", "relative.png"],
+            false,
+            workingDirectory
+        );
+
+        expect(plan.launchIntent?.images[0].path).toBe(relativeImagePath);
+    });
+
     it("warns and disables click-through when always-on-top is not enabled", async () => {
         const plan = await resolveStartupLaunchPlan(
             [

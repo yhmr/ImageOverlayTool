@@ -59,7 +59,11 @@ const createMainWindow = () => ({
 
 describe("singleInstance", () => {
     let secondInstanceHandler:
-        | ((event: unknown, commandLine: string[]) => void | Promise<void>)
+        | ((
+              event: unknown,
+              commandLine: string[],
+              workingDirectory?: string
+          ) => void | Promise<void>)
         | null;
     let openFileHandler: ((event: { preventDefault: () => void }, path: string) => void) | null;
 
@@ -87,7 +91,8 @@ describe("singleInstance", () => {
             if (eventName === "second-instance") {
                 secondInstanceHandler = handler as (
                     event: unknown,
-                    commandLine: string[]
+                    commandLine: string[],
+                    workingDirectory?: string
                 ) => void | Promise<void>;
             }
             if (eventName === "open-file") {
@@ -228,6 +233,27 @@ describe("singleInstance", () => {
         expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
             ["node", "index.js", "control", "--set-opacity", "50"],
             false
+        );
+    });
+
+    it("passes second-instance working directory to route resolver", async () => {
+        const windowManager = {
+            getMainWindow: vi.fn(() => createMainWindow()),
+            applyLaunchIntent: vi.fn(),
+            openFile: vi.fn(),
+        };
+
+        registerSingleInstanceHandlers(windowManager as never);
+        await secondInstanceHandler?.(
+            {},
+            ["node", "index.js", "control", "--set-opacity", "50"],
+            "D:/work/runner"
+        );
+
+        expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
+            ["node", "index.js", "control", "--set-opacity", "50"],
+            false,
+            "D:/work/runner"
         );
     });
 

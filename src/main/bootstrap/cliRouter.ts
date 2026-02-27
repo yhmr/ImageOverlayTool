@@ -41,13 +41,18 @@ const wrapRouteError = (
 
 const resolveStartupRoute = async (
     commandLine: string[],
-    isPackaged: boolean
+    isPackaged: boolean,
+    workingDirectory?: string
 ): Promise<StartupCliRoute> => {
     try {
-        const startupLaunchPlan = await resolveStartupLaunchPlan(
-            commandLine,
-            isPackaged
-        );
+        const startupLaunchPlan =
+            workingDirectory !== undefined
+                ? await resolveStartupLaunchPlan(
+                      commandLine,
+                      isPackaged,
+                      workingDirectory
+                  )
+                : await resolveStartupLaunchPlan(commandLine, isPackaged);
         return {
             kind: "startup",
             startupLaunchPlan,
@@ -59,20 +64,26 @@ const resolveStartupRoute = async (
 
 export const resolveStartupCliRoute = async (
     commandLine: string[],
-    isPackaged: boolean
+    isPackaged: boolean,
+    workingDirectory?: string
 ): Promise<StartupCliRoute> => {
-    return resolveStartupRoute(commandLine, isPackaged);
+    return resolveStartupRoute(commandLine, isPackaged, workingDirectory);
 };
 
 export const resolveSecondInstanceCliRoute = async (
     commandLine: string[],
-    isPackaged: boolean
+    isPackaged: boolean,
+    workingDirectory?: string
 ): Promise<CliRoute> => {
     try {
-        const secondInstanceCommand = resolveSecondInstanceCommand(
-            commandLine,
-            isPackaged
-        );
+        const secondInstanceCommand =
+            workingDirectory !== undefined
+                ? resolveSecondInstanceCommand(
+                      commandLine,
+                      isPackaged,
+                      workingDirectory
+                  )
+                : resolveSecondInstanceCommand(commandLine, isPackaged);
 
         if (secondInstanceCommand) {
             return {
@@ -84,5 +95,5 @@ export const resolveSecondInstanceCliRoute = async (
         throw wrapRouteError("control", error);
     }
 
-    return resolveStartupRoute(commandLine, isPackaged);
+    return resolveStartupRoute(commandLine, isPackaged, workingDirectory);
 };

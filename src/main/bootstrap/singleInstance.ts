@@ -48,7 +48,7 @@ export const registerSingleInstanceHandlers = (
     };
 
     // 2つ目のインスタンスが起動されたときの処理
-    app.on("second-instance", async (_event, commandLine) => {
+    app.on("second-instance", async (_event, commandLine, workingDirectory) => {
         const mainWindow = windowManager.getMainWindow();
         if (mainWindow) {
             if (mainWindow.isMinimized()) {
@@ -59,10 +59,19 @@ export const registerSingleInstanceHandlers = (
 
         let cliRoute: Awaited<ReturnType<typeof resolveSecondInstanceCliRoute>>;
         try {
-            cliRoute = await resolveSecondInstanceCliRoute(
-                commandLine,
-                app.isPackaged
-            );
+            const hasWorkingDirectory =
+                typeof workingDirectory === "string" &&
+                workingDirectory.trim().length > 0;
+            cliRoute = hasWorkingDirectory
+                ? await resolveSecondInstanceCliRoute(
+                      commandLine,
+                      app.isPackaged,
+                      workingDirectory
+                  )
+                : await resolveSecondInstanceCliRoute(
+                      commandLine,
+                      app.isPackaged
+                  );
         } catch (error) {
             reportSecondInstanceRouteParseError(error);
             return;

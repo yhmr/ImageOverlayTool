@@ -30,8 +30,19 @@ export interface StartupLaunchPlan {
 const SCENE_FILE_SUFFIX = ".scene.json";
 const PROJECT_FILE_EXTENSION = ".iot";
 
-const resolveExistingImagePath = (inputPath: string): string => {
-    const resolvedPath = path.resolve(inputPath);
+const resolvePathFromWorkingDirectory = (
+    inputPath: string,
+    workingDirectory: string
+): string => path.resolve(workingDirectory, inputPath);
+
+const resolveExistingImagePath = (
+    inputPath: string,
+    workingDirectory: string
+): string => {
+    const resolvedPath = resolvePathFromWorkingDirectory(
+        inputPath,
+        workingDirectory
+    );
 
     if (!isSupportedImagePath(resolvedPath)) {
         throw new Error(`Unsupported image format: ${inputPath}`);
@@ -66,9 +77,13 @@ const buildWindowIntent = (
 };
 
 const resolveSceneLaunchIntent = async (
-    scenePathInput: string
+    scenePathInput: string,
+    workingDirectory: string
 ): Promise<Pick<StartupLaunchPlan, "launchIntent" | "warnings">> => {
-    const scenePath = path.resolve(scenePathInput);
+    const scenePath = resolvePathFromWorkingDirectory(
+        scenePathInput,
+        workingDirectory
+    );
     const resolvedScene = await loadResolvedSceneFileFromPath(scenePath);
     const { launchIntent, warnings } =
         resolveLaunchIntentFromScene(resolvedScene);
@@ -77,9 +92,12 @@ const resolveSceneLaunchIntent = async (
 
 export const resolveStartupLaunchPlan = async (
     commandLine: string[],
-    isPackaged: boolean
+    isPackaged: boolean,
+    workingDirectory: string = process.cwd()
 ): Promise<StartupLaunchPlan> => {
     const parsed = parseStartupArgs(commandLine, isPackaged);
+    const baseWorkingDirectory =
+        workingDirectory.trim().length > 0 ? workingDirectory : process.cwd();
     const warnings: string[] = [];
     const hasStateOptions =
         parsed.opacity !== undefined ||
@@ -111,7 +129,10 @@ export const resolveStartupLaunchPlan = async (
             );
         }
 
-        const sceneResult = await resolveSceneLaunchIntent(parsed.scenePath);
+        const sceneResult = await resolveSceneLaunchIntent(
+            parsed.scenePath,
+            baseWorkingDirectory
+        );
         plan.launchIntent = sceneResult.launchIntent;
         warnings.push(...sceneResult.warnings);
         return plan;
@@ -127,7 +148,10 @@ export const resolveStartupLaunchPlan = async (
     let positionalResolvedPath: string | undefined;
 
     if (parsed.positionalPath) {
-        positionalResolvedPath = path.resolve(parsed.positionalPath);
+        positionalResolvedPath = resolvePathFromWorkingDirectory(
+            parsed.positionalPath,
+            baseWorkingDirectory
+        );
         const positionalExt = path
             .extname(positionalResolvedPath)
             .toLowerCase();
@@ -139,7 +163,8 @@ export const resolveStartupLaunchPlan = async (
                 );
             }
             const sceneResult = await resolveSceneLaunchIntent(
-                positionalResolvedPath
+                positionalResolvedPath,
+                baseWorkingDirectory
             );
             plan.launchIntent = sceneResult.launchIntent;
             warnings.push(...sceneResult.warnings);
@@ -204,7 +229,7 @@ export const resolveStartupLaunchPlan = async (
     }
 
     const resolvedImagePaths = imageInputs.map((imagePath) =>
-        resolveExistingImagePath(imagePath)
+        resolveExistingImagePath(imagePath, baseWorkingDirectory)
     );
     const normalizedTransparency =
         parsed.opacity !== undefined ? parsed.opacity / 100 : undefined;
