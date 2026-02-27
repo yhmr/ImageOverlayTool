@@ -41,14 +41,14 @@ export function AboutLicenseList({ licenses, loading }: AboutLicenseListProps) {
                     </p>
                 ) : (
                     <div className="space-y-3">
-                        {licenses.map((license, index) => {
+                        {licenses.map((license) => {
                             const { name, version } = splitPackageNameVersion(
                                 license.name
                             );
 
                             return (
                                 <div
-                                    key={index}
+                                    key={`${license.name}-${license.licenses}-${license.repository}`}
                                     className="text-xs border-b pb-2 last:border-b-0"
                                 >
                                     <div className="flex justify-between items-baseline mb-1">

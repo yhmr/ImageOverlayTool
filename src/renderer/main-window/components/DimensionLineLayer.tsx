@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { Arrow, Group, Text, Circle } from "react-konva";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { KonvaEventObject } from "konva/lib/Node";
@@ -33,24 +33,6 @@ export const DimensionLineLayer = memo(function DimensionLineLayer(
         isDimensionEditMode,
     } = props;
     const [editingAnchors, setEditingAnchors] = useState<EditingAnchorMap>({});
-
-    useEffect(() => {
-        const existingIds = new Set(dimensionLines.map((line) => line.id));
-        setEditingAnchors((prev) => {
-            const next: EditingAnchorMap = {};
-            let changed = false;
-
-            Object.entries(prev).forEach(([id, anchors]) => {
-                if (existingIds.has(id)) {
-                    next[id] = anchors;
-                } else {
-                    changed = true;
-                }
-            });
-
-            return changed ? next : prev;
-        });
-    }, [dimensionLines]);
 
     // ラベルの
     const getLabel = (

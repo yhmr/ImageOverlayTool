@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { HexAlphaColorPicker } from "react-colorful";
 import { PenLine, Plus, X } from "lucide-react";
@@ -42,15 +42,6 @@ export function ColorPicker(props: ColorPickerProps) {
     const [selectedPresetIndex, setSelectedPresetIndex] = useState<
         number | null
     >(null);
-
-    useEffect(() => {
-        if (
-            selectedPresetIndex !== null &&
-            (selectedPresetIndex < 0 || selectedPresetIndex >= presets.length)
-        ) {
-            setSelectedPresetIndex(null);
-        }
-    }, [presets.length, selectedPresetIndex]);
 
     // 背景クリックで表示をOFF、かつ終了処理
     const closePicker = () => {
@@ -119,6 +110,15 @@ export function ColorPicker(props: ColorPickerProps) {
                     zIndex: 1300,
                 }}
                 onClick={closePicker}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        closePicker();
+                    }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Close color picker"
                 data-testid="main.color-picker.overlay"
             ></div>
             <div style={pickerStyle}>
@@ -129,7 +129,7 @@ export function ColorPicker(props: ColorPickerProps) {
                     <div className="flex flex-wrap gap-2 pt-2 border-t justify-start items-center w-full max-w-[200px]">
                         {presets.map((presetColor, index) => (
                             <div
-                                key={`${presetColor}-${index}`}
+                                key={presetColor}
                                 className={`relative w-6 h-6 rounded-full border shadow-sm cursor-pointer checkerboard-bg group ${
                                     selectedPresetIndex === index
                                         ? "border-primary ring-1 ring-primary/70"
@@ -140,10 +140,23 @@ export function ColorPicker(props: ColorPickerProps) {
                                     setSelectedPresetIndex(index);
                                     onColorChange(presetColor);
                                 }}
+                                onKeyDown={(event) => {
+                                    if (
+                                        event.key === "Enter" ||
+                                        event.key === " "
+                                    ) {
+                                        event.preventDefault();
+                                        setSelectedPresetIndex(index);
+                                        onColorChange(presetColor);
+                                    }
+                                }}
                                 onMouseEnter={() =>
                                     setHoveredPresetIndex(index)
                                 }
                                 onMouseLeave={() => setHoveredPresetIndex(null)}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`Select preset ${presetColor}`}
                                 title={presetColor}
                                 data-testid={`main.color-picker.preset.${index}`}
                             >

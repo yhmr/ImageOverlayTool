@@ -69,6 +69,21 @@ export function DimensionLineListSection({
                                 isSelected && "border-primary"
                             )}
                             onClick={() => onSelectLine(line.id)}
+                            onKeyDown={(event) => {
+                                if (event.currentTarget !== event.target) {
+                                    return;
+                                }
+                                if (
+                                    event.key === "Enter" ||
+                                    event.key === " "
+                                ) {
+                                    event.preventDefault();
+                                    onSelectLine(line.id);
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            aria-pressed={isSelected}
                             data-testid={`dimension-settings.line.${index}`}
                         >
                             <div className="min-w-0 flex-1">
@@ -99,7 +114,6 @@ export function DimensionLineListSection({
 
                             <div
                                 className="flex items-center gap-2"
-                                onClick={(e) => e.stopPropagation()}
                                 data-testid={`dimension-settings.line.${index}.show-unit`}
                             >
                                 <Label className="text-xs whitespace-nowrap">
@@ -109,6 +123,7 @@ export function DimensionLineListSection({
                                 </Label>
                                 <Switch
                                     checked={line.showUnitLabel !== false}
+                                    onClick={(e) => e.stopPropagation()}
                                     onCheckedChange={(checked) =>
                                         onUpdateLine({
                                             ...line,
