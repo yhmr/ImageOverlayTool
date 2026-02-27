@@ -12,9 +12,17 @@ import { createProjectIPCService } from "./ipc/project";
 import { createSettingsIPCService } from "./ipc/settings";
 import { createSyncIPCService } from "./ipc/sync";
 import { createWindowIPCService } from "./ipc/window";
-import type { IElectronAPI, Unit } from "../../shared/ipc/electronApi";
+import type { Unit } from "../../shared/ipc/electronApi";
 
-export type IIPCService = IElectronAPI;
+export type IIPCService = ReturnType<typeof createLogIPCService> &
+    ReturnType<typeof createWindowIPCService> &
+    ReturnType<typeof createSettingsIPCService> &
+    ReturnType<typeof createProjectIPCService> &
+    ReturnType<typeof createImageSettingsWindowIPCService> &
+    ReturnType<typeof createSyncIPCService> &
+    ReturnType<typeof createLicenseIPCService> &
+    ReturnType<typeof createCaptureIPCService> &
+    ReturnType<typeof createE2EIPCService>;
 export type IProjectDataSyncIPCService = Pick<
     IIPCService,
     | "updateImageSets"

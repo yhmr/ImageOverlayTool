@@ -21,10 +21,6 @@ import {
     syncIpcContracts,
     windowIpcContracts,
 } from "./contracts";
-import type {
-    MaterializeCacheImagesPayload,
-    SaveProjectPayload,
-} from "./contracts/project";
 import type { Unit as SyncUnit } from "./contracts/sync";
 
 type InvokeMethod<TContract extends InvokeContract<unknown[], unknown>> = (
@@ -35,10 +31,6 @@ type EventMethod<TContract extends EventContract<unknown[]>> = (
     callback: (...args: EventArgs<TContract>) => void
 ) => () => void;
 
-type LogWriteArgs = InvokeArgs<typeof logIpcContracts.write>;
-type LogMessage = LogWriteArgs[1];
-type LogParams = LogWriteArgs[2];
-
 export type Unit = SyncUnit;
 
 /**
@@ -47,10 +39,7 @@ export type Unit = SyncUnit;
  */
 export interface IElectronAPI {
     log: {
-        debug: (message: LogMessage, ...params: LogParams) => Promise<void>;
-        info: (message: LogMessage, ...params: LogParams) => Promise<void>;
-        warn: (message: LogMessage, ...params: LogParams) => Promise<void>;
-        error: (message: LogMessage, ...params: LogParams) => Promise<void>;
+        write: InvokeMethod<typeof logIpcContracts.write>;
         export: InvokeMethod<typeof logIpcContracts.export>;
     };
     minimizeWindow: InvokeMethod<typeof windowIpcContracts.minimize>;
@@ -84,17 +73,10 @@ export interface IElectronAPI {
         typeof settingsIpcContracts.windowColorPresetsSave
     >;
     saveProjectAs: InvokeMethod<typeof projectIpcContracts.saveAs>;
-    saveProject: (
-        filePath: SaveProjectPayload["filePath"],
-        project: SaveProjectPayload["project"],
-        cacheImagePathsToDelete?: SaveProjectPayload["cacheImagePathsToDelete"]
-    ) => Promise<InvokeResult<typeof projectIpcContracts.save>>;
+    saveProject: InvokeMethod<typeof projectIpcContracts.save>;
     pickProjectSavePath: InvokeMethod<typeof projectIpcContracts.pickSavePath>;
-    materializeCacheImages: (
-        projectFilePath: MaterializeCacheImagesPayload["projectFilePath"],
-        cacheImagePaths: MaterializeCacheImagesPayload["cacheImagePaths"]
-    ) => Promise<
-        InvokeResult<typeof projectIpcContracts.materializeCacheImages>
+    materializeCacheImages: InvokeMethod<
+        typeof projectIpcContracts.materializeCacheImages
     >;
     loadProject: InvokeMethod<typeof projectIpcContracts.load>;
     loadProjectFromPath: InvokeMethod<typeof projectIpcContracts.loadFromPath>;

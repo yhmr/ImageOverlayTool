@@ -115,10 +115,7 @@ describe("ipcService", () => {
 
             const api = {
                 log: {
-                    debug: vi.fn().mockResolvedValue(undefined),
-                    info: vi.fn().mockResolvedValue(undefined),
-                    warn: vi.fn().mockResolvedValue(undefined),
-                    error: vi.fn().mockResolvedValue(undefined),
+                    write: vi.fn().mockResolvedValue(undefined),
                     export: vi.fn().mockResolvedValue("logs.txt"),
                 },
                 minimizeWindow: vi.fn().mockResolvedValue(undefined),
@@ -273,10 +270,10 @@ describe("ipcService", () => {
             await service.log.warn("w", 3);
             await service.log.error("e", 4);
             await expect(service.log.export()).resolves.toBe("logs.txt");
-            expect(api.log.debug).toHaveBeenCalledWith("d", 1);
-            expect(api.log.info).toHaveBeenCalledWith("i", 2);
-            expect(api.log.warn).toHaveBeenCalledWith("w", 3);
-            expect(api.log.error).toHaveBeenCalledWith("e", 4);
+            expect(api.log.write).toHaveBeenNthCalledWith(1, "debug", "d", [1]);
+            expect(api.log.write).toHaveBeenNthCalledWith(2, "info", "i", [2]);
+            expect(api.log.write).toHaveBeenNthCalledWith(3, "warn", "w", [3]);
+            expect(api.log.write).toHaveBeenNthCalledWith(4, "error", "e", [4]);
 
             await service.minimizeWindow();
             await expect(service.switchWindowSize()).resolves.toBe(true);
@@ -398,14 +395,17 @@ describe("ipcService", () => {
             expect(api.setIgnoreMouseEvents).toHaveBeenCalledWith(true);
             expect(api.setAlwaysOnTop).toHaveBeenCalledWith(true);
             expect(api.saveProject).toHaveBeenCalledWith(
-                "save.iot",
-                project,
-                undefined
+                {
+                    filePath: "save.iot",
+                    project,
+                    cacheImagePathsToDelete: undefined,
+                }
             );
             expect(api.pickProjectSavePath).toHaveBeenCalled();
-            expect(api.materializeCacheImages).toHaveBeenCalledWith("save.iot", [
-                "C:/tmp/cache.png",
-            ]);
+            expect(api.materializeCacheImages).toHaveBeenCalledWith({
+                projectFilePath: "save.iot",
+                cacheImagePaths: ["C:/tmp/cache.png"],
+            });
             expect(api.loadProjectFromPath).toHaveBeenCalledWith("b.iot");
             expect(api.loadSceneFromPath).toHaveBeenCalledWith(
                 "default.scene.json"

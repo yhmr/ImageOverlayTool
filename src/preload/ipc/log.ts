@@ -1,4 +1,5 @@
 import { logIpcContracts } from "../../shared/ipc/contracts";
+import type { LogLevel } from "../../shared/ipc/contracts/log";
 import { invokeIpcContract } from "./client";
 
 /**
@@ -6,14 +7,8 @@ import { invokeIpcContract } from "./client";
  */
 export const createLogApi = () => ({
     log: {
-        debug: (message: string, ...params: unknown[]) =>
-            invokeIpcContract(logIpcContracts.write, "debug", message, params),
-        info: (message: string, ...params: unknown[]) =>
-            invokeIpcContract(logIpcContracts.write, "info", message, params),
-        warn: (message: string, ...params: unknown[]) =>
-            invokeIpcContract(logIpcContracts.write, "warn", message, params),
-        error: (message: string, ...params: unknown[]) =>
-            invokeIpcContract(logIpcContracts.write, "error", message, params),
+        write: (level: LogLevel, message: string, params: unknown[]) =>
+            invokeIpcContract(logIpcContracts.write, level, message, params),
         export: () => invokeIpcContract(logIpcContracts.export),
     },
 });

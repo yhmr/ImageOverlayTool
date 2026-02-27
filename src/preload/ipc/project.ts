@@ -2,6 +2,10 @@ import {
     projectIpcContracts,
     sceneIpcContracts,
 } from "../../shared/ipc/contracts";
+import type {
+    MaterializeCacheImagesPayload,
+    SaveProjectPayload,
+} from "../../shared/ipc/contracts/project";
 import type { ImageSet } from "../../shared/types/ImageSet";
 import type { LaunchIntent } from "../../shared/types/LaunchIntent";
 import type { ProjectFile } from "../../shared/types/ProjectFile";
@@ -13,26 +17,12 @@ import { invokeIpcContract } from "./client";
 export const createProjectApi = () => ({
     saveProjectAs: (project: ProjectFile<ImageSet>) =>
         invokeIpcContract(projectIpcContracts.saveAs, project),
-    saveProject: (
-        filePath: string,
-        project: ProjectFile<ImageSet>,
-        cacheImagePathsToDelete?: string[]
-    ) =>
-        invokeIpcContract(projectIpcContracts.save, {
-            filePath,
-            project,
-            cacheImagePathsToDelete,
-        }),
+    saveProject: (payload: SaveProjectPayload) =>
+        invokeIpcContract(projectIpcContracts.save, payload),
     pickProjectSavePath: () =>
         invokeIpcContract(projectIpcContracts.pickSavePath),
-    materializeCacheImages: (
-        projectFilePath: string,
-        cacheImagePaths: string[]
-    ): Promise<Record<string, string>> =>
-        invokeIpcContract(projectIpcContracts.materializeCacheImages, {
-            projectFilePath,
-            cacheImagePaths,
-        }),
+    materializeCacheImages: (payload: MaterializeCacheImagesPayload) =>
+        invokeIpcContract(projectIpcContracts.materializeCacheImages, payload),
     loadProject: () => invokeIpcContract(projectIpcContracts.load),
     loadProjectFromPath: (filePath: string) =>
         invokeIpcContract(projectIpcContracts.loadFromPath, filePath),
