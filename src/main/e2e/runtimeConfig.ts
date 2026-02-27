@@ -44,14 +44,13 @@ export interface E2ERuntimeConfig {
 
 export interface ResolveE2ERuntimeConfigOptions {
     isPackaged: boolean;
-    appArgs: string[];
 }
 
 export const resolveE2ERuntimeConfig = (
     options: ResolveE2ERuntimeConfigOptions
 ): E2ERuntimeConfig => {
     const enabled =
-        options.appArgs.includes(E2E_SWITCH) &&
+        process.argv.includes(E2E_SWITCH) &&
         !options.isPackaged &&
         process.env[INTERNAL_E2E_ENV] === "1";
     const artifactsDir = resolveArtifactsDir();

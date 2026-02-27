@@ -62,8 +62,7 @@ describe("singleInstance", () => {
         | ((
               event: unknown,
               commandLine: string[],
-              workingDirectory?: string,
-              additionalData?: unknown
+              workingDirectory?: string
           ) => void | Promise<void>)
         | null;
     let openFileHandler: ((event: { preventDefault: () => void }, path: string) => void) | null;
@@ -93,8 +92,7 @@ describe("singleInstance", () => {
                 secondInstanceHandler = handler as (
                     event: unknown,
                     commandLine: string[],
-                    workingDirectory?: string,
-                    additionalData?: unknown
+                    workingDirectory?: string
                 ) => void | Promise<void>;
             }
             if (eventName === "open-file") {
@@ -142,9 +140,7 @@ describe("singleInstance", () => {
             "index.js",
             "startup",
             "--images",
-        ], undefined, {
-            appArgs: ["startup", "--images"],
-        });
+        ]);
 
         expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
             ["node", "index.js", "startup", "--images"],
@@ -191,9 +187,7 @@ describe("singleInstance", () => {
             "control",
             "--set-opacity",
             "30",
-        ], undefined, {
-            appArgs: ["control", "--set-opacity", "30"],
-        });
+        ]);
 
         expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
             ["node", "index.js", "control", "--set-opacity", "30"],
@@ -233,11 +227,7 @@ describe("singleInstance", () => {
         registerSingleInstanceHandlers(windowManager as never);
         await secondInstanceHandler?.(
             {},
-            ["node", "index.js", "control", "--set-opacity", "50"],
-            undefined,
-            {
-                appArgs: ["control", "--set-opacity", "50"],
-            }
+            ["node", "index.js", "control", "--set-opacity", "50"]
         );
 
         expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
@@ -257,10 +247,7 @@ describe("singleInstance", () => {
         await secondInstanceHandler?.(
             {},
             ["node", "index.js", "control", "--set-opacity", "50"],
-            "D:/work/runner",
-            {
-                appArgs: ["control", "--set-opacity", "50"],
-            }
+            "D:/work/runner"
         );
 
         expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
@@ -298,11 +285,7 @@ describe("singleInstance", () => {
         registerSingleInstanceHandlers(windowManager as never);
         await secondInstanceHandler?.(
             {},
-            ["node", "index.js", "startup", "--images", "sample.png"],
-            undefined,
-            {
-                appArgs: ["startup", "--images", "sample.png"],
-            }
+            ["node", "index.js", "startup", "--images", "sample.png"]
         );
 
         expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
@@ -328,9 +311,7 @@ describe("singleInstance", () => {
             "index.js",
             "control",
             "--set-opacity",
-        ], undefined, {
-            appArgs: ["control", "--set-opacity"],
-        });
+        ]);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "Invalid second-instance command",
@@ -364,9 +345,7 @@ describe("singleInstance", () => {
             "control",
             "--export",
             "overlay.png",
-        ], undefined, {
-            appArgs: ["control", "--export", "overlay.png"],
-        });
+        ]);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "Second-instance command failed",
@@ -400,9 +379,7 @@ describe("singleInstance", () => {
         };
 
         registerSingleInstanceHandlers(windowManager as never);
-        await secondInstanceHandler?.({}, ["node", "index.js", "queued.scene.json"], undefined, {
-            appArgs: ["queued.scene.json"],
-        });
+        await secondInstanceHandler?.({}, ["node", "index.js", "queued.scene.json"]);
 
         expect(windowManager.applyLaunchIntent).toHaveBeenCalledWith(launchIntent);
         expect(windowManager.openFile).toHaveBeenCalledWith(
@@ -427,9 +404,7 @@ describe("singleInstance", () => {
             "index.js",
             "startup",
             "--scene",
-        ], undefined, {
-            appArgs: ["startup", "--scene"],
-        });
+        ]);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "Invalid startup options",
