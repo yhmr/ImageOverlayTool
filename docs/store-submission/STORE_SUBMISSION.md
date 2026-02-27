@@ -34,6 +34,7 @@ Key capabilities:
 - Dimension line workflow with a dedicated settings window (unit/unit factor)
 - Missing-image relink support when opening existing projects
 - Click-through mode for checking overlays on top of other applications
+- Command Line Interface (CLI) integration for automation workflows
 - Project save/load with `.iot` files
 - Export output with or without background, and background capture
 - Undo/Redo and persistent settings
@@ -44,11 +45,9 @@ ImageOverlayTool is designed for local/offline use. Your images, projects, and s
 ### What's new
 
 ```
-- Added click-through mode (`Ctrl+Shift+M`) for overlay checks over other windows
-- Added image input via drag-and-drop and clipboard paste (`Ctrl+V`)
-- Added missing-image relink flow for moved or deleted source files
-- Enhanced dimension line workflow with dedicated settings and shortcut/menu integration
-- Expanded menu/FAB operations and improved startup/path handling stability
+- Added Command Line Interface (CLI) support for integrating ImageOverlayTool with external tools and scripts.
+- Added capability to control running instances of the application via CLI.
+- Added window frame visibility toggle feature.
 ```
 
 ### Product features
@@ -61,6 +60,7 @@ ImageOverlayTool is designed for local/offline use. Your images, projects, and s
 - Dedicated dimension line settings for measurement workflows
 - Save/open `.iot` projects, relink missing files, and export final images
 - Click-through mode for cross-application visual alignment
+- Command Line Interface (CLI) support for external integrations and remote controls
 ```
 
 ### Screenshots
@@ -105,6 +105,7 @@ UI検証、デザイン調整、ビフォー/アフター比較、計測を伴�
 - 寸法線設定ウィンドウによる計測ワークフロー対応（単位・解像度係数）
 - 既存プロジェクト読込時の欠落画像再リンク
 - 他アプリとの重ね合わせ確認に使えるクリックスルーモード
+- 自動化ワークフローに組み込めるコマンドラインインターフェース（CLI）連携
 - .iot プロジェクトの保存/読み込み
 - 背景あり/なしの画像書き出し、背景キャプチャ
 - Undo/Redo と設定の永続化
@@ -115,11 +116,9 @@ UI検証、デザイン調整、ビフォー/アフター比較、計測を伴�
 ### このバージョンの最新情報
 
 ```
-- クリックスルーモード（`Ctrl+Shift+M`）を追加
-- 画像追加方法を拡張（ドラッグ＆ドロップ、クリップボード貼り付け `Ctrl+V`）
-- 欠落画像の再リンク機能を追加
-- 寸法線ワークフローを強化（専用設定画面、メニュー/ショートカット連携）
-- メニュー/FAB操作を拡充し、起動時やパス処理の安定性を改善
+- コマンドラインインターフェース（CLI）による操作をサポートし、外部ツールやスクリプトとの連携が可能に
+- 起動中のアプリケーションインスタンスに対してCLI経由で操作を行う機能を追加
+- ウィンドウ枠の表示/非表示を切り替える機能を追加
 ```
 
 ### 製品の機能
@@ -132,6 +131,7 @@ UI検証、デザイン調整、ビフォー/アフター比較、計測を伴�
 - 寸法線設定による計測ワークフロー対応
 - .iot 保存/読み込み、欠落画像再リンク、画像書き出し
 - クリックスルーモードによる他アプリとの重ね合わせ確認
+- コマンドラインインターフェース（CLI）による外部連携・操作
 ```
 
 ### スクリーンショット
