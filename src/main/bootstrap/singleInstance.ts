@@ -1,8 +1,12 @@
-import { app, dialog, type BrowserWindow } from "electron";
+import { app, type BrowserWindow } from "electron";
 
 import log from "../logger";
 import type { WindowManager } from "../windows/windowManager";
-import { CliRouteParseError, resolveSecondInstanceCliRoute } from "./cliRouter";
+import {
+    reportSecondInstanceCommandExecutionError,
+    reportSecondInstanceRouteParseError,
+} from "./cliErrorHandler";
+import { resolveSecondInstanceCliRoute } from "./cliRouter";
 import { executeSecondInstanceCommand } from "./secondInstanceCommand";
 import { type StartupWindowOptions } from "./startupLaunch";
 
@@ -60,24 +64,7 @@ export const registerSingleInstanceHandlers = (
                 app.isPackaged
             );
         } catch (error) {
-            const message =
-                error instanceof Error ? error.message : String(error);
-            const isControlParseError =
-                error instanceof CliRouteParseError &&
-                error.stage === "control";
-
-            log.error(
-                isControlParseError
-                    ? "Failed to parse second-instance command options."
-                    : "Failed to parse second-instance startup options.",
-                { message }
-            );
-            dialog.showErrorBox(
-                isControlParseError
-                    ? "Invalid second-instance command"
-                    : "Invalid startup options",
-                message
-            );
+            reportSecondInstanceRouteParseError(error);
             return;
         }
 
@@ -88,12 +75,7 @@ export const registerSingleInstanceHandlers = (
                     windowManager
                 );
             } catch (error) {
-                const message =
-                    error instanceof Error ? error.message : String(error);
-                log.error("Failed to execute second-instance command.", {
-                    message,
-                });
-                dialog.showErrorBox("Second-instance command failed", message);
+                reportSecondInstanceCommandExecutionError(error);
             }
             return;
         }

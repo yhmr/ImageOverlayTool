@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, dialog } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import {
     installExtension,
     REDUX_DEVTOOLS,
@@ -17,28 +17,29 @@ import {
 } from "./bootstrap/lifecycle";
 import {
     buildCliHelpPayload,
-    CliHelpParseError,
     renderCliHelp,
     resolveCliHelpRequest,
 } from "./bootstrap/cliHelp";
 import {
     buildSceneTemplate,
-    CliSceneTemplateParseError,
     renderSceneTemplate,
     resolveCliSceneTemplateRequest,
 } from "./bootstrap/cliSceneTemplate";
 import {
-    CliValidateSceneParseError,
     renderSceneValidationText,
     resolveCliValidateSceneRequest,
     validateSceneFromPath,
 } from "./bootstrap/cliValidateScene";
 import {
     CLI_EXIT_CODES,
-    createCliErrorResult,
     createCliSuccessResult,
     stringifyCliJsonResult,
 } from "./bootstrap/cliResult";
+import {
+    reportStartupLaunchParseError,
+    writeCliInvalidArgumentError,
+    writeCliSceneValidationError,
+} from "./bootstrap/cliErrorHandler";
 import { initializeRuntimeEnvironment } from "./bootstrap/runtime";
 import {
     acquireSingleInstanceLock,
@@ -82,52 +83,7 @@ try {
         );
     }
 } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (error instanceof CliHelpParseError && error.formatHint === "json") {
-        process.stderr.write(
-            `${stringifyCliJsonResult(
-                createCliErrorResult({
-                    code: "CLI_INVALID_ARGUMENT",
-                    message,
-                    data: {
-                        reasonCode: error.code,
-                    },
-                })
-            )}\n`
-        );
-    } else if (
-        error instanceof CliSceneTemplateParseError &&
-        error.formatHint === "json"
-    ) {
-        process.stderr.write(
-            `${stringifyCliJsonResult(
-                createCliErrorResult({
-                    code: "CLI_INVALID_ARGUMENT",
-                    message,
-                    data: {
-                        reasonCode: error.code,
-                    },
-                })
-            )}\n`
-        );
-    } else if (
-        error instanceof CliValidateSceneParseError &&
-        error.formatHint === "json"
-    ) {
-        process.stderr.write(
-            `${stringifyCliJsonResult(
-                createCliErrorResult({
-                    code: "CLI_INVALID_ARGUMENT",
-                    message,
-                    data: {
-                        reasonCode: error.code,
-                    },
-                })
-            )}\n`
-        );
-    } else {
-        process.stderr.write(`${message}\n`);
-    }
+    writeCliInvalidArgumentError(error);
     process.exit(CLI_EXIT_CODES.INVALID_ARGUMENT);
 }
 
@@ -193,23 +149,11 @@ if (cliValidateSceneRequest) {
         }
         process.exit(CLI_EXIT_CODES.SUCCESS);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (cliValidateSceneRequest.format === "json") {
-            process.stderr.write(
-                `${stringifyCliJsonResult(
-                    createCliErrorResult({
-                        code: "CLI_SCENE_VALIDATION_FAILED",
-                        message,
-                        data: {
-                            scenePath: cliValidateSceneRequest.scenePath,
-                            errors: [{ message }],
-                        },
-                    })
-                )}\n`
-            );
-        } else {
-            process.stderr.write(`Scene validation failed: ${message}\n`);
-        }
+        writeCliSceneValidationError(
+            cliValidateSceneRequest.scenePath,
+            cliValidateSceneRequest.format,
+            error
+        );
         process.exit(CLI_EXIT_CODES.VALIDATION_FAILED);
     }
 }
@@ -304,10 +248,7 @@ if (!gotTheLock) {
             );
             startupLaunchPlan = startupRoute.startupLaunchPlan;
         } catch (error) {
-            const message =
-                error instanceof Error ? error.message : String(error);
-            log.error("Failed to parse startup launch options.", { message });
-            dialog.showErrorBox("Invalid startup options", message);
+            reportStartupLaunchParseError(error);
         }
 
         const mainWindow = await windowManager.launchMainWindow({
