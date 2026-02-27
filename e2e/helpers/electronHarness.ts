@@ -81,6 +81,7 @@ export const launchE2EApp = async (): Promise<{
         ...process.env,
         NODE_ENV: "test",
         IOT_INTERNAL_E2E: "1",
+        IOT_APP_ARGS_JSON: JSON.stringify(["--e2e"]),
         IOT_E2E_ARTIFACTS_DIR: E2E_ARTIFACTS_DIR,
         IOT_E2E_FIXED_NOW: "1700000000000",
         IOT_E2E_RANDOM_SEED: "424242",
@@ -95,7 +96,6 @@ export const launchE2EApp = async (): Promise<{
             "--disable-gpu",
             "--disable-dev-shm-usage",
             "--disable-software-rasterizer",
-            "--e2e",
         ],
         env,
     });

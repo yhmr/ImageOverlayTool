@@ -3,11 +3,9 @@ import path from "path";
 import { beforeEach, afterEach, describe, expect, it } from "vitest";
 import { resolveE2ERuntimeConfig } from "@/main/e2e/runtimeConfig";
 
-const ORIGINAL_ARGV = [...process.argv];
 const ORIGINAL_ENV = { ...process.env };
 
 const resetProcessState = () => {
-    process.argv = [...ORIGINAL_ARGV];
     process.env = { ...ORIGINAL_ENV };
 };
 
@@ -21,8 +19,10 @@ describe("resolveE2ERuntimeConfig", () => {
     });
 
     it("returns disabled mode without --e2e", () => {
-        process.argv = ["node", "index.js"];
-        const config = resolveE2ERuntimeConfig({ isPackaged: false });
+        const config = resolveE2ERuntimeConfig({
+            isPackaged: false,
+            appArgs: [],
+        });
 
         expect(config.enabled).toBe(false);
     });
@@ -30,13 +30,15 @@ describe("resolveE2ERuntimeConfig", () => {
     it("resolves deterministic paths and values in e2e mode", () => {
         const artifactsDir = path.resolve("test-results", "e2e-runtime-config-test");
         const fixturesDir = path.resolve("e2e", "fixtures");
-        process.argv = ["node", "index.js", "--e2e"];
         process.env.IOT_INTERNAL_E2E = "1";
         process.env.IOT_E2E_ARTIFACTS_DIR = artifactsDir;
         process.env.IOT_E2E_FIXED_NOW = "1701234567890";
         process.env.IOT_E2E_RANDOM_SEED = "9001";
 
-        const config = resolveE2ERuntimeConfig({ isPackaged: false });
+        const config = resolveE2ERuntimeConfig({
+            isPackaged: false,
+            appArgs: ["--e2e"],
+        });
 
         expect(config.enabled).toBe(true);
         expect(config.artifactsDir).toBe(artifactsDir);
@@ -56,18 +58,21 @@ describe("resolveE2ERuntimeConfig", () => {
     });
 
     it("keeps e2e mode disabled when internal e2e env is missing", () => {
-        process.argv = ["node", "index.js", "--e2e"];
-
-        const config = resolveE2ERuntimeConfig({ isPackaged: false });
+        const config = resolveE2ERuntimeConfig({
+            isPackaged: false,
+            appArgs: ["--e2e"],
+        });
 
         expect(config.enabled).toBe(false);
     });
 
     it("keeps e2e mode disabled in packaged builds even with --e2e", () => {
-        process.argv = ["node", "index.js", "--e2e"];
         process.env.IOT_INTERNAL_E2E = "1";
 
-        const config = resolveE2ERuntimeConfig({ isPackaged: true });
+        const config = resolveE2ERuntimeConfig({
+            isPackaged: true,
+            appArgs: ["--e2e"],
+        });
 
         expect(config.enabled).toBe(false);
     });

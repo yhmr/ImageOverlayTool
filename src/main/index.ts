@@ -40,6 +40,11 @@ import {
     writeCliInvalidArgumentError,
     writeCliSceneValidationError,
 } from "./bootstrap/cliErrorHandler";
+import {
+    resolveAppArgsFromEnv,
+    stripRuntimeOnlyAppArgs,
+    toSyntheticCommandLine,
+} from "./bootstrap/appArgs";
 import { initializeRuntimeEnvironment } from "./bootstrap/runtime";
 import {
     acquireSingleInstanceLock,
@@ -60,25 +65,40 @@ import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory"
 import { WindowManager } from "./windows/windowManager";
 import { cleanupClipboardCache } from "./services/clipboardCacheService";
 
-const e2eConfig = resolveE2ERuntimeConfig({ isPackaged: app.isPackaged });
-initializeRuntimeEnvironment(e2eConfig);
-
 let cliHelpRequest: ReturnType<typeof resolveCliHelpRequest> = null;
 let cliSceneTemplateRequest: ReturnType<typeof resolveCliSceneTemplateRequest> =
     null;
 let cliValidateSceneRequest: ReturnType<typeof resolveCliValidateSceneRequest> =
     null;
+let appArgs: string[] = [];
 try {
-    cliHelpRequest = resolveCliHelpRequest(process.argv, app.isPackaged);
+    appArgs = resolveAppArgsFromEnv();
+} catch (error) {
+    writeCliInvalidArgumentError(error);
+    process.exit(CLI_EXIT_CODES.INVALID_ARGUMENT);
+}
+
+const e2eConfig = resolveE2ERuntimeConfig({
+    isPackaged: app.isPackaged,
+    appArgs,
+});
+initializeRuntimeEnvironment(e2eConfig);
+const cliCommandLine = toSyntheticCommandLine(
+    stripRuntimeOnlyAppArgs(appArgs),
+    app.isPackaged
+);
+
+try {
+    cliHelpRequest = resolveCliHelpRequest(cliCommandLine, app.isPackaged);
     if (!cliHelpRequest) {
         cliSceneTemplateRequest = resolveCliSceneTemplateRequest(
-            process.argv,
+            cliCommandLine,
             app.isPackaged
         );
     }
     if (!cliHelpRequest && !cliSceneTemplateRequest) {
         cliValidateSceneRequest = resolveCliValidateSceneRequest(
-            process.argv,
+            cliCommandLine,
             app.isPackaged
         );
     }
@@ -174,7 +194,7 @@ registerEarlyIpcHandlers();
 registerProcessErrorHandlers();
 registerLocalResourceProtocol();
 
-const gotTheLock = acquireSingleInstanceLock(e2eConfig.enabled);
+const gotTheLock = acquireSingleInstanceLock(e2eConfig.enabled, appArgs);
 log.info("Application starting...");
 
 if (!gotTheLock) {
@@ -243,7 +263,7 @@ if (!gotTheLock) {
             | null = null;
         try {
             const startupRoute = await resolveStartupCliRoute(
-                process.argv,
+                cliCommandLine,
                 app.isPackaged,
                 process.cwd()
             );

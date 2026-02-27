@@ -14,6 +14,9 @@ const {
     mockResolveCliSceneTemplateRequest,
     mockResolveCliValidateSceneRequest,
     mockResolveE2ERuntimeConfig,
+    mockResolveAppArgsFromEnv,
+    mockStripRuntimeOnlyAppArgs,
+    mockToSyntheticCommandLine,
     mockInitializeRuntimeEnvironment,
     mockRegisterSingleInstanceHandlers,
     mockSettingsRepositoryCreate,
@@ -31,6 +34,13 @@ const {
     mockResolveCliSceneTemplateRequest: vi.fn(() => null),
     mockResolveCliValidateSceneRequest: vi.fn(() => null),
     mockResolveE2ERuntimeConfig: vi.fn(() => ({ enabled: false })),
+    mockResolveAppArgsFromEnv: vi.fn(() => []),
+    mockStripRuntimeOnlyAppArgs: vi.fn((appArgs: string[]) => appArgs),
+    mockToSyntheticCommandLine: vi.fn((appArgs: string[]) => [
+        "node",
+        "index.js",
+        ...appArgs,
+    ]),
     mockInitializeRuntimeEnvironment: vi.fn(),
     mockRegisterSingleInstanceHandlers: vi.fn(),
     mockSettingsRepositoryCreate: vi.fn(() => ({})),
@@ -119,6 +129,12 @@ vi.mock("@/main/bootstrap/runtime", () => ({
     initializeRuntimeEnvironment: mockInitializeRuntimeEnvironment,
 }));
 
+vi.mock("@/main/bootstrap/appArgs", () => ({
+    resolveAppArgsFromEnv: mockResolveAppArgsFromEnv,
+    stripRuntimeOnlyAppArgs: mockStripRuntimeOnlyAppArgs,
+    toSyntheticCommandLine: mockToSyntheticCommandLine,
+}));
+
 vi.mock("@/main/bootstrap/singleInstance", () => ({
     acquireSingleInstanceLock: mockAcquireSingleInstanceLock,
     registerSingleInstanceHandlers: mockRegisterSingleInstanceHandlers,
@@ -188,6 +204,7 @@ describe("main/index startup wiring", () => {
 
         expect(mockResolveE2ERuntimeConfig).toHaveBeenCalledWith({
             isPackaged: false,
+            appArgs: [],
         });
         expect(mockInitializeRuntimeEnvironment).toHaveBeenCalledWith({
             enabled: false,
@@ -196,7 +213,7 @@ describe("main/index startup wiring", () => {
         expect(mockRegisterEarlyIpcHandlers).toHaveBeenCalledTimes(1);
         expect(mockRegisterProcessErrorHandlers).toHaveBeenCalledTimes(1);
         expect(mockRegisterLocalResourceProtocol).toHaveBeenCalledTimes(1);
-        expect(mockAcquireSingleInstanceLock).toHaveBeenCalledWith(false);
+        expect(mockAcquireSingleInstanceLock).toHaveBeenCalledWith(false, []);
         expect(mockAppQuit).toHaveBeenCalledTimes(1);
         expect(mockRegisterSingleInstanceHandlers).not.toHaveBeenCalled();
     });

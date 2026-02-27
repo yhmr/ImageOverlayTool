@@ -6,17 +6,24 @@ import {
     reportSecondInstanceCommandExecutionError,
     reportSecondInstanceRouteParseError,
 } from "./cliErrorHandler";
+import {
+    resolveAppArgsFromSecondInstanceData,
+    toSyntheticCommandLine,
+} from "./appArgs";
 import { resolveSecondInstanceCliRoute } from "./cliRouter";
 import { executeSecondInstanceCommand } from "./secondInstanceCommand";
 import { type StartupWindowOptions } from "./startupLaunch";
 
-export const acquireSingleInstanceLock = (isE2EMode: boolean): boolean => {
+export const acquireSingleInstanceLock = (
+    isE2EMode: boolean,
+    appArgs: string[]
+): boolean => {
     if (isE2EMode) {
         log.info("Single instance lock disabled in e2e mode.");
         return true;
     }
 
-    return app.requestSingleInstanceLock();
+    return app.requestSingleInstanceLock({ appArgs });
 };
 
 export const registerSingleInstanceHandlers = (
@@ -48,64 +55,74 @@ export const registerSingleInstanceHandlers = (
     };
 
     // 2つ目のインスタンスが起動されたときの処理
-    app.on("second-instance", async (_event, commandLine, workingDirectory) => {
-        const mainWindow = windowManager.getMainWindow();
-        if (mainWindow) {
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore();
+    app.on(
+        "second-instance",
+        async (_event, _commandLine, workingDirectory, additionalData) => {
+            const commandLine = toSyntheticCommandLine(
+                resolveAppArgsFromSecondInstanceData(additionalData),
+                app.isPackaged
+            );
+
+            const mainWindow = windowManager.getMainWindow();
+            if (mainWindow) {
+                if (mainWindow.isMinimized()) {
+                    mainWindow.restore();
+                }
+                mainWindow.focus();
             }
-            mainWindow.focus();
-        }
 
-        let cliRoute: Awaited<ReturnType<typeof resolveSecondInstanceCliRoute>>;
-        try {
-            const hasWorkingDirectory =
-                typeof workingDirectory === "string" &&
-                workingDirectory.trim().length > 0;
-            cliRoute = hasWorkingDirectory
-                ? await resolveSecondInstanceCliRoute(
-                      commandLine,
-                      app.isPackaged,
-                      workingDirectory
-                  )
-                : await resolveSecondInstanceCliRoute(
-                      commandLine,
-                      app.isPackaged
-                  );
-        } catch (error) {
-            reportSecondInstanceRouteParseError(error);
-            return;
-        }
-
-        if (cliRoute.kind === "control") {
+            let cliRoute: Awaited<
+                ReturnType<typeof resolveSecondInstanceCliRoute>
+            >;
             try {
-                await executeSecondInstanceCommand(
-                    cliRoute.command,
-                    windowManager
-                );
+                const hasWorkingDirectory =
+                    typeof workingDirectory === "string" &&
+                    workingDirectory.trim().length > 0;
+                cliRoute = hasWorkingDirectory
+                    ? await resolveSecondInstanceCliRoute(
+                          commandLine,
+                          app.isPackaged,
+                          workingDirectory
+                      )
+                    : await resolveSecondInstanceCliRoute(
+                          commandLine,
+                          app.isPackaged
+                      );
             } catch (error) {
-                reportSecondInstanceCommandExecutionError(error);
+                reportSecondInstanceRouteParseError(error);
+                return;
             }
-            return;
-        }
 
-        const { startupLaunchPlan } = cliRoute;
+            if (cliRoute.kind === "control") {
+                try {
+                    await executeSecondInstanceCommand(
+                        cliRoute.command,
+                        windowManager
+                    );
+                } catch (error) {
+                    reportSecondInstanceCommandExecutionError(error);
+                }
+                return;
+            }
 
-        if (mainWindow) {
-            applyWindowOptions(mainWindow, startupLaunchPlan.windowOptions);
-        }
+            const { startupLaunchPlan } = cliRoute;
 
-        startupLaunchPlan.warnings.forEach((warning) => {
-            log.warn(`[startup] ${warning}`);
-        });
+            if (mainWindow) {
+                applyWindowOptions(mainWindow, startupLaunchPlan.windowOptions);
+            }
 
-        if (startupLaunchPlan.launchIntent) {
-            windowManager.applyLaunchIntent(startupLaunchPlan.launchIntent);
+            startupLaunchPlan.warnings.forEach((warning) => {
+                log.warn(`[startup] ${warning}`);
+            });
+
+            if (startupLaunchPlan.launchIntent) {
+                windowManager.applyLaunchIntent(startupLaunchPlan.launchIntent);
+            }
+            if (startupLaunchPlan.filePath) {
+                windowManager.openFile(startupLaunchPlan.filePath);
+            }
         }
-        if (startupLaunchPlan.filePath) {
-            windowManager.openFile(startupLaunchPlan.filePath);
-        }
-    });
+    );
 
     // macOSでファイルが開かれたときの処理
     app.on("open-file", (event, path) => {
