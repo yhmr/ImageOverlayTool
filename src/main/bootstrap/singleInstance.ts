@@ -2,14 +2,9 @@ import { app, dialog, type BrowserWindow } from "electron";
 
 import log from "../logger";
 import type { WindowManager } from "../windows/windowManager";
-import {
-    executeSecondInstanceCommand,
-    resolveSecondInstanceCommand,
-} from "./secondInstanceCommand";
-import {
-    resolveStartupLaunchPlan,
-    type StartupWindowOptions,
-} from "./startupLaunch";
+import { CliRouteParseError, resolveSecondInstanceCliRoute } from "./cliRouter";
+import { executeSecondInstanceCommand } from "./secondInstanceCommand";
+import { type StartupWindowOptions } from "./startupLaunch";
 
 export const acquireSingleInstanceLock = (isE2EMode: boolean): boolean => {
     if (isE2EMode) {
@@ -58,28 +53,38 @@ export const registerSingleInstanceHandlers = (
             mainWindow.focus();
         }
 
-        let secondInstanceCommand: ReturnType<
-            typeof resolveSecondInstanceCommand
-        >;
+        let cliRoute: Awaited<ReturnType<typeof resolveSecondInstanceCliRoute>>;
         try {
-            secondInstanceCommand = resolveSecondInstanceCommand(
+            cliRoute = await resolveSecondInstanceCliRoute(
                 commandLine,
                 app.isPackaged
             );
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : String(error);
-            log.error("Failed to parse second-instance command options.", {
-                message,
-            });
-            dialog.showErrorBox("Invalid second-instance command", message);
+            const isControlParseError =
+                error instanceof CliRouteParseError &&
+                error.stage === "control";
+
+            log.error(
+                isControlParseError
+                    ? "Failed to parse second-instance command options."
+                    : "Failed to parse second-instance startup options.",
+                { message }
+            );
+            dialog.showErrorBox(
+                isControlParseError
+                    ? "Invalid second-instance command"
+                    : "Invalid startup options",
+                message
+            );
             return;
         }
 
-        if (secondInstanceCommand) {
+        if (cliRoute.kind === "control") {
             try {
                 await executeSecondInstanceCommand(
-                    secondInstanceCommand,
+                    cliRoute.command,
                     windowManager
                 );
             } catch (error) {
@@ -93,23 +98,7 @@ export const registerSingleInstanceHandlers = (
             return;
         }
 
-        let startupLaunchPlan: Awaited<
-            ReturnType<typeof resolveStartupLaunchPlan>
-        >;
-        try {
-            startupLaunchPlan = await resolveStartupLaunchPlan(
-                commandLine,
-                app.isPackaged
-            );
-        } catch (error) {
-            const message =
-                error instanceof Error ? error.message : String(error);
-            log.error("Failed to parse second-instance startup options.", {
-                message,
-            });
-            dialog.showErrorBox("Invalid startup options", message);
-            return;
-        }
+        const { startupLaunchPlan } = cliRoute;
 
         if (mainWindow) {
             applyWindowOptions(mainWindow, startupLaunchPlan.windowOptions);

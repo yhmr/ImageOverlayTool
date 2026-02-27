@@ -44,10 +44,8 @@ import {
     acquireSingleInstanceLock,
     registerSingleInstanceHandlers,
 } from "./bootstrap/singleInstance";
-import {
-    resolveStartupLaunchPlan,
-    type StartupWindowOptions,
-} from "./bootstrap/startupLaunch";
+import { resolveStartupCliRoute } from "./bootstrap/cliRouter";
+import { type StartupWindowOptions } from "./bootstrap/startupLaunch";
 import { resolveE2ERuntimeConfig } from "./e2e/runtimeConfig";
 import {
     registerLocalResourceProtocol,
@@ -294,14 +292,17 @@ if (!gotTheLock) {
             e2eConfig,
         });
 
-        let startupLaunchPlan: Awaited<
-            ReturnType<typeof resolveStartupLaunchPlan>
-        > | null = null;
+        let startupLaunchPlan:
+            | Awaited<
+                  ReturnType<typeof resolveStartupCliRoute>
+              >["startupLaunchPlan"]
+            | null = null;
         try {
-            startupLaunchPlan = await resolveStartupLaunchPlan(
+            const startupRoute = await resolveStartupCliRoute(
                 process.argv,
                 app.isPackaged
             );
+            startupLaunchPlan = startupRoute.startupLaunchPlan;
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : String(error);

@@ -4,10 +4,12 @@ import { app, dialog } from "electron";
 import log from "@/main/logger";
 import { registerSingleInstanceHandlers } from "@/main/bootstrap/singleInstance";
 import {
+    CliRouteParseError,
+    resolveSecondInstanceCliRoute,
+} from "@/main/bootstrap/cliRouter";
+import {
     executeSecondInstanceCommand,
-    resolveSecondInstanceCommand,
 } from "@/main/bootstrap/secondInstanceCommand";
-import { resolveStartupLaunchPlan } from "@/main/bootstrap/startupLaunch";
 import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 
 vi.mock("electron", () => ({
@@ -29,12 +31,17 @@ vi.mock("@/main/logger", () => ({
     },
 }));
 
-vi.mock("@/main/bootstrap/startupLaunch", () => ({
-    resolveStartupLaunchPlan: vi.fn(),
-}));
+vi.mock("@/main/bootstrap/cliRouter", async () => {
+    const actual = await vi.importActual<typeof import("@/main/bootstrap/cliRouter")>(
+        "@/main/bootstrap/cliRouter"
+    );
+    return {
+        ...actual,
+        resolveSecondInstanceCliRoute: vi.fn(),
+    };
+});
 
 vi.mock("@/main/bootstrap/secondInstanceCommand", () => ({
-    resolveSecondInstanceCommand: vi.fn(),
     executeSecondInstanceCommand: vi.fn(),
 }));
 
@@ -59,8 +66,20 @@ describe("singleInstance", () => {
         vi.clearAllMocks();
         secondInstanceHandler = null;
         openFileHandler = null;
-        vi.mocked(resolveSecondInstanceCommand).mockReturnValue(null);
         vi.mocked(executeSecondInstanceCommand).mockResolvedValue(undefined);
+        vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
+            kind: "startup",
+            startupLaunchPlan: {
+                skipSplash: false,
+                filePath: undefined,
+                launchIntent: undefined,
+                windowOptions: {
+                    fullscreen: false,
+                    minimize: false,
+                },
+                warnings: [],
+            },
+        });
 
         vi.mocked(app.on).mockImplementation((eventName: string, handler: unknown) => {
             if (eventName === "second-instance") {
@@ -86,17 +105,20 @@ describe("singleInstance", () => {
             window: { alwaysOnTop: true, clickThrough: false },
             images: [],
         };
-        vi.mocked(resolveStartupLaunchPlan).mockResolvedValue({
-            skipSplash: false,
-            filePath: "C:/tmp/sample.iot",
-            launchIntent,
-            windowOptions: {
-                position: { x: 1, y: 2 },
-                size: { width: 800, height: 600 },
-                fullscreen: true,
-                minimize: true,
+        vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
+            kind: "startup",
+            startupLaunchPlan: {
+                skipSplash: false,
+                filePath: "C:/tmp/sample.iot",
+                launchIntent,
+                windowOptions: {
+                    position: { x: 1, y: 2 },
+                    size: { width: 800, height: 600 },
+                    fullscreen: true,
+                    minimize: true,
+                },
+                warnings: ["test warning"],
             },
-            warnings: ["test warning"],
         });
 
         const windowManager = {
@@ -113,7 +135,7 @@ describe("singleInstance", () => {
             "--images",
         ]);
 
-        expect(resolveStartupLaunchPlan).toHaveBeenCalledWith(
+        expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
             ["node", "index.js", "startup", "--images"],
             false
         );
@@ -134,11 +156,14 @@ describe("singleInstance", () => {
 
     it("executes second-instance command and skips startup launch parsing", async () => {
         const mainWindow = createMainWindow();
-        vi.mocked(resolveSecondInstanceCommand).mockReturnValue({
-            kind: "app-control",
+        vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
+            kind: "control",
             command: {
-                kind: "set-opacity",
-                opacity: 0.3,
+                kind: "app-control",
+                command: {
+                    kind: "set-opacity",
+                    opacity: 0.3,
+                },
             },
         });
 
@@ -157,7 +182,7 @@ describe("singleInstance", () => {
             "30",
         ]);
 
-        expect(resolveSecondInstanceCommand).toHaveBeenCalledWith(
+        expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
             ["node", "index.js", "control", "--set-opacity", "30"],
             false
         );
@@ -171,16 +196,18 @@ describe("singleInstance", () => {
             },
             windowManager
         );
-        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
     });
 
     it("routes control subcommand to second-instance command path", async () => {
         const mainWindow = createMainWindow();
-        vi.mocked(resolveSecondInstanceCommand).mockReturnValue({
-            kind: "app-control",
+        vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
+            kind: "control",
             command: {
-                kind: "set-opacity",
-                opacity: 0.5,
+                kind: "app-control",
+                command: {
+                    kind: "set-opacity",
+                    opacity: 0.5,
+                },
             },
         });
 
@@ -196,11 +223,10 @@ describe("singleInstance", () => {
             ["node", "index.js", "control", "--set-opacity", "50"]
         );
 
-        expect(resolveSecondInstanceCommand).toHaveBeenCalledWith(
+        expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
             ["node", "index.js", "control", "--set-opacity", "50"],
             false
         );
-        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
     });
 
     it("routes startup subcommand to startup launch parsing when no command exists", async () => {
@@ -208,16 +234,18 @@ describe("singleInstance", () => {
             window: { alwaysOnTop: false, clickThrough: false },
             images: [],
         };
-        vi.mocked(resolveSecondInstanceCommand).mockReturnValue(null);
-        vi.mocked(resolveStartupLaunchPlan).mockResolvedValue({
-            skipSplash: false,
-            filePath: undefined,
-            launchIntent,
-            windowOptions: {
-                fullscreen: false,
-                minimize: false,
+        vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
+            kind: "startup",
+            startupLaunchPlan: {
+                skipSplash: false,
+                filePath: undefined,
+                launchIntent,
+                windowOptions: {
+                    fullscreen: false,
+                    minimize: false,
+                },
+                warnings: [],
             },
-            warnings: [],
         });
 
         const windowManager = {
@@ -232,20 +260,16 @@ describe("singleInstance", () => {
             ["node", "index.js", "startup", "--images", "sample.png"]
         );
 
-        expect(resolveSecondInstanceCommand).toHaveBeenCalledWith(
-            ["node", "index.js", "startup", "--images", "sample.png"],
-            false
-        );
-        expect(resolveStartupLaunchPlan).toHaveBeenCalledWith(
+        expect(resolveSecondInstanceCliRoute).toHaveBeenCalledWith(
             ["node", "index.js", "startup", "--images", "sample.png"],
             false
         );
     });
 
     it("shows error dialog when second-instance command args are invalid", async () => {
-        vi.mocked(resolveSecondInstanceCommand).mockImplementation(() => {
-            throw new Error("invalid command option");
-        });
+        vi.mocked(resolveSecondInstanceCliRoute).mockRejectedValue(
+            new CliRouteParseError("control", "invalid command option")
+        );
 
         const windowManager = {
             getMainWindow: vi.fn(() => createMainWindow()),
@@ -265,13 +289,16 @@ describe("singleInstance", () => {
             "Invalid second-instance command",
             "invalid command option"
         );
-        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
+        expect(executeSecondInstanceCommand).not.toHaveBeenCalled();
     });
 
     it("shows error dialog when second-instance command execution fails", async () => {
-        vi.mocked(resolveSecondInstanceCommand).mockReturnValue({
-            kind: "export",
-            outputPath: "C:/tmp/overlay.png",
+        vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
+            kind: "control",
+            command: {
+                kind: "export",
+                outputPath: "C:/tmp/overlay.png",
+            },
         });
         vi.mocked(executeSecondInstanceCommand).mockRejectedValue(
             new Error("export failed")
@@ -296,7 +323,6 @@ describe("singleInstance", () => {
             "Second-instance command failed",
             "export failed"
         );
-        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
     });
 
     it("queues plan handling even when main window is unavailable", async () => {
@@ -304,15 +330,18 @@ describe("singleInstance", () => {
             window: { alwaysOnTop: false, clickThrough: false },
             images: [],
         };
-        vi.mocked(resolveStartupLaunchPlan).mockResolvedValue({
-            skipSplash: false,
-            filePath: "C:/tmp/queued.scene.json",
-            launchIntent,
-            windowOptions: {
-                fullscreen: false,
-                minimize: false,
+        vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
+            kind: "startup",
+            startupLaunchPlan: {
+                skipSplash: false,
+                filePath: "C:/tmp/queued.scene.json",
+                launchIntent,
+                windowOptions: {
+                    fullscreen: false,
+                    minimize: false,
+                },
+                warnings: [],
             },
-            warnings: [],
         });
 
         const windowManager = {
@@ -331,8 +360,8 @@ describe("singleInstance", () => {
     });
 
     it("shows error dialog when second-instance args are invalid", async () => {
-        vi.mocked(resolveStartupLaunchPlan).mockRejectedValue(
-            new Error("invalid option")
+        vi.mocked(resolveSecondInstanceCliRoute).mockRejectedValue(
+            new CliRouteParseError("startup", "invalid option")
         );
 
         const windowManager = {
