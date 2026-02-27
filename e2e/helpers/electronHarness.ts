@@ -33,6 +33,12 @@ const FIXTURE_APP_CONFIG_PATH_CANDIDATES = [
     path.join(E2E_FIXTURES_DIR, "app.config.json"),
     path.join(E2E_FIXTURES_DIR, "project", "config.json"),
 ];
+const DEFAULT_PLAYWRIGHT_LAUNCH_FLAGS = [
+    "--no-sandbox",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--disable-software-rasterizer",
+];
 
 type WindowLayoutConfig = {
     pos: [number, number];
@@ -69,7 +75,14 @@ const resetArtifacts = (): void => {
     }
 };
 
-export const launchE2EApp = async (): Promise<{
+interface LaunchElectronAppOptions {
+    appArgs?: string[];
+    e2eMode?: boolean;
+}
+
+const launchElectronApp = async (
+    options: LaunchElectronAppOptions = {}
+): Promise<{
     app: ElectronApplication;
     page: Page;
 }> => {
@@ -77,31 +90,43 @@ export const launchE2EApp = async (): Promise<{
     resetArtifacts();
 
     const electronPath = require("electron") as string;
+    const appArgs = options.appArgs ?? [];
+    const e2eMode = options.e2eMode ?? false;
     const env = {
         ...process.env,
         NODE_ENV: "test",
-        IOT_INTERNAL_E2E: "1",
-        IOT_E2E_ARTIFACTS_DIR: E2E_ARTIFACTS_DIR,
-        IOT_E2E_FIXED_NOW: "1700000000000",
-        IOT_E2E_RANDOM_SEED: "424242",
+        ...(e2eMode
+            ? {
+                  IOT_INTERNAL_E2E: "1",
+                  IOT_E2E_ARTIFACTS_DIR: E2E_ARTIFACTS_DIR,
+                  IOT_E2E_FIXED_NOW: "1700000000000",
+                  IOT_E2E_RANDOM_SEED: "424242",
+              }
+            : {}),
     };
     delete env.ELECTRON_RUN_AS_NODE;
 
     const app = await electron.launch({
         executablePath: electronPath,
-        args: [
-            APP_ROOT,
-            "--no-sandbox",
-            "--disable-gpu",
-            "--disable-dev-shm-usage",
-            "--disable-software-rasterizer",
-            "--e2e",
-        ],
+        args: [APP_ROOT, ...DEFAULT_PLAYWRIGHT_LAUNCH_FLAGS, ...appArgs],
         env,
     });
 
     const page = await app.firstWindow();
     await page.getByTestId("main.app.root").waitFor({ state: "attached" });
+    return { app, page };
+};
+
+export const launchE2EApp = async (
+    options: { appArgs?: string[] } = {}
+): Promise<{
+    app: ElectronApplication;
+    page: Page;
+}> => {
+    const { app, page } = await launchElectronApp({
+        appArgs: [...(options.appArgs ?? []), "--e2e"],
+        e2eMode: true,
+    });
     await ensureE2EBridge(page);
 
     return { app, page };
