@@ -6,6 +6,12 @@ import { isSupportedImagePath } from "../../shared/constants/imageFormats";
 import type { AppControlCommand } from "../../shared/types/AppControlCommand";
 import log from "../logger";
 import type { WindowManager } from "../windows/windowManager";
+import {
+    isOptionToken,
+    normalizeArgv,
+    parseOpacityPercent,
+    requireOptionValue,
+} from "./cliArgs";
 
 const SCENE_FILE_SUFFIX = ".scene.json";
 const EXPORT_FILE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg"]);
@@ -16,33 +22,8 @@ const SECOND_INSTANCE_COMMAND_OPTIONS = new Set([
     "--export",
 ]);
 
-const normalizeArgv = (commandLine: string[], isPackaged: boolean): string[] =>
-    isPackaged ? commandLine.slice(1) : commandLine.slice(2);
-
-const isOptionToken = (value: string): boolean => value.startsWith("--");
-
 const parseOpacityRatio = (value: string, optionName: string): number => {
-    const opacityPercent = Number(value);
-    if (
-        !Number.isFinite(opacityPercent) ||
-        opacityPercent < 0 ||
-        opacityPercent > 100
-    ) {
-        throw new Error(`${optionName} must be between 0 and 100.`);
-    }
-    return opacityPercent / 100;
-};
-
-const requireOptionValue = (
-    argv: string[],
-    optionIndex: number,
-    optionName: string
-): string => {
-    const value = argv[optionIndex + 1];
-    if (!value || isOptionToken(value)) {
-        throw new Error(`${optionName} requires a value.`);
-    }
-    return value;
+    return parseOpacityPercent(value, optionName) / 100;
 };
 
 const resolveExistingFilePath = (

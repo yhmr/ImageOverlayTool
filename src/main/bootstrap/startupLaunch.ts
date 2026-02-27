@@ -8,6 +8,7 @@ import {
     resolveLaunchIntentFromScene,
 } from "../repositories/launchIntent";
 import { loadResolvedSceneFileFromPath } from "../repositories/sceneLoader";
+import { isOptionToken, normalizeArgv, parseOpacityPercent } from "./cliArgs";
 
 interface WindowPositionOption {
     x: number;
@@ -51,11 +52,6 @@ export interface StartupLaunchPlan {
 const SCENE_FILE_SUFFIX = ".scene.json";
 const PROJECT_FILE_EXTENSION = ".iot";
 
-const normalizeArgv = (commandLine: string[], isPackaged: boolean): string[] =>
-    isPackaged ? commandLine.slice(1) : commandLine.slice(2);
-
-const isOptionToken = (value: string): boolean => value.startsWith("--");
-
 const parseCommaSeparatedPair = (
     value: string,
     optionName: string
@@ -75,11 +71,7 @@ const parseCommaSeparatedPair = (
 };
 
 const parseOpacity = (value: string): number => {
-    const opacity = Number(value);
-    if (!Number.isFinite(opacity) || opacity < 0 || opacity > 100) {
-        throw new Error("--opacity must be between 0 and 100.");
-    }
-    return opacity;
+    return parseOpacityPercent(value, "--opacity");
 };
 
 const parsePosition = (value: string): WindowPositionOption => {
