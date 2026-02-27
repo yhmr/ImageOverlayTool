@@ -110,6 +110,7 @@ describe("cliHelp", () => {
         expect(text).toContain("Startup options:");
         expect(text).toContain("Control commands");
         expect(text).toContain("Examples:");
+        expect(text).toContain("--scene-template v1");
     });
 
     it("renders json help payload", () => {

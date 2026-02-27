@@ -22,6 +22,12 @@ import {
     resolveCliHelpRequest,
 } from "./bootstrap/cliHelp";
 import {
+    buildSceneTemplate,
+    CliSceneTemplateParseError,
+    renderSceneTemplate,
+    resolveCliSceneTemplateRequest,
+} from "./bootstrap/cliSceneTemplate";
+import {
     CLI_EXIT_CODES,
     createCliErrorResult,
     createCliSuccessResult,
@@ -53,11 +59,32 @@ const e2eConfig = resolveE2ERuntimeConfig();
 initializeRuntimeEnvironment(e2eConfig);
 
 let cliHelpRequest: ReturnType<typeof resolveCliHelpRequest> = null;
+let cliSceneTemplateRequest: ReturnType<typeof resolveCliSceneTemplateRequest> =
+    null;
 try {
     cliHelpRequest = resolveCliHelpRequest(process.argv, app.isPackaged);
+    cliSceneTemplateRequest = resolveCliSceneTemplateRequest(
+        process.argv,
+        app.isPackaged
+    );
 } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (error instanceof CliHelpParseError && error.formatHint === "json") {
+        process.stderr.write(
+            `${stringifyCliJsonResult(
+                createCliErrorResult({
+                    code: "CLI_INVALID_ARGUMENT",
+                    message,
+                    data: {
+                        reasonCode: error.code,
+                    },
+                })
+            )}\n`
+        );
+    } else if (
+        error instanceof CliSceneTemplateParseError &&
+        error.formatHint === "json"
+    ) {
         process.stderr.write(
             `${stringifyCliJsonResult(
                 createCliErrorResult({
@@ -88,6 +115,25 @@ if (cliHelpRequest) {
         );
     } else {
         process.stdout.write(`${renderCliHelp(cliHelpRequest)}\n`);
+    }
+    process.exit(CLI_EXIT_CODES.SUCCESS);
+}
+
+if (cliSceneTemplateRequest) {
+    if (cliSceneTemplateRequest.format === "json") {
+        process.stdout.write(
+            `${stringifyCliJsonResult(
+                createCliSuccessResult({
+                    code: "CLI_SCENE_TEMPLATE",
+                    message: "Scene template generated.",
+                    data: buildSceneTemplate(cliSceneTemplateRequest.version),
+                })
+            )}\n`
+        );
+    } else {
+        process.stdout.write(
+            `${renderSceneTemplate(cliSceneTemplateRequest)}\n`
+        );
     }
     process.exit(CLI_EXIT_CODES.SUCCESS);
 }
