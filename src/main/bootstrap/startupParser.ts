@@ -1,6 +1,7 @@
 import type { Point } from "../../shared/types/Point";
 import type { Size } from "../../shared/types/Size";
 import { isOptionToken, normalizeArgv, parseOpacityPercent } from "./cliArgs";
+import { STARTUP_OPTION_TOKENS } from "./cliOptionTokens";
 import { resolveCliSubcommandArgv } from "./cliSubcommand";
 
 export interface ParsedStartupArgs {
@@ -52,19 +53,30 @@ const parseSize = (value: string): Size => {
     return { width, height };
 };
 
+const isStartupOptionToken = (token: string): boolean =>
+    STARTUP_OPTION_TOKENS.has(token);
+
+const looksLikePathCandidate = (value: string): boolean =>
+    value.includes("/") ||
+    value.includes("\\") ||
+    value.startsWith(".") ||
+    /\.[a-z0-9]+$/i.test(value);
+
 export const parseStartupArgs = (
     commandLine: string[],
     isPackaged: boolean
 ): ParsedStartupArgs => {
     const normalizedArgv = normalizeArgv(commandLine, isPackaged);
     const { subcommand, argv } = resolveCliSubcommandArgv(normalizedArgv);
+    const hasStartupOptionToken = argv.some(isStartupOptionToken);
     const hasOptionToken = argv.some(isOptionToken);
+    const allowUnknownOptions = subcommand === null;
     if (subcommand === "control") {
         throw new Error(
             "control subcommand cannot be used with startup options."
         );
     }
-    if (subcommand === null && hasOptionToken) {
+    if (subcommand === null && hasStartupOptionToken) {
         throw new Error('Startup options require the "startup" subcommand.');
     }
     const positional: string[] = [];
@@ -168,14 +180,28 @@ export const parseStartupArgs = (
             continue;
         }
 
+        if (allowUnknownOptions) {
+            continue;
+        }
+
         throw new Error(`Unknown startup option: ${token}`);
     }
 
     if (positional.length > 1) {
+        if (allowUnknownOptions) {
+            return parsed;
+        }
         throw new Error("Only one positional file path is supported.");
     }
 
     if (positional.length === 1) {
+        if (
+            allowUnknownOptions &&
+            hasOptionToken &&
+            !looksLikePathCandidate(positional[0])
+        ) {
+            return parsed;
+        }
         parsed.positionalPath = positional[0];
     }
 

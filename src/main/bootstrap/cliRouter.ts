@@ -2,6 +2,7 @@ import {
     resolveSecondInstanceCommand,
     type SecondInstanceCommand,
 } from "./secondInstanceCommand";
+import { isFlatControlCommandInvocation } from "./cliIntent";
 import {
     resolveStartupLaunchPlan,
     type StartupLaunchPlan,
@@ -45,6 +46,12 @@ const resolveStartupRoute = async (
     workingDirectory?: string
 ): Promise<StartupCliRoute> => {
     try {
+        if (isFlatControlCommandInvocation(commandLine, isPackaged)) {
+            throw new Error(
+                'Control commands require the "control" subcommand.'
+            );
+        }
+
         const startupLaunchPlan =
             workingDirectory !== undefined
                 ? await resolveStartupLaunchPlan(

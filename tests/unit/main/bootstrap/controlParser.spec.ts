@@ -76,4 +76,5 @@ describe("controlParser", () => {
             )
         ).toThrow("--opacity can only be used with --add-image.");
     });
+
 });

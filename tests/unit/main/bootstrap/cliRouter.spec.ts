@@ -5,6 +5,7 @@ import {
     resolveSecondInstanceCliRoute,
     resolveStartupCliRoute,
 } from "@/main/bootstrap/cliRouter";
+import { isFlatControlCommandInvocation } from "@/main/bootstrap/cliIntent";
 import { resolveSecondInstanceCommand } from "@/main/bootstrap/secondInstanceCommand";
 import { resolveStartupLaunchPlan } from "@/main/bootstrap/startupLaunch";
 
@@ -16,9 +17,14 @@ vi.mock("@/main/bootstrap/secondInstanceCommand", () => ({
     resolveSecondInstanceCommand: vi.fn(),
 }));
 
+vi.mock("@/main/bootstrap/cliIntent", () => ({
+    isFlatControlCommandInvocation: vi.fn(() => false),
+}));
+
 describe("cliRouter", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(isFlatControlCommandInvocation).mockReturnValue(false);
         vi.mocked(resolveSecondInstanceCommand).mockReturnValue(null);
         vi.mocked(resolveStartupLaunchPlan).mockResolvedValue({
             skipSplash: false,
@@ -48,6 +54,21 @@ describe("cliRouter", () => {
             ["node", "index.js", "startup", "--images", "a.png"],
             false
         );
+    });
+
+    it("rejects flat control command in startup route", async () => {
+        vi.mocked(isFlatControlCommandInvocation).mockReturnValue(true);
+
+        await expect(
+            resolveStartupCliRoute(
+                ["node", "index.js", "--set-opacity", "30"],
+                false
+            )
+        ).rejects.toMatchObject({
+            stage: "startup",
+            message: 'Control commands require the "control" subcommand.',
+        });
+        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
     });
 
     it("wraps startup parse errors with startup stage", async () => {

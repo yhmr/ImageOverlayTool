@@ -4,14 +4,8 @@ import {
     parseOpacityPercent,
     requireOptionValue,
 } from "./cliArgs";
+import { CONTROL_COMMAND_OPTION_TOKENS } from "./cliOptionTokens";
 import { resolveCliSubcommandArgv } from "./cliSubcommand";
-
-const SECOND_INSTANCE_COMMAND_OPTIONS = new Set([
-    "--add-image",
-    "--set-opacity",
-    "--switch-scene",
-    "--export",
-]);
 
 type ParsedControlCommandKind =
     | "add-image"
@@ -60,7 +54,7 @@ export const parseControlCommand = (
     const normalizedArgv = normalizeArgv(commandLine, isPackaged);
     const { subcommand, argv } = resolveCliSubcommandArgv(normalizedArgv);
     const hasCommandOption = argv.some((token) =>
-        SECOND_INSTANCE_COMMAND_OPTIONS.has(token)
+        CONTROL_COMMAND_OPTION_TOKENS.has(token)
     );
 
     if (subcommand === null && hasCommandOption) {

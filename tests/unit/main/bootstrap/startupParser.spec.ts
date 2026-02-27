@@ -68,4 +68,63 @@ describe("startupParser", () => {
             parseStartupArgs(["node", "index.js", "--images", "a.png"], false)
         ).toThrow('Startup options require the "startup" subcommand.');
     });
+
+    it("ignores control tokens in startup parser without explicit subcommand", () => {
+        expect(
+            parseStartupArgs(["node", "index.js", "--set-opacity", "30"], false)
+        ).toEqual({
+            images: [],
+            alwaysOnTop: false,
+            clickThrough: false,
+            fullscreen: false,
+            silent: false,
+            minimize: false,
+        });
+    });
+
+    it("ignores unknown options without explicit subcommand", () => {
+        expect(
+            parseStartupArgs(["node", "index.js", "--playwright-flag"], false)
+        ).toEqual({
+            images: [],
+            alwaysOnTop: false,
+            clickThrough: false,
+            fullscreen: false,
+            silent: false,
+            minimize: false,
+        });
+    });
+
+    it("ignores ambiguous non-path tokens after unknown options", () => {
+        expect(
+            parseStartupArgs(
+                ["node", "index.js", "--runner-id", "worker-1"],
+                false
+            )
+        ).toEqual({
+            images: [],
+            alwaysOnTop: false,
+            clickThrough: false,
+            fullscreen: false,
+            silent: false,
+            minimize: false,
+        });
+    });
+
+    it("keeps path-like positional token when mixed with unknown options", () => {
+        expect(
+            parseStartupArgs(
+                ["node", "index.js", "--runner-id", "./scene/sample.iot"],
+                false
+            )
+        ).toEqual({
+            images: [],
+            positionalPath: "./scene/sample.iot",
+            alwaysOnTop: false,
+            clickThrough: false,
+            fullscreen: false,
+            silent: false,
+            minimize: false,
+        });
+    });
 });
