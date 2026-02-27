@@ -146,7 +146,10 @@ export const resolveFixtureScenePath = (sceneFileName: string): string =>
     path.join(E2E_SCENES_DIR, sceneFileName);
 
 export const runControlCommand = async (args: string[]): Promise<void> => {
-    executeElectronCli(["control", ...args]);
+    const normalizedArgs = args.includes("--non-interactive")
+        ? args
+        : ["--non-interactive", ...args];
+    executeElectronCli(["control", ...normalizedArgs]);
 };
 
 export const launchE2EApp = async (

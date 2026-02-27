@@ -130,6 +130,22 @@ describe("cliErrorHandler", () => {
         );
     });
 
+    it("reports startup launch parse error without dialog in non-interactive mode", () => {
+        const stderrSpy = vi
+            .spyOn(process.stderr, "write")
+            .mockImplementation(() => true);
+
+        reportStartupLaunchParseError(new Error("invalid startup option"), {
+            interactive: false,
+        });
+
+        expect(dialog.showErrorBox).not.toHaveBeenCalled();
+        expect(stderrSpy).toHaveBeenCalledWith(
+            "Invalid startup options: invalid startup option\n"
+        );
+        stderrSpy.mockRestore();
+    });
+
     it("reports control route parse error with command dialog title", () => {
         reportSecondInstanceRouteParseError(
             new CliRouteParseError("control", "invalid command option")
@@ -171,6 +187,23 @@ describe("cliErrorHandler", () => {
             "Second-instance command failed",
             "export failed"
         );
+    });
+
+    it("reports second-instance route parse error without dialog in non-interactive mode", () => {
+        const stderrSpy = vi
+            .spyOn(process.stderr, "write")
+            .mockImplementation(() => true);
+
+        reportSecondInstanceRouteParseError(
+            new CliRouteParseError("control", "invalid command option"),
+            { interactive: false }
+        );
+
+        expect(dialog.showErrorBox).not.toHaveBeenCalled();
+        expect(stderrSpy).toHaveBeenCalledWith(
+            "Invalid second-instance command: invalid command option\n"
+        );
+        stderrSpy.mockRestore();
     });
 
     it("suppresses repeated second-instance error dialogs during cooldown", () => {

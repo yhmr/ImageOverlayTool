@@ -6,6 +6,7 @@ import {
     reportSecondInstanceCommandExecutionError,
     reportSecondInstanceRouteParseError,
 } from "./cliErrorHandler";
+import { resolveCliRuntimeOptions } from "./cliRuntimeOptions";
 import { resolveSecondInstanceCliRoute } from "./cliRouter";
 import { executeSecondInstanceCommand } from "./secondInstanceCommand";
 import { type StartupWindowOptions } from "./startupLaunch";
@@ -47,6 +48,10 @@ export const registerSingleInstanceHandlers = (
         log.debug(
             `[second-instance] commandLine=${JSON.stringify(commandLine)}`
         );
+        const runtimeOptions = resolveCliRuntimeOptions(
+            commandLine,
+            app.isPackaged
+        );
         const mainWindow = windowManager.getMainWindow();
         if (mainWindow) {
             if (mainWindow.isMinimized()) {
@@ -71,7 +76,7 @@ export const registerSingleInstanceHandlers = (
                       app.isPackaged
                   );
         } catch (error) {
-            reportSecondInstanceRouteParseError(error);
+            reportSecondInstanceRouteParseError(error, runtimeOptions);
             return;
         }
 
@@ -85,7 +90,10 @@ export const registerSingleInstanceHandlers = (
                 );
                 log.debug("[second-instance] control command executed");
             } catch (error) {
-                reportSecondInstanceCommandExecutionError(error);
+                reportSecondInstanceCommandExecutionError(
+                    error,
+                    runtimeOptions
+                );
             }
             return;
         }

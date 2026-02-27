@@ -1,16 +1,6 @@
 import fs from "fs";
-
-const isInternalElectronSwitch = (token: string): boolean =>
-    token.startsWith("--inspect") ||
-    token.startsWith("--remote-debugging-port") ||
-    token === "--allow-file-access-from-files" ||
-    token.startsWith("--secure-schemes=") ||
-    token.startsWith("--standard-schemes=");
-
-const isCliSubcommandToken = (token: string): boolean => {
-    const normalized = token.toLowerCase();
-    return normalized === "startup" || normalized === "control";
-};
+import { isElectronInternalOption } from "./cliOptionTokens";
+import { isCliSubcommand } from "./cliSubcommand";
 
 const isLikelyAppEntryToken = (token: string): boolean => {
     if (token.startsWith("--")) {
@@ -29,8 +19,8 @@ const isLikelyAppEntryToken = (token: string): boolean => {
 const normalizeDevArgv = (commandLine: string[]): string[] => {
     const filtered = commandLine
         .slice(1)
-        .filter((token) => !isInternalElectronSwitch(token));
-    const subcommandIndex = filtered.findIndex(isCliSubcommandToken);
+        .filter((token) => !isElectronInternalOption(token));
+    const subcommandIndex = filtered.findIndex(isCliSubcommand);
 
     if (
         subcommandIndex > 0 &&

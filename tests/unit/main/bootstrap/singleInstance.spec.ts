@@ -320,6 +320,36 @@ describe("singleInstance", () => {
         expect(executeSecondInstanceCommand).not.toHaveBeenCalled();
     });
 
+    it("does not show dialog for invalid command args in non-interactive mode", async () => {
+        vi.mocked(resolveSecondInstanceCliRoute).mockRejectedValue(
+            new CliRouteParseError("control", "invalid command option")
+        );
+        const stderrSpy = vi
+            .spyOn(process.stderr, "write")
+            .mockImplementation(() => true);
+
+        const windowManager = {
+            getMainWindow: vi.fn(() => createMainWindow()),
+            applyLaunchIntent: vi.fn(),
+            openFile: vi.fn(),
+        };
+
+        registerSingleInstanceHandlers(windowManager as never);
+        await secondInstanceHandler?.({}, [
+            "node",
+            "index.js",
+            "control",
+            "--non-interactive",
+            "--set-opacity",
+        ]);
+
+        expect(dialog.showErrorBox).not.toHaveBeenCalled();
+        expect(stderrSpy).toHaveBeenCalledWith(
+            "Invalid second-instance command: invalid command option\n"
+        );
+        stderrSpy.mockRestore();
+    });
+
     it("shows error dialog when second-instance command execution fails", async () => {
         vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
             kind: "control",

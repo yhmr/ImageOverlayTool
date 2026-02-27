@@ -127,4 +127,27 @@ describe("startupParser", () => {
             minimize: false,
         });
     });
+
+    it("accepts global non-interactive option under startup subcommand", () => {
+        expect(
+            parseStartupArgs(
+                [
+                    "node",
+                    "index.js",
+                    "startup",
+                    "--non-interactive",
+                    "--images",
+                    "a.png",
+                ],
+                false
+            )
+        ).toEqual({
+            images: ["a.png"],
+            alwaysOnTop: false,
+            clickThrough: false,
+            fullscreen: false,
+            silent: false,
+            minimize: false,
+        });
+    });
 });

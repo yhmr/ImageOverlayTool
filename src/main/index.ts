@@ -40,6 +40,7 @@ import {
     writeCliInvalidArgumentError,
     writeCliSceneValidationError,
 } from "./bootstrap/cliErrorHandler";
+import { resolveCliRuntimeOptions } from "./bootstrap/cliRuntimeOptions";
 import {
     acquireSingleInstanceLock,
     registerSingleInstanceHandlers,
@@ -63,6 +64,10 @@ let cliSceneTemplateRequest: ReturnType<typeof resolveCliSceneTemplateRequest> =
     null;
 let cliValidateSceneRequest: ReturnType<typeof resolveCliValidateSceneRequest> =
     null;
+const cliRuntimeOptions = resolveCliRuntimeOptions(
+    process.argv,
+    app.isPackaged
+);
 try {
     cliHelpRequest = resolveCliHelpRequest(process.argv, app.isPackaged);
     if (!cliHelpRequest) {
@@ -243,7 +248,7 @@ if (!gotTheLock) {
             );
             startupLaunchPlan = startupRoute.startupLaunchPlan;
         } catch (error) {
-            reportStartupLaunchParseError(error);
+            reportStartupLaunchParseError(error, cliRuntimeOptions);
         }
 
         const mainWindow = await windowManager.launchMainWindow({

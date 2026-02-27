@@ -1,7 +1,7 @@
 import type { Point } from "../../shared/types/Point";
 import type { Size } from "../../shared/types/Size";
 import { isOptionToken, normalizeArgv, parseOpacityPercent } from "./cliArgs";
-import { STARTUP_OPTION_TOKENS } from "./cliOptionTokens";
+import { GLOBAL_OPTION_TOKENS, STARTUP_OPTION_TOKENS } from "./cliOptionTokens";
 import { resolveCliSubcommandArgv } from "./cliSubcommand";
 
 export interface ParsedStartupArgs {
@@ -173,6 +173,10 @@ export const parseStartupArgs = (
 
         if (token === "--minimize") {
             parsed.minimize = true;
+            continue;
+        }
+
+        if (GLOBAL_OPTION_TOKENS.has(token)) {
             continue;
         }
 

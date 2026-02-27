@@ -4,14 +4,21 @@ import {
     parseOpacityPercent,
     requireOptionValue,
 } from "./cliArgs";
-import { CONTROL_COMMAND_OPTION_TOKENS } from "./cliOptionTokens";
+import {
+    CONTROL_COMMAND_OPTION_TOKENS,
+    GLOBAL_OPTION_TOKENS,
+} from "./cliOptionTokens";
 import { resolveCliSubcommandArgv } from "./cliSubcommand";
 
 type ParsedControlCommandKind =
     | "add-image"
     | "set-opacity"
     | "switch-scene"
-    | "export";
+    | "export"
+    | "wait-stable";
+
+const DEFAULT_WAIT_STABLE_TIMEOUT_MS = 5000;
+const MAX_WAIT_STABLE_TIMEOUT_MS = 120000;
 
 export type ParsedControlCommand =
     | {
@@ -30,10 +37,31 @@ export type ParsedControlCommand =
     | {
           kind: "export";
           outputPath: string;
+      }
+    | {
+          kind: "wait-stable";
+          timeoutMs: number;
       };
 
 const parseOpacityRatio = (value: string, optionName: string): number => {
     return parseOpacityPercent(value, optionName) / 100;
+};
+
+const parseTimeoutMs = (value: string): number => {
+    const timeoutMs = Number(value);
+    if (
+        !Number.isFinite(timeoutMs) ||
+        !Number.isInteger(timeoutMs) ||
+        timeoutMs <= 0
+    ) {
+        throw new Error("--timeout-ms must be a positive integer.");
+    }
+    if (timeoutMs > MAX_WAIT_STABLE_TIMEOUT_MS) {
+        throw new Error(
+            `--timeout-ms must be less than or equal to ${MAX_WAIT_STABLE_TIMEOUT_MS}.`
+        );
+    }
+    return timeoutMs;
 };
 
 const ensureSingleCommand = (
@@ -79,6 +107,7 @@ export const parseControlCommand = (
     let exportPath: string | null = null;
     let setOpacity: number | null = null;
     let addImageOpacity: number | undefined;
+    let waitStableTimeoutMs: number | null = null;
 
     for (let index = 0; index < argv.length; index += 1) {
         const token = argv[index];
@@ -118,12 +147,30 @@ export const parseControlCommand = (
             continue;
         }
 
+        if (token === "--wait-stable") {
+            ensureSingleCommand(commandKind, "wait-stable");
+            commandKind = "wait-stable";
+            continue;
+        }
+
         if (token === "--opacity") {
             addImageOpacity = parseOpacityRatio(
                 requireOptionValue(argv, index, "--opacity"),
                 "--opacity"
             );
             index += 1;
+            continue;
+        }
+
+        if (token === "--timeout-ms") {
+            waitStableTimeoutMs = parseTimeoutMs(
+                requireOptionValue(argv, index, "--timeout-ms")
+            );
+            index += 1;
+            continue;
+        }
+
+        if (GLOBAL_OPTION_TOKENS.has(token)) {
             continue;
         }
 
@@ -142,6 +189,10 @@ export const parseControlCommand = (
 
     if (addImageOpacity !== undefined && commandKind !== "add-image") {
         throw new Error("--opacity can only be used with --add-image.");
+    }
+
+    if (waitStableTimeoutMs !== null && commandKind !== "wait-stable") {
+        throw new Error("--timeout-ms can only be used with --wait-stable.");
     }
 
     if (commandKind === "add-image") {
@@ -172,6 +223,13 @@ export const parseControlCommand = (
         return {
             kind: "switch-scene",
             scenePath: switchScenePath,
+        };
+    }
+
+    if (commandKind === "wait-stable") {
+        return {
+            kind: "wait-stable",
+            timeoutMs: waitStableTimeoutMs ?? DEFAULT_WAIT_STABLE_TIMEOUT_MS,
         };
     }
 

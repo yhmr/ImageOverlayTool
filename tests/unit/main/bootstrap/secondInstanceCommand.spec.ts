@@ -205,6 +205,25 @@ describe("secondInstanceCommand", () => {
         });
     });
 
+    it("parses --wait-stable with timeout", () => {
+        const command = resolveSecondInstanceCommand(
+            [
+                "node",
+                "index.js",
+                "control",
+                "--wait-stable",
+                "--timeout-ms",
+                "7000",
+            ],
+            false
+        );
+
+        expect(command).toEqual({
+            kind: "wait-stable",
+            timeoutMs: 7000,
+        });
+    });
+
     it("rejects flat control command without control subcommand", () => {
         expect(() =>
             resolveSecondInstanceCommand(
@@ -303,5 +322,54 @@ describe("secondInstanceCommand", () => {
                 windowManager as never
             )
         ).rejects.toThrow("Main window is not available for --export");
+    });
+
+    it("executes wait-stable command when main window is stable", async () => {
+        const mainWindow = {
+            isDestroyed: vi.fn(() => false),
+            isMinimized: vi.fn(() => true),
+            restore: vi.fn(),
+            isVisible: vi.fn(() => true),
+            show: vi.fn(),
+            webContents: {
+                isLoading: vi.fn(() => false),
+                isLoadingMainFrame: vi.fn(() => false),
+            },
+        };
+        const windowManager = {
+            applyAppControlCommand: vi.fn(),
+            openFile: vi.fn(),
+            getMainWindow: vi.fn(() => mainWindow),
+        };
+
+        await executeSecondInstanceCommand(
+            {
+                kind: "wait-stable",
+                timeoutMs: 1000,
+            },
+            windowManager as never
+        );
+
+        expect(mainWindow.restore).toHaveBeenCalledOnce();
+        expect(windowManager.applyAppControlCommand).not.toHaveBeenCalled();
+        expect(windowManager.openFile).not.toHaveBeenCalled();
+    });
+
+    it("throws when wait-stable is requested without an active main window", async () => {
+        const windowManager = {
+            applyAppControlCommand: vi.fn(),
+            openFile: vi.fn(),
+            getMainWindow: vi.fn(() => null),
+        };
+
+        await expect(
+            executeSecondInstanceCommand(
+                {
+                    kind: "wait-stable",
+                    timeoutMs: 1000,
+                },
+                windowManager as never
+            )
+        ).rejects.toThrow("Main window is not available for --wait-stable");
     });
 });

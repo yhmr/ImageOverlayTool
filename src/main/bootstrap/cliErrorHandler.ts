@@ -2,6 +2,7 @@ import { dialog } from "electron";
 
 import log from "../logger";
 import { CliRouteParseError } from "./cliRouter";
+import type { CliRuntimeOptions } from "./cliRuntimeOptions";
 import {
     createCliErrorResult,
     stringifyCliJsonResult,
@@ -24,6 +25,9 @@ const isCliParseErrorLike = (error: unknown): error is CliParseErrorLike =>
     typeof (error as { code?: unknown }).code === "string" &&
     ((error as { formatHint?: unknown }).formatHint === "json" ||
         (error as { formatHint?: unknown }).formatHint === "text");
+
+const isInteractiveMode = (runtimeOptions?: CliRuntimeOptions): boolean =>
+    runtimeOptions?.interactive ?? true;
 
 export const toErrorMessage = (error: unknown): string => {
     if (error instanceof Error) {
@@ -86,8 +90,14 @@ export const writeCliSceneValidationError = (
 
 const showSecondInstanceErrorDialog = (
     title: string,
-    message: string
+    message: string,
+    runtimeOptions?: CliRuntimeOptions
 ): void => {
+    if (!isInteractiveMode(runtimeOptions)) {
+        process.stderr.write(`${title}: ${message}\n`);
+        return;
+    }
+
     const now = Date.now();
     if (
         lastSecondInstanceDialogAt !== null &&
@@ -108,13 +118,23 @@ const showSecondInstanceErrorDialog = (
     dialog.showErrorBox(title, message);
 };
 
-export const reportStartupLaunchParseError = (error: unknown): void => {
+export const reportStartupLaunchParseError = (
+    error: unknown,
+    runtimeOptions?: CliRuntimeOptions
+): void => {
     const message = toErrorMessage(error);
     log.error("Failed to parse startup launch options.", { message });
-    dialog.showErrorBox("Invalid startup options", message);
+    if (isInteractiveMode(runtimeOptions)) {
+        dialog.showErrorBox("Invalid startup options", message);
+        return;
+    }
+    process.stderr.write(`Invalid startup options: ${message}\n`);
 };
 
-export const reportSecondInstanceRouteParseError = (error: unknown): void => {
+export const reportSecondInstanceRouteParseError = (
+    error: unknown,
+    runtimeOptions?: CliRuntimeOptions
+): void => {
     const message = toErrorMessage(error);
     const isControlParseError =
         error instanceof CliRouteParseError && error.stage === "control";
@@ -129,18 +149,24 @@ export const reportSecondInstanceRouteParseError = (error: unknown): void => {
         isControlParseError
             ? "Invalid second-instance command"
             : "Invalid startup options",
-        message
+        message,
+        runtimeOptions
     );
 };
 
 export const reportSecondInstanceCommandExecutionError = (
-    error: unknown
+    error: unknown,
+    runtimeOptions?: CliRuntimeOptions
 ): void => {
     const message = toErrorMessage(error);
     log.error("Failed to execute second-instance command.", {
         message,
     });
-    showSecondInstanceErrorDialog("Second-instance command failed", message);
+    showSecondInstanceErrorDialog(
+        "Second-instance command failed",
+        message,
+        runtimeOptions
+    );
 };
 
 export const resetSecondInstanceErrorDialogStateForTest = (): void => {

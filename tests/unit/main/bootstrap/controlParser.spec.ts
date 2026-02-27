@@ -77,4 +77,71 @@ describe("controlParser", () => {
         ).toThrow("--opacity can only be used with --add-image.");
     });
 
+    it("parses --wait-stable with default timeout", () => {
+        expect(
+            parseControlCommand(
+                ["node", "index.js", "control", "--wait-stable"],
+                false
+            )
+        ).toEqual({
+            kind: "wait-stable",
+            timeoutMs: 5000,
+        });
+    });
+
+    it("parses --wait-stable with --timeout-ms", () => {
+        expect(
+            parseControlCommand(
+                [
+                    "node",
+                    "index.js",
+                    "control",
+                    "--wait-stable",
+                    "--timeout-ms",
+                    "7000",
+                ],
+                false
+            )
+        ).toEqual({
+            kind: "wait-stable",
+            timeoutMs: 7000,
+        });
+    });
+
+    it("accepts global non-interactive option", () => {
+        expect(
+            parseControlCommand(
+                [
+                    "node",
+                    "index.js",
+                    "control",
+                    "--non-interactive",
+                    "--set-opacity",
+                    "30",
+                ],
+                false
+            )
+        ).toEqual({
+            kind: "set-opacity",
+            opacity: 0.3,
+        });
+    });
+
+    it("rejects --timeout-ms unless --wait-stable is selected", () => {
+        expect(() =>
+            parseControlCommand(
+                [
+                    "node",
+                    "index.js",
+                    "control",
+                    "--set-opacity",
+                    "30",
+                    "--timeout-ms",
+                    "7000",
+                ],
+                false
+            )
+        ).toThrow("--timeout-ms can only be used with --wait-stable.");
+    });
+
 });
