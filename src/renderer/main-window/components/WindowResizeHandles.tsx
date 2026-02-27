@@ -1,18 +1,12 @@
 import { useMemo, type MouseEvent as ReactMouseEvent } from "react";
 
 import { useIpcService } from "../../providers/IpcServiceProvider";
+import type { WindowRect } from "../../../shared/ipc/contracts/window";
 
 const MIN_WIDTH = 320;
 const MIN_HEIGHT = 240;
 
 type ResizeDirection = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
-
-type WindowRect = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
 
 const clampRect = (
     initialRect: WindowRect,

@@ -3,6 +3,7 @@ import { Arrow, Group, Text, Circle } from "react-konva";
 import { DimensionLine } from "../../../shared/types/DimensionLine";
 import { KonvaEventObject } from "konva/lib/Node";
 import { sanitizeDimensionLineColor } from "../../../shared/constants/dimensionLine";
+import type { Point } from "../../../shared/types/Point";
 
 interface DimensionLineLayerProps {
     dimensionLines: DimensionLine[];
@@ -15,7 +16,6 @@ interface DimensionLineLayerProps {
 }
 
 type AnchorType = "start" | "end";
-type Point = { x: number; y: number };
 type EditingAnchorMap = Record<string, Partial<Record<AnchorType, Point>>>;
 
 export const DimensionLineLayer = memo(function DimensionLineLayer(

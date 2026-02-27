@@ -3,6 +3,8 @@ import path from "path";
 
 import { isSupportedImagePath } from "../../shared/constants/imageFormats";
 import type { LaunchIntent } from "../../shared/types/LaunchIntent";
+import type { Point } from "../../shared/types/Point";
+import type { Size } from "../../shared/types/Size";
 import {
     CLICK_THROUGH_REQUIRES_ALWAYS_ON_TOP_WARNING,
     resolveLaunchIntentFromScene,
@@ -10,23 +12,13 @@ import {
 import { loadResolvedSceneFileFromPath } from "../repositories/sceneLoader";
 import { isOptionToken, normalizeArgv, parseOpacityPercent } from "./cliArgs";
 
-interface WindowPositionOption {
-    x: number;
-    y: number;
-}
-
-interface WindowSizeOption {
-    width: number;
-    height: number;
-}
-
 interface ParsedStartupArgs {
     scenePath?: string;
     images: string[];
     positionalPath?: string;
     opacity?: number;
-    position?: WindowPositionOption;
-    size?: WindowSizeOption;
+    position?: Point;
+    size?: Size;
     alwaysOnTop: boolean;
     clickThrough: boolean;
     fullscreen: boolean;
@@ -35,8 +27,8 @@ interface ParsedStartupArgs {
 }
 
 export interface StartupWindowOptions {
-    position?: WindowPositionOption;
-    size?: WindowSizeOption;
+    position?: Point;
+    size?: Size;
     fullscreen: boolean;
     minimize: boolean;
 }
@@ -74,12 +66,12 @@ const parseOpacity = (value: string): number => {
     return parseOpacityPercent(value, "--opacity");
 };
 
-const parsePosition = (value: string): WindowPositionOption => {
+const parsePosition = (value: string): Point => {
     const [x, y] = parseCommaSeparatedPair(value, "--position");
     return { x, y };
 };
 
-const parseSize = (value: string): WindowSizeOption => {
+const parseSize = (value: string): Size => {
     const [width, height] = parseCommaSeparatedPair(value, "--size");
     if (width <= 0 || height <= 0) {
         throw new Error("--size must be positive values.");
