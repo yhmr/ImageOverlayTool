@@ -11,7 +11,7 @@ import {
 } from "@/renderer/services/ipcService";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { toLocalFileUrl } from "@/shared/utils/localFileUrl";
-import { MockIPCService } from "../../support/mocks/MockIPCService";
+import { MockIPCService } from "../../../support/mocks/MockIPCService";
 
 const flushAsync = (): Promise<void> =>
     new Promise((resolve) => {

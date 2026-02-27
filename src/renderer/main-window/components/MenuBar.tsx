@@ -5,6 +5,7 @@ import type { TemporalState } from "zundo";
 import { SettingDialog } from "../dialogs/settings/SettingDialog";
 import { AppMenu } from "./AppMenu";
 import { MenuBarHistoryActions } from "./MenuBarHistoryActions";
+import { MenuBarStatusBadges } from "./MenuBarStatusBadges";
 import { MenuBarWindowActions } from "./MenuBarWindowActions";
 import { useMainWindowDialogState } from "../hooks/useMainWindowDialogState";
 import { useWindowOperations } from "../hooks/useWindowOperations";
@@ -13,7 +14,6 @@ import { useImageFileStatus } from "../../hooks/useImageFileStatus";
 import { useImagePaste } from "../hooks/useImagePaste";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { AboutDialog } from "../dialogs/about/AboutDialog";
-import { Button } from "@/renderer/components/ui/button";
 import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { TITLE_BAR_HEIGHT } from "../../constants";
 import { useAppStore, type AppState } from "../../store/useAppStore";
@@ -148,51 +148,11 @@ export function MenuBar({
                     {t("render.menu_button.app_title")}
                 </div>
 
-                {missingCount > 0 && (
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={mainWindowActions.openImageSettingsWindow}
-                        className="mr-2 app-region-no-drag"
-                        data-testid="main.status.missing-images"
-                        data-clickthrough-allow
-                    >
-                        {t("render.image_status.missing_summary", {
-                            count: missingCount,
-                        })}
-                    </Button>
-                )}
-
-                {mainWindowActions.isClickThroughMode && (
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={mainWindowActions.disableClickThroughMode}
-                        className="mr-2 app-region-no-drag bg-amber-500/90 text-amber-950 hover:bg-amber-500"
-                        data-testid="main.status.click-through-mode"
-                        data-clickthrough-allow
-                    >
-                        {t(
-                            "render.menu_button.status.click_through_mode_active"
-                        )}
-                    </Button>
-                )}
-
-                {mainWindowActions.isAlwaysOnTopMode &&
-                    !mainWindowActions.isClickThroughMode && (
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={mainWindowActions.disableAlwaysOnTopMode}
-                            className="mr-2 app-region-no-drag bg-cyan-500/90 text-cyan-950 hover:bg-cyan-500"
-                            data-testid="main.status.always-on-top-mode"
-                            data-clickthrough-allow
-                        >
-                            {t(
-                                "render.menu_button.status.always_on_top_mode_active"
-                            )}
-                        </Button>
-                    )}
+                <MenuBarStatusBadges
+                    missingCount={missingCount}
+                    mainWindowActions={mainWindowActions}
+                    t={t}
+                />
 
                 <MenuBarWindowActions
                     isMaximized={isMaximized}
