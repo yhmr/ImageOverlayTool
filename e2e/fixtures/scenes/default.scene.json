@@ -19,6 +19,18 @@
       "source": "@fixtures/placeholder.png",
       "transparency": 0,
       "rotation": 0,
+      "initAnchorPos": {
+        "lt": { "x": 0, "y": 0 },
+        "rt": { "x": 1, "y": 0 },
+        "lb": { "x": 0, "y": 1 },
+        "rb": { "x": 1, "y": 1 }
+      },
+      "currentAnchorPos": {
+        "lt": { "x": 0, "y": 0 },
+        "rt": { "x": 1, "y": 0 },
+        "lb": { "x": 0, "y": 1 },
+        "rb": { "x": 1, "y": 1 }
+      },
       "visible": true,
       "locked": false
     }
