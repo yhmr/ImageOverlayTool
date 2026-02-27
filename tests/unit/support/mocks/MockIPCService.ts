@@ -10,6 +10,7 @@ import {
 } from "@/shared/types/AppConfig";
 import { LicenseInfo } from "@/shared/types/LicenseInfo";
 import type { LaunchIntent } from "@/shared/types/LaunchIntent";
+import type { AppControlCommand } from "@/shared/types/AppControlCommand";
 import type {
     E2ECaptureRequest,
     E2EControlStatus,
@@ -233,6 +234,12 @@ export class MockIPCService implements IIPCService {
     }
 
     onLaunchIntentApply(_callback: (launchIntent: LaunchIntent) => void): () => void {
+        return () => { };
+    }
+
+    onAppControlCommandApply(
+        _callback: (command: AppControlCommand) => void
+    ): () => void {
         return () => { };
     }
 

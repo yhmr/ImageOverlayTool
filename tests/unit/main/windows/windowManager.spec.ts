@@ -190,6 +190,7 @@ import { WindowManager } from "@/main/windows/windowManager";
 import { IWindowRepository } from "@/main/repositories/WindowRepository";
 import type { IWindowShortcutManager } from "@/main/windows/windowShortcutManager";
 import { DEFAULT_WINDOW_COLOR_PRESETS } from "@/shared/types/AppConfig";
+import type { AppControlCommand } from "@/shared/types/AppControlCommand";
 import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 import type { BrowserWindow as ElectronBrowserWindow } from "electron";
 
@@ -375,6 +376,21 @@ describe("WindowManager", () => {
         );
     });
 
+    it("applyAppControlCommand sends IPC message if window exists and visible", () => {
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+        const command: AppControlCommand = {
+            kind: "set-opacity",
+            opacity: 0.5,
+        };
+
+        windowManager.applyAppControlCommand(command);
+
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "appControlCommand:apply",
+            command
+        );
+    });
+
     it("openFile pends file if window not ready, and sends it when ready", () => {
         windowManager.openFile("test.png");
         const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
@@ -406,6 +422,25 @@ describe("WindowManager", () => {
         expect(mainWindow.webContents.send).toHaveBeenCalledWith(
             "launchIntent:apply",
             launchIntent
+        );
+    });
+
+    it("applyAppControlCommand pends command if window not ready and sends it when ready", () => {
+        const command: AppControlCommand = {
+            kind: "add-image",
+            imagePath: "C:/tmp/sample.png",
+            opacity: 0.8,
+        };
+
+        windowManager.applyAppControlCommand(command);
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+
+        mainWindow.__emit("ready-to-show");
+
+        expect(mainWindow.show).toHaveBeenCalled();
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "appControlCommand:apply",
+            command
         );
     });
 

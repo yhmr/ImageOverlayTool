@@ -25,6 +25,7 @@ type SyncIPCService = Pick<
     | "onClickThroughShortcutTriggered"
     | "onFileOpen"
     | "onLaunchIntentApply"
+    | "onAppControlCommandApply"
     | "updateSelectedImageId"
     | "onSelectedImageIdUpdated"
     | "updateSelectedDimensionLineId"
@@ -66,6 +67,8 @@ export const createSyncIPCService = (): SyncIPCService => ({
     onFileOpen: (callback) => getElectronApi().onFileOpen(callback),
     onLaunchIntentApply: (callback) =>
         getElectronApi().onLaunchIntentApply(callback),
+    onAppControlCommandApply: (callback) =>
+        getElectronApi().onAppControlCommandApply(callback),
     updateSelectedImageId: (id: string | null) =>
         getElectronApi().updateSelectedImageId(id),
     onSelectedImageIdUpdated: (callback: (id: string | null) => void) =>

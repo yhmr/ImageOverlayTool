@@ -1,5 +1,6 @@
 import { defineEventContract, type EventContract } from "../contract";
 import { IPC_EVENTS } from "../channels";
+import type { AppControlCommand } from "../../types/AppControlCommand";
 import type { LaunchIntent } from "../../types/LaunchIntent";
 
 /**
@@ -10,6 +11,8 @@ export type AppEventContracts = {
     fileOpen: EventContract<[payload: { filePath: string; ext: string }]>;
     /** 起動引数から構築されたLaunchIntentを適用するイベント */
     launchIntentApply: EventContract<[payload: LaunchIntent]>;
+    /** 起動中インスタンスへCLI制御コマンドを適用するイベント */
+    appControlCommandApply: EventContract<[payload: AppControlCommand]>;
 };
 
 /**
@@ -18,4 +21,7 @@ export type AppEventContracts = {
 export const appEventContracts: AppEventContracts = {
     fileOpen: defineEventContract(IPC_EVENTS.fileOpen),
     launchIntentApply: defineEventContract(IPC_EVENTS.launchIntentApply),
+    appControlCommandApply: defineEventContract(
+        IPC_EVENTS.appControlCommandApply
+    ),
 };

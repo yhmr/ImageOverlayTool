@@ -44,6 +44,7 @@ const mockIPC = vi.hoisted(() => ({
     onRequestStateSync: vi.fn(() => vi.fn()),
     onFileOpen: vi.fn(() => vi.fn()),
     onLaunchIntentApply: vi.fn(() => vi.fn()),
+    onAppControlCommandApply: vi.fn(() => vi.fn()),
     getLicenseInfo: vi.fn().mockResolvedValue([]),
     getAppVersion: vi.fn().mockResolvedValue("1.0.0"),
     captureScreen: vi.fn().mockResolvedValue({

@@ -10,6 +10,7 @@ import {
     setIPCService,
 } from "@/renderer/services/ipcService";
 import { useAppStore } from "@/renderer/store/useAppStore";
+import type { AppControlCommand } from "@/shared/types/AppControlCommand";
 import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 import { toLocalFileUrl } from "@/shared/utils/localFileUrl";
 import { MockIPCService } from "../../../support/mocks/MockIPCService";
@@ -25,6 +26,9 @@ describe("useFileHandler", () => {
         | ((payload: { filePath: string; ext: string }) => void)
         | null;
     let launchIntentCallback: ((launchIntent: LaunchIntent) => void) | null;
+    let appControlCommandCallback:
+        | ((command: AppControlCommand) => void)
+        | null;
     let alertMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -38,6 +42,7 @@ describe("useFileHandler", () => {
         mockService = new MockIPCService();
         fileOpenCallback = null;
         launchIntentCallback = null;
+        appControlCommandCallback = null;
         mockService.onFileOpen = vi.fn((callback) => {
             fileOpenCallback = callback;
             return () => {
@@ -48,6 +53,12 @@ describe("useFileHandler", () => {
             launchIntentCallback = callback;
             return () => {
                 launchIntentCallback = null;
+            };
+        });
+        mockService.onAppControlCommandApply = vi.fn((callback) => {
+            appControlCommandCallback = callback;
+            return () => {
+                appControlCommandCallback = null;
             };
         });
         mockService.loadSceneFromPath = vi.fn();
@@ -240,5 +251,79 @@ describe("useFileHandler", () => {
         expect(state.imageSets[0].path).toBe(
             toLocalFileUrl("C:/tmp/launch-image.png")
         );
+    });
+
+    it("applies add-image app control command received via IPC", async () => {
+        act(() => {
+            useAppStore.getState().setImageSets([
+                {
+                    id: "existing",
+                    path: toLocalFileUrl("C:/tmp/existing.png"),
+                    transparency: 0.9,
+                    rotation: 0,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
+                },
+            ]);
+        });
+
+        renderHook(() => useFileHandler());
+        expect(appControlCommandCallback).toBeTypeOf("function");
+
+        await act(async () => {
+            appControlCommandCallback?.({
+                kind: "add-image",
+                imagePath: "C:/tmp/added.png",
+                opacity: 0.4,
+            });
+            await flushAsync();
+        });
+
+        const state = useAppStore.getState();
+        expect(state.imageSets).toHaveLength(2);
+        expect(state.imageSets[1]).toEqual(
+            expect.objectContaining({
+                path: toLocalFileUrl("C:/tmp/added.png"),
+                transparency: 0.4,
+            })
+        );
+    });
+
+    it("applies set-opacity app control command to all non-empty images", async () => {
+        act(() => {
+            useAppStore.getState().setImageSets([
+                {
+                    id: "img-1",
+                    path: toLocalFileUrl("C:/tmp/a.png"),
+                    transparency: 0.2,
+                    rotation: 0,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
+                },
+                {
+                    id: "img-2",
+                    path: toLocalFileUrl("C:/tmp/b.png"),
+                    transparency: 0.8,
+                    rotation: 0,
+                    initAnchorPos: null,
+                    currentAnchorPos: null,
+                },
+            ]);
+        });
+
+        renderHook(() => useFileHandler());
+        expect(appControlCommandCallback).toBeTypeOf("function");
+
+        await act(async () => {
+            appControlCommandCallback?.({
+                kind: "set-opacity",
+                opacity: 0.35,
+            });
+            await flushAsync();
+        });
+
+        const state = useAppStore.getState();
+        expect(state.imageSets[0].transparency).toBe(0.35);
+        expect(state.imageSets[1].transparency).toBe(0.35);
     });
 });

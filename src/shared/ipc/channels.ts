@@ -94,4 +94,5 @@ export const IPC_EVENTS = {
     requestStateSync: "state:requestSync",
     fileOpen: "file:open",
     launchIntentApply: "launchIntent:apply",
+    appControlCommandApply: "appControlCommand:apply",
 } as const;

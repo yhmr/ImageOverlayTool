@@ -3,6 +3,7 @@ import { BrowserWindow, app } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
+import type { AppControlCommand } from "../../shared/types/AppControlCommand";
 import type { LaunchIntent } from "../../shared/types/LaunchIntent";
 import {
     ElectronWindowShortcutManager,
@@ -47,6 +48,7 @@ export class WindowManager {
     private isProjectDirty = false;
     private pendingFilePath: string | null = null;
     private pendingLaunchIntent: LaunchIntent | null = null;
+    private pendingAppControlCommand: AppControlCommand | null = null;
 
     constructor(
         windowRepository: IWindowRepository,
@@ -89,6 +91,12 @@ export class WindowManager {
             const launchIntent = this.pendingLaunchIntent;
             this.pendingLaunchIntent = null;
             this.applyLaunchIntent(launchIntent);
+        }
+
+        if (this.pendingAppControlCommand) {
+            const command = this.pendingAppControlCommand;
+            this.pendingAppControlCommand = null;
+            this.applyAppControlCommand(command);
         }
     }
 
@@ -189,6 +197,22 @@ export class WindowManager {
 
         log.debug("Window not ready, pending launch intent.");
         this.pendingLaunchIntent = launchIntent;
+    }
+
+    applyAppControlCommand(command: AppControlCommand): void {
+        log.debug("Applying app control command.");
+        const mainWindow = this.mainWindowLifecycle.getMainWindow();
+
+        if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+            mainWindow.webContents.send(
+                IPC_EVENTS.appControlCommandApply,
+                command
+            );
+            return;
+        }
+
+        log.debug("Window not ready, pending app control command.");
+        this.pendingAppControlCommand = command;
     }
 
     /**

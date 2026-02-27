@@ -3,6 +3,10 @@ import { app, dialog, type BrowserWindow } from "electron";
 import log from "../logger";
 import type { WindowManager } from "../windows/windowManager";
 import {
+    executeSecondInstanceCommand,
+    resolveSecondInstanceCommand,
+} from "./secondInstanceCommand";
+import {
     resolveStartupLaunchPlan,
     type StartupWindowOptions,
 } from "./startupLaunch";
@@ -52,6 +56,41 @@ export const registerSingleInstanceHandlers = (
                 mainWindow.restore();
             }
             mainWindow.focus();
+        }
+
+        let secondInstanceCommand: ReturnType<
+            typeof resolveSecondInstanceCommand
+        >;
+        try {
+            secondInstanceCommand = resolveSecondInstanceCommand(
+                commandLine,
+                app.isPackaged
+            );
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : String(error);
+            log.error("Failed to parse second-instance command options.", {
+                message,
+            });
+            dialog.showErrorBox("Invalid second-instance command", message);
+            return;
+        }
+
+        if (secondInstanceCommand) {
+            try {
+                await executeSecondInstanceCommand(
+                    secondInstanceCommand,
+                    windowManager
+                );
+            } catch (error) {
+                const message =
+                    error instanceof Error ? error.message : String(error);
+                log.error("Failed to execute second-instance command.", {
+                    message,
+                });
+                dialog.showErrorBox("Second-instance command failed", message);
+            }
+            return;
         }
 
         let startupLaunchPlan: Awaited<

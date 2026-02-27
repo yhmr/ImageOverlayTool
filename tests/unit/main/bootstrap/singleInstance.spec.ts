@@ -3,6 +3,10 @@ import { app, dialog } from "electron";
 
 import log from "@/main/logger";
 import { registerSingleInstanceHandlers } from "@/main/bootstrap/singleInstance";
+import {
+    executeSecondInstanceCommand,
+    resolveSecondInstanceCommand,
+} from "@/main/bootstrap/secondInstanceCommand";
 import { resolveStartupLaunchPlan } from "@/main/bootstrap/startupLaunch";
 import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 
@@ -29,6 +33,11 @@ vi.mock("@/main/bootstrap/startupLaunch", () => ({
     resolveStartupLaunchPlan: vi.fn(),
 }));
 
+vi.mock("@/main/bootstrap/secondInstanceCommand", () => ({
+    resolveSecondInstanceCommand: vi.fn(),
+    executeSecondInstanceCommand: vi.fn(),
+}));
+
 const createMainWindow = () => ({
     isMinimized: vi.fn(() => false),
     restore: vi.fn(),
@@ -50,6 +59,8 @@ describe("singleInstance", () => {
         vi.clearAllMocks();
         secondInstanceHandler = null;
         openFileHandler = null;
+        vi.mocked(resolveSecondInstanceCommand).mockReturnValue(null);
+        vi.mocked(executeSecondInstanceCommand).mockResolvedValue(undefined);
 
         vi.mocked(app.on).mockImplementation((eventName: string, handler: unknown) => {
             if (eventName === "second-instance") {
@@ -114,6 +125,88 @@ describe("singleInstance", () => {
         expect(windowManager.applyLaunchIntent).toHaveBeenCalledWith(launchIntent);
         expect(windowManager.openFile).toHaveBeenCalledWith("C:/tmp/sample.iot");
         expect(log.warn).toHaveBeenCalledWith("[startup] test warning");
+    });
+
+    it("executes second-instance command and skips startup launch parsing", async () => {
+        const mainWindow = createMainWindow();
+        vi.mocked(resolveSecondInstanceCommand).mockReturnValue({
+            kind: "app-control",
+            command: {
+                kind: "set-opacity",
+                opacity: 0.3,
+            },
+        });
+
+        const windowManager = {
+            getMainWindow: vi.fn(() => mainWindow),
+            applyLaunchIntent: vi.fn(),
+            openFile: vi.fn(),
+        };
+
+        registerSingleInstanceHandlers(windowManager as never);
+        await secondInstanceHandler?.({}, ["node", "index.js", "--set-opacity", "30"]);
+
+        expect(resolveSecondInstanceCommand).toHaveBeenCalledWith(
+            ["node", "index.js", "--set-opacity", "30"],
+            false
+        );
+        expect(executeSecondInstanceCommand).toHaveBeenCalledWith(
+            {
+                kind: "app-control",
+                command: {
+                    kind: "set-opacity",
+                    opacity: 0.3,
+                },
+            },
+            windowManager
+        );
+        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
+    });
+
+    it("shows error dialog when second-instance command args are invalid", async () => {
+        vi.mocked(resolveSecondInstanceCommand).mockImplementation(() => {
+            throw new Error("invalid command option");
+        });
+
+        const windowManager = {
+            getMainWindow: vi.fn(() => createMainWindow()),
+            applyLaunchIntent: vi.fn(),
+            openFile: vi.fn(),
+        };
+
+        registerSingleInstanceHandlers(windowManager as never);
+        await secondInstanceHandler?.({}, ["node", "index.js", "--set-opacity"]);
+
+        expect(dialog.showErrorBox).toHaveBeenCalledWith(
+            "Invalid second-instance command",
+            "invalid command option"
+        );
+        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
+    });
+
+    it("shows error dialog when second-instance command execution fails", async () => {
+        vi.mocked(resolveSecondInstanceCommand).mockReturnValue({
+            kind: "export",
+            outputPath: "C:/tmp/overlay.png",
+        });
+        vi.mocked(executeSecondInstanceCommand).mockRejectedValue(
+            new Error("export failed")
+        );
+
+        const windowManager = {
+            getMainWindow: vi.fn(() => createMainWindow()),
+            applyLaunchIntent: vi.fn(),
+            openFile: vi.fn(),
+        };
+
+        registerSingleInstanceHandlers(windowManager as never);
+        await secondInstanceHandler?.({}, ["node", "index.js", "--export", "overlay.png"]);
+
+        expect(dialog.showErrorBox).toHaveBeenCalledWith(
+            "Second-instance command failed",
+            "export failed"
+        );
+        expect(resolveStartupLaunchPlan).not.toHaveBeenCalled();
     });
 
     it("queues plan handling even when main window is unavailable", async () => {

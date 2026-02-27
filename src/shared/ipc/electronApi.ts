@@ -139,6 +139,9 @@ export interface IElectronAPI {
     onLaunchIntentApply: EventMethod<
         typeof appEventContracts.launchIntentApply
     >;
+    onAppControlCommandApply: EventMethod<
+        typeof appEventContracts.appControlCommandApply
+    >;
     getLicenseInfo: InvokeMethod<typeof licenseIpcContracts.get>;
     getAppVersion: InvokeMethod<typeof licenseIpcContracts.appVersion>;
     captureScreen: InvokeMethod<typeof captureIpcContracts.screen>;
