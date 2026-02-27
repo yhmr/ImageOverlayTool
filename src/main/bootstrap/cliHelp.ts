@@ -1,9 +1,29 @@
 import { isOptionToken, normalizeArgv } from "./cliArgs";
 
 export type HelpTopic = "all" | "startup" | "control" | "examples";
+export type HelpFormat = "text" | "json";
+
+type CliHelpErrorCode = "HELP_UNKNOWN_TOPIC" | "HELP_UNKNOWN_FORMAT";
 
 export interface CliHelpRequest {
     topic: HelpTopic;
+    format: HelpFormat;
+}
+
+export class CliHelpParseError extends Error {
+    readonly code: CliHelpErrorCode;
+    readonly formatHint: HelpFormat;
+
+    constructor(
+        code: CliHelpErrorCode,
+        message: string,
+        options: { formatHint?: HelpFormat } = {}
+    ) {
+        super(message);
+        this.name = "CliHelpParseError";
+        this.code = code;
+        this.formatHint = options.formatHint ?? "text";
+    }
 }
 
 const HELP_FLAGS = new Set(["--help", "-h"]);
@@ -13,15 +33,32 @@ const HELP_TOPICS = new Set<HelpTopic>([
     "control",
     "examples",
 ]);
+const HELP_FORMATS = new Set<HelpFormat>(["text", "json"]);
 
 const normalizeHelpTopic = (value: string): HelpTopic => {
     const topic = value.toLowerCase() as HelpTopic;
     if (!HELP_TOPICS.has(topic)) {
-        throw new Error(
+        throw new CliHelpParseError(
+            "HELP_UNKNOWN_TOPIC",
             `Unknown help topic: ${value}. Use one of: all, startup, control, examples.`
         );
     }
     return topic;
+};
+
+const normalizeHelpFormat = (
+    value: string,
+    formatHint: HelpFormat
+): HelpFormat => {
+    const format = value.toLowerCase() as HelpFormat;
+    if (!HELP_FORMATS.has(format)) {
+        throw new CliHelpParseError(
+            "HELP_UNKNOWN_FORMAT",
+            `Unknown help format: ${value}. Use one of: text, json.`,
+            { formatHint }
+        );
+    }
+    return format;
 };
 
 export const resolveCliHelpRequest = (
@@ -29,28 +66,86 @@ export const resolveCliHelpRequest = (
     isPackaged: boolean
 ): CliHelpRequest | null => {
     const argv = normalizeArgv(commandLine, isPackaged);
+    let topic: HelpTopic = "all";
+    let format: HelpFormat = "text";
+    const hasHelpFlag = argv.some(
+        (token) => HELP_FLAGS.has(token) || token.startsWith("--help=")
+    );
+
+    if (!hasHelpFlag) {
+        return null;
+    }
+
+    for (let index = 0; index < argv.length; index += 1) {
+        const token = argv[index];
+
+        if (token === "--format") {
+            const value = argv[index + 1];
+            if (!value || isOptionToken(value)) {
+                throw new CliHelpParseError(
+                    "HELP_UNKNOWN_FORMAT",
+                    "--format requires a value (text|json).",
+                    { formatHint: format }
+                );
+            }
+            format = normalizeHelpFormat(value, format);
+            index += 1;
+            continue;
+        }
+
+        if (token.startsWith("--format=")) {
+            const [, rawFormat] = token.split("=", 2);
+            if (!rawFormat) {
+                throw new CliHelpParseError(
+                    "HELP_UNKNOWN_FORMAT",
+                    "--format requires a value (text|json).",
+                    { formatHint: format }
+                );
+            }
+            format = normalizeHelpFormat(rawFormat, format);
+        }
+    }
 
     for (let index = 0; index < argv.length; index += 1) {
         const token = argv[index];
 
         if (HELP_FLAGS.has(token)) {
             const maybeTopic = argv[index + 1];
-            if (!maybeTopic || isOptionToken(maybeTopic)) {
-                return { topic: "all" };
+            if (maybeTopic && !isOptionToken(maybeTopic)) {
+                try {
+                    topic = normalizeHelpTopic(maybeTopic);
+                } catch (error) {
+                    if (error instanceof CliHelpParseError) {
+                        throw new CliHelpParseError(error.code, error.message, {
+                            formatHint: format,
+                        });
+                    }
+                    throw error;
+                }
+                index += 1;
             }
-            return { topic: normalizeHelpTopic(maybeTopic) };
+            continue;
         }
 
         if (token.startsWith("--help=")) {
             const [, rawTopic] = token.split("=", 2);
             if (!rawTopic) {
-                return { topic: "all" };
+                continue;
             }
-            return { topic: normalizeHelpTopic(rawTopic) };
+            try {
+                topic = normalizeHelpTopic(rawTopic);
+            } catch (error) {
+                if (error instanceof CliHelpParseError) {
+                    throw new CliHelpParseError(error.code, error.message, {
+                        formatHint: format,
+                    });
+                }
+                throw error;
+            }
         }
     }
 
-    return null;
+    return { topic, format };
 };
 
 const HELP_HEADER = `ImageOverlayTool CLI Help
@@ -59,7 +154,8 @@ Routing rules:
   - Startup options: parsed from primary-instance startup argv.
   - Control commands: sent to an already-running instance via second-instance.
   - If no instance is running, control commands are not accepted as startup options.
-  - Topic help: --help startup | --help control | --help examples`;
+  - Topic help: --help startup | --help control | --help examples
+  - Output format: --format text | --format json`;
 
 const STARTUP_HELP = `Startup options:
   --scene <path>                Load .scene.json at startup (exclusive)
@@ -87,7 +183,18 @@ const EXAMPLES_HELP = `Examples:
   ImageOverlayTool.exe --switch-scene "C:/work/layout-v2.scene.json"
   ImageOverlayTool.exe --export "C:/output/overlay.png"`;
 
-export const renderCliHelp = (topic: HelpTopic): string => {
+interface CliHelpSection {
+    id: Exclude<HelpTopic, "all">;
+    content: string;
+}
+
+const HELP_SECTIONS: CliHelpSection[] = [
+    { id: "startup", content: STARTUP_HELP },
+    { id: "control", content: CONTROL_HELP },
+    { id: "examples", content: EXAMPLES_HELP },
+];
+
+const renderCliHelpText = (topic: HelpTopic): string => {
     if (topic === "startup") {
         return [HELP_HEADER, STARTUP_HELP].join("\n\n");
     }
@@ -100,4 +207,46 @@ export const renderCliHelp = (topic: HelpTopic): string => {
     return [HELP_HEADER, STARTUP_HELP, CONTROL_HELP, EXAMPLES_HELP].join(
         "\n\n"
     );
+};
+
+interface CliHelpJsonPayload {
+    kind: "help";
+    topic: HelpTopic;
+    format: "json";
+    routingRules: string[];
+    sections: Array<{
+        id: CliHelpSection["id"];
+        content: string;
+    }>;
+}
+
+const renderCliHelpJson = (topic: HelpTopic): string => {
+    const sections =
+        topic === "all"
+            ? HELP_SECTIONS
+            : HELP_SECTIONS.filter((section) => section.id === topic);
+
+    const payload: CliHelpJsonPayload = {
+        kind: "help",
+        topic,
+        format: "json",
+        routingRules: [
+            "Startup options: parsed from primary-instance startup argv.",
+            "Control commands: sent to an already-running instance via second-instance.",
+            "If no instance is running, control commands are not accepted as startup options.",
+        ],
+        sections: sections.map((section) => ({
+            id: section.id,
+            content: section.content,
+        })),
+    };
+
+    return JSON.stringify(payload, null, 2);
+};
+
+export const renderCliHelp = (request: CliHelpRequest): string => {
+    if (request.format === "json") {
+        return renderCliHelpJson(request.topic);
+    }
+    return renderCliHelpText(request.topic);
 };

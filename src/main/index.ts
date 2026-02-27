@@ -15,7 +15,11 @@ import {
     registerProcessErrorHandlers,
     registerShutdownHandlers,
 } from "./bootstrap/lifecycle";
-import { renderCliHelp, resolveCliHelpRequest } from "./bootstrap/cliHelp";
+import {
+    CliHelpParseError,
+    renderCliHelp,
+    resolveCliHelpRequest,
+} from "./bootstrap/cliHelp";
 import { initializeRuntimeEnvironment } from "./bootstrap/runtime";
 import {
     acquireSingleInstanceLock,
@@ -46,12 +50,26 @@ try {
     cliHelpRequest = resolveCliHelpRequest(process.argv, app.isPackaged);
 } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`${message}\n`);
+    if (error instanceof CliHelpParseError && error.formatHint === "json") {
+        process.stderr.write(
+            `${JSON.stringify(
+                {
+                    ok: false,
+                    code: error.code,
+                    message,
+                },
+                null,
+                2
+            )}\n`
+        );
+    } else {
+        process.stderr.write(`${message}\n`);
+    }
     process.exit(1);
 }
 
 if (cliHelpRequest) {
-    process.stdout.write(`${renderCliHelp(cliHelpRequest.topic)}\n`);
+    process.stdout.write(`${renderCliHelp(cliHelpRequest)}\n`);
     process.exit(0);
 }
 
