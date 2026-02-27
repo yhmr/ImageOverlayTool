@@ -15,6 +15,7 @@ import {
     registerProcessErrorHandlers,
     registerShutdownHandlers,
 } from "./bootstrap/lifecycle";
+import { renderCliHelp, resolveCliHelpRequest } from "./bootstrap/cliHelp";
 import { initializeRuntimeEnvironment } from "./bootstrap/runtime";
 import {
     acquireSingleInstanceLock,
@@ -39,6 +40,20 @@ import { cleanupClipboardCache } from "./services/clipboardCacheService";
 
 const e2eConfig = resolveE2ERuntimeConfig();
 initializeRuntimeEnvironment(e2eConfig);
+
+let cliHelpRequest: ReturnType<typeof resolveCliHelpRequest> = null;
+try {
+    cliHelpRequest = resolveCliHelpRequest(process.argv, app.isPackaged);
+} catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`${message}\n`);
+    process.exit(1);
+}
+
+if (cliHelpRequest) {
+    process.stdout.write(`${renderCliHelp(cliHelpRequest.topic)}\n`);
+    process.exit(0);
+}
 
 // 永続化レイヤーを先に構築して、以降は依存注入で扱う
 const settingsRepository = SettingsRepositoryFactory.create();
