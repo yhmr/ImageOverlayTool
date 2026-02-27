@@ -176,15 +176,15 @@ const CONTROL_HELP = `Control commands (for already-running instance):
   --export <path.png|path.jpg|path.jpeg>`;
 
 const EXAMPLES_HELP = `Examples:
-  ImageOverlayTool.exe --scene-template v1
-  ImageOverlayTool.exe --validate-scene "C:/work/default.scene.json"
-  ImageOverlayTool.exe --validate-scene "C:/work/default.scene.json" --format json
-  ImageOverlayTool.exe --scene "C:/work/default.scene.json"
-  ImageOverlayTool.exe --images "C:/img/a.png" "C:/img/b.png" --opacity 50
-  ImageOverlayTool.exe --add-image "C:/img/ref.png" --opacity 40
-  ImageOverlayTool.exe --set-opacity 30
-  ImageOverlayTool.exe --switch-scene "C:/work/layout-v2.scene.json"
-  ImageOverlayTool.exe --export "C:/output/overlay.png"`;
+  ImageOverlayTool --scene-template v1
+  ImageOverlayTool --validate-scene "./scenes/default.scene.json"
+  ImageOverlayTool --validate-scene "./scenes/default.scene.json" --format json
+  ImageOverlayTool --scene "./scenes/default.scene.json"
+  ImageOverlayTool --images "./images/a.png" "./images/b.png" --opacity 50
+  ImageOverlayTool --add-image "./images/ref.png" --opacity 40
+  ImageOverlayTool --set-opacity 30
+  ImageOverlayTool --switch-scene "./scenes/layout-v2.scene.json"
+  ImageOverlayTool --export "./output/overlay.png"`;
 
 interface CliHelpSection {
     id: Exclude<HelpTopic, "all">;
