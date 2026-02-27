@@ -3,7 +3,7 @@
  */
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useImagePaste } from "@/renderer/hooks/useImagePaste";
+import { useImagePaste } from "@/renderer/main-window/hooks/useImagePaste";
 
 const { mockUseIpcService, mockUseAppStore, mockPasteImage, mockAddImageSet } =
     vi.hoisted(() => ({

@@ -19,7 +19,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/renderer/components/ui/tooltip";
-import { cn } from "@/renderer/lib/utils";
+import { cn } from "@/renderer/utils/cn";
 import { selectIsUIHidden } from "@/renderer/store/selectors";
 import { useAppStore } from "../../store/useAppStore";
 import type { MainWindowActions } from "../hooks/useMainWindowActions";

@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
     getCacheImageLocalPaths,
     resolveCacheImagePaths,
-} from "@/renderer/services/project/resolveCacheImages";
+} from "@/renderer/main-window/services/project/resolveCacheImages";
 import type { ImageSet } from "@/shared/types/ImageSet";
 
 const createImageSet = (overrides: Partial<ImageSet> = {}): ImageSet => ({

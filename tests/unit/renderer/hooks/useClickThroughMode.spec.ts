@@ -4,7 +4,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useClickThroughMode } from "@/renderer/hooks/useClickThroughMode";
+import { useClickThroughMode } from "@/renderer/main-window/hooks/useClickThroughMode";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 const callbacks = vi.hoisted(() => ({

@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useProjectOperations } from "@/renderer/hooks/useProjectOperations";
+import { useProjectOperations } from "@/renderer/main-window/hooks/useProjectOperations";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 const mockIPC = vi.hoisted(() => ({

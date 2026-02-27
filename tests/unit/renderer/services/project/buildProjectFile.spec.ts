@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { buildProjectFile } from "@/renderer/services/project/buildProjectFile";
+import { buildProjectFile } from "@/renderer/main-window/services/project/buildProjectFile";
 
 describe("buildProjectFile", () => {
     it("builds a project payload from snapshot and injected window state", () => {

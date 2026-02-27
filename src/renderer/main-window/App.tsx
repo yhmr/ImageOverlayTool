@@ -1,15 +1,15 @@
-import React, { useEffect, useLayoutEffect, type ErrorInfo } from "react";
+import React, { type ErrorInfo } from "react";
 import ReactDOM from "react-dom/client";
 
 import "../../i18n/configs"; //i18
 import "../shared/globals.css";
 import "./App.css";
 
-import { useFileHandler } from "../hooks/useFileHandler";
+import { useFileHandler } from "./hooks/useFileHandler";
 import { useImageDrop } from "../hooks/useImageDrop";
 import { useBroadcastProjectData } from "../hooks/useBroadcastProjectData";
 import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
-import { useMainWindowDialogState } from "../hooks/useMainWindowDialogState";
+import { useMainWindowDialogState } from "./hooks/useMainWindowDialogState";
 import { useReceiveProjectData } from "../hooks/useReceiveProjectData";
 import { useRespondProjectDataSyncRequest } from "../hooks/useRespondProjectDataSyncRequest";
 import {
@@ -18,31 +18,22 @@ import {
 } from "../providers/IpcServiceProvider";
 import { useAppStore } from "../store/useAppStore";
 import {
-    selectHasUnsavedChanges,
     selectIsWindowFrameVisible,
-    selectSetWindowColor,
-    selectSetWindowColorPresets,
-    selectSetWindowFrameVisible,
     selectWindowColor,
 } from "../store/selectors";
-import { DEFAULT_SHOW_WINDOW_FRAME } from "../../shared/types/AppConfig";
 import { ImageStage } from "./components/ImageStage";
 import { MenuBar } from "./components/MenuBar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { WindowResizeHandles } from "./components/WindowResizeHandles";
 import { useMainWindowActions } from "./hooks/useMainWindowActions";
 import { ColorPicker } from "./components/ColorPicker";
+import { useGlobalErrorLogging } from "./hooks/useGlobalErrorLogging";
+import { useMainWindowBootstrap } from "./hooks/useMainWindowBootstrap";
 import { useWindowColorPickerController } from "./hooks/useWindowColorPickerController";
 
 const App = () => {
-    // 設定の読み込み
-    const setWindowColor = useAppStore(selectSetWindowColor);
-    const setWindowColorPresets = useAppStore(selectSetWindowColorPresets);
-    const setWindowFrameVisible = useAppStore(selectSetWindowFrameVisible);
     const isWindowFrameVisible = useAppStore(selectIsWindowFrameVisible);
     const windowColor = useAppStore(selectWindowColor);
-    const hasUnsavedChanges = useAppStore(selectHasUnsavedChanges);
-    const ipcService = useIpcService();
     const mainWindowActions = useMainWindowActions();
     const windowColorPicker = useWindowColorPickerController();
     const {
@@ -61,6 +52,8 @@ const App = () => {
     useFileHandler();
     // E2E制御ブリッジ
     useE2EControlBridge();
+    useGlobalErrorLogging();
+    useMainWindowBootstrap();
     // D&D画像読み込み
     const { onDragOver, onDrop } = useImageDrop();
 
@@ -69,64 +62,6 @@ const App = () => {
             windowColorPicker.applyColor(windowColorPicker.presets[index]);
         }
     };
-
-    // グローバルエラーハンドリング
-    useEffect(() => {
-        const onError = (event: ErrorEvent) => {
-            void ipcService.log.error(
-                "Renderer Uncaught Error:",
-                event.error || event.message
-            );
-        };
-
-        const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-            void ipcService.log.error(
-                "Renderer Unhandled Rejection:",
-                event.reason
-            );
-        };
-
-        window.addEventListener("error", onError);
-        window.addEventListener("unhandledrejection", onUnhandledRejection);
-
-        return () => {
-            window.removeEventListener("error", onError);
-            window.removeEventListener(
-                "unhandledrejection",
-                onUnhandledRejection
-            );
-        };
-    }, [ipcService]);
-
-    // 初めの一度のみ描画前にファイルから色を取得
-    useLayoutEffect(() => {
-        // 設定を読み込み
-        const loadColor = async () => {
-            const [color, presets, setting] = await Promise.all([
-                ipcService.loadWindowColor(),
-                ipcService.loadWindowColorPresets(),
-                ipcService.loadSetting(),
-            ]);
-            setWindowColor(color);
-            setWindowColorPresets(presets);
-            setWindowFrameVisible(
-                setting.showWindowFrame ?? DEFAULT_SHOW_WINDOW_FRAME
-            );
-            // 初期設定による変更なので履歴をクリアする
-            useAppStore.temporal.getState().clear();
-            useAppStore.getState().markProjectSaved();
-        };
-        void loadColor();
-    }, [
-        setWindowColor,
-        setWindowColorPresets,
-        setWindowFrameVisible,
-        ipcService,
-    ]);
-
-    useEffect(() => {
-        void ipcService.updateProjectDirty(hasUnsavedChanges);
-    }, [hasUnsavedChanges, ipcService]);
 
     return (
         <div

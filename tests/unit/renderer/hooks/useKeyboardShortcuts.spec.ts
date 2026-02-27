@@ -4,7 +4,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createImageSet } from "@/renderer/factories/imageSetFactory";
-import { useKeyboardShortcuts } from "@/renderer/hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts } from "@/renderer/main-window/hooks/useKeyboardShortcuts";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 const dispatchKey = (

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
-import { useWindowOperations } from "@/renderer/hooks/useWindowOperations";
+import { useWindowOperations } from "@/renderer/main-window/hooks/useWindowOperations";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setIPCService } from "@/renderer/services/ipcService";
 

@@ -22,7 +22,7 @@ import {
     createResetImageSet,
     resetImageSetTransformation,
     resolveRelinkInitAnchorPos,
-} from "../utils/imageListItemHelpers";
+} from "../utils/imageListItemUtils";
 
 interface UseImageListItemActionsParams {
     imageSet: ImageSet;

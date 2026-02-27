@@ -7,7 +7,7 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { RefObject } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useDimensionLineMode } from "@/renderer/hooks/useDimensionLineMode";
+import { useDimensionLineMode } from "@/renderer/main-window/hooks/useDimensionLineMode";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 type StagePoint = { x: number; y: number };

@@ -4,7 +4,7 @@ import type Konva from "konva";
 import type { RefObject } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useImageAnchor } from "@/renderer/hooks/useImageAnchor";
+import { useImageAnchor } from "@/renderer/main-window/hooks/useImageAnchor";
 import type { ImageSet } from "@/shared/types/ImageSet";
 
 const createImageSet = (overrides: Partial<ImageSet> = {}): ImageSet => ({

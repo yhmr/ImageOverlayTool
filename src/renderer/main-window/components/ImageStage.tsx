@@ -17,13 +17,13 @@ import { DrawImage } from "./DrawImage";
 import { ControlButton } from "./ControlButton";
 import { OverlayControls } from "./OverlayControls";
 import { DimensionLineLayer } from "./DimensionLineLayer";
-import { ImageExportDialog } from "../../dialogs/export/ImageExportDialog";
+import { ImageExportDialog } from "../dialogs/export/ImageExportDialog";
 import { bindStageDragEndDisable } from "./imageStageDragEnd";
 
-import { useStageControls } from "../../hooks/useStageControls";
-import { useDimensionLineMode } from "../../hooks/useDimensionLineMode";
-import { useImageSelection } from "../../hooks/useImageSelection";
-import { useClickThroughMode } from "../../hooks/useClickThroughMode";
+import { useStageControls } from "../hooks/useStageControls";
+import { useDimensionLineMode } from "../hooks/useDimensionLineMode";
+import { useImageSelection } from "../hooks/useImageSelection";
+import { useClickThroughMode } from "../hooks/useClickThroughMode";
 import { useStageExport } from "../hooks/useStageExport";
 import { useImageInitialization } from "../hooks/useImageInitialization";
 import { useStagePointerHandlers } from "../hooks/useStagePointerHandlers";

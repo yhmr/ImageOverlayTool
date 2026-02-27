@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useImageSelection } from "@/renderer/hooks/useImageSelection";
+import { useImageSelection } from "@/renderer/main-window/hooks/useImageSelection";
 import { useAppStore } from "@/renderer/store/useAppStore";
 import { setIPCService } from "@/renderer/services/ipcService";
 

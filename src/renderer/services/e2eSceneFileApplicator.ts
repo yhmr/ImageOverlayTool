@@ -1,7 +1,7 @@
 import type { E2EResolvedSceneFile } from "../../shared/types/E2EControl";
 import { runAsSystemMutation } from "../store/temporalHistory";
 import { useAppStore } from "../store/useAppStore";
-import { applyResolvedSceneFile } from "./sceneFileApplicator";
+import { applyResolvedSceneFile } from "../main-window/services/sceneFileApplicator";
 
 const applySceneExtensions = (scene: E2EResolvedSceneFile): void => {
     runAsSystemMutation(

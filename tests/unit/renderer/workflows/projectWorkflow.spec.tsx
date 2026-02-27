@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 
 import { useCapture } from "@/renderer/hooks/useCapture";
-import { useProjectOperations } from "@/renderer/hooks/useProjectOperations";
+import { useProjectOperations } from "@/renderer/main-window/hooks/useProjectOperations";
 import { useBroadcastProjectData } from "@/renderer/hooks/useBroadcastProjectData";
 import { useAppStore } from "@/renderer/store/useAppStore";
 

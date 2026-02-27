@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useDimensionKeyboard } from "@/renderer/hooks/useDimensionKeyboard";
+import { useDimensionKeyboard } from "@/renderer/main-window/hooks/useDimensionKeyboard";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 // Mock IPCService

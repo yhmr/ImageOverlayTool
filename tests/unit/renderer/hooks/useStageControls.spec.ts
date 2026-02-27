@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
 import type Konva from "konva";
-import { useStageControls } from "@/renderer/hooks/useStageControls";
+import { useStageControls } from "@/renderer/main-window/hooks/useStageControls";
 import { describe, it, expect, vi, afterEach } from "vitest";
 
 describe("useStageControls", () => {

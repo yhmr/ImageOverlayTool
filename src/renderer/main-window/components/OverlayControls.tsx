@@ -3,7 +3,7 @@ import Konva from "konva";
 import { Circle, Line } from "react-konva";
 import type { ImageSet } from "../../../shared/types/ImageSet";
 import type { AnchorPos } from "../../../shared/types/AnchorPos";
-import { useImageAnchor } from "../../hooks/useImageAnchor";
+import { useImageAnchor } from "../hooks/useImageAnchor";
 import { rotateAnchorPos } from "../../utils/anchorUtils";
 import {
     ANCHOR_RADIUS,

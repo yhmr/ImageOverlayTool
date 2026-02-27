@@ -4,7 +4,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useFileHandler } from "@/renderer/hooks/useFileHandler";
+import { useFileHandler } from "@/renderer/main-window/hooks/useFileHandler";
 import {
     resetIPCService,
     setIPCService,

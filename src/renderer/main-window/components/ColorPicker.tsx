@@ -171,6 +171,7 @@ export function ColorPicker(props: ColorPickerProps) {
                                                 setHoveredPresetIndex(null);
                                             }}
                                             title="Remove"
+                                            data-testid={`main.color-picker.action.remove-preset.${index}`}
                                         >
                                             <X size={10} />
                                         </button>

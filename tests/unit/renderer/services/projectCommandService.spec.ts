@@ -3,7 +3,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createProjectCommandService } from "@/renderer/services/projectCommandService";
+import { createProjectCommandService } from "@/renderer/main-window/services/projectCommandService";
 import * as imageSetFactory from "@/renderer/factories/imageSetFactory";
 import type { IIPCService } from "@/renderer/services/ipcService";
 import type { ProjectFile } from "@/shared/types/ProjectFile";

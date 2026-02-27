@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 
-import { useFitToScreen } from "@/renderer/hooks/useFitToScreen";
+import { useFitToScreen } from "@/renderer/main-window/hooks/useFitToScreen";
 import { useAppStore } from "@/renderer/store/useAppStore";
 
 const mockCalculateFitCanvasState = vi.hoisted(() => vi.fn());

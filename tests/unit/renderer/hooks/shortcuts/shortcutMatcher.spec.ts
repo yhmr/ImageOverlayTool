@@ -7,7 +7,7 @@ import {
     getPresetColorIndex,
     matchesPresetColorShortcut,
     matchesShortcut,
-} from "@/renderer/hooks/shortcuts/shortcutMatcher";
+} from "@/renderer/main-window/hooks/shortcuts/shortcutMatcher";
 
 const createKeyboardEvent = (init: KeyboardEventInit): KeyboardEvent =>
     new KeyboardEvent("keydown", { bubbles: true, ...init });

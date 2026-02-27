@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { renderHook, act } from "@testing-library/react";
-import { useMainWindowDialogState } from "@/renderer/hooks/useMainWindowDialogState";
+import { useMainWindowDialogState } from "@/renderer/main-window/hooks/useMainWindowDialogState";
 import { describe, it, expect } from "vitest";
 
 describe("useMainWindowDialogState", () => {
