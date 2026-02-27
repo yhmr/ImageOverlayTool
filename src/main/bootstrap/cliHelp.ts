@@ -177,6 +177,8 @@ const CONTROL_HELP = `Control commands (for already-running instance):
 
 const EXAMPLES_HELP = `Examples:
   ImageOverlayTool.exe --scene-template v1
+  ImageOverlayTool.exe --validate-scene "C:/work/default.scene.json"
+  ImageOverlayTool.exe --validate-scene "C:/work/default.scene.json" --format json
   ImageOverlayTool.exe --scene "C:/work/default.scene.json"
   ImageOverlayTool.exe --images "C:/img/a.png" "C:/img/b.png" --opacity 50
   ImageOverlayTool.exe --add-image "C:/img/ref.png" --opacity 40

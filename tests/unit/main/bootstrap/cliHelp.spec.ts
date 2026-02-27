@@ -111,6 +111,7 @@ describe("cliHelp", () => {
         expect(text).toContain("Control commands");
         expect(text).toContain("Examples:");
         expect(text).toContain("--scene-template v1");
+        expect(text).toContain("--validate-scene");
     });
 
     it("renders json help payload", () => {

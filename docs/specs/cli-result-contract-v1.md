@@ -43,5 +43,13 @@ CLI の実行結果とプロセス終了コードについて、安定した機�
   - `--help`（text）: 後方互換のテキスト出力
   - `--help --format json`: 上記規約で `data` に help ペイロードを格納して返す
   - JSON フォーマット指定時のパース失敗: 規約形式のエラー JSON を `stderr` に返す
+- `scene-template` コマンド:
+  - `--scene-template v1`（text）: Scene テンプレート JSON を直接出力
+  - `--scene-template v1 --format json`: 規約形式で `data` にテンプレートを格納して返す
+  - パース失敗: JSON 指定時は規約形式のエラー JSON を `stderr` に返す
+- `validate-scene` コマンド:
+  - `--validate-scene <path>`（text）: 成功/失敗をテキストで返す
+  - `--validate-scene <path> --format json`: 規約形式で `warnings` と `data`（件数など）を返す
+  - 検証失敗: 規約形式のエラー JSON を `stderr` に返し、終了コード `3`
 
-その他のコマンド系（`startup`、`control`、`scene-template`、`validate-scene`）への適用は後続 Issue で行う。
+その他のコマンド系（`startup`、`control`）への全面適用は後続 Issue で行う。

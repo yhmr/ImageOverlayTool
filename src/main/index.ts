@@ -28,6 +28,12 @@ import {
     resolveCliSceneTemplateRequest,
 } from "./bootstrap/cliSceneTemplate";
 import {
+    CliValidateSceneParseError,
+    renderSceneValidationText,
+    resolveCliValidateSceneRequest,
+    validateSceneFromPath,
+} from "./bootstrap/cliValidateScene";
+import {
     CLI_EXIT_CODES,
     createCliErrorResult,
     createCliSuccessResult,
@@ -61,12 +67,22 @@ initializeRuntimeEnvironment(e2eConfig);
 let cliHelpRequest: ReturnType<typeof resolveCliHelpRequest> = null;
 let cliSceneTemplateRequest: ReturnType<typeof resolveCliSceneTemplateRequest> =
     null;
+let cliValidateSceneRequest: ReturnType<typeof resolveCliValidateSceneRequest> =
+    null;
 try {
     cliHelpRequest = resolveCliHelpRequest(process.argv, app.isPackaged);
-    cliSceneTemplateRequest = resolveCliSceneTemplateRequest(
-        process.argv,
-        app.isPackaged
-    );
+    if (!cliHelpRequest) {
+        cliSceneTemplateRequest = resolveCliSceneTemplateRequest(
+            process.argv,
+            app.isPackaged
+        );
+    }
+    if (!cliHelpRequest && !cliSceneTemplateRequest) {
+        cliValidateSceneRequest = resolveCliValidateSceneRequest(
+            process.argv,
+            app.isPackaged
+        );
+    }
 } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (error instanceof CliHelpParseError && error.formatHint === "json") {
@@ -83,6 +99,21 @@ try {
         );
     } else if (
         error instanceof CliSceneTemplateParseError &&
+        error.formatHint === "json"
+    ) {
+        process.stderr.write(
+            `${stringifyCliJsonResult(
+                createCliErrorResult({
+                    code: "CLI_INVALID_ARGUMENT",
+                    message,
+                    data: {
+                        reasonCode: error.code,
+                    },
+                })
+            )}\n`
+        );
+    } else if (
+        error instanceof CliValidateSceneParseError &&
         error.formatHint === "json"
     ) {
         process.stderr.write(
@@ -136,6 +167,53 @@ if (cliSceneTemplateRequest) {
         );
     }
     process.exit(CLI_EXIT_CODES.SUCCESS);
+}
+
+if (cliValidateSceneRequest) {
+    try {
+        const result = validateSceneFromPath(cliValidateSceneRequest.scenePath);
+        if (cliValidateSceneRequest.format === "json") {
+            process.stdout.write(
+                `${stringifyCliJsonResult(
+                    createCliSuccessResult({
+                        code: "CLI_SCENE_VALIDATION_OK",
+                        message: "Scene validation succeeded.",
+                        warnings: result.warnings,
+                        data: {
+                            scenePath: result.scenePath,
+                            version: result.resolvedScene.version,
+                            imageCount: result.resolvedScene.images.length,
+                            dimensionLineCount:
+                                result.resolvedScene.dimensionLines?.length ??
+                                0,
+                        },
+                    })
+                )}\n`
+            );
+        } else {
+            process.stdout.write(`${renderSceneValidationText(result)}\n`);
+        }
+        process.exit(CLI_EXIT_CODES.SUCCESS);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (cliValidateSceneRequest.format === "json") {
+            process.stderr.write(
+                `${stringifyCliJsonResult(
+                    createCliErrorResult({
+                        code: "CLI_SCENE_VALIDATION_FAILED",
+                        message,
+                        data: {
+                            scenePath: cliValidateSceneRequest.scenePath,
+                            errors: [{ message }],
+                        },
+                    })
+                )}\n`
+            );
+        } else {
+            process.stderr.write(`Scene validation failed: ${message}\n`);
+        }
+        process.exit(CLI_EXIT_CODES.VALIDATION_FAILED);
+    }
 }
 
 // 永続化レイヤーを先に構築して、以降は依存注入で扱う
