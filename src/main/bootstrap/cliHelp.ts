@@ -209,7 +209,7 @@ const renderCliHelpText = (topic: HelpTopic): string => {
     );
 };
 
-interface CliHelpJsonPayload {
+export interface CliHelpJsonPayload {
     kind: "help";
     topic: HelpTopic;
     format: "json";
@@ -220,13 +220,13 @@ interface CliHelpJsonPayload {
     }>;
 }
 
-const renderCliHelpJson = (topic: HelpTopic): string => {
+export const buildCliHelpPayload = (topic: HelpTopic): CliHelpJsonPayload => {
     const sections =
         topic === "all"
             ? HELP_SECTIONS
             : HELP_SECTIONS.filter((section) => section.id === topic);
 
-    const payload: CliHelpJsonPayload = {
+    return {
         kind: "help",
         topic,
         format: "json",
@@ -240,6 +240,10 @@ const renderCliHelpJson = (topic: HelpTopic): string => {
             content: section.content,
         })),
     };
+};
+
+const renderCliHelpJson = (topic: HelpTopic): string => {
+    const payload = buildCliHelpPayload(topic);
 
     return JSON.stringify(payload, null, 2);
 };

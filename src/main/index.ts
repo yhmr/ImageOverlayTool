@@ -16,10 +16,17 @@ import {
     registerShutdownHandlers,
 } from "./bootstrap/lifecycle";
 import {
+    buildCliHelpPayload,
     CliHelpParseError,
     renderCliHelp,
     resolveCliHelpRequest,
 } from "./bootstrap/cliHelp";
+import {
+    CLI_EXIT_CODES,
+    createCliErrorResult,
+    createCliSuccessResult,
+    stringifyCliJsonResult,
+} from "./bootstrap/cliResult";
 import { initializeRuntimeEnvironment } from "./bootstrap/runtime";
 import {
     acquireSingleInstanceLock,
@@ -52,25 +59,37 @@ try {
     const message = error instanceof Error ? error.message : String(error);
     if (error instanceof CliHelpParseError && error.formatHint === "json") {
         process.stderr.write(
-            `${JSON.stringify(
-                {
-                    ok: false,
-                    code: error.code,
+            `${stringifyCliJsonResult(
+                createCliErrorResult({
+                    code: "CLI_INVALID_ARGUMENT",
                     message,
-                },
-                null,
-                2
+                    data: {
+                        reasonCode: error.code,
+                    },
+                })
             )}\n`
         );
     } else {
         process.stderr.write(`${message}\n`);
     }
-    process.exit(1);
+    process.exit(CLI_EXIT_CODES.INVALID_ARGUMENT);
 }
 
 if (cliHelpRequest) {
-    process.stdout.write(`${renderCliHelp(cliHelpRequest)}\n`);
-    process.exit(0);
+    if (cliHelpRequest.format === "json") {
+        process.stdout.write(
+            `${stringifyCliJsonResult(
+                createCliSuccessResult({
+                    code: "CLI_HELP",
+                    message: "CLI help output.",
+                    data: buildCliHelpPayload(cliHelpRequest.topic),
+                })
+            )}\n`
+        );
+    } else {
+        process.stdout.write(`${renderCliHelp(cliHelpRequest)}\n`);
+    }
+    process.exit(CLI_EXIT_CODES.SUCCESS);
 }
 
 // 永続化レイヤーを先に構築して、以降は依存注入で扱う
