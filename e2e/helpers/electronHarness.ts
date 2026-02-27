@@ -44,6 +44,14 @@ type FixtureAppConfig = {
     imageSettingsWindow?: WindowLayoutConfig;
 };
 
+type PngArtifactMetadata = {
+    exists: boolean;
+    fileSize: number;
+    width: number;
+    height: number;
+    isValidPng: boolean;
+};
+
 const assertBuildOutput = (): void => {
     if (!fs.existsSync(OUT_MAIN_PATH)) {
         throw new Error(
@@ -330,6 +338,56 @@ export const applyFixtureScene = async (
             );
         }
     }, { scenePath, ...options });
+};
+
+const PNG_SIGNATURE = Buffer.from([
+    0x89,
+    0x50,
+    0x4e,
+    0x47,
+    0x0d,
+    0x0a,
+    0x1a,
+    0x0a,
+]);
+const PNG_IHDR_MIN_LENGTH = 24;
+
+export const readPngArtifactMetadata = (filePath: string): PngArtifactMetadata => {
+    if (!fs.existsSync(filePath)) {
+        return {
+            exists: false,
+            fileSize: 0,
+            width: 0,
+            height: 0,
+            isValidPng: false,
+        };
+    }
+
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
+    if (fileSize < PNG_IHDR_MIN_LENGTH) {
+        return {
+            exists: true,
+            fileSize,
+            width: 0,
+            height: 0,
+            isValidPng: false,
+        };
+    }
+
+    const buffer = fs.readFileSync(filePath);
+    const signature = buffer.subarray(0, PNG_SIGNATURE.length);
+    const hasValidSignature = signature.equals(PNG_SIGNATURE);
+    const width = buffer.readUInt32BE(16);
+    const height = buffer.readUInt32BE(20);
+
+    return {
+        exists: true,
+        fileSize,
+        width,
+        height,
+        isValidPng: hasValidSignature && width > 0 && height > 0,
+    };
 };
 
 const ensureMenuOpened = async (page: Page): Promise<void> => {

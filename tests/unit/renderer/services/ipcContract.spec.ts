@@ -18,7 +18,6 @@ describe("ipc contract", () => {
         expectTypeOf<IElectronAPI["materializeCacheImages"]>().parameters.toEqualTypeOf<
             [payload: MaterializeCacheImagesPayload]
         >();
-        expect(true).toBe(true);
     });
 
     it("keeps passthrough IPC method signatures aligned", () => {
@@ -90,8 +89,6 @@ describe("ipc contract", () => {
         expectTypeOf<IIPCService["log"]["export"]>().toEqualTypeOf<
             IElectronAPI["log"]["export"]
         >();
-
-        expect(true).toBe(true);
     });
 
     it("keeps renderer IPC ergonomic adapters", () => {
@@ -102,7 +99,5 @@ describe("ipc contract", () => {
         expectTypeOf<IIPCService["materializeCacheImages"]>().parameters.toEqualTypeOf<
             [projectFilePath: string, cacheImagePaths: string[]]
         >();
-
-        expect(true).toBe(true);
     });
 });

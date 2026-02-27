@@ -34,9 +34,13 @@ describe("cliErrorHandler", () => {
     });
 
     it("writes json invalid-argument payload when parse error has json format hint", () => {
+        let stderrOutput = "";
         const stderrSpy = vi
             .spyOn(process.stderr, "write")
-            .mockImplementation(() => true);
+            .mockImplementation((chunk) => {
+                stderrOutput += String(chunk);
+                return true;
+            });
 
         writeCliInvalidArgumentError({
             message: "Unknown help topic",
@@ -45,8 +49,7 @@ describe("cliErrorHandler", () => {
         });
 
         expect(stderrSpy).toHaveBeenCalledTimes(1);
-        const output = String(stderrSpy.mock.calls[0]?.[0] ?? "");
-        const parsed = JSON.parse(output) as {
+        const parsed = JSON.parse(stderrOutput) as {
             ok: boolean;
             code: string;
             message: string;
@@ -72,9 +75,13 @@ describe("cliErrorHandler", () => {
     });
 
     it("writes json scene-validation error payload", () => {
+        let stderrOutput = "";
         const stderrSpy = vi
             .spyOn(process.stderr, "write")
-            .mockImplementation(() => true);
+            .mockImplementation((chunk) => {
+                stderrOutput += String(chunk);
+                return true;
+            });
 
         writeCliSceneValidationError(
             "C:/tmp/sample.scene.json",
@@ -82,8 +89,7 @@ describe("cliErrorHandler", () => {
             new Error("Scene image file not found")
         );
 
-        const output = String(stderrSpy.mock.calls[0]?.[0] ?? "");
-        const parsed = JSON.parse(output) as {
+        const parsed = JSON.parse(stderrOutput) as {
             code: string;
             data: { scenePath: string; errors: Array<{ message: string }> };
         };

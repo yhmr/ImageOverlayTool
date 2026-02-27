@@ -202,7 +202,9 @@ describe("useFileHandler", () => {
             })
         );
         expect(alertMock).toHaveBeenCalledTimes(1);
-        expect(alertMock.mock.calls[0][0]).toContain("Invalid scene file");
+        expect(alertMock).toHaveBeenCalledWith(
+            expect.stringContaining("Invalid scene file")
+        );
         expect(useAppStore.getState().imageSets[0].path).toBe(
             toLocalFileUrl(beforeImagePath)
         );

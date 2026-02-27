@@ -1,4 +1,3 @@
-import fs from "fs";
 import { test, expect, Page } from "@playwright/test";
 import {
     applyFixtureScene,
@@ -6,6 +5,7 @@ import {
     E2E_CAPTURE_PATH,
     E2E_EXPORT_PATH,
     launchE2EApp,
+    readPngArtifactMetadata,
 } from "./helpers/electronHarness";
 
 const isFabMenuOpen = async (page: Page): Promise<boolean> => {
@@ -66,7 +66,10 @@ test("export dialog saves direct export artifact", async () => {
         await page.getByTestId("main.fab.export").click({ force: true });
         await expect(page.getByTestId("main.export.save")).toBeVisible();
         await page.getByTestId("main.export.save").click();
-        await expect.poll(() => fs.existsSync(E2E_EXPORT_PATH)).toBe(true);
+        await expect.poll(() => readPngArtifactMetadata(E2E_EXPORT_PATH)).toMatchObject({
+            exists: true,
+            isValidPng: true,
+        });
     } finally {
         await app.close();
     }
@@ -84,7 +87,10 @@ test("export dialog with include-background saves capture artifact", async () =>
             force: true,
         });
         await page.getByTestId("main.export.save").click();
-        await expect.poll(() => fs.existsSync(E2E_CAPTURE_PATH)).toBe(true);
+        await expect.poll(() => readPngArtifactMetadata(E2E_CAPTURE_PATH)).toMatchObject({
+            exists: true,
+            isValidPng: true,
+        });
     } finally {
         await app.close();
     }
