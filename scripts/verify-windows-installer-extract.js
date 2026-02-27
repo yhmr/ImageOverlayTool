@@ -7,6 +7,8 @@ const ROOT_DIR = path.resolve(__dirname, "..");
 const RELEASE_DIR = path.join(ROOT_DIR, "release");
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, "package.json");
 const INSTALLER_PATTERN = /^ImageOverlayTool-(.+)-installer-(x64|arm64)\.exe$/i;
+const POWERSHELL_EXE = "pwsh";
+const RETRYABLE_FS_ERROR_CODES = new Set(["EBUSY", "EPERM", "ENOTEMPTY"]);
 
 const getArgValue = (flag) => {
     const index = process.argv.indexOf(flag);
@@ -82,6 +84,96 @@ const runSilentInstall = (installerPath, installDir) => {
     }
 };
 
+const runSilentUninstall = (uninstallerPath) => {
+    const result = childProcess.spawnSync(uninstallerPath, ["/S"], {
+        encoding: "utf8",
+        timeout: 120000,
+        windowsHide: true,
+        stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    if (result.error) {
+        throw new Error(
+            `Failed to execute uninstaller '${path.basename(uninstallerPath)}': ${result.error.message}`
+        );
+    }
+
+    if (typeof result.status === "number" && result.status !== 0) {
+        const stdout = result.stdout ? String(result.stdout).trim() : "";
+        const stderr = result.stderr ? String(result.stderr).trim() : "";
+        const details = [stderr, stdout].filter(Boolean).join("\n");
+        throw new Error(
+            `Uninstaller exited with code ${result.status}: ${path.basename(uninstallerPath)}${details ? `\n${details}` : ""}`
+        );
+    }
+};
+
+const cleanupUninstallRegistryEntries = (installDir) => {
+    const escapedInstallDir = installDir.replace(/'/g, "''");
+    const script = [
+        `$dir='${escapedInstallDir}'`,
+        "$items = Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*' -ErrorAction SilentlyContinue",
+        "$matched = $items | Where-Object { $_.UninstallString -and $_.UninstallString -like ('*' + $dir + '*') }",
+        "foreach ($item in $matched) { Remove-Item $item.PSPath -Recurse -Force -ErrorAction SilentlyContinue }",
+    ].join("; ");
+
+    const result = childProcess.spawnSync(
+        POWERSHELL_EXE,
+        ["-NoProfile", "-Command", script],
+        {
+            encoding: "utf8",
+            timeout: 120000,
+            windowsHide: true,
+            stdio: ["ignore", "pipe", "pipe"],
+        }
+    );
+
+    if (result.error) {
+        throw new Error(
+            `Failed to clean uninstall registry entries for '${installDir}': ${result.error.message}`
+        );
+    }
+
+    if (typeof result.status === "number" && result.status !== 0) {
+        const stdout = result.stdout ? String(result.stdout).trim() : "";
+        const stderr = result.stderr ? String(result.stderr).trim() : "";
+        const details = [stderr, stdout].filter(Boolean).join("\n");
+        throw new Error(
+            `Registry cleanup failed for '${installDir}'${details ? `\n${details}` : ""}`
+        );
+    }
+};
+
+const sleepSync = (ms) => {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+};
+
+const removeDirectoryWithRetry = (targetDir) => {
+    const maxRetries = 40;
+    const retryIntervalMs = 250;
+    for (let i = 0; i < maxRetries; i += 1) {
+        try {
+            if (!fs.existsSync(targetDir)) {
+                return;
+            }
+            fs.rmSync(targetDir, { recursive: true, force: true });
+            if (!fs.existsSync(targetDir)) {
+                return;
+            }
+        } catch (error) {
+            const code =
+                error && typeof error === "object" && "code" in error
+                    ? String(error.code)
+                    : "";
+            if (!RETRYABLE_FS_ERROR_CODES.has(code)) {
+                throw error;
+            }
+        }
+        sleepSync(retryIntervalMs);
+    }
+    throw new Error(`Failed to remove directory after retries: ${targetDir}`);
+};
+
 const verifyInstalledLayout = (installDir, arch, failures) => {
     const exePath = path.join(installDir, "ImageOverlayTool.exe");
     const uninstallerPath = path.join(installDir, "Uninstall ImageOverlayTool.exe");
@@ -123,7 +215,41 @@ const verifyInstaller = (installer, failures) => {
                 : String(error);
         failures.push(`${installer.arch}: ${message}`);
     } finally {
-        fs.rmSync(sandboxRoot, { recursive: true, force: true });
+        const uninstallerPath = path.join(
+            installDir,
+            "Uninstall ImageOverlayTool.exe"
+        );
+        if (fs.existsSync(uninstallerPath)) {
+            try {
+                runSilentUninstall(uninstallerPath);
+            } catch (error) {
+                const message =
+                    error instanceof Error && error.message
+                        ? error.message
+                        : String(error);
+                failures.push(`${installer.arch}: cleanup failed (${message})`);
+            }
+        }
+
+        try {
+            cleanupUninstallRegistryEntries(installDir);
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message
+                    ? error.message
+                    : String(error);
+            failures.push(`${installer.arch}: cleanup failed (${message})`);
+        }
+
+        try {
+            removeDirectoryWithRetry(sandboxRoot);
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message
+                    ? error.message
+                    : String(error);
+            failures.push(`${installer.arch}: cleanup failed (${message})`);
+        }
     }
 };
 
