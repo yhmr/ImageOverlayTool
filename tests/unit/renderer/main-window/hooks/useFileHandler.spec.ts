@@ -10,6 +10,7 @@ import {
     setIPCService,
 } from "@/renderer/services/ipcService";
 import { useAppStore } from "@/renderer/store/useAppStore";
+import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 import { toLocalFileUrl } from "@/shared/utils/localFileUrl";
 import { MockIPCService } from "../../../support/mocks/MockIPCService";
 
@@ -20,7 +21,10 @@ const flushAsync = (): Promise<void> =>
 
 describe("useFileHandler", () => {
     let mockService: MockIPCService;
-    let fileOpenCallback: ((filePath: string, ext: string) => void) | null;
+    let fileOpenCallback:
+        | ((payload: { filePath: string; ext: string }) => void)
+        | null;
+    let launchIntentCallback: ((launchIntent: LaunchIntent) => void) | null;
     let alertMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -33,10 +37,17 @@ describe("useFileHandler", () => {
 
         mockService = new MockIPCService();
         fileOpenCallback = null;
+        launchIntentCallback = null;
         mockService.onFileOpen = vi.fn((callback) => {
             fileOpenCallback = callback;
             return () => {
                 fileOpenCallback = null;
+            };
+        });
+        mockService.onLaunchIntentApply = vi.fn((callback) => {
+            launchIntentCallback = callback;
+            return () => {
+                launchIntentCallback = null;
             };
         });
         mockService.loadSceneFromPath = vi.fn();
@@ -85,7 +96,10 @@ describe("useFileHandler", () => {
         expect(fileOpenCallback).toBeTypeOf("function");
 
         await act(async () => {
-            fileOpenCallback?.("C:/tmp/default.scene.json", ".json");
+            fileOpenCallback?.({
+                filePath: "C:/tmp/default.scene.json",
+                ext: ".json",
+            });
             await flushAsync();
         });
 
@@ -136,7 +150,10 @@ describe("useFileHandler", () => {
         expect(fileOpenCallback).toBeTypeOf("function");
 
         await act(async () => {
-            fileOpenCallback?.("C:/tmp/click-through.scene.json", ".json");
+            fileOpenCallback?.({
+                filePath: "C:/tmp/click-through.scene.json",
+                ext: ".json",
+            });
             await flushAsync();
         });
 
@@ -159,7 +176,10 @@ describe("useFileHandler", () => {
         expect(fileOpenCallback).toBeTypeOf("function");
 
         await act(async () => {
-            fileOpenCallback?.("C:/tmp/invalid.scene.json", ".json");
+            fileOpenCallback?.({
+                filePath: "C:/tmp/invalid.scene.json",
+                ext: ".json",
+            });
             await flushAsync();
         });
 
@@ -182,7 +202,10 @@ describe("useFileHandler", () => {
         expect(fileOpenCallback).toBeTypeOf("function");
 
         await act(async () => {
-            fileOpenCallback?.("C:/tmp/sample.iot", ".iot");
+            fileOpenCallback?.({
+                filePath: "C:/tmp/sample.iot",
+                ext: ".iot",
+            });
             await flushAsync();
         });
 
@@ -190,5 +213,32 @@ describe("useFileHandler", () => {
             "C:/tmp/sample.iot"
         );
         expect(mockService.loadSceneFromPath).not.toHaveBeenCalled();
+    });
+
+    it("applies launch intent received via IPC", async () => {
+        renderHook(() => useFileHandler());
+        expect(launchIntentCallback).toBeTypeOf("function");
+
+        await act(async () => {
+            launchIntentCallback?.({
+                window: {
+                    alwaysOnTop: true,
+                    clickThrough: true,
+                },
+                images: [
+                    {
+                        path: "C:/tmp/launch-image.png",
+                    },
+                ],
+            });
+            await flushAsync();
+        });
+
+        const state = useAppStore.getState();
+        expect(state.isAlwaysOnTopMode).toBe(true);
+        expect(state.isClickThroughMode).toBe(true);
+        expect(state.imageSets[0].path).toBe(
+            toLocalFileUrl("C:/tmp/launch-image.png")
+        );
     });
 });

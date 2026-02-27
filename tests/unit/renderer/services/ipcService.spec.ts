@@ -108,6 +108,7 @@ describe("ipcService", () => {
             const unsubAlwaysOnTop = vi.fn();
             const unsubClickThrough = vi.fn();
             const unsubFileOpen = vi.fn();
+            const unsubLaunchIntentApply = vi.fn();
             const unsubSelectedImageId = vi.fn();
             const unsubSelectedDimensionLineId = vi.fn();
             const unsubLanguage = vi.fn();
@@ -187,6 +188,9 @@ describe("ipcService", () => {
                     .fn()
                     .mockReturnValue(unsubClickThrough),
                 onFileOpen: vi.fn().mockReturnValue(unsubFileOpen),
+                onLaunchIntentApply: vi
+                    .fn()
+                    .mockReturnValue(unsubLaunchIntentApply),
                 getLicenseInfo: vi.fn().mockResolvedValue([
                     {
                         name: "dep",
@@ -249,6 +253,7 @@ describe("ipcService", () => {
                     unsubAlwaysOnTop,
                     unsubClickThrough,
                     unsubFileOpen,
+                    unsubLaunchIntentApply,
                     unsubSelectedImageId,
                     unsubSelectedDimensionLineId,
                     unsubLanguage,
@@ -444,6 +449,7 @@ describe("ipcService", () => {
             const onAlwaysOnTopShortcutTriggered = vi.fn();
             const onClickThroughShortcutTriggered = vi.fn();
             const onFileOpen = vi.fn();
+            const onLaunchIntentApply = vi.fn();
             const onSelectedImageIdUpdated = vi.fn();
             const onSelectedDimensionLineIdUpdated = vi.fn();
             const onLanguageUpdated = vi.fn();
@@ -477,6 +483,9 @@ describe("ipcService", () => {
                 )
             ).toBe(unsubscribers.unsubClickThrough);
             expect(service.onFileOpen(onFileOpen)).toBe(unsubscribers.unsubFileOpen);
+            expect(service.onLaunchIntentApply(onLaunchIntentApply)).toBe(
+                unsubscribers.unsubLaunchIntentApply
+            );
             expect(service.onSelectedImageIdUpdated(onSelectedImageIdUpdated)).toBe(
                 unsubscribers.unsubSelectedImageId
             );
@@ -506,6 +515,9 @@ describe("ipcService", () => {
                 onClickThroughShortcutTriggered
             );
             expect(api.onFileOpen).toHaveBeenCalledWith(onFileOpen);
+            expect(api.onLaunchIntentApply).toHaveBeenCalledWith(
+                onLaunchIntentApply
+            );
             expect(api.onSelectedImageIdUpdated).toHaveBeenCalledWith(
                 onSelectedImageIdUpdated
             );

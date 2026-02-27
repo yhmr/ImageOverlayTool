@@ -35,7 +35,6 @@ type EventMethod<TContract extends EventContract<unknown[]>> = (
     callback: (...args: EventArgs<TContract>) => void
 ) => () => void;
 
-type FileOpenPayload = EventArgs<typeof appEventContracts.fileOpen>[0];
 type LogWriteArgs = InvokeArgs<typeof logIpcContracts.write>;
 type LogMessage = LogWriteArgs[1];
 type LogParams = LogWriteArgs[2];
@@ -154,12 +153,10 @@ export interface IElectronAPI {
         typeof syncIpcContracts.requestInitialState
     >;
     onRequestStateSync: EventMethod<typeof syncEventContracts.requestStateSync>;
-    onFileOpen: (
-        callback: (
-            filePath: FileOpenPayload["filePath"],
-            ext: FileOpenPayload["ext"]
-        ) => void
-    ) => () => void;
+    onFileOpen: EventMethod<typeof appEventContracts.fileOpen>;
+    onLaunchIntentApply: EventMethod<
+        typeof appEventContracts.launchIntentApply
+    >;
     getLicenseInfo: InvokeMethod<typeof licenseIpcContracts.get>;
     getAppVersion: InvokeMethod<typeof licenseIpcContracts.appVersion>;
     captureScreen: InvokeMethod<typeof captureIpcContracts.screen>;

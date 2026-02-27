@@ -1,4 +1,4 @@
-import { app, Menu } from "electron";
+import { app, BrowserWindow, Menu, dialog } from "electron";
 import {
     installExtension,
     REDUX_DEVTOOLS,
@@ -18,9 +18,12 @@ import {
 import { initializeRuntimeEnvironment } from "./bootstrap/runtime";
 import {
     acquireSingleInstanceLock,
-    extractLaunchFilePath,
     registerSingleInstanceHandlers,
 } from "./bootstrap/singleInstance";
+import {
+    resolveStartupLaunchPlan,
+    type StartupWindowOptions,
+} from "./bootstrap/startupLaunch";
 import { resolveE2ERuntimeConfig } from "./e2e/runtimeConfig";
 import {
     registerLocalResourceProtocol,
@@ -62,6 +65,35 @@ if (!gotTheLock) {
 } else {
     registerSingleInstanceHandlers(windowManager);
 
+    const applyStartupWindowOptions = (
+        mainWindow: BrowserWindow,
+        options: StartupWindowOptions
+    ): void => {
+        const [currentX, currentY] = mainWindow.getPosition();
+        const [currentWidth, currentHeight] = mainWindow.getSize();
+
+        if (options.position || options.size) {
+            mainWindow.setBounds({
+                x: options.position?.x ?? currentX,
+                y: options.position?.y ?? currentY,
+                width: options.size?.width ?? currentWidth,
+                height: options.size?.height ?? currentHeight,
+            });
+        }
+
+        if (options.fullscreen) {
+            mainWindow.setFullScreen(true);
+        }
+
+        if (options.minimize) {
+            mainWindow.once("show", () => {
+                if (!mainWindow.isDestroyed()) {
+                    mainWindow.minimize();
+                }
+            });
+        }
+    };
+
     app.whenReady().then(async () => {
         // 設定を読み込んでログレベルを適用
         const settings = await settingsRepository.loadSettings();
@@ -86,22 +118,44 @@ if (!gotTheLock) {
             e2eConfig,
         });
 
+        let startupLaunchPlan: Awaited<
+            ReturnType<typeof resolveStartupLaunchPlan>
+        > | null = null;
+        try {
+            startupLaunchPlan = await resolveStartupLaunchPlan(
+                process.argv,
+                app.isPackaged
+            );
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : String(error);
+            log.error("Failed to parse startup launch options.", { message });
+            dialog.showErrorBox("Invalid startup options", message);
+        }
+
         const mainWindow = await windowManager.launchMainWindow({
-            skipSplash: e2eConfig.enabled,
+            skipSplash:
+                e2eConfig.enabled || Boolean(startupLaunchPlan?.skipSplash),
         });
         log.info("Main window created.");
+        if (startupLaunchPlan) {
+            applyStartupWindowOptions(
+                mainWindow,
+                startupLaunchPlan.windowOptions
+            );
+            startupLaunchPlan.warnings.forEach((warning) => {
+                log.warn(`[startup] ${warning}`);
+            });
+            if (startupLaunchPlan.launchIntent) {
+                windowManager.applyLaunchIntent(startupLaunchPlan.launchIntent);
+            }
+            if (startupLaunchPlan.filePath) {
+                windowManager.openFile(startupLaunchPlan.filePath);
+            }
+        }
 
         registerWindowIpcHandlers(mainWindow);
         windowManager.registerShortcuts();
-
-        // 起動引数で指定されたファイルを開く
-        const launchFilePath = extractLaunchFilePath(
-            process.argv,
-            app.isPackaged
-        );
-        if (launchFilePath) {
-            windowManager.openFile(launchFilePath);
-        }
 
         // 開発時のみデバッグツールを有効化
         if (is.dev && !e2eConfig.enabled) {

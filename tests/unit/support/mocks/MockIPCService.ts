@@ -226,7 +226,13 @@ export class MockIPCService implements IIPCService {
         return () => { };
     }
 
-    onFileOpen(_callback: (filePath: string, ext: string) => void): () => void {
+    onFileOpen(
+        _callback: (payload: { filePath: string; ext: string }) => void
+    ): () => void {
+        return () => { };
+    }
+
+    onLaunchIntentApply(_callback: (launchIntent: LaunchIntent) => void): () => void {
         return () => { };
     }
 

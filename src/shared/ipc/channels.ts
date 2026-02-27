@@ -93,4 +93,5 @@ export const IPC_EVENTS = {
     clickThroughShortcutTriggered: "clickThrough:shortcutTriggered",
     requestStateSync: "state:requestSync",
     fileOpen: "file:open",
+    launchIntentApply: "launchIntent:apply",
 } as const;

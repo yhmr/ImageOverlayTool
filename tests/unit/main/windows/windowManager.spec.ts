@@ -190,6 +190,7 @@ import { WindowManager } from "@/main/windows/windowManager";
 import { IWindowRepository } from "@/main/repositories/WindowRepository";
 import type { IWindowShortcutManager } from "@/main/windows/windowShortcutManager";
 import { DEFAULT_WINDOW_COLOR_PRESETS } from "@/shared/types/AppConfig";
+import type { LaunchIntent } from "@/shared/types/LaunchIntent";
 import type { BrowserWindow as ElectronBrowserWindow } from "electron";
 
 type Listener = (...args: unknown[]) => void;
@@ -356,6 +357,24 @@ describe("WindowManager", () => {
         });
     });
 
+    it("applyLaunchIntent sends IPC message if window exists and visible", () => {
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+        const launchIntent: LaunchIntent = {
+            window: {
+                alwaysOnTop: true,
+                clickThrough: true,
+            },
+            images: [],
+        };
+
+        windowManager.applyLaunchIntent(launchIntent);
+
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "launchIntent:apply",
+            launchIntent
+        );
+    });
+
     it("openFile pends file if window not ready, and sends it when ready", () => {
         windowManager.openFile("test.png");
         const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
@@ -367,6 +386,27 @@ describe("WindowManager", () => {
             filePath: "test.png",
             ext: ".png",
         });
+    });
+
+    it("applyLaunchIntent pends intent if window not ready and sends it when ready", () => {
+        const launchIntent: LaunchIntent = {
+            images: [
+                {
+                    path: "C:/tmp/sample.png",
+                },
+            ],
+        };
+
+        windowManager.applyLaunchIntent(launchIntent);
+        const mainWindow = requireWindow(windowManager.createMainWindow(), "main window");
+
+        mainWindow.__emit("ready-to-show");
+
+        expect(mainWindow.show).toHaveBeenCalled();
+        expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+            "launchIntent:apply",
+            launchIntent
+        );
     });
 
     it("openFile pends file if window exists but hidden, and sends it when shown", () => {

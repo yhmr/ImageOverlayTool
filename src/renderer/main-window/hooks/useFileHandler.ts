@@ -6,6 +6,7 @@ import { useIpcService } from "../../providers/IpcServiceProvider";
 import { useAppStore } from "../../store/useAppStore";
 import { useProjectOperations } from "./useProjectOperations";
 import { isSceneFilePath, useSceneFileLoader } from "./useSceneFileLoader";
+import { applyLaunchIntent } from "../services/sceneFileApplicator";
 
 export const useFileHandler = () => {
     const { openProjectFromPath } = useProjectOperations();
@@ -13,7 +14,7 @@ export const useFileHandler = () => {
     const loadSceneFile = useSceneFileLoader();
 
     useEffect(() => {
-        const unsubscribe = ipcService.onFileOpen((filePath, ext) => {
+        const unsubscribe = ipcService.onFileOpen(({ filePath, ext }) => {
             ipcService.log.debug(`File received via IPC: ${filePath} (${ext})`);
 
             // Scene File
@@ -46,4 +47,11 @@ export const useFileHandler = () => {
         });
         return unsubscribe;
     }, [ipcService, loadSceneFile, openProjectFromPath]);
+
+    useEffect(() => {
+        return ipcService.onLaunchIntentApply((launchIntent) => {
+            void ipcService.log.debug("Launch intent received via IPC.");
+            applyLaunchIntent(launchIntent);
+        });
+    }, [ipcService]);
 };

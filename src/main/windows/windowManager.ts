@@ -3,6 +3,7 @@ import { BrowserWindow, app } from "electron";
 import { is } from "@electron-toolkit/utils";
 import { IWindowRepository } from "../repositories/WindowRepository";
 import log from "../logger";
+import type { LaunchIntent } from "../../shared/types/LaunchIntent";
 import {
     ElectronWindowShortcutManager,
     type IWindowShortcutManager,
@@ -45,6 +46,7 @@ export class WindowManager {
     private isQuitting = false;
     private isProjectDirty = false;
     private pendingFilePath: string | null = null;
+    private pendingLaunchIntent: LaunchIntent | null = null;
 
     constructor(
         windowRepository: IWindowRepository,
@@ -81,6 +83,12 @@ export class WindowManager {
             const filePath = this.pendingFilePath;
             this.pendingFilePath = null;
             this.openFile(filePath);
+        }
+
+        if (this.pendingLaunchIntent) {
+            const launchIntent = this.pendingLaunchIntent;
+            this.pendingLaunchIntent = null;
+            this.applyLaunchIntent(launchIntent);
         }
     }
 
@@ -165,6 +173,22 @@ export class WindowManager {
 
         log.debug(`Window not ready, pending file: ${filePath}`);
         this.pendingFilePath = filePath;
+    }
+
+    applyLaunchIntent(launchIntent: LaunchIntent): void {
+        log.debug("Applying launch intent.");
+        const mainWindow = this.mainWindowLifecycle.getMainWindow();
+
+        if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+            mainWindow.webContents.send(
+                IPC_EVENTS.launchIntentApply,
+                launchIntent
+            );
+            return;
+        }
+
+        log.debug("Window not ready, pending launch intent.");
+        this.pendingLaunchIntent = launchIntent;
     }
 
     /**

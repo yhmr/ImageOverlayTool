@@ -24,6 +24,7 @@ type SyncIPCService = Pick<
     | "onAlwaysOnTopShortcutTriggered"
     | "onClickThroughShortcutTriggered"
     | "onFileOpen"
+    | "onLaunchIntentApply"
     | "updateSelectedImageId"
     | "onSelectedImageIdUpdated"
     | "updateSelectedDimensionLineId"
@@ -62,8 +63,9 @@ export const createSyncIPCService = (): SyncIPCService => ({
         getElectronApi().onAlwaysOnTopShortcutTriggered(callback),
     onClickThroughShortcutTriggered: (callback: () => void) =>
         getElectronApi().onClickThroughShortcutTriggered(callback),
-    onFileOpen: (callback: (filePath: string, ext: string) => void) =>
-        getElectronApi().onFileOpen(callback),
+    onFileOpen: (callback) => getElectronApi().onFileOpen(callback),
+    onLaunchIntentApply: (callback) =>
+        getElectronApi().onLaunchIntentApply(callback),
     updateSelectedImageId: (id: string | null) =>
         getElectronApi().updateSelectedImageId(id),
     onSelectedImageIdUpdated: (callback: (id: string | null) => void) =>

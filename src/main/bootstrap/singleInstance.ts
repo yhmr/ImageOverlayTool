@@ -1,15 +1,11 @@
-import { app } from "electron";
+import { app, dialog, type BrowserWindow } from "electron";
 
 import log from "../logger";
 import type { WindowManager } from "../windows/windowManager";
-
-export const extractLaunchFilePath = (
-    commandLine: string[],
-    isPackaged: boolean
-): string | undefined => {
-    const argv = isPackaged ? commandLine.slice(1) : commandLine.slice(2);
-    return argv.find((arg) => !arg.startsWith("--"));
-};
+import {
+    resolveStartupLaunchPlan,
+    type StartupWindowOptions,
+} from "./startupLaunch";
 
 export const acquireSingleInstanceLock = (isE2EMode: boolean): boolean => {
     if (isE2EMode) {
@@ -23,21 +19,72 @@ export const acquireSingleInstanceLock = (isE2EMode: boolean): boolean => {
 export const registerSingleInstanceHandlers = (
     windowManager: WindowManager
 ): void => {
+    const applyWindowOptions = (
+        mainWindow: BrowserWindow,
+        options: StartupWindowOptions
+    ): void => {
+        const [currentX, currentY] = mainWindow.getPosition();
+        const [currentWidth, currentHeight] = mainWindow.getSize();
+
+        if (options.position || options.size) {
+            mainWindow.setBounds({
+                x: options.position?.x ?? currentX,
+                y: options.position?.y ?? currentY,
+                width: options.size?.width ?? currentWidth,
+                height: options.size?.height ?? currentHeight,
+            });
+        }
+
+        if (options.fullscreen) {
+            mainWindow.setFullScreen(true);
+        }
+
+        if (options.minimize) {
+            mainWindow.minimize();
+        }
+    };
+
     // 2つ目のインスタンスが起動されたときの処理
-    app.on("second-instance", (_event, commandLine) => {
+    app.on("second-instance", async (_event, commandLine) => {
         const mainWindow = windowManager.getMainWindow();
-        if (!mainWindow) {
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore();
+            }
+            mainWindow.focus();
+        }
+
+        let startupLaunchPlan: Awaited<
+            ReturnType<typeof resolveStartupLaunchPlan>
+        >;
+        try {
+            startupLaunchPlan = await resolveStartupLaunchPlan(
+                commandLine,
+                app.isPackaged
+            );
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : String(error);
+            log.error("Failed to parse second-instance startup options.", {
+                message,
+            });
+            dialog.showErrorBox("Invalid startup options", message);
             return;
         }
 
-        if (mainWindow.isMinimized()) {
-            mainWindow.restore();
+        if (mainWindow) {
+            applyWindowOptions(mainWindow, startupLaunchPlan.windowOptions);
         }
-        mainWindow.focus();
 
-        const filePath = extractLaunchFilePath(commandLine, app.isPackaged);
-        if (filePath) {
-            windowManager.openFile(filePath);
+        startupLaunchPlan.warnings.forEach((warning) => {
+            log.warn(`[startup] ${warning}`);
+        });
+
+        if (startupLaunchPlan.launchIntent) {
+            windowManager.applyLaunchIntent(startupLaunchPlan.launchIntent);
+        }
+        if (startupLaunchPlan.filePath) {
+            windowManager.openFile(startupLaunchPlan.filePath);
         }
     });
 
