@@ -36,7 +36,7 @@ There are four ways to load images:
 1. **From file dialog**: Select "Image Settings" from the menu (or press `Ctrl+I`), then click the "Add" button to select files.
 2. **Drag & Drop**: Drag and drop image files onto the main window or image settings window.
 3. **Paste from clipboard**: Press `Ctrl+V` to paste an image from the clipboard (added as a temporary cache image).
-4. **Launch Options & Scene Input**: You can pass file paths as arguments when launching the application to load them immediately. Additionally, by passing a `.scene.json` file, you can launch the app with an initial state that applies multiple images, layout information, and filter settings all at once.
+4. **Launch from Command Line (CLI)**: You can pass command-line arguments from a terminal to load images immediately upon startup. For details, please refer to the [Command Line (CLI) Integration Guide](cli-guide).
 
 ### Manipulating Images
 
