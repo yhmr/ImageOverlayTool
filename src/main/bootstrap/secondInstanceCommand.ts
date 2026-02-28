@@ -7,7 +7,10 @@ import { SAVE_STAGE_DATA_URL_BRIDGE_KEY } from "../../shared/constants/saveStage
 import type { AppControlCommand } from "../../shared/types/AppControlCommand";
 import log from "../logger";
 import type { WindowManager } from "../windows/windowManager";
-import { parseControlCommand } from "./controlParser";
+import {
+    type ParsedControlCommand,
+    parseControlCommand,
+} from "./controlParser";
 
 const SCENE_FILE_SUFFIX = ".scene.json";
 const OUTPUT_IMAGE_FILE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg"]);
@@ -305,117 +308,134 @@ export type SecondInstanceCommand =
           timeoutMs: number;
       };
 
+const resolveCommandWithWorkingDirectory = (
+    parsed: ParsedControlCommand,
+    workingDirectory: string
+): SecondInstanceCommand => {
+    switch (parsed.kind) {
+        case "add-image":
+            return {
+                kind: "app-control",
+                command: {
+                    kind: "add-image",
+                    imagePath: resolveImagePath(
+                        parsed.imagePath,
+                        workingDirectory
+                    ),
+                    opacity: parsed.opacity,
+                },
+            };
+        case "set-opacity":
+            return {
+                kind: "app-control",
+                command: {
+                    kind: "set-opacity",
+                    opacity: parsed.opacity,
+                },
+            };
+        case "switch-scene":
+            return {
+                kind: "switch-scene",
+                scenePath: resolveScenePath(parsed.scenePath, workingDirectory),
+            };
+        case "capture-window":
+            return {
+                kind: "capture-window",
+                outputPath: resolveOutputImagePath(
+                    parsed.outputPath,
+                    workingDirectory,
+                    "--capture-window"
+                ),
+            };
+        case "save-stage":
+            return {
+                kind: "save-stage",
+                outputPath: resolveOutputImagePath(
+                    parsed.outputPath,
+                    workingDirectory,
+                    "--save-stage"
+                ),
+            };
+        case "wait-stable":
+            return {
+                kind: "wait-stable",
+                timeoutMs: parsed.timeoutMs,
+            };
+    }
+};
+
 export const resolveSecondInstanceCommand = (
     commandLine: string[],
     isPackaged: boolean,
     workingDirectory: string = process.cwd()
 ): SecondInstanceCommand | null => {
     const parsed = parseControlCommand(commandLine, isPackaged);
-    const baseWorkingDirectory =
-        workingDirectory.trim().length > 0 ? workingDirectory : process.cwd();
     if (!parsed) {
         return null;
     }
 
-    if (parsed.kind === "add-image") {
-        return {
-            kind: "app-control",
-            command: {
-                kind: "add-image",
-                imagePath: resolveImagePath(
-                    parsed.imagePath,
-                    baseWorkingDirectory
-                ),
-                opacity: parsed.opacity,
-            },
-        };
-    }
-
-    if (parsed.kind === "set-opacity") {
-        return {
-            kind: "app-control",
-            command: {
-                kind: "set-opacity",
-                opacity: parsed.opacity,
-            },
-        };
-    }
-
-    if (parsed.kind === "switch-scene") {
-        return {
-            kind: "switch-scene",
-            scenePath: resolveScenePath(parsed.scenePath, baseWorkingDirectory),
-        };
-    }
-
-    if (parsed.kind === "wait-stable") {
-        return {
-            kind: "wait-stable",
-            timeoutMs: parsed.timeoutMs,
-        };
-    }
-
-    if (parsed.kind === "save-stage") {
-        return {
-            kind: "save-stage",
-            outputPath: resolveOutputImagePath(
-                parsed.outputPath,
-                baseWorkingDirectory,
-                "--save-stage"
-            ),
-        };
-    }
-
-    return {
-        kind: "capture-window",
-        outputPath: resolveOutputImagePath(
-            parsed.outputPath,
-            baseWorkingDirectory,
-            "--capture-window"
-        ),
-    };
+    const baseWorkingDirectory =
+        workingDirectory.trim().length > 0 ? workingDirectory : process.cwd();
+    return resolveCommandWithWorkingDirectory(parsed, baseWorkingDirectory);
 };
 
-export const executeSecondInstanceCommand = async (
-    command: SecondInstanceCommand,
+const executeWaitStableCommand = async (
+    command: Extract<SecondInstanceCommand, { kind: "wait-stable" }>,
     windowManager: WindowManager
 ): Promise<void> => {
-    if (command.kind === "app-control") {
-        windowManager.applyAppControlCommand(command.command);
-        return;
-    }
+    const mainWindow = assertMainWindowAvailable(
+        windowManager.getMainWindow(),
+        "--wait-stable"
+    );
+    await waitForMainWindowStable(mainWindow, command.timeoutMs);
+    log.info(
+        `[second-instance] Main window became stable within ${command.timeoutMs}ms`
+    );
+};
 
-    if (command.kind === "switch-scene") {
-        windowManager.openFile(command.scenePath);
-        return;
-    }
+const executeSaveStageCommand = async (
+    command: Extract<SecondInstanceCommand, { kind: "save-stage" }>,
+    windowManager: WindowManager
+): Promise<void> => {
+    const mainWindow = assertMainWindowAvailable(
+        windowManager.getMainWindow(),
+        "--save-stage"
+    );
+    await saveMainWindowStageToPath(mainWindow, command.outputPath);
+    log.info(`[second-instance] Saved stage image: ${command.outputPath}`);
+};
 
-    if (command.kind === "wait-stable") {
-        const mainWindow = assertMainWindowAvailable(
-            windowManager.getMainWindow(),
-            "--wait-stable"
-        );
-        await waitForMainWindowStable(mainWindow, command.timeoutMs);
-        log.info(
-            `[second-instance] Main window became stable within ${command.timeoutMs}ms`
-        );
-        return;
-    }
-
-    if (command.kind === "save-stage") {
-        const mainWindow = assertMainWindowAvailable(
-            windowManager.getMainWindow(),
-            "--save-stage"
-        );
-        await saveMainWindowStageToPath(mainWindow, command.outputPath);
-        log.info(`[second-instance] Saved stage image: ${command.outputPath}`);
-        return;
-    }
-
+const executeCaptureWindowCommand = async (
+    command: Extract<SecondInstanceCommand, { kind: "capture-window" }>,
+    windowManager: WindowManager
+): Promise<void> => {
     const mainWindow = assertMainWindowAvailable(
         windowManager.getMainWindow(),
         "--capture-window"
     );
     await captureMainWindowToPath(mainWindow, command.outputPath);
     log.info(`[second-instance] Captured window image: ${command.outputPath}`);
+};
+
+export const executeSecondInstanceCommand = async (
+    command: SecondInstanceCommand,
+    windowManager: WindowManager
+): Promise<void> => {
+    switch (command.kind) {
+        case "app-control":
+            windowManager.applyAppControlCommand(command.command);
+            return;
+        case "switch-scene":
+            windowManager.openFile(command.scenePath);
+            return;
+        case "wait-stable":
+            await executeWaitStableCommand(command, windowManager);
+            return;
+        case "save-stage":
+            await executeSaveStageCommand(command, windowManager);
+            return;
+        case "capture-window":
+            await executeCaptureWindowCommand(command, windowManager);
+            return;
+    }
 };

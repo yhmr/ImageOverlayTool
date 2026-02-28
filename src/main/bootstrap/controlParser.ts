@@ -48,6 +48,17 @@ export type ParsedControlCommand =
           timeoutMs: number;
       };
 
+type ControlParseState = {
+    commandKind: ParsedControlCommandKind | null;
+    addImagePath: string | null;
+    switchScenePath: string | null;
+    captureWindowPath: string | null;
+    saveStagePath: string | null;
+    setOpacity: number | null;
+    addImageOpacity: number | undefined;
+    waitStableTimeoutMs: number | null;
+};
+
 const parseOpacityRatio = (value: string, optionName: string): number => {
     return parseOpacityPercent(value, optionName) / 100;
 };
@@ -80,6 +91,170 @@ const ensureSingleCommand = (
     }
 };
 
+const createInitialState = (): ControlParseState => ({
+    commandKind: null,
+    addImagePath: null,
+    switchScenePath: null,
+    captureWindowPath: null,
+    saveStagePath: null,
+    setOpacity: null,
+    addImageOpacity: undefined,
+    waitStableTimeoutMs: null,
+});
+
+const setCommandKind = (
+    state: ControlParseState,
+    nextKind: ParsedControlCommandKind
+): void => {
+    ensureSingleCommand(state.commandKind, nextKind);
+    state.commandKind = nextKind;
+};
+
+const consumeControlOption = (
+    argv: string[],
+    index: number,
+    state: ControlParseState
+): number | null => {
+    const token = argv[index];
+
+    if (token === "--add-image") {
+        setCommandKind(state, "add-image");
+        state.addImagePath = requireOptionValue(argv, index, "--add-image");
+        return 1;
+    }
+
+    if (token === "--set-opacity") {
+        setCommandKind(state, "set-opacity");
+        state.setOpacity = parseOpacityRatio(
+            requireOptionValue(argv, index, "--set-opacity"),
+            "--set-opacity"
+        );
+        return 1;
+    }
+
+    if (token === "--switch-scene") {
+        setCommandKind(state, "switch-scene");
+        state.switchScenePath = requireOptionValue(
+            argv,
+            index,
+            "--switch-scene"
+        );
+        return 1;
+    }
+
+    if (token === "--capture-window") {
+        setCommandKind(state, "capture-window");
+        state.captureWindowPath = requireOptionValue(
+            argv,
+            index,
+            "--capture-window"
+        );
+        return 1;
+    }
+
+    if (token === "--save-stage") {
+        setCommandKind(state, "save-stage");
+        state.saveStagePath = requireOptionValue(argv, index, "--save-stage");
+        return 1;
+    }
+
+    if (token === "--wait-stable") {
+        setCommandKind(state, "wait-stable");
+        return 0;
+    }
+
+    if (token === "--opacity") {
+        state.addImageOpacity = parseOpacityRatio(
+            requireOptionValue(argv, index, "--opacity"),
+            "--opacity"
+        );
+        return 1;
+    }
+
+    if (token === "--timeout-ms") {
+        state.waitStableTimeoutMs = parseTimeoutMs(
+            requireOptionValue(argv, index, "--timeout-ms")
+        );
+        return 1;
+    }
+
+    return null;
+};
+
+const validateControlOptionConstraints = (state: ControlParseState): void => {
+    if (
+        state.addImageOpacity !== undefined &&
+        state.commandKind !== "add-image"
+    ) {
+        throw new Error("--opacity can only be used with --add-image.");
+    }
+
+    if (
+        state.waitStableTimeoutMs !== null &&
+        state.commandKind !== "wait-stable"
+    ) {
+        throw new Error("--timeout-ms can only be used with --wait-stable.");
+    }
+};
+
+const buildParsedControlCommand = (
+    state: ControlParseState
+): ParsedControlCommand | null => {
+    if (!state.commandKind) {
+        return null;
+    }
+
+    switch (state.commandKind) {
+        case "add-image":
+            if (!state.addImagePath) {
+                throw new Error("--add-image requires a path.");
+            }
+            return {
+                kind: "add-image",
+                imagePath: state.addImagePath,
+                opacity: state.addImageOpacity,
+            };
+        case "set-opacity":
+            if (state.setOpacity === null) {
+                throw new Error("--set-opacity requires a numeric value.");
+            }
+            return {
+                kind: "set-opacity",
+                opacity: state.setOpacity,
+            };
+        case "switch-scene":
+            if (!state.switchScenePath) {
+                throw new Error("--switch-scene requires a path.");
+            }
+            return {
+                kind: "switch-scene",
+                scenePath: state.switchScenePath,
+            };
+        case "capture-window":
+            if (!state.captureWindowPath) {
+                throw new Error("--capture-window requires an output path.");
+            }
+            return {
+                kind: "capture-window",
+                outputPath: state.captureWindowPath,
+            };
+        case "save-stage":
+            if (!state.saveStagePath) {
+                throw new Error("--save-stage requires an output path.");
+            }
+            return {
+                kind: "save-stage",
+                outputPath: state.saveStagePath,
+            };
+        case "wait-stable":
+            return {
+                kind: "wait-stable",
+                timeoutMs:
+                    state.waitStableTimeoutMs ?? DEFAULT_WAIT_STABLE_TIMEOUT_MS,
+            };
+    }
+};
+
 export const parseControlCommand = (
     commandLine: string[],
     isPackaged: boolean
@@ -106,88 +281,16 @@ export const parseControlCommand = (
         return null;
     }
 
-    let commandKind: ParsedControlCommandKind | null = null;
-    let addImagePath: string | null = null;
-    let switchScenePath: string | null = null;
-    let captureWindowPath: string | null = null;
-    let saveStagePath: string | null = null;
-    let setOpacity: number | null = null;
-    let addImageOpacity: number | undefined;
-    let waitStableTimeoutMs: number | null = null;
+    const parseState = createInitialState();
 
     for (let index = 0; index < argv.length; index += 1) {
+        const consumedTokens = consumeControlOption(argv, index, parseState);
+        if (consumedTokens !== null) {
+            index += consumedTokens;
+            continue;
+        }
+
         const token = argv[index];
-
-        if (token === "--add-image") {
-            ensureSingleCommand(commandKind, "add-image");
-            addImagePath = requireOptionValue(argv, index, "--add-image");
-            commandKind = "add-image";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--set-opacity") {
-            ensureSingleCommand(commandKind, "set-opacity");
-            setOpacity = parseOpacityRatio(
-                requireOptionValue(argv, index, "--set-opacity"),
-                "--set-opacity"
-            );
-            commandKind = "set-opacity";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--switch-scene") {
-            ensureSingleCommand(commandKind, "switch-scene");
-            switchScenePath = requireOptionValue(argv, index, "--switch-scene");
-            commandKind = "switch-scene";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--capture-window") {
-            ensureSingleCommand(commandKind, "capture-window");
-            captureWindowPath = requireOptionValue(
-                argv,
-                index,
-                "--capture-window"
-            );
-            commandKind = "capture-window";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--save-stage") {
-            ensureSingleCommand(commandKind, "save-stage");
-            saveStagePath = requireOptionValue(argv, index, "--save-stage");
-            commandKind = "save-stage";
-            index += 1;
-            continue;
-        }
-
-        if (token === "--wait-stable") {
-            ensureSingleCommand(commandKind, "wait-stable");
-            commandKind = "wait-stable";
-            continue;
-        }
-
-        if (token === "--opacity") {
-            addImageOpacity = parseOpacityRatio(
-                requireOptionValue(argv, index, "--opacity"),
-                "--opacity"
-            );
-            index += 1;
-            continue;
-        }
-
-        if (token === "--timeout-ms") {
-            waitStableTimeoutMs = parseTimeoutMs(
-                requireOptionValue(argv, index, "--timeout-ms")
-            );
-            index += 1;
-            continue;
-        }
-
         if (GLOBAL_OPTION_TOKENS.has(token)) {
             continue;
         }
@@ -201,72 +304,6 @@ export const parseControlCommand = (
         );
     }
 
-    if (!commandKind) {
-        return null;
-    }
-
-    if (addImageOpacity !== undefined && commandKind !== "add-image") {
-        throw new Error("--opacity can only be used with --add-image.");
-    }
-
-    if (waitStableTimeoutMs !== null && commandKind !== "wait-stable") {
-        throw new Error("--timeout-ms can only be used with --wait-stable.");
-    }
-
-    if (commandKind === "add-image") {
-        if (!addImagePath) {
-            throw new Error("--add-image requires a path.");
-        }
-        return {
-            kind: "add-image",
-            imagePath: addImagePath,
-            opacity: addImageOpacity,
-        };
-    }
-
-    if (commandKind === "set-opacity") {
-        if (setOpacity === null) {
-            throw new Error("--set-opacity requires a numeric value.");
-        }
-        return {
-            kind: "set-opacity",
-            opacity: setOpacity,
-        };
-    }
-
-    if (commandKind === "switch-scene") {
-        if (!switchScenePath) {
-            throw new Error("--switch-scene requires a path.");
-        }
-        return {
-            kind: "switch-scene",
-            scenePath: switchScenePath,
-        };
-    }
-
-    if (commandKind === "wait-stable") {
-        return {
-            kind: "wait-stable",
-            timeoutMs: waitStableTimeoutMs ?? DEFAULT_WAIT_STABLE_TIMEOUT_MS,
-        };
-    }
-
-    if (commandKind === "capture-window") {
-        if (!captureWindowPath) {
-            throw new Error("--capture-window requires an output path.");
-        }
-        return {
-            kind: "capture-window",
-            outputPath: captureWindowPath,
-        };
-    }
-
-    if (!saveStagePath) {
-        throw new Error("--save-stage requires an output path.");
-    }
-
-    return {
-        kind: "save-stage",
-        outputPath: saveStagePath,
-    };
+    validateControlOptionConstraints(parseState);
+    return buildParsedControlCommand(parseState);
 };
