@@ -29,7 +29,7 @@ const FIXTURE_APP_CONFIG_PATH_CANDIDATES = [
 ];
 const CONTROL_COMMAND_TIMEOUT_MS = 20000;
 
-type ElectronCliResult = {
+export type ElectronCliResult = {
     status: number | null;
     stdout: string;
     stderr: string;
@@ -74,6 +74,7 @@ const executeElectronCliWithResult = (
     args: string[],
     timeoutMs = CONTROL_COMMAND_TIMEOUT_MS
 ): ElectronCliResult => {
+    assertBuildOutput();
     const electronPath = require("electron") as string;
     const env = { ...process.env };
     delete env.ELECTRON_RUN_AS_NODE;
@@ -110,6 +111,16 @@ const executeElectronCli = (
             `Electron CLI exited with code ${result.status}: ${args.join(" ")}${details ? `\n${details}` : ""}`
         );
     }
+};
+
+export const runCliCommandWithResult = async (
+    args: string[]
+): Promise<ElectronCliResult> => {
+    return executeElectronCliWithResult(args);
+};
+
+export const runCliCommand = async (args: string[]): Promise<void> => {
+    executeElectronCli(args);
 };
 
 const normalizeControlCommandArgs = (args: string[]): string[] => {

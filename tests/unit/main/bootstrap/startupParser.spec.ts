@@ -150,4 +150,85 @@ describe("startupParser", () => {
             minimize: false,
         });
     });
+
+    it("rejects unknown startup option in startup subcommand", () => {
+        expect(() =>
+            parseStartupArgs(
+                ["node", "index.js", "startup", "--unknown-option"],
+                false
+            )
+        ).toThrow("Unknown startup option: --unknown-option");
+    });
+
+    it("rejects missing path for --scene", () => {
+        expect(() =>
+            parseStartupArgs(["node", "index.js", "startup", "--scene"], false)
+        ).toThrow("--scene requires a path.");
+    });
+
+    it("rejects missing path list for --images", () => {
+        expect(() =>
+            parseStartupArgs(["node", "index.js", "startup", "--images"], false)
+        ).toThrow("--images requires one or more paths.");
+    });
+
+    it("rejects missing value for --opacity", () => {
+        expect(() =>
+            parseStartupArgs(
+                ["node", "index.js", "startup", "--opacity"],
+                false
+            )
+        ).toThrow("--opacity requires a numeric value.");
+    });
+
+    it("rejects invalid numeric value for --opacity", () => {
+        expect(() =>
+            parseStartupArgs(
+                ["node", "index.js", "startup", "--opacity", "invalid"],
+                false
+            )
+        ).toThrow("--opacity must be between 0 and 100.");
+    });
+
+    it("rejects missing value for --position", () => {
+        expect(() =>
+            parseStartupArgs(
+                ["node", "index.js", "startup", "--position"],
+                false
+            )
+        ).toThrow("--position requires x,y.");
+    });
+
+    it("rejects invalid value for --position", () => {
+        expect(() =>
+            parseStartupArgs(
+                ["node", "index.js", "startup", "--position", "100"],
+                false
+            )
+        ).toThrow('--position must be in "a,b" format.');
+    });
+
+    it("rejects missing value for --size", () => {
+        expect(() =>
+            parseStartupArgs(["node", "index.js", "startup", "--size"], false)
+        ).toThrow("--size requires w,h.");
+    });
+
+    it("rejects non-positive value for --size", () => {
+        expect(() =>
+            parseStartupArgs(
+                ["node", "index.js", "startup", "--size", "0,600"],
+                false
+            )
+        ).toThrow("--size must be positive values.");
+    });
+
+    it("rejects multiple positional paths with startup subcommand", () => {
+        expect(() =>
+            parseStartupArgs(
+                ["node", "index.js", "startup", "a.iot", "b.iot"],
+                false
+            )
+        ).toThrow("Only one positional file path is supported.");
+    });
 });

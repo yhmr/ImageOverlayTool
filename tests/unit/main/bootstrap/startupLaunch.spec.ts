@@ -236,4 +236,70 @@ describe("resolveStartupLaunchPlan", () => {
             )
         ).rejects.toThrow("--opacity must be between 0 and 100");
     });
+
+    it("rejects positional file path when used together with --images", async () => {
+        await expect(
+            resolveStartupLaunchPlan(
+                [
+                    "node",
+                    "index.js",
+                    "startup",
+                    projectPath,
+                    "--images",
+                    imagePath,
+                ],
+                false
+            )
+        ).rejects.toThrow(
+            "Positional file path cannot be used together with --images."
+        );
+    });
+
+    it("rejects --opacity when no image input is provided", async () => {
+        await expect(
+            resolveStartupLaunchPlan(
+                ["node", "index.js", "startup", "--opacity", "50"],
+                false
+            )
+        ).rejects.toThrow("--opacity requires image input.");
+    });
+
+    it("rejects --opacity when positional project file is provided", async () => {
+        await expect(
+            resolveStartupLaunchPlan(
+                [
+                    "node",
+                    "index.js",
+                    "startup",
+                    projectPath,
+                    "--opacity",
+                    "50",
+                ],
+                false
+            )
+        ).rejects.toThrow("--opacity requires image input.");
+    });
+
+    it("rejects unsupported image format in --images", async () => {
+        const invalidImagePath = path.join(tempDir, "sample.txt");
+        fs.writeFileSync(invalidImagePath, "invalid");
+
+        await expect(
+            resolveStartupLaunchPlan(
+                ["node", "index.js", "startup", "--images", invalidImagePath],
+                false
+            )
+        ).rejects.toThrow(`Unsupported image format: ${invalidImagePath}`);
+    });
+
+    it("rejects missing image file in --images", async () => {
+        const missingImagePath = path.join(tempDir, "missing.png");
+
+        await expect(
+            resolveStartupLaunchPlan(
+                ["node", "index.js", "startup", "--images", missingImagePath],
+                false
+            )
+        ).rejects.toThrow(`Image file not found: ${missingImagePath}`);
+    });
 });
