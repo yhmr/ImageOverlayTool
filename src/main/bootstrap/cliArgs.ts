@@ -52,11 +52,14 @@ export const isOptionToken = (value: string): boolean => value.startsWith("--");
 export const requireOptionValue = (
     argv: string[],
     optionIndex: number,
-    optionName: string
+    optionName: string,
+    missingValueMessage?: string
 ): string => {
     const value = argv[optionIndex + 1];
     if (!value || isOptionToken(value)) {
-        throw new Error(`${optionName} requires a value.`);
+        throw new Error(
+            missingValueMessage ?? `${optionName} requires a value.`
+        );
     }
     return value;
 };
