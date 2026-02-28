@@ -354,12 +354,12 @@ describe("singleInstance", () => {
         vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
             kind: "control",
             command: {
-                kind: "export",
+                kind: "capture-window",
                 outputPath: "C:/tmp/overlay.png",
             },
         });
         vi.mocked(executeSecondInstanceCommand).mockRejectedValue(
-            new Error("export failed")
+            new Error("capture-window failed")
         );
 
         const windowManager = {
@@ -373,13 +373,13 @@ describe("singleInstance", () => {
             "node",
             "index.js",
             "control",
-            "--export",
+            "--capture-window",
             "overlay.png",
         ]);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "Second-instance command failed",
-            "export failed"
+            "capture-window failed"
         );
     });
 

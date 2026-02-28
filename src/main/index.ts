@@ -32,20 +32,29 @@ import {
 } from "./bootstrap/cliValidateScene";
 import {
     CLI_EXIT_CODES,
+    createCliErrorResult,
     createCliSuccessResult,
     stringifyCliJsonResult,
 } from "./bootstrap/cliResult";
+import {
+    awaitControlCommandResult,
+    createControlCommandResultRequest,
+    writeControlCommandResultToProcess,
+} from "./bootstrap/controlCommandResult";
 import {
     reportStartupLaunchParseError,
     writeCliInvalidArgumentError,
     writeCliSceneValidationError,
 } from "./bootstrap/cliErrorHandler";
+import { normalizeArgv } from "./bootstrap/cliArgs";
 import { resolveCliRuntimeOptions } from "./bootstrap/cliRuntimeOptions";
+import { resolveCliSubcommandArgv } from "./bootstrap/cliSubcommand";
 import {
     acquireSingleInstanceLock,
     registerSingleInstanceHandlers,
 } from "./bootstrap/singleInstance";
 import { resolveStartupCliRoute } from "./bootstrap/cliRouter";
+import { resolveSecondInstanceCommand } from "./bootstrap/secondInstanceCommand";
 import { type StartupWindowOptions } from "./bootstrap/startupLaunch";
 import {
     registerLocalResourceProtocol,
@@ -158,6 +167,28 @@ if (cliValidateSceneRequest) {
     }
 }
 
+let preflightSecondInstanceCommand: ReturnType<
+    typeof resolveSecondInstanceCommand
+> = null;
+const hasExplicitControlSubcommand =
+    resolveCliSubcommandArgv(normalizeArgv(process.argv, app.isPackaged))
+        .subcommand === "control";
+try {
+    preflightSecondInstanceCommand = resolveSecondInstanceCommand(
+        process.argv,
+        app.isPackaged,
+        process.cwd()
+    );
+} catch (error) {
+    writeCliInvalidArgumentError(error);
+    process.exit(CLI_EXIT_CODES.INVALID_ARGUMENT);
+}
+
+const controlResultRequest =
+    hasExplicitControlSubcommand || preflightSecondInstanceCommand
+        ? createControlCommandResultRequest()
+        : undefined;
+
 // 永続化レイヤーを先に構築して、以降は依存注入で扱う
 const settingsRepository = SettingsRepositoryFactory.create();
 const windowRepository = WindowRepositoryFactory.create();
@@ -174,12 +205,40 @@ registerEarlyIpcHandlers();
 registerProcessErrorHandlers();
 registerLocalResourceProtocol();
 
-const gotTheLock = acquireSingleInstanceLock();
+const gotTheLock = controlResultRequest
+    ? acquireSingleInstanceLock(controlResultRequest)
+    : acquireSingleInstanceLock();
 log.info("Application starting...");
 
 if (!gotTheLock) {
-    log.info("Another instance is already running. Quitting.");
-    app.quit();
+    if (controlResultRequest) {
+        const waitForControlResultAndExit = async (): Promise<void> => {
+            try {
+                const payload = await awaitControlCommandResult(
+                    controlResultRequest
+                );
+                writeControlCommandResultToProcess(payload);
+                process.exit(payload.exitCode);
+            } catch (error) {
+                process.stderr.write(
+                    `${stringifyCliJsonResult(
+                        createCliErrorResult({
+                            code: "CLI_CONTROL_RESPONSE_TIMEOUT",
+                            message:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                        })
+                    )}\n`
+                );
+                process.exit(CLI_EXIT_CODES.EXECUTION_FAILED);
+            }
+        };
+        void waitForControlResultAndExit();
+    } else {
+        log.info("Another instance is already running. Quitting.");
+        app.quit();
+    }
 } else {
     registerSingleInstanceHandlers(windowManager);
 

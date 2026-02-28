@@ -1,6 +1,7 @@
 import { test, expect, Page } from "@playwright/test";
 import {
     applyFixtureScene,
+    E2E_CAPTURE_PATH,
     clickAppMenuItem,
     E2E_EXPORT_PATH,
     launchE2EApp,
@@ -75,14 +76,31 @@ test("export dialog can be opened and canceled", async () => {
     }
 });
 
-test("control export command saves png artifact", async () => {
+test("control capture-window command saves png artifact", async () => {
     const { app, page } = await launchE2EApp();
 
     try {
         await applyFixtureScene(page, "default.scene.json");
-        await runControlCommand(["--export", E2E_EXPORT_PATH]);
+        await runControlCommand(["--capture-window", E2E_EXPORT_PATH]);
         await expect
             .poll(() => readPngArtifactMetadata(E2E_EXPORT_PATH))
+            .toMatchObject({
+                exists: true,
+                isValidPng: true,
+            });
+    } finally {
+        await app.close();
+    }
+});
+
+test("control save-stage command saves png artifact", async () => {
+    const { app, page } = await launchE2EApp();
+
+    try {
+        await applyFixtureScene(page, "default.scene.json");
+        await runControlCommand(["--save-stage", E2E_CAPTURE_PATH]);
+        await expect
+            .poll(() => readPngArtifactMetadata(E2E_CAPTURE_PATH))
             .toMatchObject({
                 exists: true,
                 isValidPng: true,

@@ -13,6 +13,7 @@ const {
     mockResolveCliHelpRequest,
     mockResolveCliSceneTemplateRequest,
     mockResolveCliValidateSceneRequest,
+    mockResolveSecondInstanceCommand,
     mockRegisterSingleInstanceHandlers,
     mockSettingsRepositoryCreate,
     mockWindowRepositoryCreate,
@@ -28,6 +29,7 @@ const {
     mockResolveCliHelpRequest: vi.fn(() => null),
     mockResolveCliSceneTemplateRequest: vi.fn(() => null),
     mockResolveCliValidateSceneRequest: vi.fn(() => null),
+    mockResolveSecondInstanceCommand: vi.fn(() => null),
     mockRegisterSingleInstanceHandlers: vi.fn(),
     mockSettingsRepositoryCreate: vi.fn(() => ({})),
     mockWindowRepositoryCreate: vi.fn(() => ({})),
@@ -118,6 +120,10 @@ vi.mock("@/main/bootstrap/singleInstance", () => ({
 
 vi.mock("@/main/bootstrap/cliRouter", () => ({
     resolveStartupCliRoute: vi.fn(),
+}));
+
+vi.mock("@/main/bootstrap/secondInstanceCommand", () => ({
+    resolveSecondInstanceCommand: mockResolveSecondInstanceCommand,
 }));
 
 vi.mock("@/main/ipc/protocol", () => ({

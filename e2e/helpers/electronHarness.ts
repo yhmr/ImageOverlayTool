@@ -29,6 +29,12 @@ const FIXTURE_APP_CONFIG_PATH_CANDIDATES = [
 ];
 const CONTROL_COMMAND_TIMEOUT_MS = 20000;
 
+type ElectronCliResult = {
+    status: number | null;
+    stdout: string;
+    stderr: string;
+};
+
 type WindowLayoutConfig = {
     pos: [number, number];
     size: [number, number];
@@ -64,10 +70,10 @@ const resetArtifacts = (): void => {
     }
 };
 
-const executeElectronCli = (
+const executeElectronCliWithResult = (
     args: string[],
     timeoutMs = CONTROL_COMMAND_TIMEOUT_MS
-): void => {
+): ElectronCliResult => {
     const electronPath = require("electron") as string;
     const env = { ...process.env };
     delete env.ELECTRON_RUN_AS_NODE;
@@ -86,14 +92,30 @@ const executeElectronCli = (
         );
     }
 
+    return {
+        status: result.status,
+        stdout: result.stdout ? String(result.stdout).trim() : "",
+        stderr: result.stderr ? String(result.stderr).trim() : "",
+    };
+};
+
+const executeElectronCli = (
+    args: string[],
+    timeoutMs = CONTROL_COMMAND_TIMEOUT_MS
+): void => {
+    const result = executeElectronCliWithResult(args, timeoutMs);
     if (typeof result.status === "number" && result.status !== 0) {
-        const stdout = result.stdout ? String(result.stdout).trim() : "";
-        const stderr = result.stderr ? String(result.stderr).trim() : "";
-        const details = [stderr, stdout].filter(Boolean).join("\n");
+        const details = [result.stderr, result.stdout].filter(Boolean).join("\n");
         throw new Error(
             `Electron CLI exited with code ${result.status}: ${args.join(" ")}${details ? `\n${details}` : ""}`
         );
     }
+};
+
+const normalizeControlCommandArgs = (args: string[]): string[] => {
+    return args.includes("--non-interactive")
+        ? args
+        : ["--non-interactive", ...args];
 };
 
 interface LaunchElectronAppOptions {
@@ -146,10 +168,15 @@ export const resolveFixtureScenePath = (sceneFileName: string): string =>
     path.join(E2E_SCENES_DIR, sceneFileName);
 
 export const runControlCommand = async (args: string[]): Promise<void> => {
-    const normalizedArgs = args.includes("--non-interactive")
-        ? args
-        : ["--non-interactive", ...args];
+    const normalizedArgs = normalizeControlCommandArgs(args);
     executeElectronCli(["control", ...normalizedArgs]);
+};
+
+export const runControlCommandWithResult = async (
+    args: string[]
+): Promise<ElectronCliResult> => {
+    const normalizedArgs = normalizeControlCommandArgs(args);
+    return executeElectronCliWithResult(["control", ...normalizedArgs]);
 };
 
 export const launchE2EApp = async (
@@ -268,7 +295,11 @@ export const waitForE2EStable = async (
         state: "visible",
         timeout: timeoutMs,
     });
-    await page.waitForTimeout(250);
+    await runControlCommand([
+        "--wait-stable",
+        "--timeout-ms",
+        String(timeoutMs),
+    ]);
 
     return {
         stable: true,

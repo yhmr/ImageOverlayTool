@@ -6,13 +6,29 @@ import {
     reportSecondInstanceCommandExecutionError,
     reportSecondInstanceRouteParseError,
 } from "./cliErrorHandler";
+import { CliRouteParseError } from "./cliRouter";
+import {
+    buildControlAdditionalData,
+    type ControlCommandResultRequest,
+    resolveControlCommandResultRequest,
+    writeControlCommandExecutionFailedResult,
+    writeControlCommandInvalidArgumentResult,
+    writeControlCommandSuccessResult,
+} from "./controlCommandResult";
 import { resolveCliRuntimeOptions } from "./cliRuntimeOptions";
 import { resolveSecondInstanceCliRoute } from "./cliRouter";
 import { executeSecondInstanceCommand } from "./secondInstanceCommand";
 import { type StartupWindowOptions } from "./startupLaunch";
 
-export const acquireSingleInstanceLock = (): boolean => {
-    return app.requestSingleInstanceLock();
+export const acquireSingleInstanceLock = (
+    controlResultRequest?: ControlCommandResultRequest
+): boolean => {
+    if (!controlResultRequest) {
+        return app.requestSingleInstanceLock();
+    }
+    return app.requestSingleInstanceLock(
+        buildControlAdditionalData(controlResultRequest)
+    );
 };
 
 export const registerSingleInstanceHandlers = (
@@ -44,77 +60,111 @@ export const registerSingleInstanceHandlers = (
     };
 
     // 2つ目のインスタンスが起動されたときの処理
-    app.on("second-instance", async (_event, commandLine, workingDirectory) => {
-        log.debug(
-            `[second-instance] commandLine=${JSON.stringify(commandLine)}`
-        );
-        const runtimeOptions = resolveCliRuntimeOptions(
-            commandLine,
-            app.isPackaged
-        );
-        const mainWindow = windowManager.getMainWindow();
-        if (mainWindow) {
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore();
+    app.on(
+        "second-instance",
+        async (_event, commandLine, workingDirectory, additionalData) => {
+            log.debug(
+                `[second-instance] commandLine=${JSON.stringify(commandLine)}`
+            );
+            const controlResultRequest =
+                resolveControlCommandResultRequest(additionalData);
+            const runtimeOptions = resolveCliRuntimeOptions(
+                commandLine,
+                app.isPackaged
+            );
+            const mainWindow = windowManager.getMainWindow();
+            if (mainWindow) {
+                if (mainWindow.isMinimized()) {
+                    mainWindow.restore();
+                }
+                mainWindow.focus();
             }
-            mainWindow.focus();
-        }
 
-        let cliRoute: Awaited<ReturnType<typeof resolveSecondInstanceCliRoute>>;
-        try {
-            const hasWorkingDirectory =
-                typeof workingDirectory === "string" &&
-                workingDirectory.trim().length > 0;
-            cliRoute = hasWorkingDirectory
-                ? await resolveSecondInstanceCliRoute(
-                      commandLine,
-                      app.isPackaged,
-                      workingDirectory
-                  )
-                : await resolveSecondInstanceCliRoute(
-                      commandLine,
-                      app.isPackaged
-                  );
-        } catch (error) {
-            reportSecondInstanceRouteParseError(error, runtimeOptions);
-            return;
-        }
-
-        log.debug(`[second-instance] route kind=${cliRoute.kind}`);
-
-        if (cliRoute.kind === "control") {
+            let cliRoute: Awaited<
+                ReturnType<typeof resolveSecondInstanceCliRoute>
+            >;
             try {
-                await executeSecondInstanceCommand(
-                    cliRoute.command,
-                    windowManager
-                );
-                log.debug("[second-instance] control command executed");
+                const hasWorkingDirectory =
+                    typeof workingDirectory === "string" &&
+                    workingDirectory.trim().length > 0;
+                cliRoute = hasWorkingDirectory
+                    ? await resolveSecondInstanceCliRoute(
+                          commandLine,
+                          app.isPackaged,
+                          workingDirectory
+                      )
+                    : await resolveSecondInstanceCliRoute(
+                          commandLine,
+                          app.isPackaged
+                      );
             } catch (error) {
-                reportSecondInstanceCommandExecutionError(
-                    error,
-                    runtimeOptions
-                );
+                reportSecondInstanceRouteParseError(error, runtimeOptions);
+                if (controlResultRequest) {
+                    if (
+                        error instanceof CliRouteParseError &&
+                        error.stage === "control"
+                    ) {
+                        await writeControlCommandInvalidArgumentResult(
+                            controlResultRequest,
+                            error
+                        );
+                    } else {
+                        await writeControlCommandExecutionFailedResult(
+                            controlResultRequest,
+                            error
+                        );
+                    }
+                }
+                return;
             }
-            return;
-        }
 
-        const { startupLaunchPlan } = cliRoute;
+            log.debug(`[second-instance] route kind=${cliRoute.kind}`);
 
-        if (mainWindow) {
-            applyWindowOptions(mainWindow, startupLaunchPlan.windowOptions);
-        }
+            if (cliRoute.kind === "control") {
+                try {
+                    await executeSecondInstanceCommand(
+                        cliRoute.command,
+                        windowManager
+                    );
+                    log.debug("[second-instance] control command executed");
+                    if (controlResultRequest) {
+                        await writeControlCommandSuccessResult(
+                            controlResultRequest
+                        );
+                    }
+                } catch (error) {
+                    reportSecondInstanceCommandExecutionError(
+                        error,
+                        runtimeOptions
+                    );
+                    if (controlResultRequest) {
+                        await writeControlCommandExecutionFailedResult(
+                            controlResultRequest,
+                            error
+                        );
+                    }
+                }
+                return;
+            }
 
-        startupLaunchPlan.warnings.forEach((warning) => {
-            log.warn(`[startup] ${warning}`);
-        });
+            const { startupLaunchPlan } = cliRoute;
 
-        if (startupLaunchPlan.launchIntent) {
-            windowManager.applyLaunchIntent(startupLaunchPlan.launchIntent);
+            if (mainWindow) {
+                applyWindowOptions(mainWindow, startupLaunchPlan.windowOptions);
+            }
+
+            startupLaunchPlan.warnings.forEach((warning) => {
+                log.warn(`[startup] ${warning}`);
+            });
+
+            if (startupLaunchPlan.launchIntent) {
+                windowManager.applyLaunchIntent(startupLaunchPlan.launchIntent);
+            }
+            if (startupLaunchPlan.filePath) {
+                windowManager.openFile(startupLaunchPlan.filePath);
+            }
         }
-        if (startupLaunchPlan.filePath) {
-            windowManager.openFile(startupLaunchPlan.filePath);
-        }
-    });
+    );
 
     // macOSでファイルが開かれたときの処理
     app.on("open-file", (event, path) => {

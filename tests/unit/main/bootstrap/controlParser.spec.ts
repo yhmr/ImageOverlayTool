@@ -144,4 +144,40 @@ describe("controlParser", () => {
         ).toThrow("--timeout-ms can only be used with --wait-stable.");
     });
 
+    it("parses --capture-window command", () => {
+        expect(
+            parseControlCommand(
+                [
+                    "node",
+                    "index.js",
+                    "control",
+                    "--capture-window",
+                    "capture.png",
+                ],
+                false
+            )
+        ).toEqual({
+            kind: "capture-window",
+            outputPath: "capture.png",
+        });
+    });
+
+    it("parses --save-stage command", () => {
+        expect(
+            parseControlCommand(
+                [
+                    "node",
+                    "index.js",
+                    "control",
+                    "--save-stage",
+                    "stage.png",
+                ],
+                false
+            )
+        ).toEqual({
+            kind: "save-stage",
+            outputPath: "stage.png",
+        });
+    });
+
 });

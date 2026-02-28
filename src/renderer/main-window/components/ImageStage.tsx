@@ -25,6 +25,7 @@ import { useDimensionLineMode } from "../hooks/useDimensionLineMode";
 import { useImageSelection } from "../hooks/useImageSelection";
 import { useClickThroughMode } from "../hooks/useClickThroughMode";
 import { useStageExport } from "../hooks/useStageExport";
+import { useSaveStageBridge } from "../hooks/useSaveStageBridge";
 import { useImageInitialization } from "../hooks/useImageInitialization";
 import { useStagePointerHandlers } from "../hooks/useStagePointerHandlers";
 import type { MainWindowActions } from "../hooks/useMainWindowActions";
@@ -111,6 +112,8 @@ export const ImageStage = memo(function ImageStage(props: ImageStageProps) {
 
         return bindStageDragEndDisable(stage);
     }, []);
+
+    useSaveStageBridge(stageRef);
 
     return (
         <>

@@ -15,7 +15,8 @@ export const CONTROL_COMMAND_OPTION_TOKENS = new Set([
     "--add-image",
     "--set-opacity",
     "--switch-scene",
-    "--export",
+    "--capture-window",
+    "--save-stage",
     "--wait-stable",
 ]);
 

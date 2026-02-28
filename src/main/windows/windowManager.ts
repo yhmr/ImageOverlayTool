@@ -139,7 +139,7 @@ export class WindowManager {
 
     /**
      * スプラッシュ付きでメインウィンドウを起動する
-     * skipSplash=true の場合（E2E等）はスプラッシュをスキップ
+     * skipSplash=true の場合はスプラッシュをスキップ
      */
     async launchMainWindow(
         options: { skipSplash: boolean } = { skipSplash: false }

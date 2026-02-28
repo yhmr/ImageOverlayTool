@@ -67,13 +67,6 @@ export const IPC_CHANNELS = {
         window: "capture-window",
         saveImageData: "save-image-data",
     },
-    e2e: {
-        getStatus: "e2e:getStatus",
-        setSceneFromPath: "e2e:setSceneFromPath",
-        loadFixtureImage: "e2e:loadFixtureImage",
-        waitStable: "e2e:waitStable",
-        capture: "e2e:capture",
-    },
 } as const;
 
 /**

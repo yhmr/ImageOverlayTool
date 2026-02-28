@@ -14,7 +14,8 @@ type ParsedControlCommandKind =
     | "add-image"
     | "set-opacity"
     | "switch-scene"
-    | "export"
+    | "capture-window"
+    | "save-stage"
     | "wait-stable";
 
 const DEFAULT_WAIT_STABLE_TIMEOUT_MS = 5000;
@@ -35,7 +36,11 @@ export type ParsedControlCommand =
           scenePath: string;
       }
     | {
-          kind: "export";
+          kind: "capture-window";
+          outputPath: string;
+      }
+    | {
+          kind: "save-stage";
           outputPath: string;
       }
     | {
@@ -104,7 +109,8 @@ export const parseControlCommand = (
     let commandKind: ParsedControlCommandKind | null = null;
     let addImagePath: string | null = null;
     let switchScenePath: string | null = null;
-    let exportPath: string | null = null;
+    let captureWindowPath: string | null = null;
+    let saveStagePath: string | null = null;
     let setOpacity: number | null = null;
     let addImageOpacity: number | undefined;
     let waitStableTimeoutMs: number | null = null;
@@ -139,10 +145,22 @@ export const parseControlCommand = (
             continue;
         }
 
-        if (token === "--export") {
-            ensureSingleCommand(commandKind, "export");
-            exportPath = requireOptionValue(argv, index, "--export");
-            commandKind = "export";
+        if (token === "--capture-window") {
+            ensureSingleCommand(commandKind, "capture-window");
+            captureWindowPath = requireOptionValue(
+                argv,
+                index,
+                "--capture-window"
+            );
+            commandKind = "capture-window";
+            index += 1;
+            continue;
+        }
+
+        if (token === "--save-stage") {
+            ensureSingleCommand(commandKind, "save-stage");
+            saveStagePath = requireOptionValue(argv, index, "--save-stage");
+            commandKind = "save-stage";
             index += 1;
             continue;
         }
@@ -233,12 +251,22 @@ export const parseControlCommand = (
         };
     }
 
-    if (!exportPath) {
-        throw new Error("--export requires an output path.");
+    if (commandKind === "capture-window") {
+        if (!captureWindowPath) {
+            throw new Error("--capture-window requires an output path.");
+        }
+        return {
+            kind: "capture-window",
+            outputPath: captureWindowPath,
+        };
+    }
+
+    if (!saveStagePath) {
+        throw new Error("--save-stage requires an output path.");
     }
 
     return {
-        kind: "export",
-        outputPath: exportPath,
+        kind: "save-stage",
+        outputPath: saveStagePath,
     };
 };

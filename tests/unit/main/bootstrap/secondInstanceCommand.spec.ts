@@ -192,15 +192,28 @@ describe("secondInstanceCommand", () => {
         ).toThrow("--switch-scene requires a .scene.json path");
     });
 
-    it("parses --export output path", () => {
+    it("parses --capture-window output path", () => {
         const outputPath = path.join(tempDir, "capture.png");
         const command = resolveSecondInstanceCommand(
-            ["node", "index.js", "control", "--export", outputPath],
+            ["node", "index.js", "control", "--capture-window", outputPath],
             false
         );
 
         expect(command).toEqual({
-            kind: "export",
+            kind: "capture-window",
+            outputPath: path.resolve(outputPath),
+        });
+    });
+
+    it("parses --save-stage output path", () => {
+        const outputPath = path.join(tempDir, "stage.png");
+        const command = resolveSecondInstanceCommand(
+            ["node", "index.js", "control", "--save-stage", outputPath],
+            false
+        );
+
+        expect(command).toEqual({
+            kind: "save-stage",
             outputPath: path.resolve(outputPath),
         });
     });
@@ -275,7 +288,7 @@ describe("secondInstanceCommand", () => {
         expect(windowManager.applyAppControlCommand).not.toHaveBeenCalled();
     });
 
-    it("executes export command and writes image to output path", async () => {
+    it("executes capture-window command and writes image to output path", async () => {
         const outputPath = path.join(tempDir, "exports", "capture.png");
         const nativeImage = {
             toPNG: vi.fn(() => Buffer.from("png-data")),
@@ -295,7 +308,7 @@ describe("secondInstanceCommand", () => {
 
         await executeSecondInstanceCommand(
             {
-                kind: "export",
+                kind: "capture-window",
                 outputPath,
             },
             windowManager as never
@@ -306,7 +319,7 @@ describe("secondInstanceCommand", () => {
         expect(fs.readFileSync(outputPath)).toEqual(Buffer.from("png-data"));
     });
 
-    it("throws when export is requested without an active main window", async () => {
+    it("throws when capture-window is requested without an active main window", async () => {
         const windowManager = {
             applyAppControlCommand: vi.fn(),
             openFile: vi.fn(),
@@ -316,12 +329,65 @@ describe("secondInstanceCommand", () => {
         await expect(
             executeSecondInstanceCommand(
                 {
-                    kind: "export",
+                    kind: "capture-window",
                     outputPath: path.join(tempDir, "capture.png"),
                 },
                 windowManager as never
             )
-        ).rejects.toThrow("Main window is not available for --export");
+        ).rejects.toThrow("Main window is not available for --capture-window");
+    });
+
+    it("executes save-stage command and writes image to output path", async () => {
+        const outputPath = path.join(tempDir, "exports", "stage.png");
+        const mainWindow = {
+            isDestroyed: vi.fn(() => false),
+            isMinimized: vi.fn(() => false),
+            restore: vi.fn(),
+            isVisible: vi.fn(() => true),
+            show: vi.fn(),
+            webContents: {
+                executeJavaScript: vi
+                    .fn()
+                    .mockResolvedValue(
+                        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6pS5UAAAAASUVORK5CYII="
+                    ),
+            },
+        };
+        const windowManager = {
+            applyAppControlCommand: vi.fn(),
+            openFile: vi.fn(),
+            getMainWindow: vi.fn(() => mainWindow),
+        };
+
+        await executeSecondInstanceCommand(
+            {
+                kind: "save-stage",
+                outputPath,
+            },
+            windowManager as never
+        );
+
+        expect(mainWindow.webContents.executeJavaScript).toHaveBeenCalledTimes(1);
+        expect(fs.existsSync(outputPath)).toBe(true);
+        expect(fs.readFileSync(outputPath).length).toBeGreaterThan(0);
+    });
+
+    it("throws when save-stage is requested without an active main window", async () => {
+        const windowManager = {
+            applyAppControlCommand: vi.fn(),
+            openFile: vi.fn(),
+            getMainWindow: vi.fn(() => null),
+        };
+
+        await expect(
+            executeSecondInstanceCommand(
+                {
+                    kind: "save-stage",
+                    outputPath: path.join(tempDir, "stage.png"),
+                },
+                windowManager as never
+            )
+        ).rejects.toThrow("Main window is not available for --save-stage");
     });
 
     it("executes wait-stable command when main window is stable", async () => {

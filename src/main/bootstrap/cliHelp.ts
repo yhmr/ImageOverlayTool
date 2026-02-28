@@ -176,7 +176,8 @@ const CONTROL_HELP = `Control commands (for already-running instance):
   --add-image <path> [--opacity <0-100>]
   --set-opacity <0-100>
   --switch-scene <path.scene.json>
-  --export <path.png|path.jpg|path.jpeg>
+  --capture-window <path.png|path.jpg|path.jpeg>
+  --save-stage <path.png|path.jpg|path.jpeg>
   --wait-stable [--timeout-ms <ms>]`;
 
 const EXAMPLES_HELP = `Examples:
@@ -190,7 +191,8 @@ const EXAMPLES_HELP = `Examples:
   ImageOverlayTool control --add-image "./images/ref.png" --opacity 40
   ImageOverlayTool control --set-opacity 30
   ImageOverlayTool control --switch-scene "./scenes/layout-v2.scene.json"
-  ImageOverlayTool control --export "./output/overlay.png"
+  ImageOverlayTool control --capture-window "./output/overlay.png"
+  ImageOverlayTool control --save-stage "./output/stage.png"
   ImageOverlayTool control --non-interactive --wait-stable --timeout-ms 7000`;
 
 interface CliHelpSection {
