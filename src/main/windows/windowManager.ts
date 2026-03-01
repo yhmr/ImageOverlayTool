@@ -139,7 +139,7 @@ export class WindowManager {
 
     /**
      * スプラッシュ付きでメインウィンドウを起動する
-     * skipSplash=true の場合（E2E等）はスプラッシュをスキップ
+     * skipSplash=true の場合はスプラッシュをスキップ
      */
     async launchMainWindow(
         options: { skipSplash: boolean } = { skipSplash: false }
@@ -328,14 +328,11 @@ export class WindowManager {
     }
 
     /**
-     * DevToolsを開く（開発環境かつE2Eでない場合のみ）
+     * DevToolsを開く（ローカル開発環境のみ）
      */
-    openDevTools(window: BrowserWindow, e2eEnabled: boolean): void {
+    openDevTools(window: BrowserWindow): void {
         const shouldOpen =
-            !app.isPackaged &&
-            is.dev &&
-            process.env["ELECTRON_RENDERER_URL"] &&
-            !e2eEnabled;
+            !app.isPackaged && is.dev && process.env["ELECTRON_RENDERER_URL"];
 
         if (shouldOpen) {
             window.webContents.openDevTools({ mode: "detach" });

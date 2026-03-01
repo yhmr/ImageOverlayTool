@@ -64,7 +64,8 @@ ImageOverlayTool control [command]
 | `--add-image` | `<path>` | Adds the specified image file to the canvas. You can also use `--opacity <0-100>` together to specify the opacity. |
 | `--set-opacity` | `<0-100>` | Changes the opacity of the currently selected image. |
 | `--switch-scene` | `<path.scene.json>` | Discards the current project state and switches to the state of the specified Scene file. |
-| `--export` | `<path.png｜path.jpg>` | Exports the current state of the canvas as an image to the specified path. |
+| `--capture-window` | `<path.png｜path.jpg>` | Captures the full current app window and saves it to the specified path. |
+| `--save-stage` | `<path.png｜path.jpg>` | Saves the current stage-rendered image to the specified path. |
 
 ---
 
@@ -120,8 +121,9 @@ ImageOverlayTool control --add-image "%1"
 
 ### Exporting State (Automation)
 
-Example of exporting the current state of the canvas to an image in the background.
+Example of exporting the current state to image files in the background.
 
 ```bash
-ImageOverlayTool control --export "C:\out\current-state.png"
+ImageOverlayTool control --capture-window "C:\out\current-state.png"
+ImageOverlayTool control --save-stage "C:\out\current-stage.png"
 ```

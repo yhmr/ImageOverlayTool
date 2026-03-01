@@ -65,7 +65,7 @@ export class MainWindowLifecycle {
 
         this.mainWindow.on("ready-to-show", () => {
             log.debug("Main window ready-to-show");
-            // スプラッシュなし（E2E等）の場合は即表示
+            // スプラッシュなしの場合は即表示
             if (!this.options.splashLifecycle.getWindow()) {
                 if (isMaximized) {
                     this.mainWindow?.maximize();

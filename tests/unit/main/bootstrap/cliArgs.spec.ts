@@ -31,6 +31,12 @@ describe("cliArgs", () => {
         );
     });
 
+    it("supports custom error message for missing option value", () => {
+        expect(() =>
+            requireOptionValue(["--scene"], 0, "--scene", "--scene requires a path.")
+        ).toThrow("--scene requires a path.");
+    });
+
     it("parses opacity percent in range 0..100", () => {
         expect(parseOpacityPercent("0", "--opacity")).toBe(0);
         expect(parseOpacityPercent("100", "--opacity")).toBe(100);

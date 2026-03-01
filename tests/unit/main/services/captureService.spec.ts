@@ -210,56 +210,6 @@ describe("captureService", () => {
         vi.useRealTimers();
     });
 
-    it("captureWindowAreaAndSave returns placeholder info in test mode with defaults", async () => {
-        const placeholderBuffer = Buffer.from("placeholder");
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
-            asNativeImage({
-                toPNG: () => placeholderBuffer,
-            })
-        );
-
-        const result = await captureWindowAreaAndSave(createIpcEvent(), true, {
-            enabled: true,
-            captureFilePath: "C:/tmp/capture.png",
-            exportImagePath: "C:/tmp/export.png",
-        });
-
-        expect(fs.mkdir).toHaveBeenCalledWith(path.dirname("C:/tmp/capture.png"), {
-            recursive: true,
-        });
-        expect(fs.writeFile).toHaveBeenCalledWith(
-            "C:/tmp/capture.png",
-            placeholderBuffer
-        );
-        expect(result).toEqual({
-            filePath: "C:/tmp/capture.png",
-            width: 1280,
-            height: 720,
-        });
-    });
-
-    it("captureWindowAreaAndSave uses explicit width and height in test mode", async () => {
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
-            asNativeImage({
-                toPNG: () => Buffer.from("placeholder"),
-            })
-        );
-
-        const result = await captureWindowAreaAndSave(createIpcEvent(), false, {
-            enabled: true,
-            captureFilePath: "C:/tmp/capture.png",
-            exportImagePath: "C:/tmp/export.png",
-            captureWidth: 1920,
-            captureHeight: 1080,
-        });
-
-        expect(result).toEqual({
-            filePath: "C:/tmp/capture.png",
-            width: 1920,
-            height: 1080,
-        });
-    });
-
     it("captureWindowAreaAndSave returns null when sender window is unavailable", async () => {
         vi.mocked(BrowserWindow.fromWebContents).mockReturnValue(null);
 
@@ -281,12 +231,8 @@ describe("captureService", () => {
             },
         });
 
-        const result = await captureWindowAreaAndSave(event, false, {
-            enabled: false,
-            captureFilePath: "",
-            exportImagePath: "",
-            fixedNow: 123,
-        });
+        vi.spyOn(Date, "now").mockReturnValue(123);
+        const result = await captureWindowAreaAndSave(event, false);
 
         expect(vi.mocked(thumbnail.crop)).toHaveBeenCalledWith({
             x: 80,
@@ -477,52 +423,6 @@ describe("captureService", () => {
         );
 
         expect(result).toBeNull();
-    });
-
-    it("saveDataUrlImage writes jpeg in test mode for .jpg path", async () => {
-        const jpegBuffer = Buffer.from("jpeg");
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
-            asNativeImage({
-                toJPEG: () => jpegBuffer,
-                toPNG: () => Buffer.from("png"),
-            })
-        );
-
-        const result = await saveDataUrlImage(
-            createIpcEvent(),
-            "data:image/png;base64,AA==",
-            {
-                enabled: true,
-                captureFilePath: "C:/tmp/capture.png",
-                exportImagePath: "C:/tmp/export.jpg",
-            }
-        );
-
-        expect(fs.writeFile).toHaveBeenCalledWith("C:/tmp/export.jpg", jpegBuffer);
-        expect(result).toBe("C:/tmp/export.jpg");
-    });
-
-    it("saveDataUrlImage writes png in test mode for non-jpeg path", async () => {
-        const pngBuffer = Buffer.from("png");
-        vi.mocked(nativeImage.createFromDataURL).mockReturnValue(
-            asNativeImage({
-                toJPEG: () => Buffer.from("jpeg"),
-                toPNG: () => pngBuffer,
-            })
-        );
-
-        const result = await saveDataUrlImage(
-            createIpcEvent(),
-            "data:image/png;base64,AA==",
-            {
-                enabled: true,
-                captureFilePath: "C:/tmp/capture.png",
-                exportImagePath: "C:/tmp/export.png",
-            }
-        );
-
-        expect(fs.writeFile).toHaveBeenCalledWith("C:/tmp/export.png", pngBuffer);
-        expect(result).toBe("C:/tmp/export.png");
     });
 
     it("saveDataUrlImage returns null when user cancels save dialog", async () => {

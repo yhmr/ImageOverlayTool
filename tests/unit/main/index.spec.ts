@@ -13,8 +13,7 @@ const {
     mockResolveCliHelpRequest,
     mockResolveCliSceneTemplateRequest,
     mockResolveCliValidateSceneRequest,
-    mockResolveE2ERuntimeConfig,
-    mockInitializeRuntimeEnvironment,
+    mockResolveSecondInstanceCommand,
     mockRegisterSingleInstanceHandlers,
     mockSettingsRepositoryCreate,
     mockWindowRepositoryCreate,
@@ -30,8 +29,7 @@ const {
     mockResolveCliHelpRequest: vi.fn(() => null),
     mockResolveCliSceneTemplateRequest: vi.fn(() => null),
     mockResolveCliValidateSceneRequest: vi.fn(() => null),
-    mockResolveE2ERuntimeConfig: vi.fn(() => ({ enabled: false })),
-    mockInitializeRuntimeEnvironment: vi.fn(),
+    mockResolveSecondInstanceCommand: vi.fn(() => null),
     mockRegisterSingleInstanceHandlers: vi.fn(),
     mockSettingsRepositoryCreate: vi.fn(() => ({})),
     mockWindowRepositoryCreate: vi.fn(() => ({})),
@@ -115,10 +113,6 @@ vi.mock("@/main/bootstrap/cliErrorHandler", () => ({
     writeCliSceneValidationError: vi.fn(),
 }));
 
-vi.mock("@/main/bootstrap/runtime", () => ({
-    initializeRuntimeEnvironment: mockInitializeRuntimeEnvironment,
-}));
-
 vi.mock("@/main/bootstrap/singleInstance", () => ({
     acquireSingleInstanceLock: mockAcquireSingleInstanceLock,
     registerSingleInstanceHandlers: mockRegisterSingleInstanceHandlers,
@@ -128,8 +122,8 @@ vi.mock("@/main/bootstrap/cliRouter", () => ({
     resolveStartupCliRoute: vi.fn(),
 }));
 
-vi.mock("@/main/e2e/runtimeConfig", () => ({
-    resolveE2ERuntimeConfig: mockResolveE2ERuntimeConfig,
+vi.mock("@/main/bootstrap/secondInstanceCommand", () => ({
+    resolveSecondInstanceCommand: mockResolveSecondInstanceCommand,
 }));
 
 vi.mock("@/main/ipc/protocol", () => ({
@@ -186,17 +180,11 @@ describe("main/index startup wiring", () => {
     it("registers early startup hooks and quits when single-instance lock is unavailable", async () => {
         await import("@/main/index");
 
-        expect(mockResolveE2ERuntimeConfig).toHaveBeenCalledWith({
-            isPackaged: false,
-        });
-        expect(mockInitializeRuntimeEnvironment).toHaveBeenCalledWith({
-            enabled: false,
-        });
         expect(mockMenuSetApplicationMenu).toHaveBeenCalledWith(null);
         expect(mockRegisterEarlyIpcHandlers).toHaveBeenCalledTimes(1);
         expect(mockRegisterProcessErrorHandlers).toHaveBeenCalledTimes(1);
         expect(mockRegisterLocalResourceProtocol).toHaveBeenCalledTimes(1);
-        expect(mockAcquireSingleInstanceLock).toHaveBeenCalledWith(false);
+        expect(mockAcquireSingleInstanceLock).toHaveBeenCalledWith();
         expect(mockAppQuit).toHaveBeenCalledTimes(1);
         expect(mockRegisterSingleInstanceHandlers).not.toHaveBeenCalled();
     });

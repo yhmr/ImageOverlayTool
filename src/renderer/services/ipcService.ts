@@ -4,7 +4,6 @@
  */
 
 import { createCaptureIPCService } from "./ipc/capture";
-import { createE2EIPCService } from "./ipc/e2e";
 import { createImageSettingsWindowIPCService } from "./ipc/imageSettingsWindow";
 import { createLicenseIPCService } from "./ipc/license";
 import { createLogIPCService } from "./ipc/log";
@@ -21,8 +20,7 @@ export type IIPCService = ReturnType<typeof createLogIPCService> &
     ReturnType<typeof createImageSettingsWindowIPCService> &
     ReturnType<typeof createSyncIPCService> &
     ReturnType<typeof createLicenseIPCService> &
-    ReturnType<typeof createCaptureIPCService> &
-    ReturnType<typeof createE2EIPCService>;
+    ReturnType<typeof createCaptureIPCService>;
 export type IProjectDataSyncIPCService = Pick<
     IIPCService,
     | "updateImageSets"
@@ -42,7 +40,6 @@ const createIPCService = (): IIPCService => ({
     ...createSyncIPCService(),
     ...createLicenseIPCService(),
     ...createCaptureIPCService(),
-    ...createE2EIPCService(),
 });
 
 // デフォルトのサービスインスタンス

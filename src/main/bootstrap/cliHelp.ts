@@ -153,6 +153,7 @@ const HELP_HEADER = `ImageOverlayTool CLI Help
 Routing rules:
   - Subcommands: startup ... | control ...
   - startup/control options require explicit subcommand.
+  - Global options: --non-interactive (suppresses native error dialogs).
   - Startup options: parsed from primary-instance startup argv.
   - Control commands: sent to an already-running instance via second-instance.
   - If no instance is running, control commands are not accepted as startup options.
@@ -175,7 +176,9 @@ const CONTROL_HELP = `Control commands (for already-running instance):
   --add-image <path> [--opacity <0-100>]
   --set-opacity <0-100>
   --switch-scene <path.scene.json>
-  --export <path.png|path.jpg|path.jpeg>`;
+  --capture-window <path.png|path.jpg|path.jpeg>
+  --save-stage <path.png|path.jpg|path.jpeg>
+  --wait-stable [--timeout-ms <ms>]`;
 
 const EXAMPLES_HELP = `Examples:
   ImageOverlayTool startup --scene "./scenes/default.scene.json"
@@ -188,7 +191,9 @@ const EXAMPLES_HELP = `Examples:
   ImageOverlayTool control --add-image "./images/ref.png" --opacity 40
   ImageOverlayTool control --set-opacity 30
   ImageOverlayTool control --switch-scene "./scenes/layout-v2.scene.json"
-  ImageOverlayTool control --export "./output/overlay.png"`;
+  ImageOverlayTool control --capture-window "./output/overlay.png"
+  ImageOverlayTool control --save-stage "./output/stage.png"
+  ImageOverlayTool control --non-interactive --wait-stable --timeout-ms 7000`;
 
 interface CliHelpSection {
     id: Exclude<HelpTopic, "all">;
@@ -240,6 +245,7 @@ export const buildCliHelpPayload = (topic: HelpTopic): CliHelpJsonPayload => {
         routingRules: [
             "Subcommands: startup ... | control ...",
             "startup/control options require explicit subcommand.",
+            "Global options: --non-interactive (suppresses native error dialogs).",
             "Startup options: parsed from primary-instance startup argv.",
             "Control commands: sent to an already-running instance via second-instance.",
             "If no instance is running, control commands are not accepted as startup options.",

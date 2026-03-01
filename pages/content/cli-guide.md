@@ -64,7 +64,8 @@ ImageOverlayTool control [コマンド]
 | `--add-image` | `<path>` | 指定した画像ファイルをキャンバスに追加します。`--opacity <0-100>` を併用して透明度を指定することも可能です。 |
 | `--set-opacity` | `<0-100>` | 現在選択されている画像の透明度を変更します。 |
 | `--switch-scene` | `<path.scene.json>` | 現在のプロジェクト状態を破棄し、指定したSceneファイルの状態に切り替えます。 |
-| `--export` | `<path.png｜path.jpg>` | 現在のキャンバスの状態を指定したパスに画像としてエクスポートします。 |
+| `--capture-window` | `<path.png｜path.jpg>` | 現在のアプリウィンドウ全体を指定パスに保存します。 |
+| `--save-stage` | `<path.png｜path.jpg>` | 現在のステージ描画結果を指定パスに保存します。 |
 
 ---
 
@@ -120,8 +121,9 @@ ImageOverlayTool control --add-image "%1"
 
 ### 状態のエクスポート（自動化）
 
-バックグラウンドでキャンバスの現在の状態を画像出力させる例です。
+バックグラウンドで現在の状態を画像出力させる例です。
 
 ```bash
-ImageOverlayTool control --export "C:\out\current-state.png"
+ImageOverlayTool control --capture-window "C:\out\current-state.png"
+ImageOverlayTool control --save-stage "C:\out\current-stage.png"
 ```

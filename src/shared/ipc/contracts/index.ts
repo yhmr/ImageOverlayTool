@@ -1,6 +1,5 @@
 export { appEventContracts } from "./appEvents";
 export { captureIpcContracts } from "./capture";
-export { e2eIpcContracts } from "./e2e";
 export {
     dimensionSettingsWindowIpcContracts,
     imageSettingsWindowIpcContracts,

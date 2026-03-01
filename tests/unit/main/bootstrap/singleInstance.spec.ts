@@ -320,16 +320,46 @@ describe("singleInstance", () => {
         expect(executeSecondInstanceCommand).not.toHaveBeenCalled();
     });
 
+    it("does not show dialog for invalid command args in non-interactive mode", async () => {
+        vi.mocked(resolveSecondInstanceCliRoute).mockRejectedValue(
+            new CliRouteParseError("control", "invalid command option")
+        );
+        const stderrSpy = vi
+            .spyOn(process.stderr, "write")
+            .mockImplementation(() => true);
+
+        const windowManager = {
+            getMainWindow: vi.fn(() => createMainWindow()),
+            applyLaunchIntent: vi.fn(),
+            openFile: vi.fn(),
+        };
+
+        registerSingleInstanceHandlers(windowManager as never);
+        await secondInstanceHandler?.({}, [
+            "node",
+            "index.js",
+            "control",
+            "--non-interactive",
+            "--set-opacity",
+        ]);
+
+        expect(dialog.showErrorBox).not.toHaveBeenCalled();
+        expect(stderrSpy).toHaveBeenCalledWith(
+            "Invalid second-instance command: invalid command option\n"
+        );
+        stderrSpy.mockRestore();
+    });
+
     it("shows error dialog when second-instance command execution fails", async () => {
         vi.mocked(resolveSecondInstanceCliRoute).mockResolvedValue({
             kind: "control",
             command: {
-                kind: "export",
+                kind: "capture-window",
                 outputPath: "C:/tmp/overlay.png",
             },
         });
         vi.mocked(executeSecondInstanceCommand).mockRejectedValue(
-            new Error("export failed")
+            new Error("capture-window failed")
         );
 
         const windowManager = {
@@ -343,13 +373,13 @@ describe("singleInstance", () => {
             "node",
             "index.js",
             "control",
-            "--export",
+            "--capture-window",
             "overlay.png",
         ]);
 
         expect(dialog.showErrorBox).toHaveBeenCalledWith(
             "Second-instance command failed",
-            "export failed"
+            "capture-window failed"
         );
     });
 

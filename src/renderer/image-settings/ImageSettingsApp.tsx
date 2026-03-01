@@ -9,7 +9,6 @@ import "../shared/globals.css";
 import "./ImageSettingsApp.css";
 
 import { useBroadcastProjectData } from "../hooks/useBroadcastProjectData";
-import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
 import { useImageDrop } from "../hooks/useImageDrop";
 import { useReceiveProjectData } from "../hooks/useReceiveProjectData";
 import { useRespondProjectDataSyncRequest } from "../hooks/useRespondProjectDataSyncRequest";
@@ -31,8 +30,6 @@ const ImageSettingsApp = () => {
     useReceiveProjectData();
     // 同期要求に対する現在状態の応答
     useRespondProjectDataSyncRequest();
-    // E2E制御ブリッジ
-    useE2EControlBridge();
     // D&D画像読み込み
     const { onDragOver, onDrop } = useImageDrop();
 

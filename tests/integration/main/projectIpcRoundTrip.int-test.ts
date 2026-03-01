@@ -70,30 +70,29 @@ const createProject = (imagePath: string): ProjectFile<ImageSet> => ({
 describe("Main integration: project IPC round-trip", () => {
     let tempRootDir: string;
     let userDataDir: string;
-    let testModeProjectPath: string;
+    let projectFilePath: string;
 
     beforeEach(async () => {
         vi.clearAllMocks();
 
         tempRootDir = await fs.mkdtemp(path.join(os.tmpdir(), "iot-int-"));
         userDataDir = path.join(tempRootDir, "user-data");
-        testModeProjectPath = path.join(tempRootDir, "test-mode-project.iot");
+        projectFilePath = path.join(tempRootDir, "project-roundtrip.iot");
         mockGetPath.mockReturnValue(userDataDir);
 
-        registerProjectHandlers(new ProjectRepository(), {
-            testMode: {
-                enabled: true,
-                projectFilePath: testModeProjectPath,
-            },
-        });
+        registerProjectHandlers(new ProjectRepository());
     });
 
     afterEach(async () => {
         await fs.rm(tempRootDir, { recursive: true, force: true });
     });
 
-    it("persists project file via project:saveAs in test mode", async () => {
+    it("persists project file via project:saveAs", async () => {
         const project = createProject("C:/images/sample.png");
+        vi.mocked(dialog.showSaveDialog).mockResolvedValue({
+            canceled: false,
+            filePath: projectFilePath,
+        } as Electron.SaveDialogReturnValue);
 
         const savedPath = await invokeIpcHandler(
             "project:saveAs",
@@ -101,16 +100,20 @@ describe("Main integration: project IPC round-trip", () => {
             project
         );
 
-        expect(savedPath).toBe(testModeProjectPath);
-        const savedRaw = await fs.readFile(testModeProjectPath, "utf8");
+        expect(savedPath).toBe(projectFilePath);
+        const savedRaw = await fs.readFile(projectFilePath, "utf8");
         const saved = JSON.parse(savedRaw) as ProjectFile<ImageSet>;
         expect(saved).toEqual(project);
     });
 
-    it("loads project file via project:load in test mode", async () => {
+    it("loads project file via project:load", async () => {
         const project = createProject("C:/images/sample.png");
+        vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+            canceled: false,
+            filePaths: [projectFilePath],
+        } as Electron.OpenDialogReturnValue);
         await fs.writeFile(
-            testModeProjectPath,
+            projectFilePath,
             JSON.stringify(project, null, 2),
             "utf8"
         );
@@ -118,7 +121,7 @@ describe("Main integration: project IPC round-trip", () => {
 
         expect(loaded).toEqual({
             project,
-            filePath: testModeProjectPath,
+            filePath: projectFilePath,
         });
     });
 

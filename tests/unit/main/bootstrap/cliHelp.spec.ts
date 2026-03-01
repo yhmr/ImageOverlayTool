@@ -113,6 +113,8 @@ describe("cliHelp", () => {
         );
         expect(text).toContain("Startup options:");
         expect(text).toContain("Control commands");
+        expect(text).toContain("--capture-window");
+        expect(text).toContain("--save-stage");
         expect(text).toContain("Examples:");
         expect(text).toContain("ImageOverlayTool startup --scene");
         expect(text).toContain("ImageOverlayTool control --set-opacity 30");

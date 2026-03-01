@@ -8,7 +8,6 @@ import "./App.css";
 import { useFileHandler } from "./hooks/useFileHandler";
 import { useImageDrop } from "../hooks/useImageDrop";
 import { useBroadcastProjectData } from "../hooks/useBroadcastProjectData";
-import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
 import { useMainWindowDialogState } from "./hooks/useMainWindowDialogState";
 import { useReceiveProjectData } from "../hooks/useReceiveProjectData";
 import { useRespondProjectDataSyncRequest } from "../hooks/useRespondProjectDataSyncRequest";
@@ -50,8 +49,6 @@ const App = () => {
     useRespondProjectDataSyncRequest();
     // ファイルハンドラフックを使用 (起動時引数など)
     useFileHandler();
-    // E2E制御ブリッジ
-    useE2EControlBridge();
     useGlobalErrorLogging();
     useMainWindowBootstrap();
     // D&D画像読み込み

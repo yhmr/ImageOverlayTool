@@ -1,7 +1,12 @@
 import type { Point } from "../../shared/types/Point";
 import type { Size } from "../../shared/types/Size";
-import { isOptionToken, normalizeArgv, parseOpacityPercent } from "./cliArgs";
-import { STARTUP_OPTION_TOKENS } from "./cliOptionTokens";
+import {
+    isOptionToken,
+    normalizeArgv,
+    parseOpacityPercent,
+    requireOptionValue,
+} from "./cliArgs";
+import { GLOBAL_OPTION_TOKENS, STARTUP_OPTION_TOKENS } from "./cliOptionTokens";
 import { resolveCliSubcommandArgv } from "./cliSubcommand";
 
 export interface ParsedStartupArgs {
@@ -99,10 +104,12 @@ export const parseStartupArgs = (
         }
 
         if (token === "--scene") {
-            const value = argv[index + 1];
-            if (!value || isOptionToken(value)) {
-                throw new Error("--scene requires a path.");
-            }
+            const value = requireOptionValue(
+                argv,
+                index,
+                "--scene",
+                "--scene requires a path."
+            );
             parsed.scenePath = value;
             index += 1;
             continue;
@@ -122,30 +129,36 @@ export const parseStartupArgs = (
         }
 
         if (token === "--opacity") {
-            const value = argv[index + 1];
-            if (!value || isOptionToken(value)) {
-                throw new Error("--opacity requires a numeric value.");
-            }
+            const value = requireOptionValue(
+                argv,
+                index,
+                "--opacity",
+                "--opacity requires a numeric value."
+            );
             parsed.opacity = parseOpacity(value);
             index += 1;
             continue;
         }
 
         if (token === "--position") {
-            const value = argv[index + 1];
-            if (!value || isOptionToken(value)) {
-                throw new Error("--position requires x,y.");
-            }
+            const value = requireOptionValue(
+                argv,
+                index,
+                "--position",
+                "--position requires x,y."
+            );
             parsed.position = parsePosition(value);
             index += 1;
             continue;
         }
 
         if (token === "--size") {
-            const value = argv[index + 1];
-            if (!value || isOptionToken(value)) {
-                throw new Error("--size requires w,h.");
-            }
+            const value = requireOptionValue(
+                argv,
+                index,
+                "--size",
+                "--size requires w,h."
+            );
             parsed.size = parseSize(value);
             index += 1;
             continue;
@@ -176,7 +189,7 @@ export const parseStartupArgs = (
             continue;
         }
 
-        if (token === "--e2e") {
+        if (GLOBAL_OPTION_TOKENS.has(token)) {
             continue;
         }
 

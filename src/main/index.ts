@@ -32,22 +32,30 @@ import {
 } from "./bootstrap/cliValidateScene";
 import {
     CLI_EXIT_CODES,
+    createCliErrorResult,
     createCliSuccessResult,
     stringifyCliJsonResult,
 } from "./bootstrap/cliResult";
+import {
+    awaitControlCommandResult,
+    createControlCommandResultRequest,
+    writeControlCommandResultToProcess,
+} from "./bootstrap/controlCommandResult";
 import {
     reportStartupLaunchParseError,
     writeCliInvalidArgumentError,
     writeCliSceneValidationError,
 } from "./bootstrap/cliErrorHandler";
-import { initializeRuntimeEnvironment } from "./bootstrap/runtime";
+import { normalizeArgv } from "./bootstrap/cliArgs";
+import { resolveCliRuntimeOptions } from "./bootstrap/cliRuntimeOptions";
+import { resolveCliSubcommandArgv } from "./bootstrap/cliSubcommand";
 import {
     acquireSingleInstanceLock,
     registerSingleInstanceHandlers,
 } from "./bootstrap/singleInstance";
 import { resolveStartupCliRoute } from "./bootstrap/cliRouter";
+import { resolveSecondInstanceCommand } from "./bootstrap/secondInstanceCommand";
 import { type StartupWindowOptions } from "./bootstrap/startupLaunch";
-import { resolveE2ERuntimeConfig } from "./e2e/runtimeConfig";
 import {
     registerLocalResourceProtocol,
     setupProtocolHandler,
@@ -60,14 +68,15 @@ import { WindowRepositoryFactory } from "./repositories/WindowRepositoryFactory"
 import { WindowManager } from "./windows/windowManager";
 import { cleanupClipboardCache } from "./services/clipboardCacheService";
 
-const e2eConfig = resolveE2ERuntimeConfig({ isPackaged: app.isPackaged });
-initializeRuntimeEnvironment(e2eConfig);
-
 let cliHelpRequest: ReturnType<typeof resolveCliHelpRequest> = null;
 let cliSceneTemplateRequest: ReturnType<typeof resolveCliSceneTemplateRequest> =
     null;
 let cliValidateSceneRequest: ReturnType<typeof resolveCliValidateSceneRequest> =
     null;
+const cliRuntimeOptions = resolveCliRuntimeOptions(
+    process.argv,
+    app.isPackaged
+);
 try {
     cliHelpRequest = resolveCliHelpRequest(process.argv, app.isPackaged);
     if (!cliHelpRequest) {
@@ -158,6 +167,28 @@ if (cliValidateSceneRequest) {
     }
 }
 
+let preflightSecondInstanceCommand: ReturnType<
+    typeof resolveSecondInstanceCommand
+> = null;
+const hasExplicitControlSubcommand =
+    resolveCliSubcommandArgv(normalizeArgv(process.argv, app.isPackaged))
+        .subcommand === "control";
+try {
+    preflightSecondInstanceCommand = resolveSecondInstanceCommand(
+        process.argv,
+        app.isPackaged,
+        process.cwd()
+    );
+} catch (error) {
+    writeCliInvalidArgumentError(error);
+    process.exit(CLI_EXIT_CODES.INVALID_ARGUMENT);
+}
+
+const controlResultRequest =
+    hasExplicitControlSubcommand || preflightSecondInstanceCommand
+        ? createControlCommandResultRequest()
+        : undefined;
+
 // 永続化レイヤーを先に構築して、以降は依存注入で扱う
 const settingsRepository = SettingsRepositoryFactory.create();
 const windowRepository = WindowRepositoryFactory.create();
@@ -174,12 +205,55 @@ registerEarlyIpcHandlers();
 registerProcessErrorHandlers();
 registerLocalResourceProtocol();
 
-const gotTheLock = acquireSingleInstanceLock(e2eConfig.enabled);
+const gotTheLock = controlResultRequest
+    ? acquireSingleInstanceLock(
+          controlResultRequest,
+          preflightSecondInstanceCommand ?? undefined
+      )
+    : acquireSingleInstanceLock();
 log.info("Application starting...");
 
 if (!gotTheLock) {
-    log.info("Another instance is already running. Quitting.");
-    app.quit();
+    if (controlResultRequest) {
+        // プライマリインスタンス側の処理時間に合わせたタイムアウトを算出する。
+        // --wait-stable --timeout-ms のような長時間待機コマンドでは、
+        // コマンド自体の timeoutMs + 5秒のバッファを設定して
+        // プライマリ側が応答を書き込むまで十分待つ。
+        const CONTROL_RESULT_BUFFER_MS = 5000;
+        const controlResultTimeoutMs =
+            preflightSecondInstanceCommand?.kind === "wait-stable"
+                ? preflightSecondInstanceCommand.timeoutMs +
+                  CONTROL_RESULT_BUFFER_MS
+                : undefined;
+
+        const waitForControlResultAndExit = async (): Promise<void> => {
+            try {
+                const payload = await awaitControlCommandResult(
+                    controlResultRequest,
+                    controlResultTimeoutMs
+                );
+                writeControlCommandResultToProcess(payload);
+                process.exit(payload.exitCode);
+            } catch (error) {
+                process.stderr.write(
+                    `${stringifyCliJsonResult(
+                        createCliErrorResult({
+                            code: "CLI_CONTROL_RESPONSE_TIMEOUT",
+                            message:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                        })
+                    )}\n`
+                );
+                process.exit(CLI_EXIT_CODES.EXECUTION_FAILED);
+            }
+        };
+        void waitForControlResultAndExit();
+    } else {
+        log.info("Another instance is already running. Quitting.");
+        app.quit();
+    }
 } else {
     registerSingleInstanceHandlers(windowManager);
 
@@ -233,7 +307,6 @@ if (!gotTheLock) {
             windowRepository,
             projectRepository,
             windowManager,
-            e2eConfig,
         });
 
         let startupLaunchPlan:
@@ -249,12 +322,11 @@ if (!gotTheLock) {
             );
             startupLaunchPlan = startupRoute.startupLaunchPlan;
         } catch (error) {
-            reportStartupLaunchParseError(error);
+            reportStartupLaunchParseError(error, cliRuntimeOptions);
         }
 
         const mainWindow = await windowManager.launchMainWindow({
-            skipSplash:
-                e2eConfig.enabled || Boolean(startupLaunchPlan?.skipSplash),
+            skipSplash: Boolean(startupLaunchPlan?.skipSplash),
         });
         log.info("Main window created.");
         if (startupLaunchPlan) {
@@ -277,7 +349,7 @@ if (!gotTheLock) {
         windowManager.registerShortcuts();
 
         // 開発時のみデバッグツールを有効化
-        if (is.dev && !e2eConfig.enabled) {
+        if (is.dev) {
             installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS])
                 .then(() => {
                     // noop
@@ -287,7 +359,7 @@ if (!gotTheLock) {
                 });
         }
 
-        windowManager.openDevTools(mainWindow, e2eConfig.enabled);
+        windowManager.openDevTools(mainWindow);
     });
 
     registerShutdownHandlers(windowManager);

@@ -16,20 +16,13 @@ const saveDialogOptions = {
 
 /**
  * ファイル保存ダイアログを表示して、プロジェクトの保存先パスをユーザーに選択させます。
- * E2Eテストモードが有効な場合は、ダイアログを表示せずにテスト用の固定パスを返します。
  *
  * @param event IPC呼び出し元のイベントオブジェクト
- * @param testMode E2Eテストモードの設定情報
  * @returns 選択されたファイルパス、キャンセル時はnull
  */
 const selectProjectSavePath = async (
-    event: IpcMainInvokeEvent,
-    testMode: ProjectHandlerContext["testMode"]
+    event: IpcMainInvokeEvent
 ): Promise<string | null> => {
-    if (testMode?.enabled) {
-        return testMode.projectFilePath;
-    }
-
     const window = BrowserWindow.fromWebContents(event.sender);
     const result = window
         ? await dialog.showSaveDialog(window, saveDialogOptions)
@@ -46,7 +39,7 @@ const selectProjectSavePath = async (
  * プロジェクトファイルの保存(上書き保存、名前を付けて保存)や、
  * 不要になったキャッシュ画像の削除などを担うIPCハンドラーを登録します。
  *
- * @param context ハンドラー間で共有するコンテキスト(リポジトリやテストモード情報)
+ * @param context ハンドラー間で共有するコンテキスト(リポジトリ情報)
  */
 export const registerProjectSaveHandlers = (
     context: ProjectHandlerContext
@@ -57,10 +50,7 @@ export const registerProjectSaveHandlers = (
             log.debug("[IPC] project:saveAs called");
 
             try {
-                const filePath = await selectProjectSavePath(
-                    event,
-                    context.testMode
-                );
+                const filePath = await selectProjectSavePath(event);
                 if (!filePath) {
                     log.debug("[IPC] project:saveAs canceled by user");
                     return null;
@@ -79,10 +69,7 @@ export const registerProjectSaveHandlers = (
     ipcMain.handle(projectIpcContracts.pickSavePath.channel, async (event) => {
         log.debug("[IPC] project:pickSavePath called");
         try {
-            const filePath = await selectProjectSavePath(
-                event,
-                context.testMode
-            );
+            const filePath = await selectProjectSavePath(event);
             if (!filePath) {
                 log.debug("[IPC] project:pickSavePath canceled by user");
                 return null;

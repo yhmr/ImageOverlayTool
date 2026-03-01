@@ -9,7 +9,6 @@ import "../shared/globals.css";
 import "./DimensionSettingsApp.css";
 
 import { useBroadcastProjectData } from "../hooks/useBroadcastProjectData";
-import { useE2EControlBridge } from "../hooks/useE2EControlBridge";
 import { useReceiveProjectData } from "../hooks/useReceiveProjectData";
 import { useRespondProjectDataSyncRequest } from "../hooks/useRespondProjectDataSyncRequest";
 import {
@@ -30,7 +29,6 @@ const DimensionSettingsApp = () => {
     useReceiveProjectData();
     // 新規ウィンドウが開いた際などの「状態の全同期要求」に対して、現在の状態を返信する
     useRespondProjectDataSyncRequest();
-    useE2EControlBridge();
 
     React.useEffect(() => {
         let isMounted = true;

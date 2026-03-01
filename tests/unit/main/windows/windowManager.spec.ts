@@ -720,14 +720,14 @@ describe("WindowManager", () => {
         mockIs.dev = true;
         process.env["ELECTRON_RENDERER_URL"] = "http://localhost:5173";
 
-        windowManager.openDevTools(asBrowserWindow(mainWindow), false);
+        windowManager.openDevTools(asBrowserWindow(mainWindow));
         expect(mainWindow.webContents.openDevTools).toHaveBeenCalledWith({
             mode: "detach",
         });
 
         vi.mocked(mainWindow.webContents.openDevTools).mockClear();
         appMock.isPackaged = true;
-        windowManager.openDevTools(asBrowserWindow(mainWindow), false);
+        windowManager.openDevTools(asBrowserWindow(mainWindow));
         expect(mainWindow.webContents.openDevTools).not.toHaveBeenCalled();
     });
 

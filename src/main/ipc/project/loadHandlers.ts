@@ -6,7 +6,7 @@ import type { ProjectHandlerContext } from "./types";
 /**
  * プロジェクトファイルの読み込みに関するIPCハンドラーを登録します。
  * OSネイティブのファイル選択ダイアログを使用した読み込みや、
- * ファイルパス指定での直接読み込み、およびE2Eテスト環境での読み込みをサポートします。
+ * ファイルパス指定での直接読み込みをサポートします。
  *
  * @param context ハンドラー間で共有するコンテキスト(リポジトリやテスト設定)
  */
@@ -15,23 +15,6 @@ export const registerProjectLoadHandlers = (
 ): void => {
     ipcMain.handle(projectIpcContracts.load.channel, async (event) => {
         log.debug("[IPC] project:load called");
-
-        if (context.testMode?.enabled) {
-            try {
-                const project = await context.repository.loadProject(
-                    context.testMode.projectFilePath
-                );
-                log.info(
-                    `[IPC] project:load completed in e2e mode: ${context.testMode.projectFilePath}`
-                );
-                return { project, filePath: context.testMode.projectFilePath };
-            } catch {
-                log.debug(
-                    `[IPC] project:load e2e source unavailable: ${context.testMode.projectFilePath}`
-                );
-                return null;
-            }
-        }
 
         const window = BrowserWindow.fromWebContents(event.sender);
         const options: Electron.OpenDialogOptions = {
