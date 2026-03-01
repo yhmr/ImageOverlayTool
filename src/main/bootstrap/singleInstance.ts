@@ -11,6 +11,7 @@ import {
     buildControlAdditionalData,
     type ControlCommandResultRequest,
     resolveControlCommandResultRequest,
+    resolveParsedCommand,
     writeControlCommandExecutionFailedResult,
     writeControlCommandInvalidArgumentResult,
     writeControlCommandSuccessResult,
@@ -18,16 +19,18 @@ import {
 import { resolveCliRuntimeOptions } from "./cliRuntimeOptions";
 import { resolveSecondInstanceCliRoute } from "./cliRouter";
 import { executeSecondInstanceCommand } from "./secondInstanceCommand";
+import type { SecondInstanceCommand } from "./secondInstance/types";
 import { type StartupWindowOptions } from "./startupLaunch";
 
 export const acquireSingleInstanceLock = (
-    controlResultRequest?: ControlCommandResultRequest
+    controlResultRequest?: ControlCommandResultRequest,
+    parsedCommand?: SecondInstanceCommand
 ): boolean => {
     if (!controlResultRequest) {
         return app.requestSingleInstanceLock();
     }
     return app.requestSingleInstanceLock(
-        buildControlAdditionalData(controlResultRequest)
+        buildControlAdditionalData(controlResultRequest, parsedCommand)
     );
 };
 
@@ -78,6 +81,33 @@ export const registerSingleInstanceHandlers = (
                     mainWindow.restore();
                 }
                 mainWindow.focus();
+            }
+
+            // additionalData に解析済みコマンドがあれば、commandLine の再解析をスキップ。
+            // Chromium の CommandLine が POSIX 上でスイッチを positional args の前に
+            // 並べ替えるため、commandLine の引数順序は信頼できない。
+            const preResolved = resolveParsedCommand(additionalData);
+            if (preResolved && controlResultRequest) {
+                const command = preResolved as SecondInstanceCommand;
+                try {
+                    await executeSecondInstanceCommand(command, windowManager);
+                    log.debug(
+                        "[second-instance] control command executed (pre-resolved)"
+                    );
+                    await writeControlCommandSuccessResult(
+                        controlResultRequest
+                    );
+                } catch (error) {
+                    reportSecondInstanceCommandExecutionError(
+                        error,
+                        runtimeOptions
+                    );
+                    await writeControlCommandExecutionFailedResult(
+                        controlResultRequest,
+                        error
+                    );
+                }
+                return;
             }
 
             let cliRoute: Awaited<

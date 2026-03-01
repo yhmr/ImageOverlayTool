@@ -28,6 +28,7 @@ interface ControlCommandResultFilePayload {
 
 type AdditionalDataContainer = {
     controlResult?: unknown;
+    parsedCommand?: unknown;
 };
 
 const isNonEmptyString = (value: unknown): value is string =>
@@ -125,9 +126,11 @@ export const createControlCommandResultRequest =
     };
 
 export const buildControlAdditionalData = (
-    request: ControlCommandResultRequest
+    request: ControlCommandResultRequest,
+    parsedCommand?: unknown
 ): AdditionalDataContainer => ({
     controlResult: request,
+    parsedCommand: parsedCommand ?? undefined,
 });
 
 export const resolveControlCommandResultRequest = (
@@ -138,6 +141,14 @@ export const resolveControlCommandResultRequest = (
     }
     const container = additionalData as AdditionalDataContainer;
     return validateRequest(container.controlResult);
+};
+
+export const resolveParsedCommand = (additionalData: unknown): unknown => {
+    if (!additionalData || typeof additionalData !== "object") {
+        return undefined;
+    }
+    const container = additionalData as AdditionalDataContainer;
+    return container.parsedCommand;
 };
 
 export const writeControlCommandSuccessResult = async (

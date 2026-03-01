@@ -206,7 +206,10 @@ registerProcessErrorHandlers();
 registerLocalResourceProtocol();
 
 const gotTheLock = controlResultRequest
-    ? acquireSingleInstanceLock(controlResultRequest)
+    ? acquireSingleInstanceLock(
+          controlResultRequest,
+          preflightSecondInstanceCommand ?? undefined
+      )
     : acquireSingleInstanceLock();
 log.info("Application starting...");
 
