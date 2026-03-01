@@ -215,10 +215,22 @@ log.info("Application starting...");
 
 if (!gotTheLock) {
     if (controlResultRequest) {
+        // プライマリインスタンス側の処理時間に合わせたタイムアウトを算出する。
+        // --wait-stable --timeout-ms のような長時間待機コマンドでは、
+        // コマンド自体の timeoutMs + 5秒のバッファを設定して
+        // プライマリ側が応答を書き込むまで十分待つ。
+        const CONTROL_RESULT_BUFFER_MS = 5000;
+        const controlResultTimeoutMs =
+            preflightSecondInstanceCommand?.kind === "wait-stable"
+                ? preflightSecondInstanceCommand.timeoutMs +
+                  CONTROL_RESULT_BUFFER_MS
+                : undefined;
+
         const waitForControlResultAndExit = async (): Promise<void> => {
             try {
                 const payload = await awaitControlCommandResult(
-                    controlResultRequest
+                    controlResultRequest,
+                    controlResultTimeoutMs
                 );
                 writeControlCommandResultToProcess(payload);
                 process.exit(payload.exitCode);

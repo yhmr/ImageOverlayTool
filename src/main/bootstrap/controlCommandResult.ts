@@ -13,7 +13,7 @@ import {
 } from "./cliResult";
 
 const CONTROL_RESULT_FILE_PREFIX = "iot-control-result-";
-const CONTROL_RESULT_TIMEOUT_MS = 15000;
+const CONTROL_RESULT_DEFAULT_TIMEOUT_MS = 15000;
 const CONTROL_RESULT_POLL_MS = 50;
 
 export interface ControlCommandResultRequest {
@@ -191,9 +191,11 @@ export const writeControlCommandExecutionFailedResult = async (
 };
 
 export const awaitControlCommandResult = async (
-    request: ControlCommandResultRequest
+    request: ControlCommandResultRequest,
+    timeoutMs?: number
 ): Promise<ControlCommandResultFilePayload> => {
-    const deadline = Date.now() + CONTROL_RESULT_TIMEOUT_MS;
+    const effectiveTimeout = timeoutMs ?? CONTROL_RESULT_DEFAULT_TIMEOUT_MS;
+    const deadline = Date.now() + effectiveTimeout;
 
     while (Date.now() < deadline) {
         if (fs.existsSync(request.resultFilePath)) {
@@ -214,7 +216,7 @@ export const awaitControlCommandResult = async (
     }
 
     throw new Error(
-        `Timed out waiting for control command result after ${CONTROL_RESULT_TIMEOUT_MS}ms.`
+        `Timed out waiting for control command result after ${effectiveTimeout}ms.`
     );
 };
 
