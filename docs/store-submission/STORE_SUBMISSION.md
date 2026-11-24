@@ -48,9 +48,8 @@ ImageOverlayTool is designed for local/offline use. Your images, projects, and s
 ### What's new
 
 ```
-- Added Command Line Interface (CLI) support for integrating ImageOverlayTool with external tools and scripts.
-- Added capability to control running instances of the application via CLI.
-- Added window frame visibility toggle feature.
+- Added Simplified Chinese (zh-CN) UI localization.
+- Added numeric input fields to image settings, allowing precise entry of opacity, scale, and rotation values.
 ```
 
 ### Product features
@@ -119,9 +118,8 @@ UI検証、デザイン調整、ビフォー/アフター比較、計測を伴�
 ### このバージョンの最新情報
 
 ```
-- コマンドラインインターフェース（CLI）による操作をサポートし、外部ツールやスクリプトとの連携が可能に
-- 起動中のアプリケーションインスタンスに対してCLI経由で操作を行う機能を追加
-- ウィンドウ枠の表示/非表示を切り替える機能を追加
+- 簡体字中国語（zh-CN）のUI表示に対応しました
+- 画像設定に数値入力を追加し、透明度・スケール・回転を数値で正確に指定できるようになりました
 ```
 
 ### 製品の機能
