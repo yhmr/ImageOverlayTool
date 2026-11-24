@@ -1,0 +1,44 @@
+name: Commit Lint
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_.-]+\))?!?:.+'
+          failed=0
+          commits=$(git log --format=%s "origin/${BASE_REF}..HEAD")
+
+          while IFS= read -r subject; do
+            if [ -z "$subject" ]; then
+              continue
+            fi
+            if [[ "$subject" == "Merge "* ]]; then
+              echo "Skipping merge commit: $subject"
+              continue
+            fi
+            if [[ ! "$subject" =~ $pattern ]]; then
+              echo "Invalid commit subject: $subject"
+              failed=1
+            fi
+          done <<< "$commits"
+
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
+
+          echo "All commit messages conform to Conventional Commits."
